@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'branding.dart';
 import 'fakes/fake_library.dart';
+import 'l10n/l10n.dart';
 import 'platform/form_factor.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/app_services.dart';
@@ -17,11 +18,11 @@ class KinoluneApp extends StatefulWidget {
     required this.services,
     required this.formFactor,
     this.initialSection = Section.home,
-    this.startupWarning,
+    this.libmpvMissing = false,
   });
 
-  /// Shown once as a banner (e.g. libmpv missing on Linux).
-  final String? startupWarning;
+  /// Shows a dismissible banner: libmpv could not be loaded (Linux).
+  final bool libmpvMissing;
 
   final AppServices services;
   final FormFactor formFactor;
@@ -33,12 +34,13 @@ class KinoluneApp extends StatefulWidget {
 
 class _KinoluneAppState extends State<KinoluneApp> {
   late AppServices _services = widget.services;
-  late String? _warning = widget.startupWarning;
+  late bool _showLibmpvWarning = widget.libmpvMissing;
 
   Future<void> _useDemo() async {
     final demo = AppServices(
       library: FakeLibrary.demo(),
       secureStore: _services.secureStore,
+      preferences: _services.preferences,
     );
     await demo.init();
     setState(() => _services = demo);
@@ -51,8 +53,21 @@ class _KinoluneAppState extends State<KinoluneApp> {
       formFactor: widget.formFactor,
       child: Services(
         services: _services,
-        child: MaterialApp(
+        child: ValueListenableBuilder<Locale?>(
+          valueListenable: _services.locale,
+          builder: (context, locale, _) => _app(tv, locale),
+        ),
+      ),
+    );
+  }
+
+  Widget _app(bool tv, Locale? locale) => MaterialApp(
           title: kAppName,
+          // null = system locale; unsupported system locales fall back to
+          // English (the first supported locale).
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: kLocalizationsDelegates,
           debugShowCheckedModeBanner: false,
           theme: buildKinoluneTheme(widget.formFactor),
           darkTheme: buildKinoluneTheme(widget.formFactor),
@@ -69,8 +84,7 @@ class _KinoluneAppState extends State<KinoluneApp> {
               FocusManager.instance.highlightStrategy =
                   FocusHighlightStrategy.alwaysTraditional;
             }
-            final w = _warning;
-            if (w == null) return child!;
+            if (!_showLibmpvWarning) return child!;
             return Column(
               children: [
                 Material(
@@ -86,10 +100,15 @@ class _KinoluneAppState extends State<KinoluneApp> {
                             color: Colors.amber,
                           ),
                           const SizedBox(width: 12),
-                          Expanded(child: Text(w)),
+                          Expanded(
+                            child: Text(
+                              context.l10n.appLibmpvMissing(kAppName),
+                            ),
+                          ),
                           TextButton(
-                            onPressed: () => setState(() => _warning = null),
-                            child: const Text('Dismiss'),
+                            onPressed: () =>
+                                setState(() => _showLibmpvWarning = false),
+                            child: Text(context.l10n.commonDismiss),
                           ),
                         ],
                       ),
@@ -115,8 +134,5 @@ class _KinoluneAppState extends State<KinoluneApp> {
               );
             },
           ),
-        ),
-      ),
-    );
-  }
+        );
 }

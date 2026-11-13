@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/artwork.dart';
@@ -36,17 +37,18 @@ class _MusicScreenState extends State<MusicScreen> {
       stream: _tracks,
       builder: (context, snap) {
         final tracks = snap.data ?? const <LibraryItem>[];
-        final albums = groupAlbums(tracks);
+        final l = context.l10n;
+        final albums = groupAlbums(l, tracks);
         return CustomScrollView(
           clipBehavior: Clip.none,
           slivers: [
             SliverToBoxAdapter(
               child: PageTitle(
-                'Music',
+                l.navMusic,
                 trailing: tracks.isEmpty
                     ? null
                     : KButton(
-                        label: 'Shuffle all',
+                        label: l.musicShuffleAll,
                         icon: Icons.shuffle,
                         onPressed: () {
                           final list = [...tracks]..shuffle();
@@ -67,13 +69,13 @@ class _MusicScreenState extends State<MusicScreen> {
                   child: Row(
                     children: [
                       FilterPill(
-                        label: 'Albums (${albums.length})',
+                        label: l.musicAlbumsTab(albums.length),
                         selected: _albums,
                         onTap: () => setState(() => _albums = true),
                       ),
                       const SizedBox(width: 8),
                       FilterPill(
-                        label: 'Tracks (${tracks.length})',
+                        label: l.musicTracksTab(tracks.length),
                         selected: !_albums,
                         onTap: () => setState(() => _albums = false),
                       ),
@@ -83,13 +85,12 @@ class _MusicScreenState extends State<MusicScreen> {
               ),
             ),
             if (tracks.isEmpty)
-              const SliverFillRemaining(
+              SliverFillRemaining(
                 hasScrollBody: false,
                 child: EmptyState(
                   icon: Icons.library_music_outlined,
-                  title: 'No music yet',
-                  message:
-                      'Folders with audio files are picked up by the scan.',
+                  title: l.musicEmptyTitle,
+                  message: l.musicEmptyMessage,
                 ),
               )
             else if (_albums)
@@ -160,6 +161,7 @@ class AlbumScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
     final theme = Theme.of(context);
+    final l = context.l10n;
     final art = d.isPhone ? 180.0 : (d.isTv ? 200.0 : 240.0);
     final total = album.tracks.fold<int>(0, (s, t) => s + (t.durationMs ?? 0));
     final header = [
@@ -182,7 +184,7 @@ class AlbumScreen extends StatelessWidget {
               : CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('ALBUM', style: theme.textTheme.labelSmall),
+            Text(l.musicAlbumLabel, style: theme.textTheme.labelSmall),
             Text(
               album.title,
               style: theme.textTheme.displayMedium,
@@ -193,8 +195,8 @@ class AlbumScreen extends StatelessWidget {
               [
                 album.artist,
                 if (album.year != null) '${album.year}',
-                '${album.tracks.length} tracks',
-                formatRuntime(total),
+                l.musicTrackCount(album.tracks.length),
+                formatRuntime(l, total),
               ].join('  ·  '),
               style: theme.textTheme.labelMedium,
             ),
@@ -204,14 +206,14 @@ class AlbumScreen extends StatelessWidget {
               runSpacing: 12,
               children: [
                 KButton(
-                  label: 'Play',
+                  label: l.musicPlay,
                   icon: Icons.play_arrow_rounded,
                   primary: true,
                   autofocus: !d.isPhone,
                   onPressed: () => playTracks(context, album.tracks, 0),
                 ),
                 KButton(
-                  label: 'Shuffle',
+                  label: l.commonShuffle,
                   icon: Icons.shuffle,
                   onPressed: () =>
                       playTracks(context, [...album.tracks]..shuffle(), 0),
@@ -236,7 +238,7 @@ class AlbumScreen extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  tooltip: 'Back',
+                  tooltip: l.commonBack,
                   onPressed: () => Navigator.of(context).maybePop(),
                   icon: const Icon(Icons.arrow_back),
                 ),

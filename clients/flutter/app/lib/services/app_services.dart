@@ -6,6 +6,8 @@ import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
 import '../integration/player.dart';
+import '../l10n/l10n.dart';
+import 'preferences.dart';
 import 'secure_store.dart';
 
 /// App-wide services, provided to the tree by [Services].
@@ -13,14 +15,20 @@ class AppServices extends ChangeNotifier {
   AppServices({
     required this.library,
     required this.secureStore,
+    Preferences? preferences,
     MusicPlayerController? music,
     this.playerEngineFactory,
-  }) : music =
+  }) : preferences = preferences ?? MemoryPreferences(),
+       music =
            music ?? MusicPlayerController(engineFactory: playerEngineFactory);
 
   final Library library;
   final SecureStore secureStore;
+  final Preferences preferences;
   final MusicPlayerController music;
+
+  /// UI language chosen in Settings; null = follow the system locale.
+  final ValueNotifier<Locale?> locale = ValueNotifier(null);
 
   /// Overrides the media_kit engine (tests use pa_player's FakePlayerEngine).
   final PlayerEngineFactory? playerEngineFactory;
@@ -36,6 +44,7 @@ class AppServices extends ChangeNotifier {
   bool get scanning => _scanRunning;
 
   Future<void> init() async {
+    locale.value = parseLocaleTag(await preferences.read(Preferences.locale));
     _sources = await library.sources();
     final key = await secureStore.read(SecureStore.tmdbKey);
     if (key != null && key.isNotEmpty) await library.setTmdbApiKey(key);
@@ -111,8 +120,17 @@ class AppServices extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setLocale(Locale? value) async {
+    locale.value = value;
+    await preferences.write(
+      Preferences.locale,
+      value == null ? null : localeTag(value),
+    );
+  }
+
   @override
   void dispose() {
+    locale.dispose();
     music.dispose();
     super.dispose();
   }

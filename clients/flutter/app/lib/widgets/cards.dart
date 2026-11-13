@@ -3,6 +3,7 @@
 import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../l10n/l10n.dart';
 import '../integration/library.dart';
 import '../theme/kinolune_theme.dart';
 import 'artwork.dart';
@@ -304,7 +305,10 @@ class MediaRow extends StatelessWidget {
                 ),
               ),
               if (onSeeAll != null && !d.isTv)
-                TextButton(onPressed: onSeeAll, child: const Text('See all')),
+                TextButton(
+                  onPressed: onSeeAll,
+                  child: Text(context.l10n.commonSeeAll),
+                ),
             ],
           ),
         ),
