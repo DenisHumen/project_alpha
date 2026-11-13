@@ -24,3 +24,10 @@ regexTarget = "line"
 regexes = [
   '''(?i)=\s*(changeme|your[-_a-z]*|<[^>]+>|xxx+)\s*$''',
 ]
+
+[[allowlists]]
+description = "Recognition corpus title list: franchise slugs (`- key: fruits-basket-2001`) look like generic API keys"
+paths = ['''^tools/recognition-eval/corpus/gen/titles\.yaml$''']
+regexTarget = "line"
+regexes = ['''^\s*- key: [a-z0-9-]+$''']
+condition = "AND"

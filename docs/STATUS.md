@@ -3,11 +3,15 @@
 > Файл для передачи работы между компьютерами и сессиями. Обновляется мейнтейнером после каждой волны/слияния.
 > Источник истины по задачам — [ROADMAP.md](ROADMAP.md) (галочки, `just roadmap next`) и открытые PR. Решения — [adr/](adr/).
 
-Обновлено: 2026-11-13, ~19:45 UTC
+Обновлено: 2026-11-13, ~20:30 UTC
 
 ## Приоритет
 
 **Релиз 0.1 — Kinolune** (ADR-0011, контракт [dev/release-0.1-contract.md](dev/release-0.1-contract.md)): Linux + Android, локальные папки (SMB на Linux — бета), распознавание, медиатека, плеер (media_kit, ADR-0012), «Продолжить просмотр», музыка. Сборка в CI → GitHub Releases по тегу `app-v*`. NAS-дистрибутив — последним.
+
+## Релизы
+
+- **[Kinolune 0.1.0-alpha.1](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.1)** (2026-11-13, пре-релиз): Linux AppImage/tar.gz, Android APK (arm64, armv7, x86_64, universal; debug-подпись). Linux требует системный libmpv.
 
 ## Готово и в main
 
@@ -15,13 +19,14 @@
 - Ядро (Rust): `pa-model`, `pa-ffi` (UniFFI), `pa-frb` + Dart-пакет `pa_core` (flutter_rust_bridge, Native Assets), `pa-runtime`, `pa-vfs`, `pa-library` (схема SQLite v1), `pa-recognition` (парсер имён, META-005), `pa-anime-mappings`, `pa-eval` + формат корпуса.
 - Клиент 0.1: `pa_library` (Dart: сканер, парсер v0, TMDB, SQLite, прогресс), `pa_player` (media_kit: видео-OSD, музыка), `pa_design` (токены, иконки Lucide, шрифт Inter), бренд Kinolune (иконки, баннер TV, заглушки).
 - Сборки: LGPL FFmpeg для 11 таргетов (CI), CI выпуска приложения (AppImage/tar.gz, APK), CI образа NAS-ОС с подписью, определение дисков установщика.
+- Приложение Kinolune (`clients/flutter/app`, R01-APP) — все экраны 0.1, скриншоты в docs/screenshots/0.1.
+- LIB-016: refinery удалён, rusqlite 0.42 (закрыт CVE встроенного SQLite).
 - Документы: стратегия, 16 ADR, архитектура, тест-стратегия, генератор тестовых медиа, юридические таблицы, политика конфиденциальности, скриншоты прогресса.
 
 ## Открытые PR (работа в процессе)
 
 | PR | Задача | Состояние |
 |---|---|---|
-| #28 | R01-APP: приложение Kinolune (экраны, навигация, скриншоты) | черновик, агент на паузе; нужно подключить реальные `pa_library`/`pa_player`/`pa_design`/бренд и снять скриншоты |
 | #33 | PLAY-002: LGPL libmpv | черновик; Android собирается, Linux/macOS/Windows — чинить (на сервере сборки) |
 | #37 | META-002: корпус распознавания v0 | черновик; gitleaks ложные срабатывания на хэшах |
 

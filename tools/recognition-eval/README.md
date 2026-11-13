@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 # recognition-eval — формат корпуса распознавания
 
-Формат тестового корпуса для оценки распознавания фильмов, сериалов и аниме (задача META-001, исследование [03 §6](../../docs/research/03-metadata-recognition.md)). Здесь лежат спецификация и инструменты; сам корпус живёт отдельно (см. ниже).
+Формат тестового корпуса для оценки распознавания фильмов, сериалов и аниме (задача META-001, исследование [03 §6](../../docs/research/03-metadata-recognition.md)). Здесь лежат спецификация, инструменты и корпус v0 ([`corpus/`](corpus/README.md), META-002).
 
 | Файл | Что это |
 |---|---|
@@ -10,6 +10,8 @@
 | [`schema/taxonomy.v1.json`](schema/taxonomy.v1.json) | таксономия трудных случаев A1–A17 |
 | [`examples/examples.jsonl`](examples/examples.jsonl) | 54 собственных примера (MPL-2.0), каждая категория встречается ≥ 3 раз |
 | `src/` | крейт `pa-recognition-eval`: библиотека валидации и CLI `corpus-validate` |
+| [`corpus/`](corpus/README.md) | корпус v0: 2 035 групп файлов, генератор и сверка ID (META-002) |
+| [`baselines/v0/`](baselines/v0/README.md) | отчёты бейзлайнов `pa-eval` по корпусу v0 |
 
 ## Формат в двух словах
 
@@ -31,7 +33,7 @@ JSONL, одна строка — один **кейс** (дерево файло�
 ```bash
 cd tools/recognition-eval
 cargo run --bin corpus-validate -- examples/examples.jsonl
-cargo run --bin corpus-validate -- --strict --min-per-category 50 corpus/*.jsonl   # корпус v0 (META-002)
+cargo run --bin corpus-validate -- --min-per-category 50 corpus/v0/*.jsonl   # корпус v0 (META-002)
 cargo test
 ```
 
@@ -45,17 +47,6 @@ cargo test
 
 Тест-кейсы guessit (LGPL), Sonarr (GPL), Jellyfin (GPL) сюда не копируются.
 
-## Где живёт корпус (предложение владельцу)
+## Где живёт корпус
 
-ROADMAP предлагает отдельный репозиторий `project_alpha-recognition-eval`: данные со смешанными лицензиями (LGPL/GPL-тест-кейсы чужих парсеров, заголовки релизов, дампы библиотек волонтёров) не должны попадать в репозиторий продукта, а закрытый test-сплит не должен лежать рядом с кодом, который по нему подбирают. Предлагаемая структура:
-
-```text
-project_alpha-recognition-eval/
-├── corpus/{train,dev}/*.jsonl      # git-lfs или DVC
-├── corpus/test/                    # закрытый сплит: приватный remote DVC
-├── baselines/                      # отчёты META-004
-├── LICENSES/                       # лицензии по источникам
-└── .github/workflows/validate.yml  # corpus-validate --strict из этого репо
-```
-
-Схема, таксономия и валидатор остаются здесь (их используют `pa-eval` и CI ядра); eval-репозиторий фиксирует версию схемы, с которой размечен.
+По [ADR-0011](../../docs/adr/0011-maintainer-decisions-release-0-1.md) п. 8 корпус пока лежит в этом репозитории ([`corpus/`](corpus/README.md)) и содержит только собственные данные проекта (MPL-2.0). Отдельный eval-репозиторий понадобится, когда появятся данные с несовместимыми лицензиями (тест-кейсы чужих парсеров, дампы библиотек волонтёров) и закрытый test-сплит.
