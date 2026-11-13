@@ -1,0 +1,210 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Flutter checks for clients/flutter (R01-REL, first part of CI-005):
+# format, analyze and tests for the app and every package, plus Linux and
+# Android (debug) build smoke tests of the app.
+#
+# Safe for PRs from forks: `pull_request` only, read-only token, no secrets,
+# every third-party action pinned to a full commit SHA, Flutter pinned below.
+# Projects are discovered automatically: any pubspec.yaml under clients/flutter
+# and design/flutter (pa_design). Design fonts are fetched before any Flutter step.
+#
+# `flutter-green` is the single required check: it passes when every job passed
+# or was skipped because there is no Flutter project yet.
+
+name: Flutter
+
+on:
+  pull_request:
+    paths:
+      - "clients/flutter/**"
+      - "design/flutter/**"
+      - "design/fonts/**"
+      - "design/scripts/fonts-fetch.mjs"
+      - "packaging/app/**"
+      - ".github/workflows/flutter.yml"
+  push:
+    branches: [main]
+    paths:
+      - "clients/flutter/**"
+      - "design/flutter/**"
+      - "design/fonts/**"
+      - "design/scripts/fonts-fetch.mjs"
+      - "packaging/app/**"
+      - ".github/workflows/flutter.yml"
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in sync with release-app.yml.
+  FLUTTER_VERSION: "3.50.0"
+  APP_DIR: clients/flutter/app
+
+jobs:
+  discover:
+    name: Discover Flutter projects
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      projects: ${{ steps.find.outputs.projects }}
+      has_projects: ${{ steps.find.outputs.has_projects }}
+      has_app: ${{ steps.find.outputs.has_app }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Find pubspec.yaml files
+        id: find
+        run: |
+          # pa_design is included because the app depends on it; its heavier
+          # token/icon checks stay in design.yml.
+          roots=(); for d in clients/flutter design/flutter; do [ -d "$d" ] && roots+=("$d"); done
+          projects=$(find "${roots[@]}" -name pubspec.yaml \
+              -not -path '*/.*' -not -path '*/build/*' -not -path '*/example/*' \
+              -printf '%h\n' | sort | jq -R . | jq -cs .)
+          {
+            echo "projects=$projects"
+            echo "has_projects=$([ "$projects" != "[]" ] && echo true || echo false)"
+            echo "has_app=$([ -f "$APP_DIR/pubspec.yaml" ] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+          echo "Flutter projects: $projects"
+
+  check:
+    name: check (${{ matrix.project }})
+    needs: discover
+    if: needs.discover.outputs.has_projects == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.discover.outputs.projects) }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch design fonts (pinned SHA-256)
+        run: |
+          # pa_design ships Inter outside git; the app and package need it to build.
+          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - name: dart format
+        run: dart format --output=none --set-exit-if-changed .
+      - name: flutter analyze
+        run: flutter analyze
+      - name: Tests
+        run: |
+          if [ ! -d test ]; then
+            echo "::warning::$PWD has no test/ directory"
+          elif grep -Eq '^\s*flutter_test:' pubspec.yaml; then
+            flutter test
+          else
+            dart test
+          fi
+
+  linux:
+    name: Linux build smoke
+    needs: discover
+    if: needs.discover.outputs.has_app == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libmpv-dev
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch design fonts (pinned SHA-256)
+        run: |
+          # pa_design ships Inter outside git; the app and package need it to build.
+          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: flutter build linux
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          flutter pub get
+          flutter build linux --release
+      - name: Package (tar.gz + AppImage)
+        run: packaging/app/linux/package.sh "$APP_DIR/build/linux/x64/release/bundle" 0.0.0-ci dist
+
+  android:
+    name: Android build smoke
+    needs: discover
+    if: needs.discover.outputs.has_app == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch design fonts (pinned SHA-256)
+        run: |
+          # pa_design ships Inter outside git; the app and package need it to build.
+          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: flutter build apk --debug
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          flutter pub get
+          flutter build apk --debug --target-platform android-arm64
+
+  flutter-green:
+    name: flutter-green
+    if: always()
+    needs: [discover, check, linux, android]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check that every job passed or was skipped
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          if [ "$(echo "$NEEDS" | jq -r '.discover.result')" != "success" ]; then
+            echo "::error::Project discovery did not succeed"
+            exit 1
+          fi
+          bad=$(echo "$NEEDS" | jq '[.[] | select(.result != "success" and .result != "skipped")] | length')
+          if [ "$bad" -ne 0 ]; then
+            echo "::error::Some Flutter jobs failed or were cancelled"
+            exit 1
+          fi
