@@ -15,6 +15,7 @@ flowchart LR
     pa_anime_mappings["pa-anime-mappings"]
     pa_ffi["pa-ffi"]
     pa_model["pa-model"]
+    pa_recognition["pa-recognition"]
     pa_vfs["pa-vfs"]
   end
   subgraph g1["tools — инструменты"]
@@ -30,6 +31,7 @@ flowchart LR
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 1 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
 | `pa-model` | `core/crates/pa-model` | 1 | Domain types of the project_alpha core: media entities, sync keys, playback state |
+| `pa-recognition` | `core/crates/pa-recognition` | 1 | Media recognition core (sans-IO): filename parser with N-best hypotheses |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
 
