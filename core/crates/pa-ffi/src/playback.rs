@@ -304,7 +304,9 @@ impl From<uniffi::UnexpectedUniFFICallbackError> for EngineError {
 pub enum EngineEvent {
     /// Playlist item `index` starts opening; resets all but rate, volume
     /// and repeat.
-    Loading { index: u32 },
+    Loading {
+        index: u32,
+    },
     /// The item is open.
     Loaded {
         duration_ms: u64,
@@ -316,18 +318,36 @@ pub enum EngineEvent {
         subtitles: Vec<Track>,
     },
     /// `id: None` means off.
-    TrackSelected { kind: TrackKind, id: Option<String> },
+    TrackSelected {
+        kind: TrackKind,
+        id: Option<String>,
+    },
     /// At least every 500 ms while playing, and after a seek.
-    Position { position_ms: u64, buffered_ms: u64 },
-    PlayingChanged { playing: bool },
-    BufferingChanged { buffering: bool },
-    RateChanged { rate: f64 },
-    VolumeChanged { volume: f64 },
-    RepeatChanged { repeat: RepeatMode },
+    Position {
+        position_ms: u64,
+        buffered_ms: u64,
+    },
+    PlayingChanged {
+        playing: bool,
+    },
+    BufferingChanged {
+        buffering: bool,
+    },
+    RateChanged {
+        rate: f64,
+    },
+    VolumeChanged {
+        volume: f64,
+    },
+    RepeatChanged {
+        repeat: RepeatMode,
+    },
     /// The last item ended (repeat off).
     Ended,
     /// Playback failed; the engine stays usable for a new `open`.
-    Error { error: EngineError },
+    Error {
+        error: EngineError,
+    },
     /// `close` finished; no events follow.
     Closed,
 }
@@ -643,9 +663,8 @@ impl pb::PlayerEngine for ForeignEngine {
     }
 
     fn set_listener(&self, listener: Option<Arc<dyn pb::EngineListener>>) {
-        self.0.set_listener(
-            listener.map(|l| Arc::new(ListenerBridge(l)) as Arc<dyn EngineListener>),
-        );
+        self.0
+            .set_listener(listener.map(|l| Arc::new(ListenerBridge(l)) as Arc<dyn EngineListener>));
     }
 
     fn state(&self) -> pb::EngineState {
