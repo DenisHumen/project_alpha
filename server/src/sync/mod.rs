@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-//! Sync hub (SYNC-008): the sync protocol (`docs/api/sync-protocol.md`) over
+//! Sync hub (SYNC-008): the sync protocol (`docs/api/sync-protocol.md`, §8) over
 //! WebSocket at [`PATH`].
 //!
 //! The server is the hub for devices that know it (ADR-0004, mode B):
