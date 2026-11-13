@@ -1,0 +1,42 @@
+{
+  "$description": "Primitive tokens: raw values. Skeleton from DSN-001; full values are DSN-002 (01 §4.3–4.7). Do not reference from platform code.",
+  "color": {
+    "$type": "color",
+    "neutral": {
+      "0": { "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000" } },
+      "50": { "$value": { "colorSpace": "srgb", "components": [0.98, 0.98, 0.98], "hex": "#fafafa" } },
+      "950": { "$value": { "colorSpace": "srgb", "components": [0.039, 0.039, 0.043], "hex": "#0a0a0b" }, "$description": "Placeholder; real palette in DSN-002." },
+      "1000": { "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff" } }
+    },
+    "brand": {
+      "500": { "$value": { "colorSpace": "srgb", "components": [0.231, 0.51, 0.965], "hex": "#3b82f6" }, "$description": "Placeholder accent; brand colour is decided in DSN-006." }
+    },
+    "red": {
+      "500": { "$value": { "colorSpace": "srgb", "components": [0.937, 0.267, 0.267], "hex": "#ef4444" }, "$description": "Placeholder for the LIVE accent." }
+    }
+  },
+  "space": {
+    "$type": "dimension",
+    "4": { "$value": { "value": 4, "unit": "px" } },
+    "8": { "$value": { "value": 8, "unit": "px" } },
+    "16": { "$value": { "value": 16, "unit": "px" } },
+    "24": { "$value": { "value": 24, "unit": "px" } },
+    "48": { "$value": { "value": 48, "unit": "px" } }
+  },
+  "radius": {
+    "$type": "dimension",
+    "sm": { "$value": { "value": 8, "unit": "px" } },
+    "md": { "$value": { "value": 12, "unit": "px" } },
+    "full": { "$value": { "value": 9999, "unit": "px" } }
+  },
+  "duration": {
+    "$type": "duration",
+    "fast": { "$value": { "value": 150, "unit": "ms" } },
+    "base": { "$value": { "value": 250, "unit": "ms" } }
+  },
+  "number": {
+    "$type": "number",
+    "scale-100": { "$value": 1 },
+    "scale-110": { "$value": 1.1 }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "$description": "Density profile 'tablet'. Overrides scale only, never colours. Skeleton from DSN-001; real factors are DSN-002 (01 §4.4).",
+  "density": {
+    "scale": { "$type": "number", "$value": 1, "$description": "Placeholder multiplier for spacing and type." }
+  }
+}
