@@ -54,8 +54,11 @@ pub type CloseFn = unsafe extern "C" fn(cookie: *mut c_void);
 /// `mpv_stream_cb_cancel_fn` (client API 1.106+).
 pub type CancelFn = unsafe extern "C" fn(cookie: *mut c_void);
 /// `mpv_stream_cb_open_ro_fn`.
-pub type OpenRoFn =
-    unsafe extern "C" fn(user_data: *mut c_void, uri: *mut c_char, info: *mut StreamCbInfo) -> c_int;
+pub type OpenRoFn = unsafe extern "C" fn(
+    user_data: *mut c_void,
+    uri: *mut c_char,
+    info: *mut StreamCbInfo,
+) -> c_int;
 /// `int mpv_stream_cb_add_ro(mpv_handle *, const char *protocol, void *user_data, mpv_stream_cb_open_ro_fn)`.
 pub type StreamCbAddRoFn = unsafe extern "C" fn(
     mpv: *mut c_void,
@@ -210,7 +213,10 @@ impl MpvProtocol {
 
     fn open(&self, uri: &str) -> pa_vfs::Result<Arc<dyn ByteSource>> {
         let id = uri.strip_prefix(&self.prefix).ok_or_else(|| {
-            VfsError::new(ErrorKind::InvalidPath, format!("not a {} URI: {uri}", self.prefix))
+            VfsError::new(
+                ErrorKind::InvalidPath,
+                format!("not a {} URI: {uri}", self.prefix),
+            )
         })?;
         self.resolver.resolve(id)
     }
@@ -222,7 +228,11 @@ impl MpvProtocol {
 ///
 /// `user_data` is [`MpvProtocol::user_data`] of a live protocol, `uri` a
 /// NUL-terminated string and `info` a writable `mpv_stream_cb_info`.
-pub unsafe extern "C" fn open_ro(user_data: *mut c_void, uri: *mut c_char, info: *mut StreamCbInfo) -> c_int {
+pub unsafe extern "C" fn open_ro(
+    user_data: *mut c_void,
+    uri: *mut c_char,
+    info: *mut StreamCbInfo,
+) -> c_int {
     // SAFETY: guaranteed by the caller (see above).
     let protocol = unsafe { &*user_data.cast::<MpvProtocol>() };
     // SAFETY: guaranteed by the caller (see above).
@@ -246,7 +256,10 @@ pub unsafe extern "C" fn open_ro(user_data: *mut c_void, uri: *mut c_char, info:
             0
         }
         Err(err) => {
-            *protocol.last_error.lock().unwrap_or_else(|e| e.into_inner()) = Some(err);
+            *protocol
+                .last_error
+                .lock()
+                .unwrap_or_else(|e| e.into_inner()) = Some(err);
             MPV_ERROR_LOADING_FAILED
         }
     }
@@ -263,7 +276,9 @@ unsafe fn stream<'a>(cookie: *mut c_void) -> &'a Stream {
 unsafe extern "C" fn read(cookie: *mut c_void, buf: *mut c_char, nbytes: u64) -> i64 {
     // SAFETY: mpv passes the cookie from `open_ro` until `close`.
     let s = unsafe { stream(cookie) };
-    let len = usize::try_from(nbytes).unwrap_or(usize::MAX).min(i64::MAX as usize);
+    let len = usize::try_from(nbytes)
+        .unwrap_or(usize::MAX)
+        .min(i64::MAX as usize);
     if len == 0 || buf.is_null() {
         return 0;
     }
@@ -362,7 +377,10 @@ mod tests {
             i64::from(MPV_ERROR_GENERIC)
         );
         unsafe { info.cancel_fn.unwrap()(info.cookie) };
-        assert_eq!(unsafe { info.seek_fn.unwrap()(info.cookie, 0) }, i64::from(MPV_ERROR_GENERIC));
+        assert_eq!(
+            unsafe { info.seek_fn.unwrap()(info.cookie, 0) },
+            i64::from(MPV_ERROR_GENERIC)
+        );
         assert_eq!(read_all(&info, 4).0, -1);
 
         // The stream owns its source: unregistering does not break it.
@@ -387,9 +405,15 @@ mod tests {
     #[test]
     fn unknown_ids_and_foreign_uris_fail_to_load() {
         let proto = MpvProtocol::new("pa", Arc::new(SourceRegistry::new()));
-        assert_eq!(open(&proto, "pa://nope").unwrap_err(), MPV_ERROR_LOADING_FAILED);
+        assert_eq!(
+            open(&proto, "pa://nope").unwrap_err(),
+            MPV_ERROR_LOADING_FAILED
+        );
         assert_eq!(proto.take_error().unwrap().kind(), ErrorKind::NotFound);
-        assert_eq!(open(&proto, "smb://x").unwrap_err(), MPV_ERROR_LOADING_FAILED);
+        assert_eq!(
+            open(&proto, "smb://x").unwrap_err(),
+            MPV_ERROR_LOADING_FAILED
+        );
         assert_eq!(proto.take_error().unwrap().kind(), ErrorKind::InvalidPath);
     }
 
@@ -411,6 +435,9 @@ mod tests {
             }
         }
         let proto = MpvProtocol::new("pa", Arc::new(SourceRegistry::new()));
-        assert_eq!(unsafe { proto.register(0x1234 as *mut c_void, fake_add_ro) }, Ok(()));
+        assert_eq!(
+            unsafe { proto.register(0x1234 as *mut c_void, fake_add_ro) },
+            Ok(())
+        );
     }
 }

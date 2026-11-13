@@ -77,8 +77,17 @@ unsafe fn headless(m: &Mpv) -> *mut c_void {
     unsafe {
         let h = (m.create)();
         assert!(!h.is_null());
-        for (k, v) in [("vo", "null"), ("ao", "null"), ("ao-null-untimed", "yes"), ("terminal", "no")] {
-            assert_eq!((m.set_option_string)(h, c(k).as_ptr(), c(v).as_ptr()), 0, "option {k}");
+        for (k, v) in [
+            ("vo", "null"),
+            ("ao", "null"),
+            ("ao-null-untimed", "yes"),
+            ("terminal", "no"),
+        ] {
+            assert_eq!(
+                (m.set_option_string)(h, c(k).as_ptr(), c(v).as_ptr()),
+                0,
+                "option {k}"
+            );
         }
         assert_eq!((m.initialize)(h), 0);
         h
@@ -107,7 +116,12 @@ unsafe fn play(m: &Mpv, h: *mut c_void, uri: &str) -> Played {
     let (cmd, uri) = (c("loadfile"), c(uri));
     let mut args = [cmd.as_ptr(), uri.as_ptr(), null()];
     assert_eq!(unsafe { (m.command)(h, args.as_mut_ptr()) }, 0);
-    let mut played = Played { loaded: false, file_format: None, duration: None, end_reason: None };
+    let mut played = Played {
+        loaded: false,
+        file_format: None,
+        duration: None,
+        end_reason: None,
+    };
     let deadline = Instant::now() + Duration::from_secs(60);
     while Instant::now() < deadline {
         let ev = unsafe { &*(m.wait_event)(h, 1.0) };
@@ -115,7 +129,8 @@ unsafe fn play(m: &Mpv, h: *mut c_void, uri: &str) -> Played {
             EVENT_FILE_LOADED => {
                 played.loaded = true;
                 played.file_format = unsafe { property(m, h, "file-format") };
-                played.duration = unsafe { property(m, h, "duration") }.and_then(|d| d.parse().ok());
+                played.duration =
+                    unsafe { property(m, h, "duration") }.and_then(|d| d.parse().ok());
             }
             EVENT_END_FILE => {
                 played.end_reason = Some(unsafe { &*ev.data.cast::<EndFile>() }.reason);
@@ -134,7 +149,8 @@ fn mpv_plays_pa_uri_from_a_vfs_source() {
     let dir = TempDir::new();
     std::fs::write(dir.path().join("movie.mkv"), mkv(20)).unwrap();
     let vfs = LocalFs::new(dir.path()).unwrap();
-    let file: Arc<dyn ByteSource> = Arc::from(vfs.open(&VfsPath::parse("/movie.mkv").unwrap()).unwrap());
+    let file: Arc<dyn ByteSource> =
+        Arc::from(vfs.open(&VfsPath::parse("/movie.mkv").unwrap()).unwrap());
     let source = Arc::new(Choppy::new(file, 3000));
 
     let registry = Arc::new(SourceRegistry::new());
@@ -150,7 +166,10 @@ fn mpv_plays_pa_uri_from_a_vfs_source() {
         let played = play(&m, h, &stream_uri(DEFAULT_SCHEME, &id));
         assert!(played.loaded, "file never loaded");
         assert!(
-            played.file_format.as_deref().is_some_and(|f| f.contains("mkv") || f.contains("matroska")),
+            played
+                .file_format
+                .as_deref()
+                .is_some_and(|f| f.contains("mkv") || f.contains("matroska")),
             "file-format: {:?}",
             played.file_format
         );

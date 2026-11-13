@@ -135,7 +135,8 @@ impl<S: ByteSource> ByteSource for Choppy<S> {
         self.calls.fetch_add(1, Ordering::Relaxed);
         let n = buf.len().min(self.chunk);
         let got = self.inner.read_at(offset, &mut buf[..n])?;
-        self.max_end.fetch_max(offset + got as u64, Ordering::Relaxed);
+        self.max_end
+            .fetch_max(offset + got as u64, Ordering::Relaxed);
         Ok(got)
     }
 }
@@ -200,11 +201,20 @@ pub struct Lib(*mut c_void);
 impl Lib {
     /// Opens `lib<name>.so` / `lib<name>.dylib` from `dir`.
     pub fn open(dir: &Path, name: &str) -> Self {
-        let ext = if cfg!(target_os = "macos") { "dylib" } else { "so" };
+        let ext = if cfg!(target_os = "macos") {
+            "dylib"
+        } else {
+            "so"
+        };
         let path = dir.join(format!("lib{name}.{ext}"));
         let c = CString::new(path.to_str().unwrap()).unwrap();
         let handle = unsafe { dlopen(c.as_ptr(), RTLD_NOW_GLOBAL) };
-        assert!(!handle.is_null(), "dlopen {}: {}", path.display(), last_error());
+        assert!(
+            !handle.is_null(),
+            "dlopen {}: {}",
+            path.display(),
+            last_error()
+        );
         Self(handle)
     }
 

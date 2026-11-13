@@ -88,7 +88,10 @@ unsafe fn open(av: &Av, io: &AvioContext) -> Result<*mut c_void, c_int> {
     unsafe {
         let mut fmt = (av.alloc_context)();
         assert!(!fmt.is_null());
-        fmt.cast::<u8>().add(FMT_PB).cast::<*mut c_void>().write(io.as_ptr());
+        fmt.cast::<u8>()
+            .add(FMT_PB)
+            .cast::<*mut c_void>()
+            .write(io.as_ptr());
         // avformat_open_input sets AVFMT_FLAG_CUSTOM_IO itself when pb is set,
         // and frees the context on failure.
         match (av.open_input)(&mut fmt, null(), null(), null_mut()) {
@@ -105,7 +108,8 @@ fn libavformat_demuxes_mkv_from_a_vfs_source() {
     let blocks = 30;
     std::fs::write(dir.path().join("movie.mkv"), mkv(blocks)).unwrap();
     let vfs = LocalFs::new(dir.path()).unwrap();
-    let file: Arc<dyn ByteSource> = Arc::from(vfs.open(&VfsPath::parse("/movie.mkv").unwrap()).unwrap());
+    let file: Arc<dyn ByteSource> =
+        Arc::from(vfs.open(&VfsPath::parse("/movie.mkv").unwrap()).unwrap());
     // Short reads, as from SMB/WebDAV.
     let source = Arc::new(Choppy::new(file, 3000));
 
@@ -124,7 +128,10 @@ fn libavformat_demuxes_mkv_from_a_vfs_source() {
             assert_eq!(field::<c_int>(pkt, PKT_SIZE) as usize, BLOCK_BYTES);
             let data: *const u8 = field(pkt, PKT_DATA);
             assert_eq!(*data, sample_byte(count, 0), "packet {count}");
-            assert_eq!(*data.add(BLOCK_BYTES - 1), sample_byte(count, BLOCK_BYTES - 1));
+            assert_eq!(
+                *data.add(BLOCK_BYTES - 1),
+                sample_byte(count, BLOCK_BYTES - 1)
+            );
             assert_eq!(field::<i64>(pkt, PKT_PTS), count as i64 * 100);
             (av.packet_unref)(pkt);
             count += 1;
@@ -157,7 +164,10 @@ impl ByteSource for Broken {
         1 << 20
     }
     fn read_at(&self, _: u64, _: &mut [u8]) -> pa_vfs::Result<usize> {
-        Err(VfsError::new(ErrorKind::AuthenticationFailed, "share rejected the login"))
+        Err(VfsError::new(
+            ErrorKind::AuthenticationFailed,
+            "share rejected the login",
+        ))
     }
 }
 
@@ -167,7 +177,10 @@ fn source_errors_reach_the_caller_and_cancel_interrupts() {
     let io = unsafe { AvioContext::new(av.api, Arc::new(Broken), 4096) }.unwrap();
     let err = unsafe { open(&av, &io) }.unwrap_err();
     assert!(err < 0);
-    assert_eq!(io.source().take_error().unwrap().kind(), ErrorKind::AuthenticationFailed);
+    assert_eq!(
+        io.source().take_error().unwrap().kind(),
+        ErrorKind::AuthenticationFailed
+    );
 
     assert_eq!(unsafe { interrupt(io.opaque()) }, 0);
     io.source().cancel();

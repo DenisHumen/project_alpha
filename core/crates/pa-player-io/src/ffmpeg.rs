@@ -55,7 +55,8 @@ pub const AVERROR_EIO: c_int = -5;
 pub const AVERROR_EINVAL: c_int = -22;
 
 /// `read_packet` callback type of `avio_alloc_context`.
-pub type ReadPacketFn = unsafe extern "C" fn(opaque: *mut c_void, buf: *mut u8, buf_size: c_int) -> c_int;
+pub type ReadPacketFn =
+    unsafe extern "C" fn(opaque: *mut c_void, buf: *mut u8, buf_size: c_int) -> c_int;
 /// `write_packet` callback type of `avio_alloc_context` (always null here).
 pub type WritePacketFn =
     unsafe extern "C" fn(opaque: *mut c_void, buf: *const u8, buf_size: c_int) -> c_int;
@@ -190,7 +191,10 @@ pub unsafe extern "C" fn seek(opaque: *mut c_void, offset: i64, whence: c_int) -
         2 => size,
         _ => return i64::from(AVERROR_EINVAL),
     };
-    match base.checked_add_signed(offset).and_then(|p| i64::try_from(p).ok()) {
+    match base
+        .checked_add_signed(offset)
+        .and_then(|p| i64::try_from(p).ok())
+    {
         Some(target) => {
             src.stream.set_position(target as u64);
             target
