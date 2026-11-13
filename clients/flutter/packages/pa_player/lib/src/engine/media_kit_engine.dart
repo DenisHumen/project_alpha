@@ -20,7 +20,8 @@ void ensurePaPlayerInitialized() =>
 String? bundledLibmpvPath() {
   if (kIsWeb || !Platform.isLinux) return null;
   if (Platform.environment['LIBMPV_LIBRARY_PATH'] != null) return null;
-  final path = '${File(Platform.resolvedExecutable).parent.path}/lib/libmpv.so.2';
+  final path =
+      '${File(Platform.resolvedExecutable).parent.path}/lib/libmpv.so.2';
   return File(path).existsSync() ? path : null;
 }
 
