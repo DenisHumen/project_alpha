@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MPL-2.0
+# Phase-0 placeholder (DIST-001): replaced by the real alpha-updated (DIST-009) later.
+# The real agent will listen on a unix socket; the stub port is not opened in firewalld.
+[Unit]
+Description=project_alpha update agent (stub)
+Documentation=https://github.com/DenisHumen/project_alpha/tree/main/distro
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/alpha/alpha-stub alpha-updated 7091
+DynamicUser=yes
+StateDirectory=alpha-updated
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
