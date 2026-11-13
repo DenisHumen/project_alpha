@@ -44,6 +44,8 @@ internal class OsdBridge(
                 sink = null
             }
         })
+        // A prewarmed OSD subscribed before this side existed: ask it to subscribe again.
+        commands.invokeMethod("attached", null)
     }
 
     override fun onEvent(event: EngineEvent) {

@@ -35,16 +35,19 @@ class PlayerOsdBridge {
   PlayerOsdBridge({
     this.commands = const MethodChannel('pa_player_android/osd'),
     EventChannel events = const EventChannel('pa_player_android/events'),
-  }) {
-    _subscription = events.receiveBroadcastStream().listen((raw) {
-      final update = EngineUpdate.fromJson(raw as String);
-      state.value = update.state;
-      _updates.add(update);
+  }) : _events = events {
+    // A prewarmed OSD starts before the player Activity exists, so the first
+    // subscription may reach no one: the Activity calls `attached` once its
+    // side is ready, and the bridge subscribes again.
+    commands.setMethodCallHandler((call) async {
+      if (call.method == 'attached') await _subscribe();
     });
+    _subscribe();
   }
 
   final MethodChannel commands;
-  late final StreamSubscription<Object?> _subscription;
+  final EventChannel _events;
+  StreamSubscription<Object?>? _subscription;
   final _updates = StreamController<EngineUpdate>.broadcast();
 
   /// Every event of the engine, in order.
@@ -82,8 +85,18 @@ class PlayerOsdBridge {
 
   Future<void> _call(String method, [Object? args]) => commands.invokeMethod<void>(method, args);
 
+  Future<void> _subscribe() async {
+    await _subscription?.cancel();
+    _subscription = _events.receiveBroadcastStream().listen((raw) {
+      final update = EngineUpdate.fromJson(raw as String);
+      state.value = update.state;
+      _updates.add(update);
+    });
+  }
+
   Future<void> dispose() async {
-    await _subscription.cancel();
+    commands.setMethodCallHandler(null);
+    await _subscription?.cancel();
     await _updates.close();
     state.dispose();
   }

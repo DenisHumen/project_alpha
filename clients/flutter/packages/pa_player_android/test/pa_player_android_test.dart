@@ -108,5 +108,21 @@ void main() {
       expect(osd.state.value['position_ms'], 1200);
       await osd.dispose();
     });
+
+    test('subscribes again when the player Activity attaches (prewarmed OSD)', () async {
+      var listens = 0;
+      messenger.setMockStreamHandler(events, MockStreamHandler.inline(onListen: (_, _) => listens++));
+      final osd = PlayerOsdBridge(commands: commands, events: events);
+      await pumpEventQueue();
+      expect(listens, 1);
+      await messenger.handlePlatformMessage(
+        commands.name,
+        const StandardMethodCodec().encodeMethodCall(const MethodCall('attached')),
+        (_) {},
+      );
+      await pumpEventQueue();
+      expect(listens, 2);
+      await osd.dispose();
+    });
   });
 }
