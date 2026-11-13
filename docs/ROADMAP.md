@@ -439,7 +439,7 @@ project_alpha/
   - Что: правило «обратная совместимость на одну версию» (нужно для отката сервера и дистрибутива), фикстуры БД всех прошлых версий, тест «новая БД + старый код читает».
   - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: 05 §4.2 п.6
   - done when: CI прогоняет миграции на фикстурах всех выпущенных версий.
-- [ ] **LIB-003** `pa-scanner`: поверхностный инкрементальный скан
+- [x] **LIB-003** `pa-scanner`: поверхностный инкрементальный скан
   - Что: обход через Vfs, запись (path, size, mtime), сравнение для инкрементального прохода, мягкое удаление пропавших с grace-периодом, события прогресса, отмена.
   - deps: LIB-001, NET-001 · size: M · parallel: no · веха: M1 · ref: 04 §1.4
   - done when: 10 000 файлов на Samba в CI сканируются меньше 60 с; повторный скан без изменений — меньше 10 с.
@@ -514,7 +514,7 @@ project_alpha/
   - Что: guessit + наивный поиск TMDB, hunch + TMDB, Jellyfin в Docker (только TMDB, затем с AniDB-плагином) на дереве mkv-заглушек (ffmpeg генерирует нужные длительность и языки).
   - deps: META-002, META-003 · size: M · parallel: yes · веха: M2 · ref: 03 §6.3
   - done when: отчёт «где все проваливаются» по категориям лежит в eval-репо.
-- [ ] **META-005** Парсер имён: токенизатор и N-best гипотезы
+- [x] **META-005** Парсер имён: токенизатор и N-best гипотезы
   - Что: форк или вендоринг hunch (MIT) в `pa-recognition/parse`; токенизатор (скобки `[] () {} 【】`, разделители) → классификаторы токенов → `ParsedName` с весами; без кода под LGPL и GPL.
   - deps: REPO-001 · size: L · parallel: yes · веха: M1 · ref: 03 §2.2, §4.2 [3]
   - done when: ≥ 85 % на тест-кейсах guessit (как eval); защита от ReDoS — только линейные регулярки.
@@ -793,7 +793,7 @@ project_alpha/
 
 ### 3.11. UI — Flutter-приложение (телефон, планшет, десктоп, общие экраны)
 
-- [ ] **UI-001** Каркас Flutter-приложения
+- [x] **UI-001** Каркас Flutter-приложения
   - Что: `clients/flutter`: структура по фичам (`lib/features/<f>/`), go_router с файлом `routes.dart` у каждой фичи, state management по ADR (рекомендация — Riverpod), подключение `pa_core`, флейворы store и full (dart-define, Gradle flavors, Xcode schemes), общие состояния (пустое, skeleton, ошибка источника, ретрай).
   - deps: CORE-002 · size: M · parallel: no · веха: M0 · ref: 02 §7, 01 §4.9 п.10
   - done when: приложение собирается на 5 Flutter-платформах в обоих флейворах; widget-тест каркаса.
@@ -939,7 +939,7 @@ project_alpha/
 
 ### 3.13. SYNC — синхронизация без облака
 
-- [ ] **SYNC-001** `pa-sync`: модель, HLC, LWW и outbox
+- [x] **SYNC-001** `pa-sync`: модель, HLC, LWW и outbox
   - Что: гибридные логические часы, `op_id` (UUIDv7), операции (progress.upsert, watched/unwatch, favorite, rating, плейлисты, folder_rule, настройки без секретов, избранное Twitch); LWW по полю, «просмотрено» монотонно; outbox в SQLite с идемпотентностью и ретраями.
   - deps: CORE-005, LIB-001 · size: M · parallel: no · веха: M3 · ref: 04 §1.8
   - done when: property-тест (proptest): применение операций в любом порядке даёт одно состояние.
@@ -990,7 +990,7 @@ project_alpha/
 
 ### 3.14. SRV — медиасервер (режим B)
 
-- [ ] **SRV-001** Каркас сервера
+- [x] **SRV-001** Каркас сервера
   - Что: `server/` на axum и tokio, конфиг, SQLite WAL через pa-library (тот же код, что в клиенте), `/health`, graceful shutdown, структурные логи.
   - deps: LIB-001, CORE-006 · size: M · parallel: no · веха: M4 · ref: 04 §1.5
   - done when: сервер стартует с пустой БД; интеграционный тест `/health`.

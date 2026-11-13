@@ -1,0 +1,53 @@
+// SPDX-License-Identifier: MPL-2.0
+//! Shallow incremental scan of a media source (LIB-003).
+//!
+//! The first stage of the library pipeline (`docs/dev/architecture.md` §6,
+//! `docs/research/04` §1.4): list a source through [`pa_vfs::Vfs`] and keep
+//! `files` in [`pa_library`] in step with it, using only the listing
+//! (path, size, mtime). No file is opened: probing (LIB-006), hashing
+//! (LIB-004) and folder analysis (LIB-007) run later on the rows written here.
+//!
+//! - [`scan`] walks the source in parallel, inserts new files, updates
+//!   changed ones and soft-deletes the ones that disappeared; rows missing
+//!   longer than the grace period are deleted.
+//! - A rescan without changes writes nothing.
+//! - Progress comes as [`ScanEvent`]s; [`CancelToken`] stops a scan.
+//! - [`ScanRules`] decides what is recorded; the defaults are the
+//!   release-0.1 rules (samples, extras, BDMV/VIDEO_TS, NAS service folders
+//!   and hidden entries are skipped).
+//!
+//! ```
+//! use pa_scanner::{CancelToken, ScanOptions, scan};
+//! use pa_vfs::LocalFs;
+//!
+//! let dir = tempfile::tempdir()?;
+//! std::fs::create_dir(dir.path().join("Dune (2021)"))?;
+//! std::fs::write(dir.path().join("Dune (2021)/Dune (2021).mkv"), b"video")?;
+//! std::fs::write(dir.path().join("Dune (2021)/Dune-trailer.mkv"), b"extra")?;
+//!
+//! let mut conn = pa_library::open_in_memory()?;
+//! conn.execute(
+//!     "INSERT INTO sources (id, kind, name, uri, created_at_ms) VALUES (1, 'local', 'Movies', 'file:///movies', 0)",
+//!     [],
+//! )?;
+//! let vfs = LocalFs::new(dir.path())?;
+//! let report = scan(&mut conn, 1, &vfs, &ScanOptions::default(), &CancelToken::new(), &mut |_| {})?;
+//! assert_eq!(report.added, 1); // the trailer is skipped
+//!
+//! let again = scan(&mut conn, 1, &vfs, &ScanOptions::default(), &CancelToken::new(), &mut |_| {})?;
+//! assert_eq!((again.added, again.unchanged), (0, 1));
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+
+mod rules;
+mod scan;
+mod walk;
+
+pub use rules::{
+    AUDIO_EXTENSIONS, IGNORED_FOLDERS, MediaKind, ScanRules, VIDEO_EXTENSIONS, is_extra_file,
+    is_ignored_folder, media_kind,
+};
+pub use scan::{
+    CancelToken, DEFAULT_GRACE_PERIOD, ScanError, ScanEvent, ScanOptions, ScanProgress, ScanReport,
+    scan,
+};

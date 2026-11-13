@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-sync"
+version = "0.1.0"
+description = "Serverless state sync: hybrid logical clock, sync operations, LWW merge and the SQLite outbox (SYNC-001)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+pa-library = { path = "../pa-library" }
+pa-model = { path = "../pa-model" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

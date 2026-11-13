@@ -28,8 +28,10 @@ macro_rules! migration {
 }
 
 /// All migrations, oldest first. Append only; never edit an applied file.
-pub const MIGRATIONS: &[MigrationFile] =
-    &[migration!(202611131200, "202611131200_LIB-001_schema_v1")];
+pub const MIGRATIONS: &[MigrationFile] = &[
+    migration!(202611131200, "202611131200_LIB-001_schema_v1"),
+    migration!(202611141200, "202611141200_SYNC-001_sync_outbox"),
+];
 
 impl MigrationFile {
     /// Checksum stored in the history table: FNV-1a 64 of the SQL text, as
