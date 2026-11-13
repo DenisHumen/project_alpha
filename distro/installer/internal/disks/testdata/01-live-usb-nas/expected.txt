@@ -1,0 +1,25 @@
+  Samsung 990 PRO 1TB  1.0 TB  NVMe      /dev/nvme0n1  S/N …456X
+  Samsung 870 EVO 1TB  1.0 TB  SATA SSD  /dev/sda      S/N …321A
+  WD WD40EFRX-68N32N0  4.0 TB  SATA HDD  /dev/sdb      S/N …CDEF
+  WD WD40EFRX-68N32N0  4.0 TB  SATA HDD  /dev/sdc      S/N …DCBA
+- SanDisk Ultra         31 GB  USB       /dev/sdd      S/N …7354
+      excluded: boot-media
+      DOS partition table, 2 partition(s)
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sdd
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sdd1
+      /dev/sdd1 is mounted at /run/initramfs/live
+      EFI system partition /dev/sdd2 (an OS is likely installed)
+- loop device          1.9 GB  virtual   /dev/loop0
+      excluded: virtual-device
+      squashfs on /dev/loop0
+- loop device          8.6 GB  virtual   /dev/loop1
+      excluded: virtual-device
+      ext4 "Anaconda" on /dev/loop1
+      ext4 "Anaconda" on /dev/live-rw
+      /dev/live-rw is mounted at /
+- loop device           34 MB  virtual   /dev/loop2
+      excluded: virtual-device
+- zram device          8.6 GB  virtual   /dev/zram0
+      excluded: virtual-device
+      swap on /dev/zram0
+      /dev/zram0 is in use as swap

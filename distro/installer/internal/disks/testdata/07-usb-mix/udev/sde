@@ -1,0 +1,5 @@
+ID_BUS=usb
+ID_PATH=pci-0000:00:14.0-usb-0:2:1.0-scsi-0:0:0:0
+ID_USB_DRIVER=uas
+ID_VENDOR=JMicron
+ID_VENDOR_ENC=JMicron\x20
