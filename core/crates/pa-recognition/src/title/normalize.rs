@@ -333,9 +333,7 @@ const PART_WORDS: &[&str] = &["part", "cor", "chast", "parte", "teil"];
 
 /// Season number of a CJK token: `第2期`, `2期`, `第二季`.
 fn cjk_season(tok: &str) -> Option<u32> {
-    let body = tok
-        .strip_suffix('期')
-        .or_else(|| tok.strip_suffix('季'))?;
+    let body = tok.strip_suffix('期').or_else(|| tok.strip_suffix('季'))?;
     let body = body.strip_prefix('第').unwrap_or(body);
     if let Some(n) = number(body) {
         return Some(n);
@@ -358,35 +356,35 @@ fn strip_qualifiers(tokens: &mut Vec<String>, key: &mut TitleKey) {
         }
         let last = tokens[n - 1].as_str();
         let prev = tokens[n - 2].as_str();
-        let (pop, season, part) = if let Some(s) = number(last).filter(|_| is_word(prev, SEASON_WORDS))
-        {
-            (2, Some(s), None)
-        } else if is_word(last, SEASON_WORDS)
-            && let Some(s) = ordinal(prev)
-        {
-            (2, Some(s), None)
-        } else if is_word(last, SEASON_WORDS) && prev == "final" {
-            (2, None, None)
-        } else if let Some(p) = number(last).filter(|_| is_word(prev, PART_WORDS)) {
-            (2, None, Some(p))
-        } else if is_word(last, PART_WORDS)
-            && let Some(p) = ordinal(prev)
-        {
-            (2, None, Some(p))
-        } else if let Some(s) = last.strip_prefix('s').and_then(number) {
-            (1, Some(s), None)
-        } else if let Some(s) = cjk_season(last) {
-            (1, Some(s), None)
-        } else if last == "final" || last == "the" {
-            (1, None, None)
-        } else if let Some(y) = number(last).filter(|y| (1900..=2099).contains(y)) {
-            key.year.get_or_insert(y as u16);
-            (1, None, None)
-        } else if let Some(s) = number(last).filter(|s| (1..=30).contains(s)) {
-            (1, Some(s), None)
-        } else {
-            return;
-        };
+        let (pop, season, part) =
+            if let Some(s) = number(last).filter(|_| is_word(prev, SEASON_WORDS)) {
+                (2, Some(s), None)
+            } else if is_word(last, SEASON_WORDS)
+                && let Some(s) = ordinal(prev)
+            {
+                (2, Some(s), None)
+            } else if is_word(last, SEASON_WORDS) && prev == "final" {
+                (2, None, None)
+            } else if let Some(p) = number(last).filter(|_| is_word(prev, PART_WORDS)) {
+                (2, None, Some(p))
+            } else if is_word(last, PART_WORDS)
+                && let Some(p) = ordinal(prev)
+            {
+                (2, None, Some(p))
+            } else if let Some(s) = last.strip_prefix('s').and_then(number) {
+                (1, Some(s), None)
+            } else if let Some(s) = cjk_season(last) {
+                (1, Some(s), None)
+            } else if last == "final" || last == "the" {
+                (1, None, None)
+            } else if let Some(y) = number(last).filter(|y| (1900..=2099).contains(y)) {
+                key.year.get_or_insert(y as u16);
+                (1, None, None)
+            } else if let Some(s) = number(last).filter(|s| (1..=30).contains(s)) {
+                (1, Some(s), None)
+            } else {
+                return;
+            };
         if pop >= n {
             return;
         }
@@ -415,10 +413,16 @@ mod tests {
         assert_eq!(fold("Æon Flux"), "aeon flux");
         assert_eq!(fold("Ægir Straße"), "aegir strasse");
         assert_eq!(fold("Pokémon: The Movie 2000"), "pokemon the movie 2000");
-        assert_eq!(fold("  Spider-Man:   No Way Home  "), "spider man no way home");
+        assert_eq!(
+            fold("  Spider-Man:   No Way Home  "),
+            "spider man no way home"
+        );
         assert_eq!(fold("Фильм «Брат-2»"), "фильм брат 2");
         assert_eq!(fold("Тайна"), "тайна");
-        assert_eq!(fold("進撃の巨人 The Final Season"), "進撃の巨人 the final season");
+        assert_eq!(
+            fold("進撃の巨人 The Final Season"),
+            "進撃の巨人 the final season"
+        );
         assert_eq!(fold("ガンダム"), "ガンダム");
         assert_eq!(fold("Gintama°"), "gintama");
     }
@@ -513,6 +517,9 @@ mod tests {
         assert_eq!(TitleKey::new("Mob Psycho 100").base, "mob psycho 100");
         assert_eq!(TitleKey::new("1917").base, "1917");
         assert_eq!(TitleKey::new("24").base, "24");
-        assert_eq!(TitleKey::new("Blade Runner 2049").plain, "blade runner 2049");
+        assert_eq!(
+            TitleKey::new("Blade Runner 2049").plain,
+            "blade runner 2049"
+        );
     }
 }

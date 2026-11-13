@@ -307,7 +307,10 @@ impl CandidateReport {
                     "| `{}` | {} | {} | {} | {} |\n",
                     m.case_id,
                     m.expected.as_deref().unwrap_or("—"),
-                    m.query.first().map_or("—", String::as_str).replace('|', "\\|"),
+                    m.query
+                        .first()
+                        .map_or("—", String::as_str)
+                        .replace('|', "\\|"),
                     m.top.as_deref().unwrap_or("—").replace('|', "\\|"),
                     m.rank.map_or("—".to_owned(), |r| (r + 1).to_string()),
                 ));

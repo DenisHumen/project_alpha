@@ -549,14 +549,45 @@ mod tests {
     fn index() -> TitleIndex {
         TitleIndex::from_records([
             rec(WorkKind::Series, 2016, &["Mob Psycho 100", "Моб Психо 100"]),
-            rec(WorkKind::Series, 2022, &["Mob Psycho 100 III", "Mob Psycho 100 Season 3"]),
-            rec(WorkKind::Movie, 1975, &["The Irony of Fate", "Ирония судьбы, или С лёгким паром!", "Ирония судьбы"]),
-            rec(WorkKind::Movie, 2007, &["The Irony of Fate 2", "Ирония судьбы. Продолжение"]),
-            rec(WorkKind::Series, 2009, &["Fullmetal Alchemist: Brotherhood", "Hagane no Renkinjutsushi: Fullmetal Alchemist"]),
-            rec(WorkKind::Series, 2003, &["Fullmetal Alchemist", "Hagane no Renkinjutsushi"]),
+            rec(
+                WorkKind::Series,
+                2022,
+                &["Mob Psycho 100 III", "Mob Psycho 100 Season 3"],
+            ),
+            rec(
+                WorkKind::Movie,
+                1975,
+                &[
+                    "The Irony of Fate",
+                    "Ирония судьбы, или С лёгким паром!",
+                    "Ирония судьбы",
+                ],
+            ),
+            rec(
+                WorkKind::Movie,
+                2007,
+                &["The Irony of Fate 2", "Ирония судьбы. Продолжение"],
+            ),
+            rec(
+                WorkKind::Series,
+                2009,
+                &[
+                    "Fullmetal Alchemist: Brotherhood",
+                    "Hagane no Renkinjutsushi: Fullmetal Alchemist",
+                ],
+            ),
+            rec(
+                WorkKind::Series,
+                2003,
+                &["Fullmetal Alchemist", "Hagane no Renkinjutsushi"],
+            ),
             rec(WorkKind::Movie, 1987, &["RoboCop"]),
             rec(WorkKind::Movie, 2014, &["RoboCop"]),
-            rec(WorkKind::Series, 2013, &["Shingeki no Kyojin", "Attack on Titan", "Атака титанов"]),
+            rec(
+                WorkKind::Series,
+                2013,
+                &["Shingeki no Kyojin", "Attack on Titan", "Атака титанов"],
+            ),
         ])
     }
 
@@ -599,7 +630,10 @@ mod tests {
     #[test]
     fn fuzzy_finds_typos_and_partial_titles() {
         let ix = index();
-        assert_eq!(top(&ix, &TitleQuery::new("Fulmetal Alchemist Brotherhod"))[0], 4);
+        assert_eq!(
+            top(&ix, &TitleQuery::new("Fulmetal Alchemist Brotherhod"))[0],
+            4
+        );
         assert!(top(&ix, &TitleQuery::new("Shingeki no Kyoujin")).contains(&8));
         let hits = ix.search(&TitleQuery::new("Completely Unrelated Words"), 10);
         assert!(hits.iter().all(|c| c.score < 0.5), "{hits:?}");

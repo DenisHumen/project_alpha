@@ -240,7 +240,10 @@ mod tests {
     #[test]
     fn common_scheme() {
         assert_eq!(to_latin("Брат 2", Scheme::Common), "Brat 2");
-        assert_eq!(to_latin("Москва слезам не верит", Scheme::Common), "Moskva slezam ne verit");
+        assert_eq!(
+            to_latin("Москва слезам не верит", Scheme::Common),
+            "Moskva slezam ne verit"
+        );
         assert_eq!(to_latin("Ёлки", Scheme::Common), "Yolki");
         assert_eq!(to_latin("Жмурки", Scheme::Common), "Zhmurki");
         assert_eq!(to_latin("Солярис", Scheme::Common), "Solyaris");
@@ -259,14 +262,20 @@ mod tests {
 
     #[test]
     fn other_scripts_pass_through() {
-        assert_eq!(to_latin("Shrek 2 / Шрек", Scheme::Common), "Shrek 2 / Shrek");
+        assert_eq!(
+            to_latin("Shrek 2 / Шрек", Scheme::Common),
+            "Shrek 2 / Shrek"
+        );
         assert_eq!(to_latin("進撃の巨人", Scheme::Common), "進撃の巨人");
     }
 
     #[test]
     fn back_to_cyrillic() {
         assert_eq!(to_cyrillic("Zhmurki"), "Жмурки");
-        assert_eq!(to_cyrillic("Moskva slezam ne verit"), "Москва слезам не верит");
+        assert_eq!(
+            to_cyrillic("Moskva slezam ne verit"),
+            "Москва слезам не верит"
+        );
         assert_eq!(to_cyrillic("Ekipazh"), "Экипаж");
         assert_eq!(to_cyrillic("Bolshoy"), "Болшой");
         assert_eq!(to_cyrillic("Dostoevskiy"), "Достоевский");

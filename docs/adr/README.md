@@ -27,6 +27,7 @@
 | [0019](0019-lan-discovery-mdns.md) | Обнаружение в LAN: `mdns-sd` в ядре, NWBrowser на Apple, свои типы DNS-SD | Принят | NET-009, NET-020 |
 | [0020](0020-music-tags-lofty.md) | Музыкальные теги в ядре через `lofty`, альбомы по ключу группировки | Предложен | MUS-001 |
 | [0021](0021-anime-providers-graphql-post.md) | Аниме-провайдеры AniList и Shikimori: GraphQL `POST` в общем транспорте, общий конвейер запросов | Предложен | META-010 |
+| [NNNN](NNNN-local-title-index.md) | Локальный индекс названий: свой индекс в памяти в `pa-recognition`, синонимы anime-offline-database в бандле | Предложен | META-007 |
 
 ## Запланированные ADR
 

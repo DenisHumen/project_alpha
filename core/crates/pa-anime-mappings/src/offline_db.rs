@@ -255,10 +255,18 @@ mod tests {
 
     #[test]
     fn synonym_scripts() {
-        for keep in ["Ex Saga", "Атака титанов", "進撃の巨人", "モブサイコ100 Ⅲ", "Pokémon", "時々"] {
+        for keep in [
+            "Ex Saga",
+            "Атака титанов",
+            "進撃の巨人",
+            "モブサイコ100 Ⅲ",
+            "Pokémon",
+            "時々",
+        ] {
             assert!(keep_synonym(keep), "{keep}");
         }
-        for drop in ["진격의 거인", "ผ่าพิภพไททัน", "الهجوم على العمالقة", "123", ""] {
+        for drop in ["진격의 거인", "ผ่าพิภพไททัน", "الهجوم على العمالقة", "123", ""]
+        {
             assert!(!keep_synonym(drop), "{drop}");
         }
     }

@@ -35,7 +35,10 @@ pub fn title_record(
             titles.push(t.to_owned());
         }
     };
-    for t in [&result.original_title, &result.title].into_iter().flatten() {
+    for t in [&result.original_title, &result.title]
+        .into_iter()
+        .flatten()
+    {
         push(t);
     }
     for t in translations
