@@ -24,8 +24,8 @@ pub use rusqlite;
 
 use rusqlite::{Connection, OpenFlags};
 
-/// Name of the refinery history table.
-pub const HISTORY_TABLE: &str = "refinery_schema_history";
+/// Name of the migration history table (version, name, applied_on, checksum).
+pub const HISTORY_TABLE: &str = "pa_schema_history";
 
 /// How long a writer waits for a lock held by another connection.
 pub const BUSY_TIMEOUT: Duration = Duration::from_secs(5);
@@ -38,7 +38,11 @@ pub const LEGACY_V0_TABLES: [&str; 5] = ["items", "progress", "settings", "sourc
 #[derive(Debug)]
 pub enum Error {
     Sqlite(rusqlite::Error),
-    Migration(refinery::Error),
+    /// An applied migration was edited: its checksum no longer matches the
+    /// history. Never edit an applied file; add a new migration.
+    ChecksumMismatch {
+        version: i64,
+    },
     /// The file has tables but no migration history: it is not ours (for
     /// example a pa_library v0 database). Nothing was changed.
     ForeignDatabase {
@@ -60,7 +64,9 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Sqlite(e) => write!(f, "sqlite: {e}"),
-            Self::Migration(e) => write!(f, "migration: {e}"),
+            Self::ChecksumMismatch { version } => {
+                write!(f, "applied migration {version} was edited (checksum mismatch)")
+            }
             Self::ForeignDatabase { legacy_v0: true } => {
                 f.write_str("database is a pa_library v0 file; import it instead of migrating")
             }
@@ -81,7 +87,6 @@ impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Sqlite(e) => Some(e),
-            Self::Migration(e) => Some(e),
             _ => None,
         }
     }
@@ -90,12 +95,6 @@ impl std::error::Error for Error {
 impl From<rusqlite::Error> for Error {
     fn from(e: rusqlite::Error) -> Self {
         Self::Sqlite(e)
-    }
-}
-
-impl From<refinery::Error> for Error {
-    fn from(e: refinery::Error) -> Self {
-        Self::Migration(e)
     }
 }
 
@@ -166,46 +165,62 @@ pub fn migrate(conn: &mut Connection) -> Result<MigrationReport, Error> {
         });
     }
 
-    let known = migrations::runner_migrations()?;
-    let known_latest = known.iter().map(|m| m.version()).max().unwrap_or(0);
-    let runner = refinery::Runner::new(&known)
-        .set_grouped(true)
-        .set_abort_divergent(true)
-        // Unknown newer migrations are allowed (checked below); refinery
-        // would otherwise refuse a database written by a newer build.
-        .set_abort_missing(false);
+    let known = MIGRATIONS;
+    let known_latest = latest_version();
 
-    let applied: Vec<i64> = if tables.is_empty() {
+    let applied: Vec<(i64, String)> = if tables.is_empty() {
         Vec::new()
     } else {
-        runner
-            .get_applied_migrations(conn)?
-            .iter()
-            .map(|m| m.version())
-            .collect()
+        let mut stmt = conn.prepare(&format!(
+            "SELECT version, checksum FROM {HISTORY_TABLE} ORDER BY version"
+        ))?;
+        stmt.query_map([], |r| Ok((r.get(0)?, r.get(1)?)))?
+            .collect::<Result<_, _>>()?
     };
-    let db_latest = applied.iter().copied().max();
-    for v in &applied {
-        if *v < known_latest && !known.iter().any(|m| m.version() == *v) {
-            return Err(Error::UnknownMigration { version: *v });
+    let db_latest = applied.iter().map(|(v, _)| *v).max();
+    for (v, checksum) in &applied {
+        match known.iter().find(|m| m.version == *v) {
+            Some(m) if m.checksum() != *checksum => {
+                return Err(Error::ChecksumMismatch { version: *v });
+            }
+            Some(_) => {}
+            None if *v < known_latest => return Err(Error::UnknownMigration { version: *v }),
+            None => {}
         }
     }
+    let is_applied = |v: i64| applied.iter().any(|(a, _)| *a == v);
     if let Some(db_latest) = db_latest {
-        for m in &known {
-            if m.version() < db_latest && !applied.contains(&m.version()) {
-                return Err(Error::OutOfOrder {
-                    version: m.version(),
-                });
+        for m in known {
+            if m.version < db_latest && !is_applied(m.version) {
+                return Err(Error::OutOfOrder { version: m.version });
             }
         }
     }
 
-    let report = runner.run(conn)?;
-    let applied_now: Vec<i64> = report
-        .applied_migrations()
-        .iter()
-        .map(|m| m.version())
-        .collect();
+    // All pending migrations and their history rows in one transaction.
+    let tx = conn.transaction()?;
+    tx.execute_batch(&format!(
+        "CREATE TABLE IF NOT EXISTS {HISTORY_TABLE} (
+            version INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            applied_on TEXT NOT NULL,
+            checksum TEXT NOT NULL
+        ) STRICT"
+    ))?;
+    let mut applied_now = Vec::new();
+    for m in known.iter().filter(|m| !is_applied(m.version)) {
+        tx.execute_batch(m.sql)?;
+        tx.execute(
+            &format!(
+                "INSERT INTO {HISTORY_TABLE} (version, name, applied_on, checksum) \
+                 VALUES (?1, ?2, strftime('%Y-%m-%dT%H:%M:%SZ', 'now'), ?3)"
+            ),
+            rusqlite::params![m.version, m.name, m.checksum()],
+        )?;
+        applied_now.push(m.version);
+    }
+    tx.commit()?;
+
     let db_version = applied_now
         .iter()
         .copied()
