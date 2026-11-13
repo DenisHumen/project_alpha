@@ -13,6 +13,9 @@ abstract class Preferences {
 
   /// BCP 47 tag of the chosen UI language; absent = follow the system.
   static const locale = 'ui_locale';
+
+  /// 'true' shows the Twitch section in the navigation (UI-002).
+  static const showTwitch = 'nav_show_twitch';
 }
 
 /// JSON file in the application support directory.

@@ -806,7 +806,7 @@ project_alpha/
   - Что: `clients/flutter`: структура по фичам (`lib/features/<f>/`), go_router с файлом `routes.dart` у каждой фичи, state management по ADR (рекомендация — Riverpod), подключение `pa_core`, флейворы store и full (dart-define, Gradle flavors, Xcode schemes), общие состояния (пустое, skeleton, ошибка источника, ретрай).
   - deps: CORE-002 · size: M · parallel: no · веха: M0 · ref: 02 §7, 01 §4.9 п.10
   - done when: приложение собирается на 5 Flutter-платформах в обоих флейворах; widget-тест каркаса.
-- [ ] **UI-002** Адаптивная навигация
+- [x] **UI-002** Адаптивная навигация
   - Что: телефон — tab bar «Главная · Библиотека · Twitch · Музыка · Поиск», профиль и настройки через аватар; планшет и десктоп — sidebar; TV — верхнее меню или rail (через TV-002); брейкпоинты compact < 600, medium < 1024, expanded < 1440, large.
   - deps: UI-001 · size: M · parallel: no · веха: M1 · ref: 01 §2.5–2.6, §4.3, §4.10 п.4
   - done when: golden-тесты каркаса на 4 плотностях; вкладку Twitch можно скрыть настройкой.
