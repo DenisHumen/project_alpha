@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: MPL-2.0
+name: kinolune
+description: "Kinolune: open-source media player for your own library (release 0.1)."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.14.0
+
+# Deps must be MIT/BSD/Apache/MPL (docs/dev/release-0.1-contract.md).
+# Demo mode (--dart-define=KINOLUNE_DEMO=true) swaps pa_library for
+# lib/fakes/fake_library.dart; everything else uses the real packages.
+dependencies:
+  flutter:
+    sdk: flutter
+  pa_library:
+    path: ../packages/pa_library
+  pa_player:
+    path: ../packages/pa_player
+  pa_design:
+    path: ../../../design/flutter/pa_design
+  file_picker: ^13.3.3
+  flutter_svg: ^2.0.0
+  flutter_secure_storage: ^11.2.0
+  material_ui: ^1.1.0
+  path_provider: ^2.1.6
+  permission_handler: ^13.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  # Copies of design/brand/src/mark.svg, wordmark.svg and design/placeholders/export
+  # (DSN-006); refresh them when the brand changes.
+  assets:
+    - assets/brand/
+    - assets/placeholders/
