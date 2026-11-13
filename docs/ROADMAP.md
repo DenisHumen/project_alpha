@@ -431,7 +431,7 @@ project_alpha/
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
-- [ ] **LIB-001** Схема SQLite v1 и миграции
+- [x] **LIB-001** Схема SQLite v1 и миграции
   - Что: File, FileGroup, FileGroupMember, Work, ExternalId, Title, Season, Episode, EpisodeMapping, AnimeEntry, Match, MatchCandidate, FolderRule, DisplayPreference, ProviderCache, Profile, Progress, Favorite, Collection, Playlist, jobs; WAL, foreign keys; refinery-миграции; одна схема для клиента и сервера.
   - deps: CORE-005 · size: M · parallel: no · веха: M1 · ref: 03 §5, 04 §1.3, §1.5
   - done when: миграция с нуля проходит; тест целостности FK; схема задокументирована в `docs/dev/db.md`.
@@ -487,6 +487,10 @@ project_alpha/
   - Что: по команде пользователя записать `.nfo` (формат Kodi/Jellyfin) или переименовать с `{tmdb-…}`; импорт NFO при скане.
   - deps: LIB-007, META-017 · size: M · parallel: yes · веха: M2 · ref: 03 §4.6
   - done when: экспортированный NFO читается Jellyfin в Docker-тесте.
+- [ ] **LIB-015** Импорт медиатеки pa_library v0 (релиз 0.1)
+  - Что: перенос базы Dart-пакета `pa_library` v0 в схему v1 по таблице соответствия из `docs/dev/db.md` §«Переход с pa_library v0»: источники, файлы, произведения, эпизоды, матчи, прогресс по `media_key`; старый файл только на чтение, после успеха — `*.v0.bak`.
+  - deps: LIB-001, LIB-004, LIB-011 · size: M · parallel: yes · веха: M1 · ref: ADR-0013
+  - done when: тест на фикстуре v0: все элементы и прогресс распознанных видны в v1, повторный запуск ничего не дублирует.
 
 ### 3.6. META — распознавание и метаданные
 
@@ -1722,7 +1726,7 @@ project_alpha/
 | CI | 12 | MUS | 15 |
 | CORE | 14 | TWI | 22 |
 | NET | 19 | DIST | 27 |
-| LIB | 14 | DSN | 15 |
+| LIB | 15 | DSN | 15 |
 | META | 22 | PKG | 17 |
 | PLAY | 12 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
