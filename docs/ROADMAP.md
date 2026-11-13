@@ -242,7 +242,7 @@ project_alpha/
 
 ### 3.2. CI — сборка и проверки
 
-- [ ] **CI-001** `rust.yml`: fmt, clippy, nextest
+- [x] **CI-001** `rust.yml`: fmt, clippy, nextest
   - Что: `cargo fmt --check`, `clippy -D warnings`, `cargo nextest` на ubuntu; кэш `Swatinem/rust-cache`; `dorny/paths-filter`; агрегирующий job `all-green` для branch protection.
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 04 §4.4
   - done when: PR, затрагивающий только `docs/`, не запускает Rust-сборку; `all-green` обязателен.
