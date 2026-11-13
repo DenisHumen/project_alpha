@@ -49,6 +49,7 @@ flowchart LR
   pa_server --> pa_runtime
   pa_sync --> pa_library
   pa_sync --> pa_model
+  pa_twitch --> pa_secrets
   pa_twitch -. dev .-> pa_twitch
 ```
 
@@ -70,7 +71,7 @@ flowchart LR
 | `pa-secrets` | `core/crates/pa-secrets` | 11 | Secret storage of project_alpha: OS keychains, platform callbacks, encrypted-file fallback, log redaction |
 | `pa-server` | `server` | 8 | Kinolune media server (mode B): axum HTTP on top of the core crates |
 | `pa-sync` | `core/crates/pa-sync` | 4 | Serverless state sync: hybrid logical clock, sync operations, LWW merge and the SQLite outbox (SYNC-001) |
-| `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client: users, follows, streams, VODs, clips, categories, chat metadata (TWI-001) |
+| `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002) |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
 
 <!-- END GENERATED: crate-graph -->
