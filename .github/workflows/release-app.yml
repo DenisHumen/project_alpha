@@ -1,0 +1,322 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Release of the Flutter app (R01-REL): Linux x86_64 (tar.gz + AppImage) and
+# Android APKs (arm64-v8a, armeabi-v7a, x86_64 + universal), SHA256SUMS,
+# licence notices and LGPL corresponding sources, published as a GitHub Release.
+#
+#   - push of a tag `app-v<semver>`     -> build, then publish the release;
+#   - workflow_dispatch with `version`  -> dry run: same build, everything is
+#     uploaded as the workflow artifact `release-<version>`, nothing is published.
+#
+# Only the `publish` job gets `contents: write`. Android signing uses the
+# repository secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS,
+# ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD when present; otherwise the
+# APKs keep the debug signature and the release is labelled so.
+# Owner steps: packaging/app/README.md.
+
+name: Release app
+
+on:
+  push:
+    tags: ["app-v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for the dry run (semver, e.g. 0.1.0-rc.1). Nothing is published."
+        required: true
+        default: "0.0.0-dryrun"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  # Keep in sync with flutter.yml.
+  FLUTTER_VERSION: "3.50.0"
+  APP_DIR: clients/flutter/app
+
+jobs:
+  meta:
+    name: Version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+      dry_run: ${{ steps.v.outputs.dry_run }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Resolve version
+        id: v
+        env:
+          EVENT: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$EVENT" = push ]; then
+            tag="$REF_NAME"; version="${REF_NAME#app-v}"; dry_run=false
+          else
+            tag="app-v$INPUT_VERSION"; version="$INPUT_VERSION"; dry_run=true
+          fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$version' is not a semver version (x.y.z or x.y.z-pre)"
+            exit 1
+          fi
+          prerelease=false; [[ "$version" == *-* ]] && prerelease=true
+          if [ ! -f "$APP_DIR/pubspec.yaml" ]; then
+            echo "::error::$APP_DIR/pubspec.yaml not found: the app is not on this ref"
+            exit 1
+          fi
+          {
+            echo "version=$version"; echo "tag=$tag"
+            echo "dry_run=$dry_run"; echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
+          echo "### Kinolune $version (dry run: $dry_run, prerelease: $prerelease)" >> "$GITHUB_STEP_SUMMARY"
+
+  linux:
+    name: Linux x86_64
+    needs: meta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libmpv-dev
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          # No cache in the release pipeline: every release builds from scratch.
+          cache: false
+      - name: flutter build linux
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          if [ -f pubspec.lock ]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
+          flutter build linux --release --build-name "$VERSION" --build-number "$BUILD_NUMBER"
+      - name: Package tar.gz and AppImage
+        run: packaging/app/linux/package.sh "$APP_DIR/build/linux/x64/release/bundle" "$VERSION" dist
+      - name: Smoke-test the bundle links
+        run: |
+          tar -xzf "dist/kinolune-$VERSION-linux-x86_64.tar.gz" -C "$RUNNER_TEMP"
+          dir="$RUNNER_TEMP/kinolune-$VERSION-linux-x86_64"
+          exe=$(find "$dir" -maxdepth 1 -type f -perm -u+x | head -n1)
+          if ldd "$exe" "$dir"/lib/*.so | grep 'not found'; then
+            echo "::error::unresolved shared libraries"; exit 1
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  android:
+    name: Android APKs
+    needs: meta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+    outputs:
+      signing: ${{ steps.sign.outputs.signing }}
+      libmpv: ${{ steps.licences.outputs.libmpv }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: false
+      - name: flutter build apk (split per ABI + universal)
+        working-directory: ${{ env.APP_DIR }}
+        env:
+          # Monotonic versionCode; split APKs get +1000*ABI on top (Flutter).
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          if [ -f pubspec.lock ]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
+          common=(--release --target-platform android-arm,android-arm64,android-x64
+                  --build-name "$VERSION" --build-number "$BUILD_NUMBER")
+          out="$GITHUB_WORKSPACE/dist"
+          mkdir -p "$out"
+          apks=build/app/outputs/flutter-apk
+          flutter build apk "${common[@]}" --split-per-abi
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            cp "$apks/app-$abi-release.apk" "$out/kinolune-$VERSION-android-$abi.apk"
+          done
+          flutter build apk "${common[@]}"
+          cp "$apks/app-release.apk" "$out/kinolune-$VERSION-android-universal.apk"
+          ls -l "$out"
+      - name: Sign APKs
+        id: sign
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          mode=$(packaging/app/android/sign.sh dist/*.apk)
+          echo "signing=$mode" >> "$GITHUB_OUTPUT"
+          if [ "$mode" = debug ]; then
+            echo "::warning::No release keystore in secrets: APKs are debug-signed"
+          fi
+      - name: Licence gate for native libraries
+        id: licences
+        run: |
+          mkdir -p notes
+          packaging/app/android/check-native-licences.sh notes/native-licences.md dist/*.apk > "$RUNNER_TEMP/gate.out"
+          tail -n1 "$RUNNER_TEMP/gate.out" >> "$GITHUB_OUTPUT"
+          cat notes/native-licences.md >> "$GITHUB_STEP_SUMMARY"
+      - name: LGPL corresponding sources
+        if: steps.licences.outputs.libmpv == 'yes'
+        run: |
+          packaging/app/android/lgpl-sources.sh "$APP_DIR" \
+            "dist/kinolune-$VERSION-android-lgpl-sources.tar" notes/android-lgpl.md
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android
+          path: |
+            dist/
+            notes/
+          if-no-files-found: error
+          retention-days: 7
+
+  assemble:
+    name: Assemble release
+    needs: [meta, linux, android]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+      TAG: ${{ needs.meta.outputs.tag }}
+      DRY_RUN: ${{ needs.meta.outputs.dry_run }}
+      SIGNING: ${{ needs.android.outputs.signing }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: artifacts
+      - name: Collect assets, licences and checksums
+        run: |
+          mkdir -p release/assets
+          cp artifacts/linux/* release/assets/
+          cp artifacts/android/dist/* release/assets/
+          lic="kinolune-$VERSION-licenses"
+          mkdir -p "$RUNNER_TEMP/$lic/licenses"
+          cp LICENSE packaging/app/THIRD-PARTY-NOTICES.md "$RUNNER_TEMP/$lic/"
+          cp packaging/app/licenses/*.txt "$RUNNER_TEMP/$lic/licenses/"
+          if [ -f artifacts/android/notes/android-lgpl.md ]; then
+            cp artifacts/android/notes/android-lgpl.md "$RUNNER_TEMP/$lic/ANDROID-LGPL-COMPONENTS.md"
+          fi
+          tar --sort=name --owner=0 --group=0 --numeric-owner -C "$RUNNER_TEMP" \
+            -czf "release/assets/$lic.tar.gz" "$lic"
+          (cd release/assets && sha256sum -- * > SHA256SUMS)
+          cat release/assets/SHA256SUMS
+      - name: Release notes
+        run: |
+          notes=release/notes.md
+          message=""
+          if [ "$DRY_RUN" = false ]; then
+            git fetch --no-tags --depth=1 origin "+refs/tags/$TAG:refs/tags/$TAG"
+            if [ "$(git cat-file -t "$TAG")" = tag ]; then
+              message=$(git tag -l --format='%(contents:body)' "$TAG")
+              subject=$(git tag -l --format='%(contents:subject)' "$TAG")
+              message=$(printf '%s\n\n%s\n' "$subject" "$message" | sed '/-----BEGIN/,$d')
+            fi
+          fi
+          {
+            if [ "$SIGNING" = debug ]; then
+              echo "> [!WARNING]"
+              echo "> **Unsigned / debug-signed Android build.** The APKs are signed with a throw-away CI debug key:"
+              echo "> later releases cannot be installed over them; uninstall first."
+              echo
+            fi
+            if [ -n "$message" ]; then printf '%s\n\n' "$message"; else echo "Kinolune $VERSION."; echo; fi
+            echo "## Downloads"
+            echo
+            echo "| Platform | File |"
+            echo "|---|---|"
+            echo "| Linux x86_64 (AppImage) | \`kinolune-$VERSION-x86_64.AppImage\` |"
+            echo "| Linux x86_64 (archive) | \`kinolune-$VERSION-linux-x86_64.tar.gz\` |"
+            echo "| Android, most phones and TVs (64-bit ARM) | \`kinolune-$VERSION-android-arm64-v8a.apk\` |"
+            echo "| Android, older 32-bit ARM devices | \`kinolune-$VERSION-android-armeabi-v7a.apk\` |"
+            echo "| Android x86_64 (emulators, Chromebooks) | \`kinolune-$VERSION-android-x86_64.apk\` |"
+            echo "| Android, any device (larger) | \`kinolune-$VERSION-android-universal.apk\` |"
+            echo
+            echo "Linux needs GTK 3 and the system libmpv: \`sudo apt install libmpv2\` (Ubuntu/Debian),"
+            echo "\`sudo dnf install mpv-libs\` (Fedora), \`sudo pacman -S mpv\` (Arch)."
+            echo
+            echo "Android signing: **$SIGNING**. Verify downloads with \`sha256sum -c SHA256SUMS --ignore-missing\`."
+            echo
+            echo "## Licences"
+            echo
+            echo "Kinolune is MPL-2.0. Third-party notices and licence texts: \`kinolune-$VERSION-licenses.tar.gz\`."
+            echo
+            if [ -f artifacts/android/notes/android-lgpl.md ]; then
+              cat artifacts/android/notes/android-lgpl.md
+              echo
+            fi
+            echo "<details><summary>Native libraries licence gate</summary>"
+            echo
+            cat artifacts/android/notes/native-licences.md
+            echo
+            echo "</details>"
+          } > "$notes"
+          cat "$notes" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-${{ needs.meta.outputs.version }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Publish GitHub Release
+    needs: [meta, android, assemble]
+    if: needs.meta.outputs.dry_run == 'false'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write # create the release and upload assets
+    env:
+      VERSION: ${{ needs.meta.outputs.version }}
+      TAG: ${{ needs.meta.outputs.tag }}
+      PRERELEASE: ${{ needs.meta.outputs.prerelease }}
+      SIGNING: ${{ needs.android.outputs.signing }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-${{ needs.meta.outputs.version }}
+          path: release
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          title="Kinolune $VERSION"
+          [ "$SIGNING" = debug ] && title="$title (Android debug-signed)"
+          flags=()
+          [ "$PRERELEASE" = true ] && flags+=(--prerelease)
+          gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --verify-tag \
+            --title "$title" --notes-file release/notes.md "${flags[@]}" release/assets/*
