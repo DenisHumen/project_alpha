@@ -352,7 +352,7 @@ project_alpha/
 
 ### 3.4. NET — источники, сетевые протоколы, Plex/Jellyfin/Emby
 
-- [ ] **NET-001** `pa-vfs`: трейт Vfs и локальная ФС
+- [x] **NET-001** `pa-vfs`: трейт Vfs и локальная ФС
   - Что: `Vfs` (list, stat, open → `ByteSource{read_at, size}`), `LocalFs`, общий контракт-тест-сьют, который обязаны проходить все бэкенды.
   - deps: REPO-001, CORE-005 · size: S · parallel: no · веха: M1 · ref: 02 §1.4, 04 §1.3
   - done when: контракт-тесты проходят на LocalFs под Linux, Windows и macOS.
