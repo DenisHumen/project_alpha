@@ -55,7 +55,7 @@ just design contrast   # таблица контраста всех пар
 
 ## Экспорт в код (DSN-003)
 
-`scripts/tokens-build.mjs` (без зависимостей, решение — [`../decisions/NNNN-token-codegen.md`](../decisions/NNNN-token-codegen.md)) резолвит каждый semantic-, density- и component-токен для всех комбинаций тема × плотность и раскладывает их одинаково на всех платформах: токены, зависящие от темы, — в `PaColorScheme` (`dark`, `light`), от плотности — в `PaDensity` (`tv`, `desktop`, `tablet`, `phone`), остальные — константы `PaTokens`. Primitive-токены не экспортируются. Имя — путь в camelCase: `bg.elevated-2` → `bgElevated2`.
+`scripts/tokens-build.mjs` (без зависимостей, решение — [`../decisions/0003-token-codegen.md`](../decisions/0003-token-codegen.md)) резолвит каждый semantic-, density- и component-токен для всех комбинаций тема × плотность и раскладывает их одинаково на всех платформах: токены, зависящие от темы, — в `PaColorScheme` (`dark`, `light`), от плотности — в `PaDensity` (`tv`, `desktop`, `tablet`, `phone`), остальные — константы `PaTokens`. Primitive-токены не экспортируются. Имя — путь в camelCase: `bg.elevated-2` → `bgElevated2`.
 
 | Платформа | Файл | Типы |
 |---|---|---|

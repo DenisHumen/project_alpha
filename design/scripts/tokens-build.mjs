@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// Design token code generation (DSN-003, design/decisions/NNNN-token-codegen.md):
+// Design token code generation (DSN-003, design/decisions/0003-token-codegen.md):
 // design/tokens (W3C DTCG) → Dart, Swift, Kotlin and CSS. No dependencies; the output
 // depends only on the JSON and this repository, so it is reproducible byte for byte.
 //   node scripts/tokens-build.mjs          write all outputs
