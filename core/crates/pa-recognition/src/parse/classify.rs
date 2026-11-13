@@ -747,7 +747,7 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                 }
                 // `Kill Bill - Volume 2` is a title; only the short forms are release info.
                 "vol" | "том" => small(&next_num, 99).map(|_| Tag::Other),
-                // `серии 1-8 из 10`, `[11 из 11]`: the total after a number.
+                // `серии 1-8 из 10`, `[11 из 11]`: the total after a number is dropped.
                 "из" | "of"
                     if out
                         .iter()
@@ -756,7 +756,7 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                         .is_some_and(|p| matches!(p.tag, Tag::Num(_) | Tag::SeasonEp { .. }))
                         && small(&next_num, 9999).is_some() =>
                 {
-                    Some(Tag::Other)
+                    Some(Tag::Consumed)
                 }
                 "part" | "pt" | "cd" | "disc" | "disk" | "часть" => {
                     small(&next_num, 20).filter(|&p| p >= 1).map(Tag::Part)
