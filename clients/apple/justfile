@@ -1,7 +1,21 @@
 # SPDX-License-Identifier: MPL-2.0
-# `apple` module: Swift: AlphaPlayerKit, TVApp, AudioKit.
-# Owned by the PLAY-APL workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+# `apple` module: Swift: AlphaPlayerKit, TVApp, AudioKit. Needs macOS with Xcode.
 
-# Placeholder until the area gets real recipes
+root := justfile_directory() / ".." / ".."
+
+# List recipes
 info:
-    @echo "apple: no recipes yet (PLAY-APL, see docs/ROADMAP.md)"
+    @just --list apple
+
+# PACoreFFI.xcframework for the tvOS slices (CORE-003)
+tv-core:
+    {{root}}/tools/bindings/build-xcframework.sh tvos tvos-sim
+
+# Generate TVApp.xcodeproj from project.yml (XcodeGen, ADR-NNNN)
+tv-project:
+    cd {{root}}/clients/apple/TVApp && xcodegen generate
+
+# Unit and UI tests of the tvOS app on a simulator (TV-001)
+tv-test simulator="Apple TV 4K (3rd generation)": tv-project
+    xcodebuild test -project {{root}}/clients/apple/TVApp/TVApp.xcodeproj -scheme TVApp \
+      -destination 'platform=tvOS Simulator,name={{simulator}}' -skipPackagePluginValidation
