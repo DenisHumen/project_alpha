@@ -14,11 +14,11 @@
         android:label="Kinolune"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher"
-        android:banner="@drawable/banner">
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:banner="@drawable/tv_banner">
         <activity
             android:name=".MainActivity"
-            android:banner="@drawable/banner"
+            android:banner="@drawable/tv_banner"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

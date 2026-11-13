@@ -183,9 +183,11 @@ class AlbumCard extends StatelessWidget {
     required this.subtitle,
     required this.width,
     this.onTap,
+    this.artUrl,
   });
 
   final String seed;
+  final String? artUrl;
   final String title;
   final String subtitle;
   final double width;
@@ -206,7 +208,7 @@ class AlbumCard extends StatelessWidget {
             semanticLabel: title,
             builder: (context, _) => AspectRatio(
               aspectRatio: 1,
-              child: GeneratedArt(seed: seed, style: ArtStyle.album),
+              child: Artwork(url: artUrl, seed: seed, style: ArtStyle.album),
             ),
           ),
           SizedBox(height: d.isTv ? 10 : 8),

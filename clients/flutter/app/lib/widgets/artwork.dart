@@ -11,6 +11,72 @@ import 'package:material_ui/material_ui.dart';
 
 enum ArtStyle { poster, backdrop, album }
 
+/// `posterUrl`/`backdropUrl` prefix used by the demo library.
+const kDemoArtScheme = 'demo:';
+
+/// Brand placeholder for missing art (design/placeholders, DSN-006) with the
+/// title on top for posters.
+class BrandPlaceholder extends StatelessWidget {
+  const BrandPlaceholder({
+    super.key,
+    required this.style,
+    this.title,
+    this.subtitle,
+  });
+
+  final ArtStyle style;
+  final String? title;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = switch (style) {
+      ArtStyle.poster => 'assets/placeholders/poster.png',
+      ArtStyle.backdrop => 'assets/placeholders/backdrop.png',
+      ArtStyle.album => 'assets/placeholders/album.png',
+    };
+    final image = Image.asset(asset, fit: BoxFit.cover, gaplessPlayback: true);
+    final t = title;
+    if (t == null || style != ArtStyle.poster) return image;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        image,
+        LayoutBuilder(
+          builder: (context, c) => Padding(
+            padding: EdgeInsets.all(c.maxWidth * .08),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  t,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .9),
+                    fontSize: (c.maxWidth * .1).clamp(8.0, 28.0),
+                    fontWeight: FontWeight.w600,
+                    height: 1.15,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: .6),
+                      fontSize: (c.maxWidth * .07).clamp(6.0, 18.0),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 int _hash(String s) {
   var h = 0x811c9dc5;
   for (final c in s.codeUnits) {
@@ -39,13 +105,21 @@ class Artwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = GeneratedArt(
-      seed: seed,
+    final u = url;
+    // Demo library: art drawn in code, seeded by the item.
+    if (u != null && u.startsWith(kDemoArtScheme)) {
+      return GeneratedArt(
+        seed: seed,
+        style: style,
+        title: title,
+        subtitle: subtitle,
+      );
+    }
+    final fallback = BrandPlaceholder(
       style: style,
       title: title,
       subtitle: subtitle,
     );
-    final u = url;
     if (u == null || u.isEmpty) return fallback;
     Widget err(BuildContext _, Object _, StackTrace? _) => fallback;
     if (u.startsWith('http://') || u.startsWith('https://')) {

@@ -43,6 +43,7 @@ List<Album> groupAlbums(List<LibraryItem> tracks) {
             t.artist ?? 'Unknown artist',
             t.year,
             albumSeedFor(t),
+            t.posterUrl,
           ),
         )
         .tracks
@@ -55,8 +56,9 @@ List<Album> groupAlbums(List<LibraryItem> tracks) {
 }
 
 class Album {
-  Album(this.title, this.artist, this.year, this.artSeed);
+  Album(this.title, this.artist, this.year, this.artSeed, [this.artUrl]);
   final String title;
+  final String? artUrl;
   final String artist;
   final int? year;
   final String artSeed;

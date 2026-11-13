@@ -113,6 +113,7 @@ class _MusicScreenState extends State<MusicScreen> {
                       builder: (context, c) => AlbumCard(
                         width: c.maxWidth,
                         seed: albums[i].artSeed,
+                        artUrl: albums[i].artUrl,
                         title: albums[i].title,
                         subtitle: albums[i].artist,
                         onTap: () => Navigator.of(context).push(
@@ -166,7 +167,11 @@ class AlbumScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(d.cardRadius),
         child: SizedBox.square(
           dimension: art,
-          child: GeneratedArt(seed: album.artSeed, style: ArtStyle.album),
+          child: Artwork(
+            url: album.artUrl,
+            seed: album.artSeed,
+            style: ArtStyle.album,
+          ),
         ),
       ),
       SizedBox(width: 28, height: 20),
@@ -293,7 +298,8 @@ class TrackTile extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                           child: SizedBox.square(
                             dimension: 40,
-                            child: GeneratedArt(
+                            child: Artwork(
+                              url: track.posterUrl,
                               seed: albumSeedFor(track),
                               style: ArtStyle.album,
                             ),

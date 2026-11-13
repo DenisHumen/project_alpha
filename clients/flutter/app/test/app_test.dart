@@ -7,6 +7,7 @@ import 'package:kinolune/integration/library.dart';
 import 'package:kinolune/integration/player.dart';
 import 'package:kinolune/platform/form_factor.dart';
 import 'package:kinolune/shell/app_shell.dart';
+import 'package:kinolune/widgets/logo.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'support/test_app.dart';
@@ -22,7 +23,7 @@ void main() {
       expect(find.text('Continue Watching'), findsOneWidget);
       expect(find.text('Recently Added Movies'), findsOneWidget);
       expect(find.text('TV Shows'), findsWidgets);
-      expect(find.text('Kinolune'), findsWidgets);
+      expect(find.byType(KinoluneLogo), findsWidgets);
       expect(find.text('Settings'), findsOneWidget); // sidebar item
     });
 

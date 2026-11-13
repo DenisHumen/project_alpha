@@ -174,6 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemBuilder: (context, i) => AlbumCard(
                             width: d.albumWidth,
                             seed: albums[i].artSeed,
+                            artUrl: albums[i].artUrl,
                             title: albums[i].title,
                             subtitle: albums[i].artist,
                             onTap: () =>

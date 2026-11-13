@@ -4,6 +4,7 @@
 // generated in code (lib/widgets/artwork.dart), so no third-party assets.
 
 import '../integration/library.dart';
+import '../widgets/artwork.dart' show kDemoArtScheme;
 
 class DemoLibraryData {
   DemoLibraryData({
@@ -232,6 +233,8 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
         overview: overview,
         filePath: '/media/Movies/$title ($year)/$title.$year.1080p.mkv',
         durationMs: minutes * 60000,
+        posterUrl: '${kDemoArtScheme}poster',
+        backdropUrl: '${kDemoArtScheme}backdrop',
         matchConfidence: i == 6 ? 0.62 : 0.9 + (i % 3) * 0.03,
       ),
     );
@@ -250,6 +253,8 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
         year: year,
         overview: overview,
         filePath: '/media/Shows/$title',
+        posterUrl: '${kDemoArtScheme}poster',
+        backdropUrl: '${kDemoArtScheme}backdrop',
         matchConfidence: 0.95,
       ),
     );
@@ -271,6 +276,7 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
                 '/media/Shows/$title/Season ${s.toString().padLeft(2, '0')}/'
                 '$title - S${s.toString().padLeft(2, '0')}E${e.toString().padLeft(2, '0')}.mkv',
             durationMs: (38 + (e * 7 + s) % 17) * 60000,
+            backdropUrl: '${kDemoArtScheme}still',
             matchConfidence: 0.97,
           ),
         );
@@ -290,6 +296,7 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
           album: album,
           year: year,
           trackNumber: n + 1,
+          posterUrl: '${kDemoArtScheme}album',
           filePath:
               '/media/Music/$artist/$album/${(n + 1).toString().padLeft(2, '0')} ${names[n]}.flac',
           durationMs: (150 + (n * 37 + album.length * 11) % 130) * 1000,

@@ -24,12 +24,7 @@ class OnboardingScreen extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // A scrim instead of Opacity: saveLayer glitches on software GL.
-          const GeneratedArt(
-            seed: 'kinolune-onboarding',
-            style: ArtStyle.backdrop,
-          ),
-          const ColoredBox(color: Color(0x8C0B0B0F)),
+          const BrandPlaceholder(style: ArtStyle.backdrop),
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
