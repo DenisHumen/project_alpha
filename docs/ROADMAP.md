@@ -199,7 +199,7 @@ project_alpha/
   - Что: CONTRIBUTING (DCO, Conventional Commits, worktree-процесс, ссылка на §0.3); Contributor Covenant 2.1; SECURITY.md с GitHub Private Vulnerability Reporting и сроками ответа.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: файлы есть, GitHub показывает их во вкладке Community Standards.
-- [ ] **REPO-004** DCO-проверка и линт заголовка PR
+- [x] **REPO-004** DCO-проверка и линт заголовка PR
   - Что: DCO GitHub App или workflow, который проверяет `Signed-off-by` у каждого коммита; `amannn/action-semantic-pull-request` со списком scope из §0.3; проверка `[ID]` в заголовке.
   - deps: REPO-003, CI-001 · size: S · parallel: yes · веха: M0 · ref: S §5, 04 §4.2
   - done when: PR без sign-off или с неверным заголовком красный; тестовый PR из форка проходит проверку.
@@ -235,7 +235,7 @@ project_alpha/
   - Что: скрипт в `tools/roadmap/` (блоки кода игнорируются) проверяет уникальность ID, формат полей, существование ID в deps, отсутствие циклов, что у `[x]` нет открытых deps; `next` выдаёт задачи с закрытыми deps, у которых нет открытого PR (через `gh`).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: —
   - done when: lint в CI зелёный на этом файле; `next` на текущем состоянии выдаёт список первой волны (§6).
-- [ ] **REPO-013** Dependabot или Renovate
+- [x] **REPO-013** Dependabot или Renovate
   - Что: обновления cargo, pub, gradle, swiftpm, gomod, github-actions; группировка по экосистемам; auto-merge только для patch-обновлений dev-зависимостей.
   - deps: CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §5.3
   - done when: приходят сгруппированные PR, и CI на них проходит.
@@ -250,7 +250,7 @@ project_alpha/
   - Что: только `pull_request` (не `pull_request_target`) для кода из форков; `permissions: read-all` по умолчанию; actions закреплены по SHA; одобрение запуска для новых контрибьюторов; self-hosted runners никогда не берут PR; секреты только в окружениях.
   - deps: CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.4–4.5
   - done when: тестовый PR из форка не видит секретов; `zizmor` или `actionlint` проходит на всех workflow.
-- [ ] **CI-003** `cargo deny` и `cargo audit`
+- [x] **CI-003** `cargo deny` и `cargo audit`
   - Что: deny-list лицензий (GPL, AGPL и SSPL запрещены в графе клиентских крейтов), advisories, запрет дубликатов основных крейтов.
   - deps: CI-001, REPO-002 · size: S · parallel: yes · веха: M0 · ref: 02 §3.1, 04 §5.3
   - done when: добавление GPL-крейта в `pa-ffi` роняет CI.
