@@ -3,8 +3,9 @@
 //!
 //! One SQLite schema for clients and the media server (docs/dev/db.md,
 //! ADR-0013). This crate owns the schema, its migrations and the connection
-//! setup; queries are added by the LIB tasks that need them: [`progress`]
-//! (playback state, history, "Continue watching", Up Next; LIB-011).
+//! setup; queries are added by the tasks that need them: [`progress`]
+//! (playback state, history, "Continue watching", Up Next; LIB-011) and
+//! [`music`] (artists, albums, tracks, genres; MUS-001).
 //!
 //! ```
 //! let conn = pa_library::open_in_memory().unwrap();
@@ -15,6 +16,7 @@
 //! ```
 
 mod migrations;
+pub mod music;
 pub mod progress;
 
 use std::fmt;
