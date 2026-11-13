@@ -31,6 +31,7 @@
 | [0023](0023-tvos-xcodegen-project.md) | Xcode-проект tvOS-приложения генерируется XcodeGen из `project.yml` | Предложен | TV-001 |
 | [0024](0024-music-audio-mode-libmpv.md) | Музыка v1: libmpv в аудиорежиме, ReplayGain из тегов файла, проверка gapless по сэмплам | Предложен | MUS-002 |
 | [0025](0025-library-search-fts5.md) | Поиск по медиатеке: SQLite FTS5 с ключами из Rust и очередью на триггерах | Предложен | LIB-008 |
+| [NNNN](NNNN-device-family-pairing.md) | Семья устройств: ключи Ed25519/X25519, pairing через SPAKE2, подписанный trust store | Предложен | SYNC-005 |
 
 ## Запланированные ADR
 
