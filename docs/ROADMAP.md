@@ -136,19 +136,19 @@ project_alpha/
   - Что: зафиксировать лицензию и DCO.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: S §5
   - done when: ADR-0005 принят.
-- [ ] **DEC-003** (owner) Донаты в store-сборках: без ссылок или «чаевые» через IAP
+- [x] **DEC-003** (owner) Донаты в store-сборках: без ссылок или «чаевые» через IAP
   - Что: выбрать вариант для App Store, Google Play и Microsoft Store.
   - deps: — · size: S · parallel: yes · веха: M5 · ref: S §4
   - done when: решение записано в ADR; от него зависят PKG-015 и LEGAL-008.
-- [ ] **DEC-004** (owner) Название и бренд продукта (и имя NAS-ОС)
+- [x] **DEC-004** (owner) Название и бренд продукта (и имя NAS-ОС)
   - Что: выбрать имя по итогам LEGAL-005, без «Infuse», «Fedora» и «Twitch» в названии.
   - deps: LEGAL-005 · size: S · parallel: yes · веха: M1 · ref: S §11.4, 05 §7
   - done when: имя, домен и хэндлы закреплены; от решения зависят DSN-006 и DIST-003.
-- [ ] **DEC-005** (owner) Юридическая позиция по кодекам (H.264/HEVC/AAC, RPM Fusion, своя сборка FFmpeg на сервере)
+- [x] **DEC-005** (owner) Юридическая позиция по кодекам (H.264/HEVC/AAC, RPM Fusion, своя сборка FFmpeg на сервере)
   - Что: принять решение по итогам LEGAL-004.
   - deps: LEGAL-004 · size: S · parallel: yes · веха: M4 · ref: 05 §7, 02 §3.2
   - done when: ADR о составе FFmpeg на сервере и в дистрибутиве.
-- [ ] **DEC-006** (owner) Twitch без логина: публичные данные через GQL или только вход через Device Code Flow
+- [x] **DEC-006** (owner) Twitch без логина: публичные данные через GQL или только вход через Device Code Flow
   - Что: решить по итогам прототипа TWI-003.
   - deps: TWI-003 · size: S · parallel: yes · веха: M7 · ref: S §6
   - done when: ADR; от него зависят TWI-013 и TWI-014.
@@ -156,7 +156,7 @@ project_alpha/
   - Что: физлицо или юрлицо, сроки покупки Apple ($99/год — когда готовы ≥ 2 Apple-таргета).
   - deps: — · size: S · parallel: yes · веха: M1 · ref: S §8, 02 §6.2
   - done when: решение записано; от него зависят PKG-005, PKG-008, PKG-011, PKG-012.
-- [ ] **DEC-008** (owner) Ключ TMDB в открытом коде: встроенный ключ проекта по умолчанию или обязательный свой ключ
+- [x] **DEC-008** (owner) Ключ TMDB в открытом коде: встроенный ключ проекта по умолчанию или обязательный свой ключ
   - Что: решить по ответу TMDB (LEGAL-001).
   - deps: LEGAL-001 · size: S · parallel: yes · веха: M2 · ref: S §3, §5
   - done when: ADR; META-009 реализует выбранный вариант.
