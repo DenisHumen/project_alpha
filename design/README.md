@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 
-# design/ — дизайн-система project_alpha
+# design/ — дизайн-система Kinolune
 
 Здесь лежат **исходники дизайна**, из которых генерируется код и ассеты всех платформ: токены, иконки, бренд, иллюстрации, анимации, плейсхолдеры. Каталог принадлежит workstream DSN (см. `docs/ROADMAP.md` §0.4).
 
@@ -12,25 +12,46 @@
 design/
 ├── README.md              # этот файл
 ├── LICENSES.md            # лицензии шрифтов, иконок и стороннего арта
-├── decisions/             # ADR дизайн-workstream (инструмент, правила)
-├── tokens/                # W3C DTCG JSON — источник правды для Style Dictionary
-│   ├── primitive.tokens.json   # сырые значения: палитра, отступы, радиусы, тени
-│   ├── semantic.tokens.json    # роли: bg/base, text/*, accent, focus/* … (ссылки на primitive)
-│   ├── component.tokens.json   # компонентные: poster/focus/scale и т. п.
-│   └── density/                # профили плотности: tv, desktop, tablet, phone
-├── icons/svg/             # исходные SVG 24×24, штрих 1.75–2 px (DSN-004)
-├── brand/                 # логотип, мастер иконки приложения 1024+, слои tvOS/Liquid Glass (DSN-006)
+├── justfile, package.json # инструменты: `just design setup|check|build|tokens|icons|fonts|contrast`
+├── decisions/             # ADR дизайн-workstream (0001 инструмент, 0002 иконки и шрифт)
+├── tokens/                # W3C DTCG JSON — источник правды (DSN-002), см. tokens/README.md
+│   ├── primitive.tokens.json   # палитра, отступы 0–100, радиусы, тени, шрифт, длительности, кривые
+│   ├── semantic.tokens.json    # роли, тёмная тема по умолчанию: bg/*, text/*, accent, focus/*, glass/* …
+│   ├── themes/light.tokens.json  # светлая тема — переопределяет только цвета
+│   ├── component.tokens.json   # poster/focus/scale, button/*, media-badge/* …
+│   ├── density/                # tv, desktop, tablet, phone: типографика, сетка, радиусы, размеры
+│   └── contrast.pairs.json     # пары текст/фон для проверки WCAG AA
+├── icons/                 # иконки (DSN-004), см. icons/svg/README.md
+│   ├── manifest.json      # курированный набор: наше имя → иконка Lucide
+│   ├── svg/               # исходные SVG 24×24, штрих 1.75 px
+│   └── generated/apple/   # PaIcons.xcassets + PaIcon.swift (генерируется)
+├── fonts/                 # Inter Variable (DSN-005): fonts.lock.json с SHA-256, образец specimen.html
+├── flutter/pa_design/     # Flutter-пакет: токены (Dart), иконки, шрифт Inter — генерируется отсюда
+├── scripts/               # валидатор токенов, импорт/линтер/генератор иконок, загрузка шрифтов, тесты
+├── brand/                 # бренд Kinolune: знак, словесный знак, иконки всех платформ (DSN-006, brand/README.md)
 ├── illustrations/         # пустые состояния, онбординг (SVG, при необходимости PNG)
 ├── motion/                # .riv (Rive) и .json (Lottie)
 ├── placeholders/          # собственные плейсхолдеры постеров и обложек (не TMDB-арт!)
-└── sources/               # экспорт мастер-файлов макетов (.penpot / .fig) и ссылки на облачные проекты
+└── sources/               # ссылки на проекты Penpot и экспорт мастер-файлов
 ```
+
+## Быстрый старт
+
+```bash
+just design setup     # npm ci в design/ (Node ≥ 20)
+just design check     # то же, что CI: токены (DTCG, ссылки, контраст), иконки, свежесть сгенерированного, тесты
+just design build     # перегенерировать Dart-токены, код иконок, образец шрифта
+just design fonts     # скачать Inter (SHA-256) — нужно перед сборкой Flutter
+```
+
+**Flutter-приложение** подключает пакет `pa_design` (`path:`-зависимость на `design/flutter/pa_design`) и получает `PaColorScheme.dark|light`, `PaDensity.tv|desktop|tablet|phone` (типографика Inter, сетка, радиусы), `PaTokens` (фокус, движение, материалы), `PaIcon` + `PaIconView`. Пакет называется по внутреннему префиксу `pa_` (ADR-0011: пакеты не переименовываем до проверки товарного знака Kinolune).
 
 | Каталог | Формат | Git LFS | Задача |
 |---|---|---|---|
 | `tokens/` | `*.tokens.json` (DTCG) | нет — нужны диффы и чтение в CI | DSN-002, DSN-003 |
 | `icons/svg/` | `*.svg` | нет — текст, ревью построчно | DSN-004 |
-| `brand/`, `illustrations/`, `placeholders/` | `*.svg` — без LFS; `*.png`, `*.psd`, `*.kra`, `*.blend`, `*.icon` — LFS | частично | DSN-006 |
+| `fonts/` | `*.ttf`, `*.woff2` — **не коммитятся**, скачиваются `just design fonts` с проверкой SHA-256 | не нужен | DSN-005 |
+| `brand/`, `illustrations/`, `placeholders/` | `*.svg` — без LFS; `*.png`, `*.psd`, `*.kra`, `*.blend`, `*.icon` — LFS, кроме сгенерированных `brand/export/`, `brand/preview.png`, `placeholders/export/` (обычный git, см. `.gitattributes`) | частично | DSN-006 |
 | `motion/` | `*.riv`, `*.lottie` — LFS; `*.json` (Lottie) — без LFS | частично | — |
 | `sources/` | `*.penpot`, `*.fig` — LFS | да | DSN-008 |
 
@@ -62,11 +83,11 @@ design/**/*.woff2 filter=lfs diff=lfs merge=lfs -text
 - Имена файлов — `*.tokens.json` (рекомендация DTCG).
 - Три слоя: **primitive → semantic → component**. Код платформ ссылается только на semantic и component.
 - Плотности (TV, desktop, tablet, phone) — отдельные файлы в `tokens/density/`, переопределяют масштаб, а не цвета.
-- Значения в текущих файлах — **каркас** (DSN-001). Полный перенос значений из 01 §4 — задача DSN-002; генерация `tokens.dart`, `Tokens.swift`, `tokens.css` и контраст-линт — DSN-003. Сгенерированный код руками не правится.
+- Значения перенесены из 01 §4 (DSN-002); правила слоёв, тем и плотностей, проверки — в [`tokens/README.md`](tokens/README.md). Dart-экспорт для релиза 0.1 — `scripts/tokens-dart.mjs`; Style Dictionary (`Tokens.swift`, `tokens.css`) и CI-гейт — DSN-003. Сгенерированный код руками не правится.
 
 ## Как вносить изменения
 
-1. Поменяйте файл в `design/` (токен, SVG, мастер-ассет). Если правили в Penpot/Figma — экспортируйте результат в соответствующий каталог.
+1. Поменяйте файл в `design/` (токен, SVG, мастер-ассет), выполните `just design build` и `just design check`. Если правили в Penpot — экспортируйте результат в соответствующий каталог.
 2. Для визуальных изменений приложите в PR скриншот до/после.
 3. Новый шрифт, набор иконок или сторонний арт — сначала строка в [`LICENSES.md`](LICENSES.md), иначе PR не принимается.
 

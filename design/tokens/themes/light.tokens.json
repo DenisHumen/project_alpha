@@ -1,0 +1,85 @@
+{
+  "$description": "Light theme (optional on phone, tablet, desktop; TV stays dark). Overrides colour roles of semantic.tokens.json only — every path here must exist there.",
+  "bg": {
+    "$type": "color",
+    "base": { "$value": "{color.gray.50}", "$description": "#F5F5F7 (01 §4.5)." },
+    "elevated": { "$value": "{color.white}" },
+    "elevated-2": { "$value": "{color.gray.100}" },
+    "hover": { "$value": "{color.black-alpha.4}" },
+    "selected": { "$value": "{color.black-alpha.8}" }
+  },
+  "text": {
+    "$type": "color",
+    "primary": {
+      "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.9, "hex": "#000000" },
+      "$description": "Black @ 90 %."
+    },
+    "secondary": {
+      "$value": "{color.black-alpha.64}",
+      "$description": "Metadata. 01 §4.5 proposed 55 %; raised for ≥ 4.5:1 on bg/elevated-2."
+    },
+    "tertiary": {
+      "$value": "{color.black-alpha.45}",
+      "$description": "Inactive (WCAG exempt), ≥ 3:1 target. 01 §4.5 proposed 30 %; raised to 45 % for 3:1 on bg/base."
+    },
+    "link": { "$value": "{color.lune.600}" }
+  },
+  "border": {
+    "$type": "color",
+    "subtle": { "$value": "{color.black-alpha.8}" },
+    "strong": { "$value": "{color.black-alpha.16}" }
+  },
+  "accent": {
+    "$type": "color",
+    "subtle": { "$value": "{color.lune.100}" }
+  },
+  "status": {
+    "$type": "color",
+    "success": { "$value": "{color.green.700}" },
+    "warning": { "$value": "{color.amber.700}" },
+    "danger": { "$value": "{color.red.600}" }
+  },
+  "state": {
+    "$type": "color",
+    "progress-track": { "$value": "{color.black-alpha.16}" }
+  },
+  "focus": {
+    "fill": {
+      "$type": "color",
+      "$value": "{color.gray.900}",
+      "$description": "Inverted focus on light surfaces: dark fill."
+    },
+    "label": { "$type": "color", "$value": "{color.white}" },
+    "ring": { "$type": "color", "$value": "{color.lune.600}" }
+  },
+  "glass": {
+    "thin": {
+      "tint": {
+        "$type": "color",
+        "$value": "{color.white-alpha.55}",
+        "$description": "Light glass: white 50–70 % (01 §4.6)."
+      },
+      "highlight": { "$type": "color", "$value": "{color.white-alpha.64}" },
+      "fallback": {
+        "$type": "color",
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "alpha": 0.85, "hex": "#ffffff" }
+      }
+    },
+    "regular": {
+      "tint": { "$type": "color", "$value": "{color.white-alpha.64}" },
+      "highlight": { "$type": "color", "$value": "{color.white-alpha.85}" },
+      "fallback": {
+        "$type": "color",
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "alpha": 0.88, "hex": "#ffffff" }
+      }
+    },
+    "thick": {
+      "tint": { "$type": "color", "$value": "{color.white-alpha.85}" },
+      "highlight": { "$type": "color", "$value": "{color.white}" },
+      "fallback": {
+        "$type": "color",
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "alpha": 0.92, "hex": "#ffffff" }
+      }
+    }
+  }
+}

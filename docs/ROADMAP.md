@@ -231,7 +231,7 @@ project_alpha/
   - Что: скан всей истории gitleaks, проверка на приватные ссылки и чужие ассеты, переключение видимости, судьба `project_alpha-releases` по DEC-001, редиректы в README.
   - deps: DEC-001, REPO-002, REPO-009 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: репо публичный, в истории нет секретов, Actions на публичных runners работают.
-- [ ] **REPO-012** Инструменты ROADMAP: `just roadmap lint` и `just roadmap next`
+- [x] **REPO-012** Инструменты ROADMAP: `just roadmap lint` и `just roadmap next`
   - Что: скрипт в `tools/roadmap/` (блоки кода игнорируются) проверяет уникальность ID, формат полей, существование ID в deps, отсутствие циклов, что у `[x]` нет открытых deps; `next` выдаёт задачи с закрытыми deps, у которых нет открытого PR (через `gh`).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: —
   - done when: lint в CI зелёный на этом файле; `next` на текущем состоянии выдаёт список первой волны (§6).
@@ -578,6 +578,14 @@ project_alpha/
   - Что: формат и экспорт подтверждённых пользователем матчей (oshash/ed2k → ID и маппинг) в виде PR в публичный датасет, только по opt-in; k-анонимность; импорт датасета в индекс; без серверов.
   - deps: META-017 · size: M · parallel: yes · веха: M10 · ref: S §10, 03 §4.8
   - done when: экспорт не содержит путей и имён файлов (тест); импорт ускоряет матч известных релизов.
+- [ ] **META-023** Парсер: замер на тест-кейсах guessit и anitomy в eval-репо и доводка до ≥ 85 %
+  - Что: выделено из META-005 (первый срез парсера — крейт `pa-recognition::parse`). Конвертер тест-кейсов guessit (LGPL) и anitomy (MPL) в `parse`-блоки корпуса — только в eval-репо, в продукт не попадают; отчёт по полям (title, year, season, episodes, absolute, release_group, resolution, source); доводка правил без копирования кода. После закрытия отметить и META-005.
+  - deps: META-002, META-005 · size: M · parallel: yes · веха: M2 · ref: 03 §2.2, §6.1
+  - done when: ≥ 85 % кейсов guessit по сравниваемым полям, отчёт лежит в eval-репо; регрессионный порог добавлен в CI eval-репо.
+- [ ] **META-024** Адаптер парсера для `pa-eval`: метрики разбора имён
+  - Что: `Recognizer`-адаптер и/или отдельная метрика «Парсинг» (03 §6.2) в `pa-eval` поверх `pa_recognition::parse`: точность по полям `parse`-блоков корпуса для top-1 и N-best, разрез по категориям, отчёт в Markdown и JSON.
+  - deps: META-003, META-005 · size: S · parallel: yes · веха: M2 · ref: 03 §6.2
+  - done when: отчёт `pa-eval` содержит раздел «Парсинг»; на `examples.jsonl` воспроизводит числа теста `corpus_examples` крейта `pa-recognition`.
 
 ### 3.7. PLAY — общий плеерный слой
 
@@ -1195,7 +1203,7 @@ project_alpha/
   - Что: `distro/Containerfile` FROM `quay.io/fedora/fedora-bootc:45@sha256:…` (пин по digest), Samba, Avahi, wsdd, firewalld, smartd, заглушки наших сервисов; ручная проверка `bootc switch`, `upgrade` и `rollback` на VM; ADR по фазе 0 (Go для установщика, нативный медиасервер или Quadlet).
   - deps: — · size: M · parallel: yes · веха: M8 · ref: 05 §1.4, §8 (фаза 0)
   - done when: VM переключается на образ и откатывается назад; ADR принят.
-- [ ] **DIST-002** Сборка образа в CI и политика подписи
+- [x] **DIST-002** Сборка образа в CI и политика подписи
   - Что: `podman build` → rechunk → `bootc container lint` → push в GHCR (`:<ver>`, `:beta`, `:stable`) → cosign (ключ в секрете или KMS) → SBOM (syft); на устройстве `policy.json` (по умолчанию reject, sigstoreSigned для нашего образа) и `registries.d` с sigstore attachments.
   - deps: DIST-001 · size: M · parallel: no · веха: M8 · ref: 05 §4.2 п.4, §6.2
   - done when: тест в CI — неподписанный образ отклоняется устройством.
@@ -1306,7 +1314,7 @@ project_alpha/
   - Что: выбор Figma или Penpot (для open source рекомендуется Penpot; источник правды — JSON в git, а не файл макетов); каталоги tokens, icons/svg, brand, illustrations, motion, placeholders; `LICENSES.md` для шрифтов и иконок; Git LFS.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: 01 §5.1–5.2
   - done when: ADR о дизайн-инструменте; структура создана.
-- [ ] **DSN-002** Токены W3C DTCG
+- [x] **DSN-002** Токены W3C DTCG
   - Что: primitive (палитра, отступы 4–100, радиусы, тени), semantic (`bg/base`, `text/*`, `accent`, `accent/live`, `focus/*`, `badge/*`, `scrim`, `glass/thin|regular|thick`, `motion/*`), component (`poster/focus/scale` и т. п.), профили плотности (TV, desktop, tablet, phone).
   - deps: DSN-001 · size: M · parallel: yes · веха: M0 · ref: 01 §4.3–4.7, §4.10 п.1–2
   - done when: JSON проходит валидацию DTCG; значения из 01 §4 перенесены.
@@ -1314,18 +1322,19 @@ project_alpha/
   - Что: генерация `tokens.dart`, `Tokens.swift`, `tokens.css` (админки и сайт) в CI; проверка актуальности сгенерированного; проверка контраста WCAG AA для текстовых пар.
   - deps: DSN-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §5.2 (CI-шаги)
   - done when: изменение токена без перегенерации роняет CI; пара с контрастом меньше 4.5:1 роняет CI.
-- [ ] **DSN-004** Набор иконок и конвейер
+- [x] **DSN-004** Набор иконок и конвейер
   - Что: основа — Lucide (ISC) или Phosphor (MIT), доработка (штрих 1.75–2 px на 24 px); svgo и линтер (stroke, viewBox); генерация `Icon.*` для Flutter и asset catalog (или шаблоны SF Symbols) для Swift.
   - deps: DSN-001 · size: M · parallel: yes · веха: M1 · ref: 01 §4.8, §5.2
   - done when: 60 базовых иконок MVP доступны на обеих платформах; линтер в CI.
-- [ ] **DSN-005** Шрифты
+- [x] **DSN-005** Шрифты
   - Что: Inter Variable (OFL) для не-Apple платформ, проверка кириллицы (запасные варианты — Manrope или Golos UI); на Apple — системный SF; лицензии в `LICENSES.md`; табличные цифры.
   - deps: DSN-001 · size: S · parallel: yes · веха: M1 · ref: 01 §4.4
   - done when: образец типографики ru и en утверждён; шрифты подключены во Flutter.
-- [ ] **DSN-006** Бренд, иконки приложения, плейсхолдеры
+- [x] **DSN-006** Бренд, иконки приложения, плейсхолдеры
   - Что: логотип; мастер иконки 1024+; layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer); Android adaptive (foreground, background, monochrome) и баннер TV 320×180; Windows ICO и ассеты MSIX; Linux hicolor, `.desktop` и AppStream; собственные плейсхолдеры постеров и обложек; иллюстрации пустых состояний.
   - deps: DSN-001, DEC-004 · size: L · parallel: yes · веха: M5 · ref: 01 §5.2 п.3
   - done when: все платформенные ассеты генерируются из мастер-файлов скриптом.
+  - Итог: знак, словесный знак, акцент `color.lune`, Android (adaptive, themed, TV-баннер), Linux, Windows ICO, веб и плейсхолдеры — `design/brand/`; Apple-слои, MSIX, AppStream и пустые состояния перенесены в DSN-016.
 - [ ] **DSN-007** Иконки источников и сервисов
   - Что: нейтральные иконки протоколов; Plex, Jellyfin, Emby, Twitch и TMDB — только официальные ассеты и строго по их brand guidelines (проверка в LEGAL-009).
   - deps: DSN-004, LEGAL-009 · size: S · parallel: yes · веха: M4 · ref: 01 §4.8, 06 §1.5
@@ -1362,6 +1371,10 @@ project_alpha/
   - Что: сравнение Flutter-экранов и tvOS SwiftUI с макетами на 4 плотностях, исправление расхождений, обновление golden-тестов.
   - deps: CI-009, DSN-012, TV-007 · size: M · parallel: yes · веха: M9 · ref: 01 §4.10
   - done when: список расхождений закрыт; golden-тесты зелёные.
+- [ ] **DSN-016** Бренд: Apple-слои, MSIX, AppStream и иллюстрации пустых состояний
+  - Что: остаток DSN-006, не нужный для релиза 0.1: layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer `.icon`), ассеты MSIX (Square44/150, Wide310, StoreLogo, scale-100…400), AppStream metainfo с иконками, иллюстрации пустых состояний; всё — из мастеров `design/brand/src` тем же генератором.
+  - deps: DSN-006 · size: M · parallel: yes · веха: M5 · ref: 01 §5.2 п.3, design/brand/README.md
+  - done when: ассеты генерируются `just design brand`, `brand:check` в CI зелёный.
 
 ### 3.19. PKG — упаковка и каналы публикации
 
@@ -1436,11 +1449,11 @@ project_alpha/
 
 ### 3.20. QA — качество, тестовые данные, безопасность
 
-- [ ] **QA-001** Тест-стратегия
+- [x] **QA-001** Тест-стратегия
   - Что: `docs/dev/testing.md`: уровни тестов, что обязательно в PR, golden-тесты, device lab, ручные чек-листы; ответственные за платформы.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4, 01 §4.10 п.5
   - done when: документ принят; ссылка в CONTRIBUTING.
-- [ ] **QA-002** Тестовые медиа-сэмплы
+- [x] **QA-002** Тестовые медиа-сэмплы
   - Что: `tests/media/` в LFS, только свободные лицензии: Blender Open Movies; синтетические сэмплы ffmpeg (все контейнеры и кодеки, HDR10, HDR10+, HLG, DV-метаданные, многоканальное аудио); субтитры ASS, PGS, VobSub; gapless-альбом; манифест с лицензиями.
   - deps: REPO-001 · size: M · parallel: yes · веха: M0 · ref: 01 §5.2, 02 §2
   - done when: манифест описывает каждый файл и его лицензию; общий размер набора меньше 2 ГБ.

@@ -1,0 +1,27 @@
+{
+    "default": [
+        {
+            "type": "reject"
+        }
+    ],
+    "transports": {
+        "docker": {
+            "@ALPHA_IMAGE_REPO@": [
+                {
+                    "type": "sigstoreSigned",
+                    "keyPath": "/usr/share/alpha/keys/alpha-os.pub",
+                    "signedIdentity": {
+                        "type": "matchRepository"
+                    }
+                }
+            ]
+        },
+        "containers-storage": {
+            "": [
+                {
+                    "type": "insecureAcceptAnything"
+                }
+            ]
+        }
+    }
+}

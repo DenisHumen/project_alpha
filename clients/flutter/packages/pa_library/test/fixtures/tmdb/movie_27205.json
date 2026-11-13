@@ -1,0 +1,18 @@
+{
+  "adult": false,
+  "backdrop_path": "/fixture-inception-backdrop.jpg",
+  "id": 27205,
+  "imdb_id": "tt1375666",
+  "original_language": "en",
+  "original_title": "Inception",
+  "overview": "Fixture overview: a thief who steals ideas through dreams.",
+  "popularity": 90.0,
+  "poster_path": "/fixture-inception-poster.jpg",
+  "release_date": "2010-07-15",
+  "runtime": 148,
+  "status": "Released",
+  "title": "Inception",
+  "video": false,
+  "vote_average": 8.4,
+  "vote_count": 36000
+}
