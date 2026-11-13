@@ -244,7 +244,14 @@ mod tests {
             log: db.head().log,
             seq,
         };
-        for cursor in [None, Some(other), Some(mine(0)), Some(mine(2)), Some(mine(5)), Some(mine(99))] {
+        for cursor in [
+            None,
+            Some(other),
+            Some(mine(0)),
+            Some(mine(2)),
+            Some(mine(5)),
+            Some(mine(99)),
+        ] {
             for limit in [1, 2, 10] {
                 let pull = Pull {
                     cursor: cursor.clone(),

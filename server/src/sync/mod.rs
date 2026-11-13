@@ -193,7 +193,9 @@ impl Hub {
         };
         match conn.run().await {
             Ok(()) => tracing::debug!(conn = id, device = conn.device(), "sync: closed"),
-            Err(e) => tracing::info!(conn = id, device = conn.device(), reason = %e, "sync: dropped"),
+            Err(e) => {
+                tracing::info!(conn = id, device = conn.device(), reason = %e, "sync: dropped")
+            }
         }
         drop(slot);
     }
@@ -216,9 +218,7 @@ fn now_ms() -> i64 {
 
 fn encode(msg: &Message) -> Utf8Bytes {
     // Messages built by the hub are always valid.
-    proto::encode(msg)
-        .expect("hub messages encode")
-        .into()
+    proto::encode(msg).expect("hub messages encode").into()
 }
 
 fn error(code: &str, message: Option<&str>, op_id: Option<pa_sync::OpId>) -> Message {
@@ -301,7 +301,12 @@ impl Connection {
 
         // Instant resume: what is playing right now on other devices.
         let recent = {
-            let mut cache = self.hub.inner.playback.lock().unwrap_or_else(|e| e.into_inner());
+            let mut cache = self
+                .hub
+                .inner
+                .playback
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
             cache.fresh(Instant::now())
         };
         for frame in recent {
@@ -381,8 +386,12 @@ impl Connection {
         match msg {
             Message::PbUpdate(update) => {
                 {
-                    let mut cache =
-                        self.hub.inner.playback.lock().unwrap_or_else(|e| e.into_inner());
+                    let mut cache = self
+                        .hub
+                        .inner
+                        .playback
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner());
                     cache.put(&update, text.clone(), Instant::now());
                 }
                 // The original frame: unknown fields of newer clients survive.

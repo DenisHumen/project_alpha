@@ -126,7 +126,11 @@ mod tests {
         let mut cache = PlaybackCache::new(Duration::from_secs(60), 2);
         for (i, id) in [1, 2, 3].into_iter().enumerate() {
             let key = format!("tmdb:movie:{id}");
-            put(&mut cache, &update(&key, 1_000, "tv"), t0 + Duration::from_secs(i as u64));
+            put(
+                &mut cache,
+                &update(&key, 1_000, "tv"),
+                t0 + Duration::from_secs(i as u64),
+            );
         }
         let fresh = cache.fresh(t0 + Duration::from_secs(3));
         assert_eq!(fresh.len(), 2);

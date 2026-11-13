@@ -208,7 +208,9 @@ mod tests {
         assert_eq!(config.listen.port(), 9000);
         assert_eq!(config.log.format, LogFormat::Json);
         assert_eq!(config.sync, SyncConfig::default());
-        let sync = Config::from_toml("[sync]\nmax_connections = 8\n").unwrap().sync;
+        let sync = Config::from_toml("[sync]\nmax_connections = 8\n")
+            .unwrap()
+            .sync;
         assert_eq!(sync.max_connections, 8);
         assert_eq!(sync.playback_ttl_secs, 600);
 

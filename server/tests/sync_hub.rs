@@ -193,7 +193,9 @@ async fn handshake_rules() {
 
     // A garbage frame after the handshake is skipped, not fatal.
     let (mut ws, _) = connect(hub.addr, "phone", None).await;
-    ws.send(WsMessage::Text("{\"t\":\"op\"}".into())).await.unwrap();
+    ws.send(WsMessage::Text("{\"t\":\"op\"}".into()))
+        .await
+        .unwrap();
     let Some(Message::Error(e)) = recv(&mut ws).await else {
         panic!("no error")
     };
@@ -308,10 +310,7 @@ async fn playback_is_forwarded_and_replayed_to_new_devices() {
     let newer = pb("phone", 603, 2_471_200, 1_763_000_005_000);
     for update in [&older, &newer] {
         send(&mut phone, &Message::PbUpdate(update.clone())).await;
-        assert_eq!(
-            recv(&mut tv).await,
-            Some(Message::PbUpdate(update.clone()))
-        );
+        assert_eq!(recv(&mut tv).await, Some(Message::PbUpdate(update.clone())));
     }
     // The sender does not get its own frame back.
     silent(&mut phone).await;
@@ -329,10 +328,7 @@ async fn playback_is_forwarded_and_replayed_to_new_devices() {
     };
     send(&mut tv, &Message::PbTakeover(takeover.clone())).await;
     for ws in [&mut phone, &mut tablet] {
-        assert_eq!(
-            recv(ws).await,
-            Some(Message::PbTakeover(takeover.clone()))
-        );
+        assert_eq!(recv(ws).await, Some(Message::PbTakeover(takeover.clone())));
     }
     hub.stop().await;
 }
@@ -421,7 +417,8 @@ async fn load_50_devices_10_messages_per_second() {
         let writer = tokio::spawn(async move {
             // Spread the devices over the 100 ms tick.
             let first = start + Duration::from_millis(i as u64 * 100 / DEVICES as u64);
-            let mut tick = tokio::time::interval_at(first, Duration::from_millis(1000 / PER_SECOND));
+            let mut tick =
+                tokio::time::interval_at(first, Duration::from_millis(1000 / PER_SECOND));
             let (mut pbs, mut ops) = (0u64, 0u64);
             for n in 0..SECONDS * PER_SECOND {
                 tick.tick().await;
@@ -489,7 +486,11 @@ async fn load_50_devices_10_messages_per_second() {
         fanout.last().unwrap(),
         acks.len(),
     );
-    assert_eq!(fanout.len(), expected, "every message reaches every other device");
+    assert_eq!(
+        fanout.len(),
+        expected,
+        "every message reaches every other device"
+    );
     assert_eq!(acks.len() as u64, sent_op_count, "every op is acked");
     assert!(p95 < Duration::from_millis(200), "fan-out p95 {p95:?}");
     assert!(ack_p95 < Duration::from_millis(200), "ack p95 {ack_p95:?}");
