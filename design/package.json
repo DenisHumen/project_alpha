@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "license": "MPL-2.0",
   "type": "module",
-  "description": "Design tokens, icon and font pipeline for project_alpha (DSN-002, DSN-004, DSN-005).",
+  "description": "Design tokens, icon and font pipeline for project_alpha (DSN-002, DSN-004, DSN-005, DSN-006).",
   "engines": {
     "node": ">=20"
   },
@@ -19,11 +19,16 @@
     "icons:check": "node scripts/icons-build.mjs --check",
     "fonts:fetch": "node scripts/fonts-fetch.mjs",
     "fonts:specimen": "node scripts/fonts-specimen.mjs",
-    "check": "npm run tokens:validate && npm run tokens:check && npm run icons:lint && npm run icons:check",
+    "brand:build": "node scripts/brand-build.mjs",
+    "brand:check": "node scripts/brand-build.mjs --check",
+    "brand:wordmark": "node scripts/brand-wordmark.mjs",
+    "check": "npm run tokens:validate && npm run tokens:check && npm run icons:lint && npm run icons:check && npm run brand:check",
     "test": "node --test scripts/test/*.test.mjs"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
     "lucide-static": "1.72.0",
+    "opentype.js": "2.0.0",
     "svgo": "4.1.0"
   }
 }

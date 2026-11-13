@@ -113,32 +113,32 @@
       },
       "$description": "Black with opacity N % — text on light surfaces, scrims, shadows."
     },
-    "blue": {
+    "lune": {
       "100": {
-        "$value": { "colorSpace": "srgb", "components": [0.863, 0.922, 1], "hex": "#dcebff" }
+        "$value": { "colorSpace": "srgb", "components": [0.831, 0.965, 0.973], "hex": "#d4f6f8" }
       },
       "200": {
-        "$value": { "colorSpace": "srgb", "components": [0.71, 0.835, 1], "hex": "#b5d5ff" }
+        "$value": { "colorSpace": "srgb", "components": [0.671, 0.925, 0.937], "hex": "#abecef" }
       },
       "300": {
-        "$value": { "colorSpace": "srgb", "components": [0.525, 0.729, 1], "hex": "#86baff" }
+        "$value": { "colorSpace": "srgb", "components": [0.471, 0.871, 0.89], "hex": "#78dee3" }
       },
       "400": {
-        "$value": { "colorSpace": "srgb", "components": [0.353, 0.62, 1], "hex": "#5a9eff" }
+        "$value": { "colorSpace": "srgb", "components": [0.286, 0.82, 0.847], "hex": "#49d1d8" }
       },
       "500": {
-        "$value": { "colorSpace": "srgb", "components": [0.184, 0.502, 0.961], "hex": "#2f80f5" }
+        "$value": { "colorSpace": "srgb", "components": [0.02, 0.678, 0.706], "hex": "#05adb4" }
       },
       "600": {
-        "$value": { "colorSpace": "srgb", "components": [0.118, 0.4, 0.839], "hex": "#1e66d6" }
+        "$value": { "colorSpace": "srgb", "components": [0, 0.467, 0.49], "hex": "#00777d" }
       },
       "700": {
-        "$value": { "colorSpace": "srgb", "components": [0.086, 0.314, 0.671], "hex": "#1650ab" }
+        "$value": { "colorSpace": "srgb", "components": [0, 0.373, 0.392], "hex": "#005f64" }
       },
       "800": {
-        "$value": { "colorSpace": "srgb", "components": [0.071, 0.243, 0.518], "hex": "#123e84" }
+        "$value": { "colorSpace": "srgb", "components": [0, 0.243, 0.255], "hex": "#003e41" }
       },
-      "$description": "Interim brand accent (\"cinema blue\"). Deliberately not the purple-orange of Infuse. The final brand hue is DSN-006; changing this ramp re-themes everything."
+      "$description": "Brand accent \"lune teal\" (DSN-006): moonlit teal, OKLCH hue 200. Not the purple-orange of Infuse and distinct from the hues of other media players. 600 carries white text (5.3:1), 400 is accent text on dark backgrounds."
     },
     "red": {
       "300": {

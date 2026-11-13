@@ -1,7 +1,29 @@
 # SPDX-License-Identifier: MPL-2.0
-# `tests` module: e2e tests and fixtures.
-# Owned by the QA workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+# `tests` module: e2e tests, test media and fixtures (QA workstream, docs/ROADMAP.md §0.4).
+# Strategy: docs/dev/testing.md. Test media: tests/media/README.md.
 
-# Placeholder until the area gets real recipes
+media_tools := source_directory() / "../tools/qa/media"
+
+# List recipes
 info:
-    @echo "tests: no recipes yet (QA, see docs/ROADMAP.md)"
+    @just --list tests
+
+# Generate the synthetic test-media set into tests/media/synthetic (QA-002)
+media *args:
+    python3 {{media_tools}}/generate.py {{args}}
+
+# Check generated (and with --external, downloaded) media against the manifest
+media-verify *args:
+    python3 {{media_tools}}/verify.py {{args}}
+
+# Download the freely licensed real-world samples into tests/media/external
+media-fetch *args:
+    python3 {{media_tools}}/fetch.py {{args}}
+
+# Build the fake media library (movies/series/anime/music) into tests/media/library
+media-library *args:
+    python3 {{media_tools}}/library.py {{args}}
+
+# Unit tests of the media tooling (no FFmpeg needed)
+media-selftest:
+    python3 -m unittest discover -s {{media_tools}} -p 'test_*.py'

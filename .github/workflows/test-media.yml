@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Test-media tooling (QA-002): manifest schema, recipe coverage and unit tests
+# of tools/qa/media, plus a build of the standalone `hdrmeta` helper. The media
+# set itself is not generated here: runner FFmpeg is too old (needs >= 7.1).
+# Safe for fork PRs: read-only token, no secrets, actions pinned by SHA.
+
+name: Test media
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
+    paths:
+      - "tests/media/**"
+      - "tools/qa/**"
+      - ".github/workflows/test-media.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tests/media/**"
+      - "tools/qa/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tooling:
+    name: manifest and tooling
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Unit tests (manifest, PGS writer, verifier, fetch)
+        run: python3 -m unittest discover -s tools/qa/media -p 'test_*.py' -v
+      - name: Every manifest entry has a recipe
+        run: python3 tools/qa/media/generate.py --list > /dev/null
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup component add rustfmt
+      - name: hdrmeta fmt and build
+        working-directory: tools/qa/media/hdrmeta
+        run: |
+          cargo fmt --check
+          cargo build --locked --release

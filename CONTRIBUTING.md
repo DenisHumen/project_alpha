@@ -76,7 +76,7 @@ pre-commit install
 ## Требования к PR
 
 - Код собирается, тесты и линтеры проходят (CI запускается автоматически; для первых PR от новых участников запуск подтверждает мейнтейнер).
-- Новая логика покрыта тестами: Rust — `cargo nextest`, Flutter — unit, widget и golden, Android — JUnit и instrumented, Apple — XCTest, Go — `go test`. Если в `done when` указаны платформы, перечислите в PR, где проверено.
+- Новая логика покрыта тестами (стратегия, обязательное в PR, тестовые медиа и ручные чек-листы — [docs/dev/testing.md](docs/dev/testing.md)): Rust — `cargo nextest`, Flutter — unit, widget и golden, Android — JUnit и instrumented, Apple — XCTest, Go — `go test`. Если в `done when` указаны платформы, перечислите в PR, где проверено.
 - Не добавляйте GPL-зависимости в клиенты (см. STRATEGY §5, ADR-0005). Новые зависимости — только с совместимой лицензией (MIT, Apache-2.0, BSD, ISC, MPL-2.0, LGPL с динамической линковкой). FFmpeg и mpv — только LGPL-сборки.
 - Никаких секретов, ключей и личных путей в коммитах.
 - Не используйте бренды, логотипы и ассеты Infuse/Firecore, Fedora, Twitch (кроме разрешённого брендбуком), Dolby/DTS, Apple SF вне Apple-платформ.
@@ -106,7 +106,7 @@ By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md); report 
 4. Sign off every commit (`git commit -s`, [DCO](https://developercertificate.org/)). No CLA.
 5. Every new source file starts with `SPDX-License-Identifier: MPL-2.0`; `reuse lint` must pass.
 6. No secrets: use `.env.local` (git-ignored) based on `.env.example`; enable the gitleaks hook with `pre-commit install`.
-7. Keep PRs small, with tests; tick your task's checkbox in the roadmap in the same PR. PRs are squash-merged after maintainer review.
+7. Keep PRs small, with tests (see [docs/dev/testing.md](docs/dev/testing.md)); tick your task's checkbox in the roadmap in the same PR. PRs are squash-merged after maintainer review.
 8. No GPL dependencies in clients, no third-party trademarks or assets, telemetry only opt-in.
 
 AI agents: see [AGENTS.md](AGENTS.md). Contributions are licensed under [MPL-2.0](LICENSE).

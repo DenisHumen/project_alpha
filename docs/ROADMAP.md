@@ -352,7 +352,7 @@ project_alpha/
 
 ### 3.4. NET — источники, сетевые протоколы, Plex/Jellyfin/Emby
 
-- [ ] **NET-001** `pa-vfs`: трейт Vfs и локальная ФС
+- [x] **NET-001** `pa-vfs`: трейт Vfs и локальная ФС
   - Что: `Vfs` (list, stat, open → `ByteSource{read_at, size}`), `LocalFs`, общий контракт-тест-сьют, который обязаны проходить все бэкенды.
   - deps: REPO-001, CORE-005 · size: S · parallel: no · веха: M1 · ref: 02 §1.4, 04 §1.3
   - done when: контракт-тесты проходят на LocalFs под Linux, Windows и macOS.
@@ -1330,10 +1330,11 @@ project_alpha/
   - Что: Inter Variable (OFL) для не-Apple платформ, проверка кириллицы (запасные варианты — Manrope или Golos UI); на Apple — системный SF; лицензии в `LICENSES.md`; табличные цифры.
   - deps: DSN-001 · size: S · parallel: yes · веха: M1 · ref: 01 §4.4
   - done when: образец типографики ru и en утверждён; шрифты подключены во Flutter.
-- [ ] **DSN-006** Бренд, иконки приложения, плейсхолдеры
+- [x] **DSN-006** Бренд, иконки приложения, плейсхолдеры
   - Что: логотип; мастер иконки 1024+; layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer); Android adaptive (foreground, background, monochrome) и баннер TV 320×180; Windows ICO и ассеты MSIX; Linux hicolor, `.desktop` и AppStream; собственные плейсхолдеры постеров и обложек; иллюстрации пустых состояний.
   - deps: DSN-001, DEC-004 · size: L · parallel: yes · веха: M5 · ref: 01 §5.2 п.3
   - done when: все платформенные ассеты генерируются из мастер-файлов скриптом.
+  - Итог: знак, словесный знак, акцент `color.lune`, Android (adaptive, themed, TV-баннер), Linux, Windows ICO, веб и плейсхолдеры — `design/brand/`; Apple-слои, MSIX, AppStream и пустые состояния перенесены в DSN-016.
 - [ ] **DSN-007** Иконки источников и сервисов
   - Что: нейтральные иконки протоколов; Plex, Jellyfin, Emby, Twitch и TMDB — только официальные ассеты и строго по их brand guidelines (проверка в LEGAL-009).
   - deps: DSN-004, LEGAL-009 · size: S · parallel: yes · веха: M4 · ref: 01 §4.8, 06 §1.5
@@ -1370,6 +1371,10 @@ project_alpha/
   - Что: сравнение Flutter-экранов и tvOS SwiftUI с макетами на 4 плотностях, исправление расхождений, обновление golden-тестов.
   - deps: CI-009, DSN-012, TV-007 · size: M · parallel: yes · веха: M9 · ref: 01 §4.10
   - done when: список расхождений закрыт; golden-тесты зелёные.
+- [ ] **DSN-016** Бренд: Apple-слои, MSIX, AppStream и иллюстрации пустых состояний
+  - Что: остаток DSN-006, не нужный для релиза 0.1: layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer `.icon`), ассеты MSIX (Square44/150, Wide310, StoreLogo, scale-100…400), AppStream metainfo с иконками, иллюстрации пустых состояний; всё — из мастеров `design/brand/src` тем же генератором.
+  - deps: DSN-006 · size: M · parallel: yes · веха: M5 · ref: 01 §5.2 п.3, design/brand/README.md
+  - done when: ассеты генерируются `just design brand`, `brand:check` в CI зелёный.
 
 ### 3.19. PKG — упаковка и каналы публикации
 
@@ -1444,11 +1449,11 @@ project_alpha/
 
 ### 3.20. QA — качество, тестовые данные, безопасность
 
-- [ ] **QA-001** Тест-стратегия
+- [x] **QA-001** Тест-стратегия
   - Что: `docs/dev/testing.md`: уровни тестов, что обязательно в PR, golden-тесты, device lab, ручные чек-листы; ответственные за платформы.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4, 01 §4.10 п.5
   - done when: документ принят; ссылка в CONTRIBUTING.
-- [ ] **QA-002** Тестовые медиа-сэмплы
+- [x] **QA-002** Тестовые медиа-сэмплы
   - Что: `tests/media/` в LFS, только свободные лицензии: Blender Open Movies; синтетические сэмплы ffmpeg (все контейнеры и кодеки, HDR10, HDR10+, HLG, DV-метаданные, многоканальное аудио); субтитры ASS, PGS, VobSub; gapless-альбом; манифест с лицензиями.
   - deps: REPO-001 · size: M · parallel: yes · веха: M0 · ref: 01 §5.2, 02 §2
   - done when: манифест описывает каждый файл и его лицензию; общий размер набора меньше 2 ГБ.
