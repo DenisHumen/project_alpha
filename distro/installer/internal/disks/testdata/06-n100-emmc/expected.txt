@@ -1,0 +1,22 @@
+  WD Black SN850X 1000GB     1.0 TB  NVMe     /dev/nvme0n1       S/N …1234
+! eMMC 63 GB                  63 GB  eMMC     /dev/mmcblk0       S/N …3c4d
+      GPT partition table, 2 partition(s)
+      EFI system partition /dev/mmcblk0p1 (an OS is likely installed)
+      ext4 "debian-root" on /dev/mmcblk0p2
+! Memory card 32 GB           32 GB  SD/MMC   /dev/mmcblk1       S/N …abcd
+      DOS partition table, 1 partition(s)
+      vfat "CAMERA" on /dev/mmcblk1p1
+- eMMC 4.2 MB                4.2 MB  eMMC     /dev/mmcblk0boot0
+      excluded: hardware-area
+- eMMC 4.2 MB                4.2 MB  eMMC     /dev/mmcblk0boot1
+      excluded: hardware-area
+- Kingston DataTraveler 3.0   31 GB  USB      /dev/sda           S/N …7354
+      excluded: boot-media
+      DOS partition table, 2 partition(s)
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sda
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sda1
+      /dev/sda1 is mounted at /run/initramfs/live
+      EFI system partition /dev/sda2 (an OS is likely installed)
+- loop device                1.9 GB  virtual  /dev/loop0
+      excluded: virtual-device
+      squashfs on /dev/loop0

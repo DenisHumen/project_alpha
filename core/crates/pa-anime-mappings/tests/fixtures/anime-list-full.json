@@ -1,0 +1,23 @@
+[ {
+  "type" : "TV",
+  "anidb_id" : 9001,
+  "anilist_id" : 6001,
+  "mal_id" : 5001,
+  "imdb_id" : [ "tt0000001" ],
+  "themoviedb_id" : { "tv" : 200001 },
+  "tvdb_id" : 100001,
+  "season" : { "tvdb" : 1, "tmdb" : 1 }
+}, {
+  "type" : "TV",
+  "anidb_id" : 9008,
+  "mal_id" : 5008,
+  "anime-planet_id" : "example-sequel",
+  "themoviedb_id" : { "tv" : 200008 },
+  "tvdb_id" : 100008,
+  "season" : { "tvdb" : 2, "tmdb" : 2 }
+}, {
+  "type" : "ONA",
+  "anilist_id" : 6005,
+  "mal_id" : 5005,
+  "kitsu_id" : 7005
+} ]

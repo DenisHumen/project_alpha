@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: MPL-2.0
+# CORE-001: pa-ffi tests and UniFFI Kotlin/Swift binding generation on every PR
+# that touches the FFI facade. May be folded into the target matrix by CI-004.
+name: FFI bindings
+
+on:
+  pull_request:
+    paths:
+      - "core/crates/pa-ffi/**"
+      - "core/justfile"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/ffi-bindings.yml"
+  push:
+    branches: [main]
+    paths:
+      - "core/crates/pa-ffi/**"
+      - "core/justfile"
+      - "Cargo.toml"
+      - "Cargo.lock"
+
+permissions:
+  contents: read
+
+jobs:
+  bindings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: just
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2 # v5.0.0
+        with:
+          gradle-version: "9.5.0"
+      - name: Rust FFI tests
+        run: rustup toolchain install && cargo test -p pa-ffi --locked
+      - name: Generate Kotlin and Swift bindings
+        run: just core bindings
+      - name: Kotlin bindings on the JVM call core_version()
+        run: just core smoke-jvm
+      - name: Swift bindings call core_version() (if swiftc is on the runner)
+        run: |
+          if command -v swiftc >/dev/null; then just core smoke-swift
+          else echo "::notice::swiftc not found, Swift smoke skipped"; fi
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: uniffi-bindings
+          path: target/bindings

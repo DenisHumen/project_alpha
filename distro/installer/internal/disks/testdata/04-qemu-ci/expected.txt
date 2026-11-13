@@ -1,0 +1,8 @@
+  QEMU NVMe Ctrl   21 GB  NVMe          /dev/nvme0n1  S/N …-sys
+  QEMU HARDDISK    34 GB  virtual SATA  /dev/sda      S/N …0001
+  QEMU HARDDISK    34 GB  virtual SATA  /dev/sdb      S/N …0002
+  QEMU HARDDISK    34 GB  virtual SATA  /dev/sdc      S/N …0003
+- QEMU DVD-ROM    2.1 GB  optical       /dev/sr0
+      excluded: optical
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sr0
+      /dev/sr0 is mounted at /run/initramfs/live

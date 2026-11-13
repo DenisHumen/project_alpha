@@ -1,33 +1,50 @@
 name: Ошибка / Bug report
-description: Что-то работает не так
+description: Что-то работает не так (для проблем воспроизведения есть отдельная форма)
 labels: ["bug", "triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Уязвимости — **не сюда**, а приватно: см. SECURITY.md. Проблемы воспроизведения и распознавания — по отдельным формам.
+        Security issues go **privately**, see SECURITY.md. Playback and recognition problems have their own forms.
   - type: textarea
     id: what
     attributes:
       label: Что произошло / What happened
+      description: И что вы ожидали / And what you expected
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
       label: Шаги воспроизведения / Steps to reproduce
+      placeholder: |
+        1. …
+        2. …
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Компонент / Component
+      options:
+        - Приложение / App
+        - Медиасервер / Media server
+        - NAS-ОС / NAS OS
+        - Сборка из исходников / Building from source
+        - Другое / Other
     validations:
       required: true
   - type: input
     id: platform
     attributes:
       label: Платформа и версия / Platform and version
-      placeholder: "Android TV 14, app 0.3.1"
+      placeholder: "Android TV 14, app 0.3.1 (full)"
     validations:
       required: true
-  - type: textarea
-    id: media
-    attributes:
-      label: Файл / Media info
-      description: "Для проблем воспроизведения или распознавания: имя файла и путь (можно обезличить), вывод mediainfo"
   - type: textarea
     id: logs
     attributes:
       label: Логи / Logs
+      description: Уберите пароли, токены, адреса серверов и личные пути / Remove passwords, tokens, server addresses and personal paths
       render: text

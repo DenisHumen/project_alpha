@@ -1,0 +1,25 @@
+! Kingston SNV2S1000G         1.0 TB  NVMe      /dev/nvme0n1  S/N …CDEF
+      GPT partition table, 3 partition(s)
+      EFI system partition /dev/nvme0n1p1 (an OS is likely installed)
+      ext4 "boot" on /dev/nvme0n1p2
+      btrfs "root" on /dev/nvme0n1p3
+      SMART: PASSED
+! Seagate ST4000VN008-2DR166  4.0 TB  SATA HDD  /dev/sda      S/N …ABCD
+      GPT partition table, 1 partition(s)
+      mdraid member "alpha:media" on /dev/sda1 (array /dev/md127)
+      btrfs "media" on /dev/md127
+      SMART: PASSED
+! Seagate ST4000VN008-2DR166  4.0 TB  SATA HDD  /dev/sdb      S/N …EFGH
+      GPT partition table, 1 partition(s)
+      mdraid member "alpha:media" on /dev/sdb1 (array /dev/md127)
+      btrfs "media" on /dev/md127
+      SMART health check FAILED
+      SMART: FAILED
+! Toshiba MG08ACA16TE          16 TB  SATA HDD  /dev/sdc      S/N …FVGG
+      mdraid member "old:0" on /dev/sdc
+- Kingston DataTraveler 3.0    31 GB  USB       /dev/sde      S/N …7354
+      excluded: boot-media
+      DOS partition table, 2 partition(s)
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sde
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sde1
+      EFI system partition /dev/sde2 (an OS is likely installed)
