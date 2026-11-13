@@ -13,8 +13,8 @@ import { DESIGN_DIR } from './lib/icons.mjs';
 
 const TOKENS_DIR = path.join(DESIGN_DIR, 'tokens');
 
-async function load(rel, errors) {
-  const file = path.join(TOKENS_DIR, rel);
+async function loadFile(dir, rel, errors) {
+  const file = path.join(dir, rel);
   let tree;
   try {
     tree = JSON.parse(await readFile(file, 'utf8'));
@@ -25,8 +25,8 @@ async function load(rel, errors) {
   return flatten(tree, rel, errors);
 }
 
-const tokenFiles = async (sub) =>
-  (await readdir(path.join(TOKENS_DIR, sub))).filter((f) => f.endsWith('.tokens.json')).sort();
+const listFiles = async (dir, sub) =>
+  (await readdir(path.join(dir, sub))).filter((f) => f.endsWith('.tokens.json')).sort();
 
 /** Composites a stack of colour tokens (top first) over an opaque backdrop. */
 function flattenStack(tokens, stack, backdrop) {
@@ -35,8 +35,10 @@ function flattenStack(tokens, stack, backdrop) {
   return base;
 }
 
-export async function validate({ report = false } = {}) {
+export async function validate({ report = false, dir = TOKENS_DIR } = {}) {
   const errors = [];
+  const load = (rel, errs) => loadFile(dir, rel, errs);
+  const tokenFiles = (sub) => listFiles(dir, sub);
   const primitive = await load('primitive.tokens.json', errors);
   const semantic = await load('semantic.tokens.json', errors);
   const component = await load('component.tokens.json', errors);
@@ -91,7 +93,13 @@ export async function validate({ report = false } = {}) {
   }
 
   // Contrast — colours do not depend on density, so one combination per theme.
-  const pairs = JSON.parse(await readFile(path.join(TOKENS_DIR, 'contrast.pairs.json'), 'utf8')).pairs;
+  const pairs = JSON.parse(await readFile(path.join(dir, 'contrast.pairs.json'), 'utf8')).pairs;
+  // Lowering a pair below WCAG AA for normal text needs a written reason; nothing goes below 3:1.
+  for (const pair of pairs) {
+    const id = `${pair.fg} on ${pair.bg.join(' / ')}`;
+    if (!(typeof pair.min === 'number' && pair.min >= 3)) errors.push(`contrast.pairs.json: ${id}: min must be ≥ 3 (4.5 for normal text)`);
+    else if (pair.min < 4.5 && !pair.note) errors.push(`contrast.pairs.json: ${id}: min ${pair.min} < 4.5 needs a "note" (large/inactive text or non-text UI)`);
+  }
   const rows = [];
   if (!errors.length) {
     for (const [tn] of Object.entries(themes)) {

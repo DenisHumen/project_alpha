@@ -17,10 +17,12 @@ path = "src/main.rs"
 # No TLS yet. When it arrives (SRV-004) it is rustls only: openssl is banned
 # by deny.toml.
 [dependencies]
-axum = { workspace = true, features = ["http1", "json", "tokio", "ws"] }
+axum = { workspace = true, features = ["http1", "json", "query", "tokio", "ws"] }
 pa-library = { path = "../core/crates/pa-library" }
 pa-model = { path = "../core/crates/pa-model" }
+pa-pairing = { path = "../core/crates/pa-pairing" }
 pa-runtime = { path = "../core/crates/pa-runtime" }
+pa-secrets = { path = "../core/crates/pa-secrets" }
 pa-sync = { path = "../core/crates/pa-sync" }
 serde.workspace = true
 serde_json.workspace = true

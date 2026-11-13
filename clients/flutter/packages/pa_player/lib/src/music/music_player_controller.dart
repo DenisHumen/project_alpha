@@ -1,22 +1,54 @@
 // SPDX-License-Identifier: MPL-2.0
 import 'package:flutter/foundation.dart';
 
+import '../engine/audio_profile.dart';
 import '../engine/media_kit_engine.dart';
 import '../engine/player_engine.dart';
 import '../play_request.dart';
 import 'music_queue.dart';
 
 /// App-wide music player. The whole queue is handed to libmpv as a playlist
-/// so track changes are gapless (`gapless-audio=yes`, `prefetch-playlist`).
+/// so track changes are gapless (`gapless-audio=yes`, `prefetch-playlist`);
+/// loudness follows [audioProfile] (ReplayGain, MUS-002).
 class MusicPlayerController extends ChangeNotifier {
-  MusicPlayerController({PlayerEngineFactory? engineFactory, MusicQueue? queue})
-    : _factory = engineFactory ?? MediaKitEngine.create,
-      queue = queue ?? MusicQueue();
+  MusicPlayerController({
+    PlayerEngineFactory? engineFactory,
+    MusicQueue? queue,
+    AudioProfile audioProfile = const AudioProfile(),
+  }) : _factory = engineFactory ?? MediaKitEngine.create,
+       queue = queue ?? MusicQueue(),
+       _profile = audioProfile;
 
   final PlayerEngineFactory _factory;
   final MusicQueue queue;
   PlayerEngine? _engine;
   bool _disposed = false;
+  AudioProfile _profile;
+  AudioProfile? _applied;
+
+  /// The user's audio settings ([ReplayGainMode.auto] unresolved).
+  AudioProfile get audioProfile => _profile;
+
+  /// What the engine gets: [audioProfile] with `auto` resolved against the
+  /// current play order (album in order → album gain, else track gain).
+  AudioProfile get effectiveAudioProfile =>
+      _profile.resolveFor(queue.ordered, shuffled: queue.shuffle);
+
+  /// Changes the audio settings; applies to the playing track.
+  Future<void> setAudioProfile(AudioProfile profile) async {
+    _profile = profile;
+    await _applyProfile();
+    notifyListeners();
+  }
+
+  Future<void> _applyProfile() async {
+    final e = _engine;
+    if (e == null) return;
+    final p = effectiveAudioProfile;
+    if (p == _applied) return;
+    _applied = p;
+    await e.setAudioProfile(p);
+  }
 
   /// Restart the track instead of going back when past this point.
   static const restartThreshold = Duration(seconds: 3);
@@ -71,6 +103,7 @@ class MusicPlayerController extends ChangeNotifier {
     if (this.queue.isEmpty) return;
     final first = this.queue.current!;
     await _e.setRepeat(this.queue.repeat);
+    await _applyProfile();
     await _load(start: Duration(milliseconds: first.startPositionMs));
     notifyListeners();
   }
@@ -117,6 +150,7 @@ class MusicPlayerController extends ChangeNotifier {
   Future<void> setShuffle(bool on) async {
     if (on == queue.shuffle) return;
     queue.setShuffle(on);
+    await _applyProfile();
     if (_engine != null && !queue.isEmpty) {
       // Re-send the playlist in the new order, continuing the current track.
       await _load(start: position, play: playing);

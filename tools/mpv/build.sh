@@ -124,6 +124,13 @@ relocate_pc() {
         [ -e "$pc" ] || continue
         sed -e "s|$OUT_DIR|\${pcfiledir}/../..|g" "$pc" > "$pc.tmp" && mv "$pc.tmp" "$pc"
     done
+    # libmpv is shared: its private requirements (libass, libplacebo,
+    # libdisplay-info are static inside it, not in the artifact) only matter
+    # for static linking, yet pkg-config insists they exist (PLAY-013).
+    if [ -f "$OUT_DIR/lib/pkgconfig/mpv.pc" ]; then
+        pc="$OUT_DIR/lib/pkgconfig/mpv.pc"
+        sed '/^Requires.private:/d' "$pc" > "$pc.tmp" && mv "$pc.tmp" "$pc"
+    fi
 }
 
 build_target() {

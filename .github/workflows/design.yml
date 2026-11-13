@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
 #
-# Design system checks (DSN-002, DSN-004, DSN-005):
-#   - tokens: DTCG structure, references, WCAG AA contrast, generated Dart is fresh;
+# Design system checks (DSN-002, DSN-003, DSN-004, DSN-005):
+#   - tokens: DTCG structure, references, WCAG AA contrast; generated Dart, Swift,
+#     Kotlin and CSS (scripts/tokens-build.mjs) are fresh — a token change without
+#     `just design tokens` fails here;
 #   - icons: SVG linter, generated Flutter/Apple code is fresh;
 #   - pa_design Flutter package: fonts fetched with SHA-256 check, analyze + test.
 # Fix locally with `just design check` / `just design build`.
