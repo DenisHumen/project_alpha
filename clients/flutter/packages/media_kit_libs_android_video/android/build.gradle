@@ -106,7 +106,11 @@ tasks.register('warnKinoluneLibmpv') {
     }
 }
 
-android.libraryVariants.all { variant ->
-    def check = variant.buildType.name == 'release' ? 'checkKinoluneLibmpv' : 'warnKinoluneLibmpv'
-    variant.preBuildProvider.configure { dependsOn check }
+// By task name: works with both the legacy and the new (AGP 9) variant API.
+tasks.configureEach { t ->
+    if (t.name == 'preReleaseBuild') {
+        t.dependsOn('checkKinoluneLibmpv')
+    } else if (t.name == 'preDebugBuild' || t.name == 'preProfileBuild') {
+        t.dependsOn('warnKinoluneLibmpv')
+    }
 }
