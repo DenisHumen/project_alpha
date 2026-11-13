@@ -103,7 +103,10 @@ impl Vfs for MemVfs {
     }
 
     fn open(&self, _path: &VfsPath) -> VfsResult<Box<dyn ByteSource>> {
-        Err(VfsError::new(ErrorKind::Unsupported, "the scanner must not open files"))
+        Err(VfsError::new(
+            ErrorKind::Unsupported,
+            "the scanner must not open files",
+        ))
     }
 }
 
@@ -214,8 +217,15 @@ fn rescan_without_changes_writes_nothing() {
     run(&mut conn, &vfs, T0);
     let before = conn.total_changes();
     let r = run(&mut conn, &vfs, T0 + 1000);
-    assert_eq!(conn.total_changes(), before, "an unchanged rescan must not write");
-    assert_eq!((r.added, r.changed, r.unchanged, r.marked_missing), (0, 0, 3, 0));
+    assert_eq!(
+        conn.total_changes(),
+        before,
+        "an unchanged rescan must not write"
+    );
+    assert_eq!(
+        (r.added, r.changed, r.unchanged, r.marked_missing),
+        (0, 0, 3, 0)
+    );
 }
 
 #[test]
@@ -252,7 +262,9 @@ fn missing_files_are_soft_deleted_restored_and_purged_after_grace() {
     let mut conn = library();
     run(&mut conn, &vfs, T0);
     let id_back: i64 = conn
-        .query_row("SELECT id FROM files WHERE path = '/back.mkv'", [], |r| r.get(0))
+        .query_row("SELECT id FROM files WHERE path = '/back.mkv'", [], |r| {
+            r.get(0)
+        })
         .unwrap();
     conn.execute(
         "UPDATE files SET oshash = '0123456789abcdef' WHERE id = ?1",
@@ -294,7 +306,11 @@ fn missing_files_are_soft_deleted_restored_and_purged_after_grace() {
 
 #[test]
 fn failed_folder_keeps_its_files() {
-    let vfs = MemVfs::with(&[("/ok/a.mkv", 1), ("/flaky/b.mkv", 2), ("/flaky/deep/c.mkv", 3)]);
+    let vfs = MemVfs::with(&[
+        ("/ok/a.mkv", 1),
+        ("/flaky/b.mkv", 2),
+        ("/flaky/deep/c.mkv", 3),
+    ]);
     let mut conn = library();
     run(&mut conn, &vfs, T0);
 
@@ -335,8 +351,15 @@ fn unavailable_root_changes_nothing() {
     run(&mut conn, &vfs, T0);
     vfs.fail("/", true);
     let before = conn.total_changes();
-    let err = scan(&mut conn, 1, &vfs, &opts(T0 + 30 * DAY_MS), &CancelToken::new(), &mut |_| {})
-        .unwrap_err();
+    let err = scan(
+        &mut conn,
+        1,
+        &vfs,
+        &opts(T0 + 30 * DAY_MS),
+        &CancelToken::new(),
+        &mut |_| {},
+    )
+    .unwrap_err();
     assert!(matches!(&err, ScanError::SourceUnavailable(e) if e.kind() == ErrorKind::Unavailable));
     assert_eq!(conn.total_changes(), before);
     assert_eq!(rows(&conn), [("/a.mkv".to_owned(), 1, false)]);
@@ -346,7 +369,15 @@ fn unavailable_root_changes_nothing() {
 fn unknown_source_is_an_error() {
     let vfs = MemVfs::default();
     let mut conn = library();
-    let err = scan(&mut conn, 42, &vfs, &opts(T0), &CancelToken::new(), &mut |_| {}).unwrap_err();
+    let err = scan(
+        &mut conn,
+        42,
+        &vfs,
+        &opts(T0),
+        &CancelToken::new(),
+        &mut |_| {},
+    )
+    .unwrap_err();
     assert!(matches!(err, ScanError::SourceNotFound(42)));
 }
 
@@ -390,7 +421,11 @@ fn cancel_stops_early_and_marks_nothing_missing() {
     assert_eq!(missing, 0);
     // What was found before the cancel is kept.
     let kept: i64 = conn
-        .query_row("SELECT count(*) FROM files WHERE path LIKE '/n%'", [], |r| r.get(0))
+        .query_row(
+            "SELECT count(*) FROM files WHERE path LIKE '/n%'",
+            [],
+            |r| r.get(0),
+        )
         .unwrap();
     assert_eq!(usize::try_from(kept).unwrap(), r.added);
 }

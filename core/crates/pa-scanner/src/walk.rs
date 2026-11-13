@@ -97,14 +97,12 @@ fn worker(
                             subdirs.push((e.path, depth + 1));
                         }
                     }
-                    EntryKind::File => {
-                        if rules.classify(&e.name).is_some() {
-                            files.push(SeenFile {
-                                path: e.path,
-                                size: e.metadata.size,
-                                modified_ms: e.metadata.modified_ms,
-                            });
-                        }
+                    EntryKind::File if rules.classify(&e.name).is_some() => {
+                        files.push(SeenFile {
+                            path: e.path,
+                            size: e.metadata.size,
+                            modified_ms: e.metadata.modified_ms,
+                        });
                     }
                     _ => {}
                 }

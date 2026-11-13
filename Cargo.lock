@@ -1201,6 +1201,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-scanner"
+version = "0.1.0"
+dependencies = [
+ "pa-library",
+ "pa-vfs",
+ "tempfile",
+]
+
+[[package]]
 name = "pa-vfs"
 version = "0.1.0"
 

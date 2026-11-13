@@ -195,10 +195,8 @@ pub fn is_extra_file(name: &str) -> bool {
         }
     }
 
-    PLEX.iter().any(|w| {
-        base.strip_suffix(w)
-            .is_some_and(|head| head.ends_with('-'))
-    })
+    PLEX.iter()
+        .any(|w| base.strip_suffix(w).is_some_and(|head| head.ends_with('-')))
 }
 
 /// `[\s._-]`
