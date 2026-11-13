@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-scanner"
+version = "0.1.0"
+description = "Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+pa-library = { path = "../pa-library" }
+pa-vfs = { path = "../pa-vfs" }
+
+[dev-dependencies]
+tempfile.workspace = true

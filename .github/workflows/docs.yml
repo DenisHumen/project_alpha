@@ -33,7 +33,7 @@ jobs:
   crate-graph:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # rustup on the runner installs the toolchain pinned in rust-toolchain.toml.
       - name: Check docs/dev/crate-graph.md is up to date
         run: python3 docs/dev/scripts/crate_graph.py --check
