@@ -145,7 +145,11 @@ pub fn vod_expires_at_ms(
 
 fn twitch_id(s: &str, what: &'static str) -> Result<(), Error> {
     let ok = !s.is_empty() && !s.starts_with('0') && s.bytes().all(|b| b.is_ascii_digit());
-    if ok { Ok(()) } else { Err(Error::Invalid(what)) }
+    if ok {
+        Ok(())
+    } else {
+        Err(Error::Invalid(what))
+    }
 }
 
 fn to_i64(v: u64, what: &'static str) -> Result<i64, Error> {
@@ -164,7 +168,11 @@ fn slug(s: &str, what: &'static str) -> Result<(), Error> {
     let ok = !s.is_empty()
         && s.bytes()
             .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_');
-    if ok { Ok(()) } else { Err(Error::Invalid(what)) }
+    if ok {
+        Ok(())
+    } else {
+        Err(Error::Invalid(what))
+    }
 }
 
 // --- Streamers and categories -----------------------------------------------------
@@ -206,7 +214,11 @@ pub fn upsert_streamer(conn: &Connection, s: &Streamer, now_ms: i64) -> Result<(
 }
 
 /// Sets or clears the path of the avatar copied to the app cache.
-pub fn set_avatar_local(conn: &Connection, user_id: &str, path: Option<&str>) -> Result<bool, Error> {
+pub fn set_avatar_local(
+    conn: &Connection,
+    user_id: &str,
+    path: Option<&str>,
+) -> Result<bool, Error> {
     Ok(conn.execute(
         "UPDATE twitch_streamers SET avatar_local = ?2 WHERE user_id = ?1",
         params![user_id, path],
@@ -229,10 +241,12 @@ fn streamer_from_row(r: &Row<'_>, at: usize) -> rusqlite::Result<Result<Streamer
         last_seen_live_at_ms: r.get(at + 7)?,
         updated_at_ms: r.get(at + 8)?,
     };
-    Ok(parse_broadcaster_type(&kind).map(|broadcaster_type| Streamer {
-        broadcaster_type,
-        ..s
-    }))
+    Ok(
+        parse_broadcaster_type(&kind).map(|broadcaster_type| Streamer {
+            broadcaster_type,
+            ..s
+        }),
+    )
 }
 
 /// A cached streamer.
@@ -437,7 +451,7 @@ pub fn favorites(conn: &Connection, profile_id: i64) -> Result<Vec<Favorite>, Er
             Some(_) => Some(streamer_from_row(r, 5)?),
             None => None,
         };
-        Ok((|| {
+        Ok((|| -> Result<Favorite, Error> {
             Ok(Favorite {
                 user_id: r.get(0)?,
                 source: FavoriteSource::parse(&source)?,
@@ -926,7 +940,8 @@ pub fn add_asset(conn: &Connection, a: &Asset, now_ms: i64) -> Result<i64, Error
     if a.media_key().is_none() {
         return Err(Error::Invalid("asset key"));
     }
-    if a.offset_rec_to_vod_ms.is_some() && (a.kind != AssetKind::Recording || a.video_id.is_none()) {
+    if a.offset_rec_to_vod_ms.is_some() && (a.kind != AssetKind::Recording || a.video_id.is_none())
+    {
         return Err(Error::Invalid("recording offset"));
     }
     conn.execute(
@@ -1194,7 +1209,11 @@ pub fn upsert_record_rule(conn: &Connection, rule: &RecordRule, now_ms: i64) -> 
 }
 
 /// Deletes the rule of a profile for a channel.
-pub fn delete_record_rule(conn: &Connection, profile_id: i64, user_id: &str) -> Result<bool, Error> {
+pub fn delete_record_rule(
+    conn: &Connection,
+    profile_id: i64,
+    user_id: &str,
+) -> Result<bool, Error> {
     Ok(conn.execute(
         "DELETE FROM twitch_record_rules WHERE profile_id = ?1 AND user_id = ?2",
         params![profile_id, user_id],
@@ -1271,7 +1290,7 @@ pub fn channels(conn: &Connection, profile_id: i64) -> Result<Vec<Channel>, Erro
             Some(_) => Some(streamer_from_row(r, 4)?),
             None => None,
         };
-        Ok((|| {
+        Ok((|| -> Result<Channel, Error> {
             Ok(Channel {
                 user_id: r.get(0)?,
                 favorite: r.get(1)?,

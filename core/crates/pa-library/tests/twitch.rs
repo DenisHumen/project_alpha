@@ -5,11 +5,13 @@
 use pa_library::progress::{self, ContinueQuery, LocalOnly, PositionReport, Thresholds};
 use pa_library::rusqlite::{Connection, params};
 use pa_library::twitch::{
-    self, Asset, AssetKind, CACHE_TTL_MS, Category, CategorySegment, ChatLog, Clip,
-    FavoriteSource, FollowChange, LiveSession, RecordRule, SearchKind, SegmentOwner, VideoQuery,
+    self, Asset, AssetKind, CACHE_TTL_MS, Category, CategorySegment, ChatLog, Clip, FavoriteSource,
+    FollowChange, LiveSession, RecordRule, SearchKind, SegmentOwner, VideoQuery,
 };
 use pa_library::{Error, open_in_memory};
-use pa_model::{BroadcasterType, MediaKey, MediaKind, Streamer, Video, VideoAvailability, VideoType};
+use pa_model::{
+    BroadcasterType, MediaKey, MediaKind, Streamer, Video, VideoAvailability, VideoType,
+};
 
 const T0: i64 = 1_763_000_000_000;
 const HOUR: i64 = 60 * 60 * 1000;
@@ -152,8 +154,16 @@ fn favorites_work_without_login() {
     }
     // Already a favourite: unchanged, keeps its source.
     assert!(
-        !twitch::set_favorite(&mut conn, &mut sink, 1, "1", FavoriteSource::Local, true, T0)
-            .unwrap()
+        !twitch::set_favorite(
+            &mut conn,
+            &mut sink,
+            1,
+            "1",
+            FavoriteSource::Local,
+            true,
+            T0
+        )
+        .unwrap()
     );
     let favs = twitch::favorites(&conn, 1).unwrap();
     let ids: Vec<_> = favs.iter().map(|f| f.user_id.as_str()).collect();
@@ -168,12 +178,28 @@ fn favorites_work_without_login() {
     assert!(!twitch::favorites(&conn, 1).unwrap()[1].notify);
 
     assert!(
-        twitch::set_favorite(&mut conn, &mut sink, 1, "3", FavoriteSource::Local, false, T0)
-            .unwrap()
+        twitch::set_favorite(
+            &mut conn,
+            &mut sink,
+            1,
+            "3",
+            FavoriteSource::Local,
+            false,
+            T0
+        )
+        .unwrap()
     );
     assert_eq!(twitch::favorites(&conn, 1).unwrap().len(), 2);
     assert!(matches!(
-        twitch::set_favorite(&mut conn, &mut sink, 99, "3", FavoriteSource::Local, true, T0),
+        twitch::set_favorite(
+            &mut conn,
+            &mut sink,
+            99,
+            "3",
+            FavoriteSource::Local,
+            true,
+            T0
+        ),
         Err(Error::Invalid("profile"))
     ));
 }
@@ -214,7 +240,10 @@ fn vod_filter_uses_chapters_not_the_current_category() {
     twitch::replace_segments(
         &mut conn,
         &SegmentOwner::Video("101".into()),
-        &[segment("509658", 0, Some(600_000)), segment("33214", 600_000, None)],
+        &[
+            segment("509658", 0, Some(600_000)),
+            segment("33214", 600_000, None),
+        ],
     )
     .unwrap();
     twitch::replace_segments(
@@ -256,7 +285,9 @@ fn vod_filter_uses_chapters_not_the_current_category() {
         ..Default::default()
     };
     assert_eq!(
-        twitch::channel_videos(&conn, 1, "1", &limited).unwrap().len(),
+        twitch::channel_videos(&conn, 1, "1", &limited)
+            .unwrap()
+            .len(),
         1
     );
 }
@@ -295,7 +326,9 @@ fn vod_progress_is_shared_by_online_and_saved_copies() {
         ..Default::default()
     };
     assert_eq!(
-        twitch::channel_videos(&conn, 1, "1", &saved_only).unwrap().len(),
+        twitch::channel_videos(&conn, 1, "1", &saved_only)
+            .unwrap()
+            .len(),
         1
     );
 
@@ -356,7 +389,10 @@ fn recordings_link_to_their_vod() {
     };
     assert!(twitch::add_asset(&conn, &bad, T0).is_err());
 
-    assert_eq!(twitch::link_recording(&mut conn, "555", "9001", -4_000).unwrap(), 1);
+    assert_eq!(
+        twitch::link_recording(&mut conn, "555", "9001", -4_000).unwrap(),
+        1
+    );
     let linked = twitch::assets_for_key(&conn, &"twitch:vod:9001".parse().unwrap()).unwrap();
     assert_eq!(linked.len(), 1);
     assert_eq!(linked[0].kind, AssetKind::Recording);
@@ -364,7 +400,11 @@ fn recordings_link_to_their_vod() {
     // The recording keeps its own key.
     assert_eq!(linked[0].media_key(), Some(rec_key));
     assert_eq!(
-        twitch::live_session(&conn, "555").unwrap().unwrap().video_id.as_deref(),
+        twitch::live_session(&conn, "555")
+            .unwrap()
+            .unwrap()
+            .video_id
+            .as_deref(),
         Some("9001")
     );
 
@@ -470,8 +510,14 @@ fn record_rules_round_trip() {
         enabled: false,
         ..rule.clone()
     };
-    assert_eq!(twitch::upsert_record_rule(&conn, &disabled, T0 + 1).unwrap(), id);
-    assert_eq!(twitch::record_rules(&conn, Some(1)).unwrap(), [disabled, all]);
+    assert_eq!(
+        twitch::upsert_record_rule(&conn, &disabled, T0 + 1).unwrap(),
+        id
+    );
+    assert_eq!(
+        twitch::record_rules(&conn, Some(1)).unwrap(),
+        [disabled, all]
+    );
     assert!(twitch::record_rules(&conn, Some(2)).unwrap().is_empty());
     assert!(twitch::delete_record_rule(&conn, 1, "2").unwrap());
     assert_eq!(twitch::record_rules(&conn, None).unwrap().len(), 1);
@@ -489,7 +535,16 @@ fn channels_section_lists_favorites_and_saved_channels() {
     twitch::upsert_streamer(&conn, &streamer("1", "alpha", "Alpha"), T0).unwrap();
     twitch::upsert_streamer(&conn, &streamer("2", "bravo", "Bravo"), T0).unwrap();
     twitch::upsert_streamer(&conn, &streamer("3", "charlie", "Charlie"), T0).unwrap();
-    twitch::set_favorite(&mut conn, &mut sink, 1, "2", FavoriteSource::Local, true, T0).unwrap();
+    twitch::set_favorite(
+        &mut conn,
+        &mut sink,
+        1,
+        "2",
+        FavoriteSource::Local,
+        true,
+        T0,
+    )
+    .unwrap();
     add_file(&conn, 10, "Twitch/alpha/101.mkv");
     twitch::add_asset(&conn, &vod_asset(10, "1", "101"), T0).unwrap();
 
@@ -507,8 +562,12 @@ fn search_indexes_streamers_vods_categories_clips_and_lives() {
     let conn = open_in_memory().unwrap();
     twitch::upsert_streamer(&conn, &streamer("1", "xqc", "xQc"), T0).unwrap();
     twitch::upsert_streamer(&conn, &streamer("2", "bratishkinoff", "Братишкин"), T0).unwrap();
-    twitch::upsert_video(&conn, &video("101", "1", "Elden Ring any% world record", T0), T0)
-        .unwrap();
+    twitch::upsert_video(
+        &conn,
+        &video("101", "1", "Elden Ring any% world record", T0),
+        T0,
+    )
+    .unwrap();
     twitch::upsert_video(&conn, &video("102", "2", "Смотрим кино с чатом", T0), T0).unwrap();
     twitch::upsert_category(
         &conn,
@@ -556,14 +615,20 @@ fn search_indexes_streamers_vods_categories_clips_and_lives() {
     assert_eq!(kinds("XQ"), [(SearchKind::Streamer, "1".to_owned())]);
     assert_eq!(kinds("брат"), [(SearchKind::Streamer, "2".to_owned())]);
     assert_eq!(kinds("кино чат"), [(SearchKind::Video, "102".to_owned())]);
-    assert_eq!(kinds("marath"), [(SearchKind::LiveSession, "555".to_owned())]);
+    assert_eq!(
+        kinds("marath"),
+        [(SearchKind::LiveSession, "555".to_owned())]
+    );
     // FTS5 syntax in user input is taken literally.
     assert!(kinds("\"elden\" OR NEAR(*").is_empty());
     assert!(kinds("  ").is_empty());
 
     // Renames and deletes keep the index current.
     twitch::upsert_video(&conn, &video("101", "1", "Sekiro", T0), T0).unwrap();
-    assert_eq!(kinds("elden"), [(SearchKind::Category, "512953".to_owned())]);
+    assert_eq!(
+        kinds("elden"),
+        [(SearchKind::Category, "512953".to_owned())]
+    );
     assert_eq!(kinds("sekiro"), [(SearchKind::Video, "101".to_owned())]);
     conn.execute("DELETE FROM twitch_streamers WHERE user_id = '1'", [])
         .unwrap();
@@ -576,10 +641,24 @@ fn purge_keeps_only_what_the_user_saved() {
     let mut sink = LocalOnly::new("phone");
     // Channel 1: a favourite. Channel 2: a saved VOD. Channel 3: a record
     // rule. Channel 4: just browsed.
-    for (id, login) in [("1", "fav"), ("2", "saved"), ("3", "rule"), ("4", "browsed")] {
+    for (id, login) in [
+        ("1", "fav"),
+        ("2", "saved"),
+        ("3", "rule"),
+        ("4", "browsed"),
+    ] {
         twitch::upsert_streamer(&conn, &streamer(id, login, login), T0).unwrap();
     }
-    twitch::set_favorite(&mut conn, &mut sink, 1, "1", FavoriteSource::Local, true, T0).unwrap();
+    twitch::set_favorite(
+        &mut conn,
+        &mut sink,
+        1,
+        "1",
+        FavoriteSource::Local,
+        true,
+        T0,
+    )
+    .unwrap();
     twitch::upsert_record_rule(
         &conn,
         &RecordRule {

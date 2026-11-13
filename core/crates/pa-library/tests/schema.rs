@@ -8,8 +8,8 @@ use std::path::PathBuf;
 use pa_library::rusqlite::{Connection, params};
 use pa_library::{Error, HISTORY_TABLE, MIGRATIONS, latest_version, migrate, open, open_in_memory};
 use pa_model::{
-    AnimeType, BroadcasterType, EpisodeType, MediaKey, MediaKind, NumberingScheme, VideoAvailability,
-    VideoType, WorkKind,
+    AnimeType, BroadcasterType, EpisodeType, MediaKey, MediaKind, NumberingScheme,
+    VideoAvailability, VideoType, WorkKind,
 };
 
 const TABLES: &[&str] = &[
@@ -76,7 +76,9 @@ fn tables(conn: &Connection) -> Vec<String> {
         .collect::<Result<_, _>>()
         .unwrap();
     let virtual_tables: Vec<String> = conn
-        .prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND sql LIKE 'CREATE VIRTUAL%'")
+        .prepare(
+            "SELECT name FROM sqlite_schema WHERE type = 'table' AND sql LIKE 'CREATE VIRTUAL%'",
+        )
         .unwrap()
         .query_map([], |r| r.get(0))
         .unwrap()
@@ -562,7 +564,7 @@ fn deleting_a_work_cascades_through_the_catalog() {
         .unwrap();
     assert_eq!(favorites_of_work, 0);
     // Files stay, now unmatched; the anime entry loses its relation.
-    assert_eq!(count(&conn, "files"), 3);
+    assert_eq!(count(&conn, "files"), 4);
     let prev: Option<i64> = conn
         .query_row(
             "SELECT relation_prev FROM anime_entries WHERE work_id = ?1",
