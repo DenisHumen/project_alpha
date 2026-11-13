@@ -61,6 +61,8 @@ class Media3MappingTest {
         assertFalse(t.forced || t.external)
         val noId = Format.Builder().setSampleMimeType(MimeTypes.APPLICATION_SUBRIP).build()
         assertEquals("3-0-1", Media3Mapping.trackId(noId, C.TRACK_TYPE_TEXT, 0, 1))
+        val merged = Format.Builder().setId("0:4").build()
+        assertEquals("4", Media3Mapping.trackId(merged, C.TRACK_TYPE_TEXT, 0, 0))
         val ext = Format.Builder().setId("ext-0").setLanguage(C.LANGUAGE_UNDETERMINED).build()
         val e = Media3Mapping.track(ext, "ext-0")
         assertTrue(e.external)

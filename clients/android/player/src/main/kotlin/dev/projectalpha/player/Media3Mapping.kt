@@ -86,9 +86,15 @@ internal object Media3Mapping {
         }
     }
 
-    /** Contract id of a track: the container id (MKV track number), else its position. */
+    /**
+     * Contract id of a track: the container id (MKV track number), else its position. Media3 prefixes ids with
+     * the source index (`0:4`, `1:ext-0`) once an item has side-loaded subtitles; the prefix is dropped so ids
+     * stay the same when a subtitle file is added.
+     */
     fun trackId(format: Format, type: Int, group: Int, track: Int): String =
-        format.id ?: "$type-$group-$track"
+        format.id?.replace(MERGED_PREFIX, "") ?: "$type-$group-$track"
+
+    private val MERGED_PREFIX = Regex("^\\d+:")
 
     fun track(format: Format, id: String): Track = Track(
         id = id,
