@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MPL-2.0
+name: pa_player_example
+description: "Manual test app for pa_player: plays local files passed as arguments."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  pa_player:
+    path: ..
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

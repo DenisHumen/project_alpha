@@ -1,0 +1,245 @@
+// SPDX-License-Identifier: MPL-2.0
+
+/// Kind of a media source.
+enum SourceKind { localFolder, smb }
+
+/// A place the library scans for media files.
+class MediaSource {
+  /// Stable id. Pass an empty string to [Library.addSource] to get one generated.
+  final String id;
+  final SourceKind kind;
+
+  /// Human-readable name shown in settings.
+  final String name;
+
+  /// localFolder: absolute path. smb: `smb://host/share/path`.
+  final String path;
+
+  /// SMB user name (the password is kept by the app in secure storage and
+  /// passed to [Library.scan]).
+  final String? username;
+
+  const MediaSource({
+    required this.id,
+    required this.kind,
+    required this.name,
+    required this.path,
+    this.username,
+  });
+
+  MediaSource copyWith({String? id, String? name, String? path, String? username}) =>
+      MediaSource(
+        id: id ?? this.id,
+        kind: kind,
+        name: name ?? this.name,
+        path: path ?? this.path,
+        username: username ?? this.username,
+      );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MediaSource &&
+      other.id == id &&
+      other.kind == kind &&
+      other.name == name &&
+      other.path == path &&
+      other.username == username;
+
+  @override
+  int get hashCode => Object.hash(id, kind, name, path, username);
+
+  @override
+  String toString() => 'MediaSource($id, $kind, $name, $path)';
+}
+
+/// Kind of a library item.
+enum ItemKind { movie, show, episode, track }
+
+/// One entry of the library: a movie, a show (group of episodes), an episode
+/// or a music track.
+class LibraryItem {
+  final String id;
+  final ItemKind kind;
+  final String title;
+  final String? originalTitle;
+  final int? year;
+  final String? overview;
+
+  /// `https://image.tmdb.org/...` or a `file://` URI of a local image.
+  final String? posterUrl;
+  final String? backdropUrl;
+
+  /// For episodes: id of the parent show item.
+  final String? showId;
+  final int? season;
+  final int? episode;
+
+  /// For tracks.
+  final String? artist;
+  final String? album;
+  final int? trackNumber;
+
+  /// Absolute path of the media file. For shows: the show folder (or the
+  /// folder of its first episode).
+  final String filePath;
+  final int? durationMs;
+
+  /// 0..1; how sure we are about the recognition (TMDB match or parser).
+  final double? matchConfidence;
+
+  /// TMDB id of the movie / show (null if not matched).
+  final int? tmdbId;
+
+  /// When the item was first added to the library.
+  final DateTime? addedAt;
+
+  const LibraryItem({
+    required this.id,
+    required this.kind,
+    required this.title,
+    required this.filePath,
+    this.originalTitle,
+    this.year,
+    this.overview,
+    this.posterUrl,
+    this.backdropUrl,
+    this.showId,
+    this.season,
+    this.episode,
+    this.artist,
+    this.album,
+    this.trackNumber,
+    this.durationMs,
+    this.matchConfidence,
+    this.tmdbId,
+    this.addedAt,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is LibraryItem &&
+      other.id == id &&
+      other.kind == kind &&
+      other.title == title &&
+      other.originalTitle == originalTitle &&
+      other.year == year &&
+      other.overview == overview &&
+      other.posterUrl == posterUrl &&
+      other.backdropUrl == backdropUrl &&
+      other.showId == showId &&
+      other.season == season &&
+      other.episode == episode &&
+      other.artist == artist &&
+      other.album == album &&
+      other.trackNumber == trackNumber &&
+      other.filePath == filePath &&
+      other.durationMs == durationMs &&
+      other.matchConfidence == matchConfidence &&
+      other.tmdbId == tmdbId;
+
+  @override
+  int get hashCode => Object.hash(id, kind, title, year, posterUrl, showId,
+      season, episode, filePath, tmdbId, matchConfidence);
+
+  @override
+  String toString() {
+    final se = kind == ItemKind.episode ? ' S${season}E$episode' : '';
+    final y = year != null ? ' ($year)' : '';
+    return 'LibraryItem(${kind.name} "$title"$y$se)';
+  }
+}
+
+/// Playback progress of an item.
+class Progress {
+  final String itemId;
+  final int positionMs;
+  final int durationMs;
+  final DateTime updatedAt;
+  final bool watched;
+
+  const Progress({
+    required this.itemId,
+    required this.positionMs,
+    required this.durationMs,
+    required this.updatedAt,
+    this.watched = false,
+  });
+
+  /// Fraction 0..1 (0 when the duration is unknown).
+  double get fraction =>
+      durationMs <= 0 ? 0 : (positionMs / durationMs).clamp(0.0, 1.0);
+
+  @override
+  bool operator ==(Object other) =>
+      other is Progress &&
+      other.itemId == itemId &&
+      other.positionMs == positionMs &&
+      other.durationMs == durationMs &&
+      other.updatedAt == updatedAt &&
+      other.watched == watched;
+
+  @override
+  int get hashCode =>
+      Object.hash(itemId, positionMs, durationMs, updatedAt, watched);
+
+  @override
+  String toString() =>
+      'Progress($itemId, $positionMs/$durationMs, watched: $watched)';
+}
+
+/// Phase of a running scan.
+enum ScanPhase {
+  /// Resolving the source (e.g. mounting SMB).
+  connecting,
+
+  /// Walking folders and recognising file names.
+  scanning,
+
+  /// Fetching posters and descriptions from TMDB.
+  metadata,
+
+  /// Finished (check [ScanProgress.error] / [ScanProgress.errors]).
+  done,
+}
+
+/// Progress events emitted by [Library.scan].
+class ScanProgress {
+  final ScanPhase phase;
+
+  /// Source currently being processed (null for the metadata phase / done).
+  final String? sourceId;
+
+  /// Media files found so far (all sources).
+  final int filesFound;
+
+  /// Items processed in the current phase.
+  final int processed;
+
+  /// Total items in the current phase, if known.
+  final int? total;
+  final String? currentPath;
+
+  /// Last error, if any (scan continues with other sources).
+  final String? error;
+
+  /// All errors collected so far (per source / per TMDB request).
+  final List<String> errors;
+
+  const ScanProgress({
+    required this.phase,
+    this.sourceId,
+    this.filesFound = 0,
+    this.processed = 0,
+    this.total,
+    this.currentPath,
+    this.error,
+    this.errors = const [],
+  });
+
+  bool get isDone => phase == ScanPhase.done;
+
+  @override
+  String toString() =>
+      'ScanProgress(${phase.name}, found: $filesFound, $processed/${total ?? '?'}'
+      '${error != null ? ', error: $error' : ''})';
+}
