@@ -191,11 +191,11 @@ project_alpha/
   - Что: каталоги по §0.4; корневой `Cargo.toml` (workspace, `members` по глобу, `[workspace.dependencies]`), `rust-toolchain.toml`, `.editorconfig`, `.gitignore`, `.gitattributes` (LFS для `design/**`, `tests/media/**`), корневой `justfile` только с `mod`-строками, `.env.example`.
   - deps: — · size: S · parallel: no · веха: M0 · ref: S §7, 04 §4.1
   - done when: `just --list` показывает модули; `cargo metadata` проходит на пустом workspace; `git lfs track` настроен.
-- [ ] **REPO-002** LICENSE, SPDX-заголовки и REUSE
+- [x] **REPO-002** LICENSE, SPDX-заголовки и REUSE
   - Что: `LICENSE` (MPL-2.0 или по DEC-002), `LICENSES/`, `REUSE.toml` для сгенерированных и сторонних файлов, `reuse lint` в CI.
   - deps: DEC-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §5
   - done when: `reuse lint` зелёный и обязателен в CI.
-- [ ] **REPO-003** CONTRIBUTING, CODE_OF_CONDUCT, SECURITY
+- [x] **REPO-003** CONTRIBUTING, CODE_OF_CONDUCT, SECURITY
   - Что: CONTRIBUTING (DCO, Conventional Commits, worktree-процесс, ссылка на §0.3); Contributor Covenant 2.1; SECURITY.md с GitHub Private Vulnerability Reporting и сроками ответа.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: файлы есть, GitHub показывает их во вкладке Community Standards.
@@ -207,11 +207,11 @@ project_alpha/
   - Что: CODEOWNERS по таблице §0.4; ruleset для `main` (только PR, squash, обязательные проверки, запрет force-push, linear history); окружения `release` и `store` с required reviewer.
   - deps: REPO-004, CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.5
   - done when: прямой push в `main` отклоняется; релизный job ждёт подтверждения.
-- [ ] **REPO-006** Шаблоны issue и PR, метки как код
+- [x] **REPO-006** Шаблоны issue и PR, метки как код
   - Что: issue-формы (bug, feature, playback-issue с полем для stats-отчёта, recognition-miss с анонимизированным путём); PR-шаблон (ID, тесты, платформы, чекбокс в ROADMAP, DCO); `.github/labels.yml` (`ws:*`, `M0..M10`, `size:*`, `flavor:store|full`, `good first issue`, `help wanted`) с синхронизацией через action.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §3 п.11
   - done when: метки созданы автоматически; новое issue открывается по форме.
-- [ ] **REPO-007** AGENTS.md и CLAUDE.md для агентов
+- [x] **REPO-007** AGENTS.md и CLAUDE.md для агентов
   - Что: корневой AGENTS.md (как брать задачу, команды проверки, запреты из §0.3 п.10) плюс короткие AGENTS.md в `core/`, `clients/flutter/`, `clients/apple/`, `server/`, `distro/` с командами сборки и тестов области.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.1
   - done when: агент по одному AGENTS.md собирает и тестирует свою область на чистой машине.
@@ -219,7 +219,7 @@ project_alpha/
   - Что: `mise.toml` (Flutter/Dart, JDK 17, Go, Node, cargo-ndk), `.xcode-version`, `just bootstrap` для Linux, macOS и Windows; `.devcontainer/` для Linux-части (Rust, Android SDK/NDK, Flutter Linux, Go, podman).
   - deps: REPO-001 · size: M · parallel: yes · веха: M0 · ref: 04 §4.3
   - done when: `just bootstrap && just test` проходит на чистых Ubuntu 24.04, macOS 15 и Windows 11, а также в devcontainer.
-- [ ] **REPO-009** Политика секретов
+- [x] **REPO-009** Политика секретов
   - Что: gitleaks (pre-commit и CI), GitHub secret scanning и push protection, `.env.example` со всеми переменными, документ «какие секреты где живут» (CI, окружения, OIDC).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.5, CLAUDE.md
   - done when: коммит с тестовым ключом блокируется локально и в CI.
@@ -1604,7 +1604,7 @@ project_alpha/
   - Что: категории (Q&A, Ideas с голосованием, Show and tell, Announcements, «Ошибки распознавания»); процесс «идея → голосование → статус → задача в ROADMAP».
   - deps: DEC-001 · size: S · parallel: yes · веха: M0 · ref: 01 §3 п.11
   - done when: шаблоны обсуждений созданы; процесс описан в CONTRIBUTING.
-- [ ] **COMM-003** README на русском и английском
+- [x] **COMM-003** README на русском и английском
   - Что: что это, статус, скриншоты (без чужого арта), ссылки на ROADMAP, скачивание, донаты, документацию; бейджи CI.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §1
   - done when: README отражает M0; ссылки проверяются в CI.
