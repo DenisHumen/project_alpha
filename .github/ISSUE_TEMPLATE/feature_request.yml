@@ -1,0 +1,14 @@
+name: Предложение / Feature request
+description: Идея новой функции
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какую проблему решает / Problem
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Предложение / Proposal

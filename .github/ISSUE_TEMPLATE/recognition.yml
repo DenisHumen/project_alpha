@@ -1,0 +1,22 @@
+name: Неверное распознавание / Wrong match
+description: Фильм, сериал, аниме или альбом определился неправильно — такие отчёты пополняют тестовый корпус
+labels: ["recognition", "triage"]
+body:
+  - type: textarea
+    id: paths
+    attributes:
+      label: Пути к файлам / File paths
+      description: Полные пути относительно корня библиотеки (папка + соседние файлы). Можно обезличить начало пути.
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: got
+    attributes:
+      label: Что определилось / What it matched
+  - type: input
+    id: expected
+    attributes:
+      label: Что должно быть / Expected (ссылка на TMDB/AniList/AniDB/MusicBrainz)
+    validations:
+      required: true

@@ -89,7 +89,7 @@
 
 ## 7. Репозитории и процесс
 
-- Раз проект open source, исходники должны быть публичными. Предлагается **сделать `DenisHumen/project_alpha` публичным** и публиковать сборки через **GitHub Releases этого же репо**, а `project_alpha-releases` превратить в репозиторий сайта (GitHub Pages: кнопка «Скачать», документация) или удалить. **Ждёт решения владельца.**
+- **Решено:** один публичный репозиторий `DenisHumen/project_alpha` (MPL-2.0), сборки — в GitHub Releases этого же репо; принимаем внешние PR (DCO, ревью мейнтейнера, CI для PR из форков — после одобрения). Отдельный `project_alpha-releases` больше не нужен.
 - Монорепо: `core/ server/ clients/{apple,android,desktop} distro/ packaging/ tools/ docs/{research,adr,api}` (папка `cloud/` больше не нужна); один Cargo workspace; `justfile`.
 - Trunk-based, Conventional Commits, release-please; каналы nightly → beta → stable.
 - Для публичного репо: `LICENSE`, `CONTRIBUTING.md` (DCO), `CODE_OF_CONDUCT.md`, `SECURITY.md`, `.github/FUNDING.yml` (донаты прямо в интерфейсе GitHub), шаблоны issue.
@@ -129,7 +129,7 @@
 
 ## 11. Решения, которые нужны от владельца
 
-1. Сделать `project_alpha` публичным и что делать с `project_alpha-releases` (сайт / удалить / оставить для загрузок).
-2. Лицензия: **MPL-2.0** (рекомендация) или GPL-3.0.
+1. ~~Публичный репозиторий~~ — решено: один публичный репо; лицензия MPL-2.0 (можно сменить до первых внешних PR).
+2. Удалить или архивировать `project_alpha-releases`.
 3. Донаты в сторах: без ссылок вообще или «чаевые» через IAP.
 4. Название и бренд.

@@ -1,0 +1,33 @@
+name: Ошибка / Bug report
+description: Что-то работает не так
+labels: ["bug", "triage"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: Что произошло / What happened
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги воспроизведения / Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Платформа и версия / Platform and version
+      placeholder: "Android TV 14, app 0.3.1"
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Файл / Media info
+      description: "Для проблем воспроизведения или распознавания: имя файла и путь (можно обезличить), вывод mediainfo"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи / Logs
+      render: text
