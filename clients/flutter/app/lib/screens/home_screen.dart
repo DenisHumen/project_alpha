@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/artwork.dart';
@@ -69,12 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   final movies = moviesSnap.data ?? const [];
                   final shows = showsSnap.data ?? const [];
                   final cw = cwSnap.data ?? const [];
-                  final albums = groupAlbums(tracksSnap.data ?? const []);
+                  final l = context.l10n;
+                  final albums = groupAlbums(l, tracksSnap.data ?? const []);
                   if (movies.isEmpty && shows.isEmpty && albums.isEmpty) {
-                    return const EmptyState(
+                    return EmptyState(
                       icon: Icons.video_library_outlined,
-                      title: 'Your library is empty',
-                      message: 'Add a folder or a network share in Settings, then run a scan.',
+                      title: l.homeEmptyTitle,
+                      message: l.homeEmptyMessage,
                     );
                   }
                   final showsById = {for (final s in shows) s.id: s};
@@ -92,7 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       if (cw.isNotEmpty) ...[
                         MediaRow(
-                          title: 'Continue Watching',
+                          title: l.homeContinueWatching,
                           itemCount: cw.length,
                           height:
                               d.landscapeWidth * 9 / 16 +
@@ -109,10 +111,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               imageUrl: item.backdropUrl ?? show?.backdropUrl,
                               title: show?.title ?? item.title,
                               subtitle: item.kind == ItemKind.episode
-                                  ? '${episodeCode(item)} · ${formatRemaining(p)}'
-                                  : formatRemaining(p),
+                                  ? '${episodeCode(l, item)} · ${formatRemaining(l, p)}'
+                                  : formatRemaining(l, p),
                               badge: item.kind == ItemKind.episode
-                                  ? episodeCode(item)
+                                  ? episodeCode(l, item)
                                   : null,
                               progress: p.positionMs / p.durationMs,
                               onFocus: (f) => _feature(show ?? item, f),
@@ -128,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                       if (movies.isNotEmpty) ...[
                         MediaRow(
-                          title: 'Recently Added Movies',
+                          title: l.homeRecentMovies,
                           itemCount: movies.length,
                           height:
                               d.posterWidth * 1.5 +
@@ -146,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                       if (shows.isNotEmpty) ...[
                         MediaRow(
-                          title: 'TV Shows',
+                          title: l.navShows,
                           itemCount: shows.length,
                           height:
                               d.posterWidth * 1.5 +
@@ -164,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                       if (albums.isNotEmpty)
                         MediaRow(
-                          title: 'Music',
+                          title: l.navMusic,
                           itemCount: albums.length,
                           height:
                               d.albumWidth +
@@ -202,13 +204,14 @@ class _Hero extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
     final theme = Theme.of(context);
+    final l = context.l10n;
     final height = d.isTv ? 250.0 : (d.isPhone ? 340.0 : 380.0);
     final meta = [
       if (item.year != null) '${item.year}',
       if (item.kind == ItemKind.show)
-        'TV Show'
+        l.homeKindShow
       else
-        formatRuntime(item.durationMs),
+        formatRuntime(l, item.durationMs),
     ].where((s) => s.isNotEmpty).join('  ·  ');
     return SizedBox(
       height: height,
@@ -295,7 +298,9 @@ class _Hero extends StatelessWidget {
                   Row(
                     children: [
                       KButton(
-                        label: item.kind == ItemKind.show ? 'Episodes' : 'Play',
+                        label: item.kind == ItemKind.show
+                            ? l.homeEpisodes
+                            : l.commonPlay,
                         icon: item.kind == ItemKind.show
                             ? Icons.list
                             : Icons.play_arrow_rounded,
@@ -306,7 +311,7 @@ class _Hero extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       KButton(
-                        label: 'Details',
+                        label: l.homeDetails,
                         icon: Icons.info_outline,
                         onPressed: () => openItem(context, item),
                       ),

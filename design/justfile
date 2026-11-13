@@ -15,14 +15,14 @@ check:
     npm run check
     npm test
 
-# Regenerate all derived files (Dart tokens, icon code/catalog, type specimen)
+# Regenerate all derived files (token code, icon code/catalog, brand assets, type specimen)
 build: tokens icons brand
     npm run fonts:specimen
 
-# Dart tokens for Flutter (design/flutter/pa_design/lib/src/tokens.g.dart)
+# Token code (DSN-003): Dart (pa_design), Swift (Apple), Kotlin (Android), CSS (web) from tokens/*.tokens.json
 tokens:
     npm run tokens:validate
-    npm run tokens:dart
+    npm run tokens:build
 
 # Print the WCAG contrast table for all text/background pairs
 contrast:

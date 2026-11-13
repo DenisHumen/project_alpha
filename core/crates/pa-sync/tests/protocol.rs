@@ -3,8 +3,8 @@
 
 use pa_model::{MediaKey, MediaKind, SCHEMA_VERSION};
 use pa_sync::proto::{
-    self, Ack, Change, Cursor, ErrorFrame, Hello, Journal, Message, OpFrame, Payload, PlayState,
-    PlaybackUpdate, ProtoRange, Pull, PullEnd, Role, Takeover,
+    self, Ack, Auth, Change, Cursor, ErrorFrame, Family, Hello, Journal, Message, OpFrame, Payload,
+    PlayState, PlaybackUpdate, ProtoRange, Pull, PullEnd, Role, Takeover,
 };
 use pa_sync::{Error, Hlc, Op, OpBody, OpId, Replica, outbox};
 use uuid::Uuid;
@@ -66,8 +66,30 @@ fn golden() -> Vec<(Message, String)> {
                 role: Role::Device,
                 cursor: Some(cursor(41)),
                 head: None,
+                nonce: None,
             }),
             r#"{"t":"hello","proto":{"min":1,"max":1},"device_id":"phone","role":"device","cursor":{"log":"j1","seq":41}}"#.into(),
+        ),
+        (
+            Message::Hello(Hello {
+                proto: ProtoRange { min: 1, max: 1 },
+                device_id: "tv".into(),
+                role: Role::Device,
+                cursor: None,
+                head: None,
+                nonce: Some("0a1b".into()),
+            }),
+            r#"{"t":"hello","proto":{"min":1,"max":1},"device_id":"tv","role":"device","nonce":"0a1b"}"#.into(),
+        ),
+        (
+            Message::Auth(Auth { sig: "c0ffee".into() }),
+            r#"{"t":"auth","sig":"c0ffee"}"#.into(),
+        ),
+        (
+            Message::Family(Family {
+                body: r#"{"roster":{}}"#.into(),
+            }),
+            r#"{"t":"family","body":"{\"roster\":{}}"}"#.into(),
         ),
         (
             Message::PbUpdate(update(PlayState::Playing, 2_471_200)),
@@ -226,6 +248,10 @@ fn bad_frames_are_rejected() {
         r#"{"t":"change","head":{"log":"","seq":1}}"#,
         r#"{"t":"op","op_id":"x","payload":{"enc":"plain","body":"{}"}}"#,
         r#"{"t":"error","code":""}"#,
+        r#"{"t":"hello","proto":{"min":1,"max":1},"device_id":"tv","role":"device","nonce":"zz"}"#,
+        r#"{"t":"auth","sig":""}"#,
+        r#"{"t":"auth","sig":"not hex"}"#,
+        r#"{"t":"family","body":""}"#,
         r#"{"proto":{"min":1,"max":1}}"#,
         "not json",
     ];
@@ -321,6 +347,7 @@ fn phone_hands_playback_over_to_tv_through_a_hub() {
         role: Role::Hub,
         cursor: None,
         head: Some(hub.head()),
+        nonce: None,
     })) else {
         panic!("not a hello");
     };

@@ -51,6 +51,7 @@ env:
 
 jobs:
   sources:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Sources and GPL canary
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -99,6 +100,7 @@ jobs:
           if-no-files-found: error
 
   docker:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: ${{ matrix.target }}
     needs: sources
     runs-on: ubuntu-24.04
@@ -148,6 +150,7 @@ jobs:
           if-no-files-found: error
 
   android:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: ${{ matrix.target }}
     needs: sources
     runs-on: ubuntu-24.04
@@ -201,6 +204,7 @@ jobs:
           if-no-files-found: error
 
   apple:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: ${{ matrix.target }}
     needs: sources
     if: ${{ !inputs.release }}

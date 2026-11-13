@@ -2,11 +2,13 @@
 //! Media recognition core of project_alpha (sans-IO).
 //!
 //! The crate follows the pipeline from `docs/research/03-metadata-recognition.md`
-//! §4.2 and §7.2. For now it contains stage \[3\]: the filename/path parser
+//! §4.2 and §7.2. It contains stage \[3\], the filename/path parser
 //! ([`parse`]), which turns a relative media path into N-best
-//! [`ParsedName`](parse::ParsedName) hypotheses with weights, and the
-//! [`provider`] boundary through which later stages ask metadata providers
-//! for data without doing I/O themselves.
+//! [`ParsedName`](parse::ParsedName) hypotheses with weights; stage \[4\],
+//! title normalization and the local title index ([`title`]), which turns
+//! those hypotheses into ranked work candidates without network requests;
+//! and the [`provider`] boundary through which later stages ask metadata
+//! providers for data without doing I/O themselves.
 //!
 //! ```
 //! use pa_recognition::parse::parse;
@@ -27,3 +29,4 @@
 
 pub mod parse;
 pub mod provider;
+pub mod title;

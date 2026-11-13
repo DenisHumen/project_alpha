@@ -2,7 +2,7 @@
 [package]
 name = "pa-metadata"
 version = "0.1.0"
-description = "Metadata provider clients outside the sans-IO core: TMDB client, rate limiting, ProviderCache (META-009)"
+description = "Metadata provider clients outside the sans-IO core: TMDB, AniList, Shikimori, rate limiting, ProviderCache (META-009, META-010)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

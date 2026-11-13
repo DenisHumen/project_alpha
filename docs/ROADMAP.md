@@ -305,7 +305,7 @@ project_alpha/
   - Что: `tools/bindings/build-xcframework.sh` (ios, ios-sim, tvos, tvos-sim, macos universal), binary target и Swift-обёртка UniFFI.
   - deps: CORE-001 · size: M · parallel: yes · веха: M0 · ref: 02 §1.4, 04 §4.4
   - done when: XCTest на симуляторах iOS и tvOS вызывает `core_version()`.
-- [ ] **CORE-004** Android: AAR `pa-core-android`
+- [x] **CORE-004** Android: AAR `pa-core-android`
   - Что: cargo-ndk → jniLibs (arm64-v8a, armeabi-v7a, x86_64), Gradle-модуль с UniFFI Kotlin.
   - deps: CORE-001 · size: S · parallel: yes · веха: M0 · ref: 02 §1.4
   - done when: instrumented-тест на эмуляторе вызывает ядро.
@@ -468,7 +468,7 @@ project_alpha/
   - Что: дисковые структуры (BDMV, VIDEO_TS, ISO) как один элемент; склейка частей (cd1/part1/disc1); extras (`-trailer`, Featurettes, NCOP/NCED, sample, «файл меньше N % длительности соседей»); sidecar-субтитры (`movie.ru.forced.srt`); NFO; локальный арт (poster, fanart, clearlogo).
   - deps: LIB-003 · size: M · parallel: yes · веха: M1 · ref: 03 §4.2 [1], 01 §1.5
   - done when: таблица тест-кейсов A10, A12 и A13 из таксономии проходит.
-- [ ] **LIB-008** Поиск FTS5
+- [x] **LIB-008** Поиск FTS5
   - Что: индекс фильмов, сериалов, эпизодов, людей, коллекций, Twitch-VOD и стримеров, музыки; ранжирование; нормализация с транслитом; группировка результатов.
   - deps: LIB-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 06 §5.3
   - done when: запрос «ирония судьбы» находит `Ironiya.sudby…`; поиск по 50 000 элементам быстрее 50 мс.
@@ -527,11 +527,11 @@ project_alpha/
   - Что: форк или вендоринг hunch (MIT) в `pa-recognition/parse`; токенизатор (скобки `[] () {} 【】`, разделители) → классификаторы токенов → `ParsedName` с весами; без кода под LGPL и GPL.
   - deps: REPO-001 · size: L · parallel: yes · веха: M1 · ref: 03 §2.2, §4.2 [3]
   - done when: ≥ 85 % на тест-кейсах guessit (как eval); защита от ReDoS — только линейные регулярки.
-- [ ] **META-006** Правила для аниме и русских релизов
+- [x] **META-006** Правила для аниме и русских релизов
   - Что: правила в духе anitomy, написанные заново (группа релиза, CRC32, `v2`, батчи, абсолютные номера, `.5`, NCOP/NCED); словари русских студий озвучки и трекеров; двойные названия «Рус / Orig (год)»; «Сезон N, серии 1–8 из 10».
   - deps: META-005 · size: M · parallel: yes · веха: M2 · ref: 03 §1.2 (A1, A4, A6, A7), §3.3
   - done when: поля категорий A1, A4, A6 и A7 корпуса разбираются с точностью ≥ 95 %.
-- [ ] **META-007** Нормализация и локальный индекс названий
+- [x] **META-007** Нормализация и локальный индекс названий
   - Что: NFKC, casefold, варианты ромадзи (`ou`/`ō`/`o`), транслит кириллицы в обе стороны (ГОСТ и бытовой), удаление артиклей; индекс n-gram + BM25 + fuzzy (tantivy или свой) по названиям AniDB titles dump, anime-offline-database, Shikimori и горячему кэшу TMDB.
   - deps: META-005 · size: L · parallel: yes · веха: M2 · ref: 03 §4.2 [4]
   - done when: на корпусе ≥ 90 % верных кандидатов попадают в топ-10 без внешних запросов.
@@ -543,7 +543,7 @@ project_alpha/
   - Что: сетевой слой вне sans-IO ядра; TMDB: поиск, детали, переводы ru-RU, альтернативные названия, episode groups, external ids, изображения, коллекции; rate limit, ProviderCache с TTL; ключ проекта по умолчанию (по DEC-008) и поле «свой ключ».
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 03 §3.1, §4.7, S §3
   - done when: тесты на записанных ответах; 429 от TMDB обрабатывается backoff-ом; атрибуция TMDB выводится в UI-016.
-- [ ] **META-010** Клиенты AniList и Shikimori
+- [x] **META-010** Клиенты AniList и Shikimori
   - Что: AniList GraphQL (адаптивный лимит 30–90 запросов в минуту, связи сезонов); Shikimori (User-Agent с именем приложения, 5 запросов в секунду и 90 в минуту, русские названия и описания по MAL ID).
   - deps: META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §3.2
   - done when: тесты на записанных ответах; лимиты соблюдаются под нагрузочным тестом.
@@ -878,10 +878,14 @@ project_alpha/
   - Что: добавление источника, сервера или настроек на TV с телефона или десктопа в той же LAN (без облака); ввод текста на TV с телефона.
   - deps: UI-002, SYNC-005 · size: M · parallel: yes · веха: M3 · ref: 01 §3 п.12, S §2
   - done when: пароль SMB, введённый на телефоне, попадает на Android TV и сохраняется в SecretStore TV, а не в логи и не в sync-журнал.
-- [ ] **UI-020** Локализация ru и en
+- [x] **UI-020** Локализация ru и en
   - Что: gen-l10n (ARB), ключи с префиксом фичи, плюрализация для ru (one, few, many), форматы дат и чисел; CI-проверка отсутствующих ключей; псевдолокализация.
   - deps: UI-001 · size: M · parallel: yes · веха: M1 · ref: CLAUDE.md (язык), 01 §4.4
   - done when: CI падает на непереведённом ключе; длинные русские строки не обрезаются в golden-тестах.
+- [x] **UI-023** Исправить баги со скриншотов дизайна 2026-11-14
+  - Что: (1) плеер на телефоне в портрете — нижняя панель управления переполняется на 150 px; (2) на телефоне нижняя навигация подсвечивает «Главная» на экране настроек; (3) страница лицензий (showLicensePage) пустая — проверить регистрацию LicenseRegistry; (4) перевести строки `pa_player` (OSD, мини-плеер, «Сейчас играет») через собственный API строк пакета с ru/en.
+  - deps: UI-020 · size: M · parallel: yes · веха: M1 · ref: docs/dev/release-0.1-contract.md
+  - done when: layout-тест плеера в портрете на телефоне без overflow; навигация подсвечивает активный раздел; лицензии видны; RU-скриншоты плеера на русском.
 - [ ] **UI-021** Доступность
   - Что: Semantics для TalkBack, VoiceOver, Narrator и Orca; порядок фокуса клавиатурой; контраст; Reduce Motion (кроссфейд вместо переходов).
   - deps: UI-003 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5 (VoiceOver/TalkBack — P0), §4.7
@@ -893,7 +897,7 @@ project_alpha/
 
 ### 3.12. TV — Android TV (Flutter), режим Big Picture и tvOS (SwiftUI)
 
-- [ ] **TV-001** Каркас tvOS-приложения на SwiftUI
+- [x] **TV-001** Каркас tvOS-приложения на SwiftUI
   - Что: `clients/apple/TVApp` (Xcode-проект с SwiftPM), подключение PACore, экран с `core_version()`, store-флейвор.
   - deps: CORE-003 · size: S · parallel: yes · веха: M0 · ref: 02 §1.3, §7
   - done when: собирается в CI и запускается в симуляторе tvOS.
@@ -964,7 +968,7 @@ project_alpha/
   - Что: ключ — внешние ID + S/E; иначе отпечаток контента (OSHash); музыка — MBID или хэш тегов и длительности; Twitch — свои ключи; одна шара по разным путям (`smb://nas` и `smb://192.168.1.5`).
   - deps: SYNC-001, LIB-004 · size: M · parallel: yes · веха: M3 · ref: 04 §1.8, 06 §5.2
   - done when: тест: один файл на двух устройствах с разными путями даёт один ключ.
-- [ ] **SYNC-005** Pairing устройств («семья устройств»)
+- [x] **SYNC-005** Pairing устройств («семья устройств»)
   - Что: общие ключи через QR или 6-значный код в LAN, список устройств, отзыв устройства, ротация ключей; без облака.
   - deps: SYNC-001, CORE-007 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: отозванное устройство больше не может подключиться (тест).
@@ -976,7 +980,7 @@ project_alpha/
   - Что: `.project_alpha/state/<device_id>.jsonl` в папке SMB или WebDAV — append-only журнал на каждое устройство, слияние по HLC, компакция в снапшоты, блокировки не нужны (каждое устройство пишет свой файл).
   - deps: SYNC-001, NET-003, NET-004 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: тест с тремя устройствами, работающими офлайн и онлайн в произвольном порядке, сходится.
-- [ ] **SYNC-008** Хаб синхронизации на сервере
+- [x] **SYNC-008** Хаб синхронизации на сервере
   - Что: WebSocket-эндпоинт в SRV; сервер авторитетен для своей библиотеки; fan-out не дольше 200 мс; журнал `server_seq`; клиенты одновременно держат сервер и P2P, дубликаты гасятся по op_id и HLC.
   - deps: SYNC-002, SRV-001 · size: M · parallel: yes · веха: M4 · ref: 04 §1.8.1
   - done when: нагрузочный тест: 50 устройств, 10 сообщений в секунду, задержка p95 меньше 200 мс.
@@ -1074,11 +1078,11 @@ project_alpha/
 
 ### 3.15. MUS — музыкальный плеер
 
-- [ ] **MUS-001** Музыкальная библиотека: схема и скан тегов
+- [x] **MUS-001** Музыкальная библиотека: схема и скан тегов
   - Что: Artist, ReleaseGroup, Release, Recording, Track (MBID), AudioFile, жанры, композиторы, вид «папки»; чтение тегов (ID3v2, Vorbis, MP4, APE через lofty), встроенные обложки и `folder.jpg`, мультидиск.
   - deps: LIB-001, LIB-003 · size: M · parallel: yes · веха: M6 · ref: 03 §5 (музыка), 01 §4.11
   - done when: коллекция из 5 000 треков индексируется; сборники разбираются правильно.
-- [ ] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
+- [x] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
   - Что: `gapless-audio`, `prefetch-playlist`, `replaygain=track|album` на десктопе и Android; на Apple — MPVKit audio.
   - deps: PLAY-002, MUS-001 · size: M · parallel: no · веха: M6 · ref: 02 §5.2 (вариант A)
   - done when: тестовый gapless-альбом без пауз на стыках (проверка по сэмплам).
@@ -1134,6 +1138,10 @@ project_alpha/
   - Что: синхронизация очереди и позиции (по аналогии со Spotify Connect, через SYNC); Last.fm и ListenBrainz с ключом пользователя [P2]; эквалайзер [P2].
   - deps: MUS-003, SYNC-003 · size: M · parallel: yes · веха: M6 · ref: 01 §4.11, §1.5
   - done when: очередь продолжается на втором устройстве с той же позиции.
+- [ ] **MUS-016** Аудиорежим MPVKit на Apple (`AudioKit`)
+  - Что: часть MUS-002 для Apple: `clients/apple/AudioKit` на MPVKit (LGPL) с тем же профилем, что `AudioProfile` в `pa_player` (gapless, prefetch, ReplayGain track/album/auto, pre-amp, защита от клиппинга); проверка стыков по сэмплам, как в `gapless_libmpv_test.dart`.
+  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-NNNN (music-audio-mode-libmpv)
+  - done when: XCTest на macOS проигрывает тестовый альбом через MPVKit без пауз на стыках (проверка по сэмплам).
 
 ### 3.16. TWI — Twitch
 
@@ -1141,7 +1149,7 @@ project_alpha/
   - Что: users, channels/followed, streams/followed, streams, channels, videos, clips, games и games/top, search, schedule, chat emotes, badges, color, settings; token bucket по заголовкам `Ratelimit-*`; курсорная пагинация с дедупликацией.
   - deps: CORE-006 · size: M · parallel: yes · веха: M7 · ref: 06 §1.1, §1.4
   - done when: тесты на записанных ответах; 429 обрабатывается корректно.
-- [ ] **TWI-002** Вход через Device Code Flow
+- [x] **TWI-002** Вход через Device Code Flow
   - Что: публичный client_id без секрета; QR и `user_code`; опрос токена; refresh заранее (меньше 10 мин до истечения) и строго по одному; повторный вход после 30 дней неактивности; отдельный токен на каждое устройство в SecretStore; минимальные scope.
   - deps: TWI-001, CORE-007 · size: M · parallel: yes · веха: M7 · ref: 06 §1.3, 04 §5.1.1
   - done when: тест гонки refresh; токены не появляются в логах и sync-журнале.
@@ -1161,7 +1169,7 @@ project_alpha/
   - Что: prefetch-сегменты, индикатор задержки, кнопка «К эфиру», DVR в пределах окна плейлиста, «Смотреть с начала эфира» через VOD текущего стрима; распознавание рекламы по EXT-X-DATERANGE, плашка «Реклама · 0:15», запрет перемотки во время рекламы; никакой блокировки рекламы.
   - deps: TWI-004, PLAY-003 · size: M · parallel: yes · веха: M7 · ref: 06 §2.4, §6.4
   - done when: тест подтверждает, что рекламные сегменты не отбрасываются; задержка в low-latency-режиме меньше 5 с.
-- [ ] **TWI-007** Модель данных Twitch в библиотеке
+- [x] **TWI-007** Модель данных Twitch в библиотеке
   - Что: Streamer, Category, Favourite, LiveSession, Video, CategorySegment, Clip, TwitchAsset, ChatLog, RecordRule; миграции; секция «Стримы» (стример — как сериал, VOD — как эпизод).
   - deps: LIB-001, TWI-001 · size: M · parallel: yes · веха: M7 · ref: 06 §5.1, §5.3
   - done when: миграции и тесты запросов; поиск FTS5 индексирует VOD и стримеров.
@@ -1347,7 +1355,7 @@ project_alpha/
   - Что: primitive (палитра, отступы 4–100, радиусы, тени), semantic (`bg/base`, `text/*`, `accent`, `accent/live`, `focus/*`, `badge/*`, `scrim`, `glass/thin|regular|thick`, `motion/*`), component (`poster/focus/scale` и т. п.), профили плотности (TV, desktop, tablet, phone).
   - deps: DSN-001 · size: M · parallel: yes · веха: M0 · ref: 01 §4.3–4.7, §4.10 п.1–2
   - done when: JSON проходит валидацию DTCG; значения из 01 §4 перенесены.
-- [ ] **DSN-003** Пайплайн Style Dictionary и контраст-линт
+- [x] **DSN-003** Пайплайн Style Dictionary и контраст-линт
   - Что: генерация `tokens.dart`, `Tokens.swift`, `tokens.css` (админки и сайт) в CI; проверка актуальности сгенерированного; проверка контраста WCAG AA для текстовых пар.
   - deps: DSN-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §5.2 (CI-шаги)
   - done when: изменение токена без перегенерации роняет CI; пара с контрастом меньше 4.5:1 роняет CI.
@@ -1748,7 +1756,7 @@ project_alpha/
 |---|---|---|---|
 | DEC | 8 | SYNC | 12 |
 | REPO | 13 | SRV | 18 |
-| CI | 12 | MUS | 15 |
+| CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
 | NET | 20 | DIST | 27 |
 | LIB | 15 | DSN | 15 |

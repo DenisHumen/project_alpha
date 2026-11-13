@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# TV-001: tvOS app (SwiftUI). XcodeGen spec: the source of truth for
+# TVApp.xcodeproj, which is generated and not committed (ADR-NNNN).
+#   cd clients/apple/TVApp && xcodegen generate
+# PACore (tools/bindings/PACore) needs PACoreFFI.xcframework first:
+#   tools/bindings/build-xcframework.sh tvos tvos-sim
+name: TVApp
+
+options:
+  bundleIdPrefix: app.kinolune
+  deploymentTarget:
+    tvOS: "17.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    GENERATE_INFOPLIST_FILE: YES
+    DEAD_CODE_STRIPPING: YES
+
+packages:
+  PACore:
+    path: ../../../tools/bindings/PACore
+
+targets:
+  TVApp:
+    type: application
+    platform: tvOS
+    sources:
+      - path: Sources
+      # Design system (DSN-004): icon enum and vector asset catalog, generated in design/.
+      - path: ../../../design/icons/generated/apple/PaIcon.swift
+        group: Design
+      - path: ../../../design/icons/generated/apple/PaIcons.xcassets
+        group: Design
+      # Design tokens (DSN-003): PaTokens, PaColorScheme, PaDensity, generated in design/.
+      - path: ../../../design/tokens/generated/apple/Tokens.swift
+        group: Design
+    dependencies:
+      - package: PACore
+    settings:
+      base:
+        PRODUCT_NAME: TVApp
+        PRODUCT_BUNDLE_IDENTIFIER: app.kinolune.tv
+        INFOPLIST_KEY_CFBundleDisplayName: Kinolune
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        TARGETED_DEVICE_FAMILY: "3"
+        # Build flavour (ADR-0007): tvOS ships only through the App Store, so
+        # every configuration is `store`. A `full` build would set PA_FLAVOR_FULL.
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) PA_FLAVOR_STORE"
+
+  TVAppTests:
+    type: bundle.unit-test
+    platform: tvOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: TVApp
+
+  TVAppUITests:
+    type: bundle.ui-testing
+    platform: tvOS
+    sources:
+      - path: UITests
+    dependencies:
+      - target: TVApp
+
+schemes:
+  TVApp:
+    build:
+      targets:
+        TVApp: all
+    test:
+      config: Debug
+      targets:
+        - TVAppTests
+        - TVAppUITests

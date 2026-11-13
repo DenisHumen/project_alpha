@@ -18,7 +18,11 @@
 //! - [`attribution`]: what the Credits screen (UI-016) must show.
 //!
 //! Providers: [`tmdb`] (search, details, translations, alternative titles,
-//! external ids, images, collections, seasons, episode groups, `/find`).
+//! external ids, images, collections, seasons, episode groups, `/find`);
+//! [`anilist`] (GraphQL: anime search, titles and synonyms, MAL ids,
+//! relations; adaptive 30–90 req/min) and [`shikimori`] (REST: Russian
+//! titles and synopses by MAL id; 5 req/s, 90 req/min), both keyless and
+//! built on the shared [`fetch`] pipeline (META-010).
 //!
 //! ```
 //! use std::sync::Arc;
@@ -46,11 +50,23 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod anilist;
 pub mod attribution;
 pub mod cache;
 pub mod clock;
+pub mod fetch;
 pub mod http;
 pub mod key;
 pub mod rate;
 pub mod replay;
+pub mod shikimori;
 pub mod tmdb;
+
+/// `User-Agent` of live clients: the app name (also the name of the
+/// project's Shikimori OAuth application), version and project URL. Never
+/// a browser string.
+pub const USER_AGENT: &str = concat!(
+    "Kinolune/",
+    env!("CARGO_PKG_VERSION"),
+    " (+https://github.com/DenisHumen/project_alpha)"
+);

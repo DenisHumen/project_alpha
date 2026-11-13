@@ -25,9 +25,10 @@
 //! - **Pagination** is cursor based and Twitch lists "float", so
 //!   [`collect_pages`] drops duplicates by id and stops on a repeated cursor.
 //! - **Auth** is a bearer token from Device Code Flow (TWI-002, public client,
-//!   no secret). This crate only carries the token ([`AccessToken`], redacted
-//!   in `Debug`) and reports `401` as [`Error::Unauthorized`] so the caller
-//!   can refresh.
+//!   no secret): [`TwitchAuth`] signs in, refreshes, validates, revokes and
+//!   keeps the tokens of this device in `pa-secrets`; [`AuthorizedHelix`]
+//!   refreshes and retries once when Helix answers `401`
+//!   ([`Error::Unauthorized`]). Tokens are redacted in every `Debug`.
 //!
 //! # Policy (ADR-0011 §5, docs/legal/providers.md §2.4)
 //!
@@ -39,6 +40,7 @@
 //! - The product is never named "… for Twitch"; the default User-Agent is
 //!   the product name only.
 
+mod auth;
 mod cache;
 mod client;
 mod error;
@@ -52,6 +54,11 @@ pub mod testing;
 mod transport;
 mod util;
 
+pub use auth::{
+    Account, AuthConfig, AuthError, AuthResult, AuthorizedHelix, DEFAULT_ID_BASE_URL,
+    DEFAULT_SCOPES, DeviceAuthorization, REFRESH_MARGIN, SCOPE_READ_CHAT, SCOPE_READ_FOLLOWS,
+    SCOPE_WRITE_CHAT, TwitchAuth, VALIDATE_INTERVAL, Validation,
+};
 pub use cache::{MAX_CACHE_TTL, TtlCache};
 pub use client::{
     AccessToken, ClientId, ClipsQuery, DEFAULT_BASE_URL, FollowedStreamer, HelixClient,

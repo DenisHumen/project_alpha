@@ -63,6 +63,9 @@ pub struct WorkLabel {
     #[serde(rename = "ref")]
     pub reference: String,
     pub kind: String,
+    /// Canonical title (for reports only; recognizers never see labels).
+    #[serde(default)]
+    pub title: Option<String>,
     #[serde(default)]
     pub year: Option<u32>,
     #[serde(default)]

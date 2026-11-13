@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/player.dart';
+import '../l10n/l10n.dart';
 import '../screens/home_screen.dart';
 import '../screens/library_grid_screen.dart';
 import '../screens/music_screen.dart';
@@ -23,17 +24,25 @@ import '../widgets/focusable.dart';
 import '../widgets/logo.dart';
 
 enum Section {
-  home('Home', Icons.home_outlined, Icons.home_rounded),
-  movies('Movies', Icons.movie_outlined, Icons.movie_rounded),
-  shows('TV Shows', Icons.tv_outlined, Icons.tv_rounded),
-  music('Music', Icons.library_music_outlined, Icons.library_music_rounded),
-  search('Search', Icons.search, Icons.search),
-  settings('Settings', Icons.settings_outlined, Icons.settings_rounded);
+  home(Icons.home_outlined, Icons.home_rounded),
+  movies(Icons.movie_outlined, Icons.movie_rounded),
+  shows(Icons.tv_outlined, Icons.tv_rounded),
+  music(Icons.library_music_outlined, Icons.library_music_rounded),
+  search(Icons.search, Icons.search),
+  settings(Icons.settings_outlined, Icons.settings_rounded);
 
-  const Section(this.label, this.icon, this.selectedIcon);
-  final String label;
+  const Section(this.icon, this.selectedIcon);
   final IconData icon;
   final IconData selectedIcon;
+
+  String label(AppLocalizations l) => switch (this) {
+    home => l.navHome,
+    movies => l.navMovies,
+    shows => l.navShows,
+    music => l.navMusic,
+    search => l.navSearch,
+    settings => l.navSettings,
+  };
 }
 
 class AppShell extends StatefulWidget {
@@ -277,7 +286,7 @@ class _SidebarLayout extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Scanning library…',
+                              context.l10n.shellScanningLibrary,
                               style: theme.textTheme.labelMedium,
                             ),
                             const SizedBox(height: 8),
@@ -335,7 +344,7 @@ class _SidebarItem extends StatelessWidget {
         focusScale: 1.0,
         light: false,
         radius: 10,
-        semanticLabel: section.label,
+        semanticLabel: section.label(context.l10n),
         builder: (context, hovered) => AnimatedContainer(
           duration: KMotion.focus,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -353,7 +362,7 @@ class _SidebarItem extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Text(
-                section.label,
+                section.label(context.l10n),
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   color: selected ? Colors.white : KColors.textSecondary,
@@ -386,6 +395,43 @@ class _PhoneLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final idx = _tabs.indexOf(shell.section);
+    // Settings has no tab (it sits behind the gear on Home). NavigationBar
+    // always marks some index as selected, so with no matching tab every
+    // destination is drawn in the unselected style (UI-023).
+    final none = idx < 0;
+    final scheme = Theme.of(context).colorScheme;
+    final navTheme = NavigationBarTheme.of(context);
+    Widget bar = NavigationBar(
+      selectedIndex: none ? 0 : idx,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      onDestinationSelected: (i) => shell.select(_tabs[i]),
+      destinations: [
+        for (final s in _tabs)
+          NavigationDestination(
+            icon: Icon(s.icon),
+            selectedIcon: Icon(none ? s.icon : s.selectedIcon),
+            label: s == Section.shows
+                ? context.l10n.navShowsShort
+                : s.label(context.l10n),
+          ),
+      ],
+    );
+    if (none) {
+      bar = NavigationBarTheme(
+        data: navTheme.copyWith(
+          indicatorColor: Colors.transparent,
+          iconTheme: WidgetStatePropertyAll(
+            IconThemeData(color: scheme.onSurfaceVariant, size: 24),
+          ),
+          labelTextStyle: WidgetStatePropertyAll(
+            (navTheme.labelTextStyle?.resolve(const {}) ??
+                    Theme.of(context).textTheme.labelMedium)
+                ?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+        ),
+        child: bar,
+      );
+    }
     return Scaffold(
       body: Stack(
         children: [
@@ -395,7 +441,7 @@ class _PhoneLayout extends StatelessWidget {
               right: 8,
               top: MediaQuery.paddingOf(context).top + 4,
               child: IconButton(
-                tooltip: 'Settings',
+                tooltip: context.l10n.navSettings,
                 style: IconButton.styleFrom(backgroundColor: Colors.black38),
                 onPressed: () => shell.select(Section.settings),
                 icon: const Icon(Icons.settings_outlined),
@@ -404,19 +450,7 @@ class _PhoneLayout extends StatelessWidget {
           const Positioned(left: 8, right: 8, bottom: 8, child: _MiniPlayer()),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: idx < 0 ? 0 : idx,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (i) => shell.select(_tabs[i]),
-        destinations: [
-          for (final s in _tabs)
-            NavigationDestination(
-              icon: Icon(s.icon),
-              selectedIcon: Icon(s.selectedIcon),
-              label: s == Section.shows ? 'Shows' : s.label,
-            ),
-        ],
-      ),
+      bottomNavigationBar: bar,
     );
   }
 }
@@ -511,7 +545,7 @@ class _TvTab extends StatelessWidget {
       radius: 999,
       light: false,
       focusScale: 1.06,
-      semanticLabel: section.label,
+      semanticLabel: section.label(context.l10n),
       builder: (context, focused) {
         final fg = focused
             ? KColors.focusLabel
@@ -537,7 +571,7 @@ class _TvTab extends StatelessWidget {
                   color: fg,
                 )
               : Text(
-                  section.label,
+                  section.label(context.l10n),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: fg,
                     fontWeight: selected || focused

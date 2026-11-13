@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 
 /// Adds a local folder or an SMB share. SMB passwords go to the platform
@@ -52,9 +53,10 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
   }
 
   Future<void> _browse() async {
+    final l = context.l10n;
     try {
       final dir = await FilePicker.getDirectoryPath(
-        dialogTitle: 'Choose a media folder',
+        dialogTitle: l.addSourcePickerTitle,
       );
       if (dir != null) {
         setState(() {
@@ -70,10 +72,7 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
         });
       }
     } catch (e) {
-      setState(
-        () => _error =
-            'Folder picker is not available: $e. Type the path instead.',
-      );
+      setState(() => _error = l.addSourcePickerUnavailable('$e'));
     }
   }
 
@@ -89,12 +88,12 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
 
   String? _validate() {
     if (_kind == SourceKind.localFolder) {
-      if (_path.text.trim().isEmpty) return 'Choose a folder.';
+      if (_path.text.trim().isEmpty) return context.l10n.addSourceErrorNoFolder;
       return null;
     }
     final u = Uri.tryParse(_smbUrl.text.trim());
     if (u == null || u.scheme != 'smb' || u.host.isEmpty) {
-      return 'Use the form smb://host/share/folder';
+      return context.l10n.addSourceErrorSmbForm;
     }
     return null;
   }
@@ -106,11 +105,12 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
       return;
     }
     final services = Services.read(context);
+    final permissionError = context.l10n.addSourceErrorPermission;
     setState(() => _busy = true);
     if (_kind == SourceKind.localFolder && !await _ensureStoragePermission()) {
       setState(() {
         _busy = false;
-        _error = 'Storage permission is needed to read media files.';
+        _error = permissionError;
       });
       return;
     }
@@ -138,8 +138,9 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     return AlertDialog(
-      title: const Text('Add source'),
+      title: Text(l.addSourceTitle),
       content: SizedBox(
         width: 460,
         child: SingleChildScrollView(
@@ -149,10 +150,10 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
             children: [
               SegmentedButton<SourceKind>(
                 segments: [
-                  const ButtonSegment(
+                  ButtonSegment(
                     value: SourceKind.localFolder,
-                    icon: Icon(Icons.folder_outlined),
-                    label: Text('Folder'),
+                    icon: const Icon(Icons.folder_outlined),
+                    label: Text(l.addSourceFolder),
                   ),
                   // pa_library 0.1 has no SMB client on Android (SmbUnsupportedException).
                   ButtonSegment(
@@ -160,9 +161,7 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
                     enabled: !_smbUnsupported,
                     icon: const Icon(Icons.lan_outlined),
                     label: Text(
-                      _smbUnsupported
-                          ? 'SMB (coming soon)'
-                          : 'SMB share (beta)',
+                      _smbUnsupported ? l.addSourceSmbSoon : l.addSourceSmbBeta,
                     ),
                   ),
                 ],
@@ -179,9 +178,9 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
                     Expanded(
                       child: TextField(
                         controller: _path,
-                        decoration: const InputDecoration(
-                          labelText: 'Folder',
-                          hintText: '/home/me/Videos',
+                        decoration: InputDecoration(
+                          labelText: l.addSourceFolder,
+                          hintText: l.addSourceFolderHint,
                         ),
                       ),
                     ),
@@ -189,48 +188,40 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
                     FilledButton.tonalIcon(
                       onPressed: _browse,
                       icon: const Icon(Icons.folder_open),
-                      label: const Text('Browse…'),
+                      label: Text(l.addSourceBrowse),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Tip: a network share mounted by your system (e.g. via the file manager) also works as a folder.',
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text(l.addSourceFolderTip, style: theme.textTheme.bodySmall),
               ] else ...[
                 TextField(
                   controller: _smbUrl,
                   keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(
-                    labelText: 'Share address',
-                    hintText: 'smb://nas.local/media/Movies',
+                  decoration: InputDecoration(
+                    labelText: l.addSourceShareAddress,
+                    hintText: l.addSourceShareHint,
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _user,
-                  decoration: const InputDecoration(
-                    labelText: 'Username (optional)',
-                  ),
+                  decoration: InputDecoration(labelText: l.addSourceUsername),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _password,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password (optional)',
-                    helperText:
-                        'Stored in the system keystore on this device only.',
+                  decoration: InputDecoration(
+                    labelText: l.addSourcePassword,
+                    helperText: l.addSourcePasswordHelper,
                   ),
                 ),
               ],
               const SizedBox(height: 12),
               TextField(
                 controller: _name,
-                decoration: const InputDecoration(
-                  labelText: 'Display name (optional)',
-                ),
+                decoration: InputDecoration(labelText: l.addSourceDisplayName),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -248,11 +239,11 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l.commonCancel),
         ),
         FilledButton(
           onPressed: _busy ? null : _save,
-          child: const Text('Add and scan'),
+          child: Text(l.addSourceSubmit),
         ),
       ],
     );

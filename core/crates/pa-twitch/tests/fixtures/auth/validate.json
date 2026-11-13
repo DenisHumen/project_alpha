@@ -1,0 +1,13 @@
+{
+  "status": 200,
+  "body": {
+    "client_id": "testclientid0000000000000000000",
+    "login": "test_viewer",
+    "scopes": [
+      "user:read:chat",
+      "user:read:follows"
+    ],
+    "user_id": "424242",
+    "expires_in": 14400
+  }
+}

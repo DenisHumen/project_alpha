@@ -9,6 +9,11 @@
 //! [log]
 //! format = "json"   # or "text"
 //! filter = "info"   # tracing EnvFilter syntax
+//!
+//! [sync]
+//! playback_ttl_secs = 600   # how long the hub remembers "now playing"
+//! max_connections = 256     # devices connected to the sync hub at once
+//! require_pairing = true    # only paired devices may sync (SYNC-005)
 //! ```
 
 use std::net::SocketAddr;
@@ -50,6 +55,8 @@ pub struct Config {
     pub data_dir: Option<PathBuf>,
     /// Logging.
     pub log: LogConfig,
+    /// Sync hub (`/api/v1/sync`).
+    pub sync: SyncConfig,
 }
 
 impl Default for Config {
@@ -58,6 +65,35 @@ impl Default for Config {
             listen: DEFAULT_LISTEN.parse().expect("valid default address"),
             data_dir: None,
             log: LogConfig::default(),
+            sync: SyncConfig::default(),
+        }
+    }
+}
+
+/// Sync hub settings (SYNC-008).
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct SyncConfig {
+    /// How long the last `pb.update` per profile and title is kept in memory
+    /// and replayed to devices that connect (instant resume).
+    pub playback_ttl_secs: u64,
+    /// Upper bound of remembered `pb.update`s (memory guard).
+    pub playback_max_entries: usize,
+    /// Devices connected to the hub at once; more get HTTP 503.
+    pub max_connections: u32,
+    /// Only devices paired with the server may sync; others get
+    /// `error{unauthorized}`. `false` admits unpaired devices too (tests,
+    /// a trusted loopback setup).
+    pub require_pairing: bool,
+}
+
+impl Default for SyncConfig {
+    fn default() -> Self {
+        Self {
+            playback_ttl_secs: 600,
+            playback_max_entries: 10_000,
+            max_connections: 256,
+            require_pairing: true,
         }
     }
 }
@@ -177,6 +213,13 @@ mod tests {
         .unwrap();
         assert_eq!(config.listen.port(), 9000);
         assert_eq!(config.log.format, LogFormat::Json);
+        assert_eq!(config.sync, SyncConfig::default());
+        let sync = Config::from_toml("[sync]\nmax_connections = 8\n")
+            .unwrap()
+            .sync;
+        assert_eq!(sync.max_connections, 8);
+        assert_eq!(sync.playback_ttl_secs, 600);
+        assert!(sync.require_pairing);
 
         config
             .apply_env(|name| match name {

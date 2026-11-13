@@ -4,21 +4,25 @@
 //! One binary on top of the same core crates as the apps: `pa-runtime` for
 //! the tokio runtime, data directories and settings, `pa-library` for the
 //! library database (SQLite WAL, same schema and migrations as the client).
-//! This crate adds the HTTP layer (axum), configuration, structured logs and
-//! graceful shutdown. The API itself comes with SRV-002 and later tasks.
+//! This crate adds the HTTP layer (axum), configuration, structured logs,
+//! graceful shutdown and the sync hub ([`sync`], WebSocket at
+//! [`sync::PATH`]). The REST API comes with SRV-002 and later tasks.
 //!
-//! [`Server::bind`] opens the database and the socket; [`Server::run`] serves
-//! until the shutdown future resolves, lets in-flight requests finish and
-//! checkpoints the database.
+//! [`Server::bind`] opens the databases and the socket; [`Server::run`]
+//! serves until the shutdown future resolves, lets in-flight requests finish,
+//! closes sync connections and checkpoints the databases.
 
 pub mod config;
 mod http;
 pub mod logging;
+pub mod pairing;
+pub mod sync;
 
 use std::future::Future;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use pa_library::rusqlite::Connection;
 use tokio::net::TcpListener;
@@ -48,6 +52,22 @@ pub enum Error {
         path: PathBuf,
         /// Cause.
         source: pa_library::Error,
+    },
+    /// The sync journal could not be opened.
+    #[error("sync journal {path}: {source}")]
+    Sync {
+        /// Database file.
+        path: PathBuf,
+        /// Cause.
+        source: sync::journal::JournalError,
+    },
+    /// The device family (keys, roster) could not be loaded.
+    #[error("device family in {path}: {source}")]
+    Pairing {
+        /// Data directory.
+        path: PathBuf,
+        /// Cause.
+        source: pa_pairing::Error,
     },
     /// Socket or other I/O error.
     #[error("{context}: {source}")]
@@ -121,30 +141,51 @@ impl Library {
 pub struct Server {
     listener: TcpListener,
     library: Library,
+    hub: sync::Hub,
 }
 
 impl Server {
-    /// Opens `data_dir/library.sqlite3` and binds `config.listen`.
+    /// Opens `data_dir/library.sqlite3` and `data_dir/sync.sqlite3` and
+    /// binds `config.listen`.
     pub async fn bind(config: &Config, data_dir: &Path) -> Result<Self, Error> {
         let path = data_dir.join(config::LIBRARY_FILE);
-        let library = {
-            let path = path.clone();
-            tokio::task::spawn_blocking(move || Library::open(&path))
-                .await
-                .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()))?
-        };
+        let journal = data_dir.join(sync::JOURNAL_FILE);
         let listener = TcpListener::bind(config.listen)
             .await
             .map_err(|source| Error::Io {
                 context: format!("bind {}", config.listen),
                 source,
             })?;
+        // Pairing QR codes carry the actual address, when it is a concrete one.
+        let addr = listener
+            .local_addr()
+            .ok()
+            .filter(|a| !a.ip().is_unspecified())
+            .map(|a| a.to_string());
+        let (library, hub) = {
+            let path = path.clone();
+            let sync_config = config.sync.clone();
+            let data_dir = data_dir.to_owned();
+            tokio::task::spawn_blocking(move || {
+                let library = Library::open(&path)?;
+                let hub =
+                    sync::Hub::open(&journal, library.clone(), &sync_config, &data_dir, addr)?;
+                Ok::<_, Error>((library, hub))
+            })
+            .await
+            .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()))?
+        };
         tracing::info!(
             db = %path.display(),
             schema = pa_library::latest_version(),
             "library database ready"
         );
-        Ok(Self { listener, library })
+        tracing::info!(hub = hub.hub_id(), path = sync::PATH, "sync hub ready");
+        Ok(Self {
+            listener,
+            library,
+            hub,
+        })
     }
 
     /// Actual address (useful with port 0).
@@ -160,23 +201,39 @@ impl Server {
         &self.library
     }
 
-    /// Serves until `shutdown` resolves, then waits for in-flight requests
-    /// and checkpoints the database.
+    /// The sync hub.
+    pub fn hub(&self) -> &sync::Hub {
+        &self.hub
+    }
+
+    /// Serves until `shutdown` resolves, then waits for in-flight requests,
+    /// closes sync connections and checkpoints the databases.
     pub async fn run(
         self,
         shutdown: impl Future<Output = ()> + Send + 'static,
     ) -> Result<(), Error> {
         let addr = self.local_addr()?;
         tracing::info!(%addr, version = VERSION, "listening");
-        let app = http::router(self.library.clone());
-        axum::serve(self.listener, app)
-            .with_graceful_shutdown(shutdown)
-            .await
-            .map_err(|source| Error::Io {
-                context: "serve".to_owned(),
-                source,
-            })?;
+        let app = http::router(self.library.clone(), self.hub.clone());
+        let hub = self.hub.clone();
+        let shutdown = async move {
+            shutdown.await;
+            // WebSocket connections are not tracked by the graceful
+            // shutdown of axum: close them ourselves.
+            hub.close();
+        };
+        axum::serve(
+            self.listener,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .with_graceful_shutdown(shutdown)
+        .await
+        .map_err(|source| Error::Io {
+            context: "serve".to_owned(),
+            source,
+        })?;
         tracing::info!("stopped accepting connections");
+        self.hub.drain(Duration::from_secs(5)).await;
         if let Err(e) = self.library.checkpoint().await {
             tracing::warn!(error = %e, "library checkpoint failed");
         }

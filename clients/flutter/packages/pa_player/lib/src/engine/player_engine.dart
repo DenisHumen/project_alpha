@@ -2,6 +2,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import 'audio_profile.dart';
+
 /// Repeat mode for a playlist.
 enum QueueRepeat { off, all, one }
 
@@ -164,6 +166,10 @@ abstract class PlayerEngine {
   /// Jumps to playlist entry [index].
   Future<void> jump(int index);
   Future<void> setRepeat(QueueRepeat mode);
+
+  /// Music audio mode: gapless and ReplayGain (MUS-002). Can be called at any
+  /// time; changes apply to the playing track.
+  Future<void> setAudioProfile(AudioProfile profile);
   Future<void> setAudioTrack(MediaTrack track);
 
   /// [MediaTrack.off] disables subtitles.

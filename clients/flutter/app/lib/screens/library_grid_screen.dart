@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/cards.dart';
@@ -12,12 +13,15 @@ import 'routes.dart';
 enum SortOrder { added, title, year }
 
 extension on SortOrder {
-  String get label => switch (this) {
-    SortOrder.added => 'Recently added',
-    SortOrder.title => 'Title',
-    SortOrder.year => 'Year',
+  String label(AppLocalizations l) => switch (this) {
+    SortOrder.added => l.librarySortAdded,
+    SortOrder.title => l.librarySortTitle,
+    SortOrder.year => l.librarySortYear,
   };
 }
+
+/// Grid filter: everything, titles in progress, or one decade (e.g. 1990).
+const _filterAll = -1, _filterInProgress = -2;
 
 /// Poster grid for Movies and Shows with sorting and filters.
 class LibraryGridScreen extends StatefulWidget {
@@ -33,7 +37,7 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
   Stream<List<LibraryItem>>? _items;
   Stream<List<(LibraryItem, Progress)>>? _cw;
   SortOrder _sort = SortOrder.added;
-  String _filter = 'All';
+  int _filter = _filterAll;
 
   @override
   void didChangeDependencies() {
@@ -43,11 +47,16 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
     _cw ??= lib.continueWatching();
   }
 
-  String get _title => widget.kind == ItemKind.movie ? 'Movies' : 'TV Shows';
-
   @override
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
+    final l = context.l10n;
+    final movies = widget.kind == ItemKind.movie;
+    String filterLabel(int f) => switch (f) {
+      _filterAll => l.libraryFilterAll,
+      _filterInProgress => l.libraryFilterInProgress,
+      _ => l.libraryDecade(f),
+    };
     return StreamBuilder<List<LibraryItem>>(
       stream: _items,
       builder: (context, snap) => StreamBuilder<List<(LibraryItem, Progress)>>(
@@ -63,16 +72,11 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
             for (final i in all)
               if (i.year != null) i.year! ~/ 10 * 10,
           }.toList()..sort((a, b) => b - a);
-          final filters = [
-            'All',
-            'In progress',
-            for (final dd in decades) '${dd}s',
-          ];
+          final filters = [_filterAll, _filterInProgress, ...decades];
           var items = all.where((i) {
-            if (_filter == 'All') return true;
-            if (_filter == 'In progress') return inProgress.contains(i.id);
-            final dec = int.tryParse(_filter.replaceAll('s', ''));
-            return dec != null && i.year != null && i.year! ~/ 10 * 10 == dec;
+            if (_filter == _filterAll) return true;
+            if (_filter == _filterInProgress) return inProgress.contains(i.id);
+            return i.year != null && i.year! ~/ 10 * 10 == _filter;
           }).toList();
           switch (_sort) {
             case SortOrder.added:
@@ -92,9 +96,11 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: PageTitle(
-                  _title,
+                  movies ? l.navMovies : l.navShows,
                   trailing: Text(
-                    '${all.length} titles',
+                    movies
+                        ? l.libraryMovieCount(all.length)
+                        : l.libraryShowCount(all.length),
                     style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ),
@@ -120,7 +126,7 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
                           const SizedBox(width: 16),
                           for (final f in filters) ...[
                             FilterPill(
-                              label: f,
+                              label: filterLabel(f),
                               selected: f == _filter,
                               onTap: () => setState(() => _filter = f),
                             ),
@@ -140,11 +146,9 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
                         ? Icons.movie_outlined
                         : Icons.tv_outlined,
                     title: all.isEmpty
-                        ? 'No ${_title.toLowerCase()} yet'
-                        : 'Nothing matches this filter',
-                    message: all.isEmpty
-                        ? 'Add a source in Settings and scan your library.'
-                        : null,
+                        ? (movies ? l.libraryNoMovies : l.libraryNoShows)
+                        : l.libraryNoMatches,
+                    message: all.isEmpty ? l.libraryEmptyHint : null,
                   ),
                 )
               else
@@ -254,7 +258,7 @@ class _SortButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilterPill(
       icon: Icons.sort,
-      label: 'Sort: ${value.label}',
+      label: context.l10n.librarySort(value.label(context.l10n)),
       selected: true,
       onTap: () => onChanged(
         SortOrder.values[(value.index + 1) % SortOrder.values.length],
