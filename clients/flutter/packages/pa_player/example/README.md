@@ -11,4 +11,4 @@ flutter build apk --debug   # на Android путь вводится в поле
 ```
 
 Переменные окружения: `PA_START_MS` (продолжить с позиции), `PA_SUBTITLE` (внешние субтитры),
-`PA_EXIT_AFTER=N` (через N секунд напечатать `PA_RESULT {json}` и выйти — для headless-проверки).
+`PA_MPV_OPTS="ao=null;hwdec=no"` (доп. свойства mpv), `PA_EXIT_AFTER=N` (через N секунд напечатать `PA_RESULT {json}` и выйти — для headless-проверки).

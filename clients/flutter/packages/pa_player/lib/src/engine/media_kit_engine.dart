@@ -13,7 +13,7 @@ void ensurePaPlayerInitialized() => mk.MediaKit.ensureInitialized();
 
 /// [PlayerEngine] on media_kit / libmpv (ADR-0012).
 class MediaKitEngine implements PlayerEngine {
-  MediaKitEngine({bool video = true})
+  MediaKitEngine({bool video = true, this.mpvOptions = const {}})
     : _player = mk.Player(
         configuration: const mk.PlayerConfiguration(
           title: 'Kinolune',
@@ -27,7 +27,14 @@ class MediaKitEngine implements PlayerEngine {
 
   /// Factory matching [PlayerEngineFactory].
   static PlayerEngine create({bool video = true}) =>
-      MediaKitEngine(video: video);
+      MediaKitEngine(video: video, mpvOptions: defaultMpvOptions);
+
+  /// Extra mpv properties applied to every engine made by [create]
+  /// (diagnostics, e.g. `{'ao': 'null'}` on a headless machine).
+  static Map<String, String> defaultMpvOptions = const {};
+
+  /// Extra mpv properties for this engine.
+  final Map<String, String> mpvOptions;
 
   final mk.Player _player;
   mkv.VideoController? _controller;
@@ -55,6 +62,9 @@ class MediaKitEngine implements PlayerEngine {
       // External subtitles next to the file are picked up automatically.
       await p.setProperty('sub-auto', 'fuzzy');
       if (!video) await p.setProperty('vid', 'no');
+      for (final e in mpvOptions.entries) {
+        await p.setProperty(e.key, e.value);
+      }
     } catch (e) {
       debugPrint('pa_player: mpv option failed: $e');
     }

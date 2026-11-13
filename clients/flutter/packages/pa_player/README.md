@@ -67,6 +67,9 @@ safe_local_storage, uri_parser (MIT/BSD). Всё совместимо с MPL-2.0
 | Linux | `media_kit_libs_linux` | **системный** `libmpv.so.2`, только динамически: плагин media_kit_video линкуется с ним через pkg-config (для сборки нужны `libmpv-dev`, `libepoxy-dev`, `libgtk-3-dev`), Dart-часть открывает его через `dlopen`; в бандл не кладётся. Пакет скачивает только mimalloc (MIT) | LGPL-2.1+ при сборке mpv с `-Dgpl=false`; дистрибутивные пакеты обычно собраны с GPL — это выбор пользователя/дистрибутива, наш бинарь GPL-кода не содержит. Для AppImage/Flatpak (R01-REL) кладём libmpv из PLAY-002 (`-Dgpl=false` + LGPL-FFmpeg PLAY-001) |
 | Android | `media_kit_libs_android_video` 1.3.8 | `libmpv-android-video-build` v1.1.7, flavour **`default`** (`default-<abi>.jar`, MD5 проверяется в Gradle) | FFmpeg 6.0 `--disable-gpl --disable-nonfree --enable-version3` (LGPL-3.0+), mpv `-Dgpl=false` (LGPL-2.1+), libass (ISC), freetype (FTL), fribidi (LGPL-2.1+), harfbuzz (MIT), mbedTLS (Apache-2.0), dav1d (BSD-2), libxml2 (MIT). Итог — **LGPL-3.0+**, `libmpv.so` — отдельная динамическая библиотека в APK |
 
+Проверка собранного APK примера: строка конфигурации FFmpeg внутри `lib/arm64-v8a/libmpv.so` содержит
+`--disable-gpl --disable-nonfree --enable-version3` (`strings libmpv.so | grep -- --disable-gpl`).
+
 Чего избегаем:
 
 - **`media_kit_libs_video` / `media_kit_libs_audio`** (зонтичные пакеты) — тянут сборки для Windows/macOS/iOS, которые мы

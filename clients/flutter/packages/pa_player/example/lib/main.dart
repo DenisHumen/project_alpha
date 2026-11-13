@@ -6,6 +6,7 @@
 //   pa_player_example a.flac b.mp3 c.opus        # music queue + Now Playing
 //   PA_START_MS=60000 pa_player_example movie.mkv   # resume
 //   PA_SUBTITLE=/path/movie.en.srt ...               # external subtitle
+//   PA_MPV_OPTS='ao=null' ...  # extra mpv properties
 //   PA_EXIT_AFTER=10 ...  # headless check: print PA_RESULT {json} and exit
 //
 // On Android (no argv) the start screen has a path field.
@@ -42,6 +43,12 @@ bool isAudio(String path) {
 void main(List<String> args) {
   WidgetsFlutterBinding.ensureInitialized();
   ensurePaPlayerInitialized();
+  // PA_MPV_OPTS="ao=null;hwdec=no" — extra mpv properties (diagnostics).
+  MediaKitEngine.defaultMpvOptions = {
+    for (final kv in (Platform.environment['PA_MPV_OPTS'] ?? '').split(';'))
+      if (kv.contains('='))
+        kv.split('=').first: kv.substring(kv.indexOf('=') + 1),
+  };
   runApp(ExampleApp(files: args));
 }
 
