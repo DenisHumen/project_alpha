@@ -21,9 +21,10 @@ fail() { echo "::error::licence check: $*" >&2; exit 1; }
 manifest() {
   local file="${1:-$here/../Package.swift}"
   [ -f "$file" ] || fail "$file not found"
-  # Drop // comments, then inspect the code only.
+  # Drop // comments (at line start or after whitespace, so URLs survive),
+  # then inspect the code only.
   local code
-  code="$(sed -e 's#//.*$##' "$file")"
+  code="$(sed -E 's#(^|[[:space:]])//.*$##' "$file")"
   if grep -n -- '-GPL' <<<"$code"; then
     fail "$file names a GPL product of MPVKit"
   fi
