@@ -13,7 +13,8 @@
 //!   with version negotiation, `pb.update`/`pb.takeover` for instant resume,
 //!   op exchange with opaque versioned payloads, acks and journal cursors.
 //! - [`library`]: `Replica` as the sync sink of `pa_library::progress`
-//!   (LIB-011) and writing received progress ops into the library.
+//!   (LIB-011) and of Twitch favourites (`pa_library::twitch`, TWI-007),
+//!   and writing received progress and follow ops into the library.
 //!
 //! Transports (LAN P2P, journal in a shared folder, the user's own server,
 //! iroh) are later tasks; they move [`proto`] frames and call

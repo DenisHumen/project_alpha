@@ -33,6 +33,7 @@ pub const MIGRATIONS: &[MigrationFile] = &[
     migration!(202611141200, "202611141200_SYNC-001_sync_outbox"),
     migration!(202611141400, "202611141400_LIB-011_progress_hidden"),
     migration!(202611141600, "202611141600_MUS-001_music_library"),
+    migration!(202611141730, "202611141730_TWI-007_twitch"),
 ];
 
 impl MigrationFile {
