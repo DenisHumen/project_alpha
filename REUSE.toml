@@ -132,3 +132,14 @@ path = "design/icons/LICENSE-lucide.txt"
 precedence = "override"
 SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
 SPDX-License-Identifier = "ISC AND MIT"
+
+# Flutter-generated platform scaffolding of package example apps
+# (`flutter create`; same terms as the spikes above).
+[[annotations]]
+path = [
+  "clients/flutter/packages/*/example/android/**",
+  "clients/flutter/packages/*/example/linux/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"

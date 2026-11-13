@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: MPL-2.0
+name: pa_player
+description: "Kinolune player: fullscreen video player with a tvOS-style OSD and a Spotify-like music player, on media_kit (libmpv, LGPL)."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # MIT. Dart bindings to libmpv (loaded dynamically at runtime).
+  media_kit: ^1.2.6
+  # MIT. Video output (texture) for media_kit.
+  media_kit_video: ^2.0.1
+  # MIT. Linux: uses the *system* libmpv (libmpv.so.2), linked dynamically.
+  media_kit_libs_linux: ^1.2.1
+  # MIT package that downloads libmpv-android-video-build "default" flavour:
+  # FFmpeg --disable-gpl --enable-version3, mpv -Dgpl=false (LGPL). See README.
+  media_kit_libs_android_video: ^1.3.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  fake_async: ^1.3.1
+
+flutter:
+  uses-material-design: true
