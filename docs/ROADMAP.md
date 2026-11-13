@@ -632,7 +632,7 @@ project_alpha/
 
 ### 3.8. PLAY-AND — плеер Android и Android TV
 
-- [ ] **PLAY-AND-001** Спайк: встраивание плеера во Flutter без потери HDR
+- [x] **PLAY-AND-001** Спайк: встраивание плеера во Flutter без потери HDR
   - Что: в `spikes/android-player` сравнить PlatformView (SurfaceView, Hybrid Composition) и отдельную Activity с нативным SurfaceView; проверить HDR10, DV и AFR на Shield или Chromecast GTV; оверлей OSD на Flutter или нативный.
   - deps: — · size: M · parallel: yes · веха: M0 · ref: 02 §1.3, §2.8
   - done when: ADR-0008 с замерами и выбранным вариантом.

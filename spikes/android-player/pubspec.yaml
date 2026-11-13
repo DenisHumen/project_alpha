@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MPL-2.0
+name: android_player_spike
+description: "PLAY-AND-001 spike: embedding a native Media3 player into Flutter on Android/Android TV without losing HDR/AFR."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.14.0
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+flutter:
+  uses-material-design: true
