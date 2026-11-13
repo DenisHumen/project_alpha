@@ -53,13 +53,25 @@ just design contrast   # таблица контраста всех пар
 
 Сейчас: 287 токенов, 66 проверок контраста, минимум 3.31:1 (неактивный текст в светлой теме), минимум для обычного текста — 4.76:1 (бейдж поверх белого арта).
 
-## Экспорт в код
+## Экспорт в код (DSN-003)
 
-- **Flutter (релиз 0.1):** `scripts/tokens-dart.mjs` → `design/flutter/pa_design/lib/src/tokens.g.dart`: `PaTokens` (константы), `PaColorScheme.dark|light`, `PaDensity.tv|desktop|tablet|phone`, типы Flutter (`Color`, `TextStyle` с Inter и `opsz`, `BoxShadow`, `LinearGradient`, `Cubic`, `Duration`). Это промежуточный генератор; пайплайн Style Dictionary для Swift/CSS и CI-гейт — DSN-003 (API Dart-классов стоит сохранить).
-- Сгенерированное руками не правится: поменяйте JSON и выполните `just design tokens`.
+`scripts/tokens-build.mjs` (без зависимостей, решение — [`../decisions/NNNN-token-codegen.md`](../decisions/NNNN-token-codegen.md)) резолвит каждый semantic-, density- и component-токен для всех комбинаций тема × плотность и раскладывает их одинаково на всех платформах: токены, зависящие от темы, — в `PaColorScheme` (`dark`, `light`), от плотности — в `PaDensity` (`tv`, `desktop`, `tablet`, `phone`), остальные — константы `PaTokens`. Primitive-токены не экспортируются. Имя — путь в camelCase: `bg.elevated-2` → `bgElevated2`.
+
+| Платформа | Файл | Типы |
+|---|---|---|
+| Flutter | `flutter/pa_design/lib/src/tokens.g.dart` | `Color`, `double`, `Duration`, `Cubic`, `BoxShadow`, `LinearGradient`, `TextStyle` (Inter, `opsz`), `PaTransition`. API релиза 0.1 сохранён |
+| Apple (SwiftUI) | `tokens/generated/apple/Tokens.swift` | `Color` (sRGB), `CGFloat`, `Double`, `TimeInterval` (с), `PaCurve`, `PaShadow`, `PaGradient`, `PaTransition` (`.animation`), `PaTypography` (`.font` — системный SF, DSN-ADR-0002). Подключается в `clients/apple/TVApp/project.yml` |
+| Android (Kotlin) | `tokens/generated/android/PaTokens.kt`, пакет `app.kinolune.design` | без зависимостей: цвет — ARGB `Int` (`Color(Int)` в Compose), размеры — `Float` dp/sp, длительности — `Long` мс, `PaCurve`, `PaShadow`, `PaGradientStop`, `PaTransition`, `PaTypography` |
+| Web (CSS) | `tokens/generated/web/tokens.css` | custom properties `--pa-<путь>`; по умолчанию тёмная тема и плотность desktop на `:root`, переключение — `data-theme="light"`, `data-density="tv|tablet|phone"` на любом элементе. Типографика — шорткат для `font` плюс `-letter-spacing` и `-font-feature-settings` |
+
+```bash
+just design tokens     # проверить JSON и перегенерировать код всех платформ
+just design check      # то же, что CI
+```
+
+**CI-гейт** (workflow `Design`, `npm run check`): `tokens:check` падает, если JSON изменили без перегенерации (любой из четырёх файлов отличается от сгенерированного), `tokens:validate` — если пара из `contrast.pairs.json` ниже своего минимума. Минимум ниже 4.5:1 разрешён только с полем `note` (крупный или неактивный текст, нетекстовый элемент) и не ниже 3:1. Сгенерированное руками не правится.
 
 ## Открытые вопросы
 
 - Акцент `color.lune.*` («лунный бирюзовый», DSN-006) — цвет бренда Kinolune, см. [`../brand/README.md`](../brand/README.md). Замена рампы перекрашивает всё; контраст проверит CI.
 - Коэффициенты фокуса, тени и idle-dim — наше предложение (Apple их не публикует), подбираются на реальном TV.
-- Поддержка формата 2025.10 (объектные цвета/размеры) в выбранной версии Style Dictionary — проверить в DSN-003.

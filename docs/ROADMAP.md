@@ -1351,7 +1351,7 @@ project_alpha/
   - Что: primitive (палитра, отступы 4–100, радиусы, тени), semantic (`bg/base`, `text/*`, `accent`, `accent/live`, `focus/*`, `badge/*`, `scrim`, `glass/thin|regular|thick`, `motion/*`), component (`poster/focus/scale` и т. п.), профили плотности (TV, desktop, tablet, phone).
   - deps: DSN-001 · size: M · parallel: yes · веха: M0 · ref: 01 §4.3–4.7, §4.10 п.1–2
   - done when: JSON проходит валидацию DTCG; значения из 01 §4 перенесены.
-- [ ] **DSN-003** Пайплайн Style Dictionary и контраст-линт
+- [x] **DSN-003** Пайплайн Style Dictionary и контраст-линт
   - Что: генерация `tokens.dart`, `Tokens.swift`, `tokens.css` (админки и сайт) в CI; проверка актуальности сгенерированного; проверка контраста WCAG AA для текстовых пар.
   - deps: DSN-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §5.2 (CI-шаги)
   - done when: изменение токена без перегенерации роняет CI; пара с контрастом меньше 4.5:1 роняет CI.

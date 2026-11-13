@@ -9,7 +9,7 @@ import { SPDX_TAG, camelCase } from '../lib/icons.mjs';
 import { lintSvg } from '../icons-lint.mjs';
 import { unzipEntry } from '../fonts-fetch.mjs';
 import { validate } from '../validate-tokens.mjs';
-import { dartName } from '../tokens-dart.mjs';
+import { camelName } from '../lib/tokens-model.mjs';
 
 const color = (hex, alpha) => ({ colorSpace: 'srgb', components: hexToRgb(hex), hex, ...(alpha !== undefined && { alpha }) });
 
@@ -83,8 +83,8 @@ test('icon linter accepts the house style and rejects violations', () => {
 test('names: kebab-case to camelCase, reserved words suffixed', () => {
   assert.equal(camelCase('skip-forward'), 'skipForward');
   assert.equal(camelCase('repeat'), 'repeatIcon');
-  assert.equal(dartName('bg.elevated-2'), 'bgElevated2');
-  assert.equal(dartName('media-badge.live.bg'), 'mediaBadgeLiveBg');
+  assert.equal(camelName('bg.elevated-2'), 'bgElevated2');
+  assert.equal(camelName('media-badge.live.bg'), 'mediaBadgeLiveBg');
 });
 
 test('unzipEntry reads deflated entries', () => {
