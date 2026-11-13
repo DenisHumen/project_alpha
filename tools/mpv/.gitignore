@@ -1,0 +1,4 @@
+# Downloaded tarballs, build trees and artifacts are never committed.
+.cache/
+build/
+out/

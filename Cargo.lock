@@ -2280,6 +2280,7 @@ dependencies = [
 name = "pa-twitch"
 version = "0.1.0"
 dependencies = [
+ "pa-secrets",
  "pa-twitch",
  "reqwest",
  "rustls",

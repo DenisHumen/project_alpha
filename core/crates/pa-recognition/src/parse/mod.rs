@@ -18,6 +18,16 @@
 //! 5. **Folder context** — season folders, the show folder (title fallback,
 //!    alternative title in another script), extras folders, library roots.
 //!
+//! Anime and Russian release rules (META-006): season, part and kind
+//! qualifiers before ` - NN` stay in the title as AniDB names the entry
+//! (`Title 2nd Season`, the bare `Title` becomes an alternative title);
+//! `86 [01]` and `86 - NCOP` keep the number as the title; transliterated
+//! `14.seriya` and `серии 1–8 из 10`; dubbing studios and trackers; trailing
+//! scene groups after `H.264-` and before `CD1`. Whether a bare `- 35` counts
+//! within a season or across the franchise cannot be told from the name: it
+//! goes to `episodes` (or `absolute` for 3+ digits) and the other reading
+//! stays in the N-best list for the matcher.
+//!
 //! No regular expressions are used, every stage is linear in the input, so
 //! the parser is immune to ReDoS. The rules are our own; ideas follow the
 //! public conventions also used by anitomy (MPL-2.0) and hunch (MIT), no code
@@ -54,7 +64,7 @@ use interpret::{Analysis, Context};
 use lexicon::RootKind;
 
 /// Version of the parser rules; bump when results change.
-pub const PARSER_VERSION: &str = "0.1.0";
+pub const PARSER_VERSION: &str = "0.2.0";
 
 /// Longest input we look at, in bytes. Longer paths are truncated from the
 /// left (folders), keeping the name: protects against pathological input.

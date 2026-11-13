@@ -40,6 +40,14 @@ smoke-swift: (bindings-for 'swift')
         -L target/debug -lpa_ffi -o {{ smoke_dir }}/swift-smoke
     LD_LIBRARY_PATH=target/debug DYLD_LIBRARY_PATH=target/debug {{ smoke_dir }}/swift-smoke
 
+# Apple (macOS + Xcode): PACoreFFI.xcframework + Swift wrapper for tools/bindings/PACore (CORE-003)
+xcframework *args:
+    tools/bindings/build-xcframework.sh {{ args }}
+
+# Apple: PACore XCTest calls core_version() (platform: macos | ios | tvos)
+test-pacore platform='macos':
+    tools/bindings/test-pacore.sh {{ platform }}
+
 # flutter_rust_bridge version; keep equal to Cargo.toml and pa_core/pubspec.yaml
 frb_version := '2.13.0'
 

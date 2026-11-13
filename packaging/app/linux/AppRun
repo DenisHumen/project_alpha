@@ -2,7 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 # AppImage entry point for Kinolune. @EXEC@ is replaced by package.sh.
 HERE="$(dirname "$(readlink -f "$0")")"
-if command -v ldconfig >/dev/null 2>&1 || [ -x /sbin/ldconfig ]; then
+# Bundled LGPL libmpv (PLAY-002, tools/mpv/bundle.sh): make media_kit open
+# exactly that copy, never a system libmpv.
+if [ -f "$HERE/usr/lib/kinolune/lib/libmpv.so.2" ]; then
+    export LIBMPV_LIBRARY_PATH="$HERE/usr/lib/kinolune/lib/libmpv.so.2"
+elif command -v ldconfig >/dev/null 2>&1 || [ -x /sbin/ldconfig ]; then
     if ! { ldconfig -p 2>/dev/null || /sbin/ldconfig -p 2>/dev/null; } | grep -q 'libmpv\.so\.2'; then
         echo "Kinolune needs the system libmpv (Ubuntu/Debian: libmpv2, Fedora: mpv-libs, Arch: mpv)." >&2
     fi

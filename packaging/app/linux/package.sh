@@ -9,8 +9,10 @@
 #   kinolune-<version>-linux-x86_64.tar.gz   the bundle plus licences
 #   kinolune-<version>-x86_64.AppImage       the same bundle as an AppImage
 #
-# libmpv is NOT bundled: media_kit on Linux links the system libmpv (see
-# packaging/app/README.md). Nothing LGPL is redistributed in these files.
+# libmpv is NOT bundled by default: media_kit on Linux links the system libmpv
+# (see packaging/app/README.md). With PA_LIBMPV_DIR=<libmpv-linux-x86_64
+# artifact> (tools/mpv, PLAY-002) our LGPL libmpv + FFmpeg go into lib/ via
+# tools/mpv/bundle.sh (needs patchelf), with their licences.
 #
 # Needs: tar, gzip, curl, sha256sum. appimagetool and the AppImage runtime are
 # downloaded at pinned versions and verified by SHA-256 (override the cache
@@ -47,6 +49,11 @@ exe="${exes[0]}"
 
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
+
+# Optional LGPL libmpv hook (PLAY-002): bundle a copy, never touch the input.
+if [ -n "${PA_LIBMPV_DIR:-}" ]; then
+    cp -a "$bundle" "$work/bundle" && "$repo_root/tools/mpv/bundle.sh" linux "$PA_LIBMPV_DIR" "$work/bundle" && bundle="$work/bundle"
+fi
 
 fetch() { # url sha256 dest
     local url="$1" sum="$2" dest="$3"
