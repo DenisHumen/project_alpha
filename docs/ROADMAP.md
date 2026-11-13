@@ -581,7 +581,7 @@ project_alpha/
 
 ### 3.7. PLAY — общий плеерный слой
 
-- [ ] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов (Linux и Windows готовы; Android и Apple ждут CI на macOS/NDK)
+- [x] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
