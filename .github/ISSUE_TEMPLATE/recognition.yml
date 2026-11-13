@@ -2,11 +2,31 @@ name: Неверное распознавание / Wrong match
 description: Фильм, сериал, аниме или альбом определился неправильно — такие отчёты пополняют тестовый корпус
 labels: ["recognition", "triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        **Обезличьте путь:** замените начало пути до корня библиотеки на `<lib>` и уберите имена пользователей, серверов и шар. Важны имена папок и файлов внутри библиотеки — их не меняйте.
+        **Anonymize the path:** replace everything up to the library root with `<lib>` and remove user, host and share names. Keep folder and file names inside the library unchanged.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Тип / Kind
+      options:
+        - Фильм / Movie
+        - Сериал / TV show
+        - Аниме / Anime
+        - Музыка / Music
+        - Другое / Other
+    validations:
+      required: true
   - type: textarea
     id: paths
     attributes:
       label: Пути к файлам / File paths
-      description: Полные пути относительно корня библиотеки (папка + соседние файлы). Можно обезличить начало пути.
+      description: Путь относительно корня библиотеки (папка + соседние файлы, включая субтитры и .nfo).
+      placeholder: |
+        <lib>/Anime/[Group] Show S2 [1080p]/[Group] Show S2 - 03 [1080p].mkv
+        <lib>/Anime/[Group] Show S2 [1080p]/[Group] Show S2 - 03 [1080p].ass
       render: text
     validations:
       required: true
@@ -20,3 +40,9 @@ body:
       label: Что должно быть / Expected (ссылка на TMDB/AniList/AniDB/MusicBrainz)
     validations:
       required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Тестовый корпус / Test corpus
+      options:
+        - label: "Разрешаю добавить эти (обезличенные) пути в открытый тестовый корпус распознавания / I allow adding these anonymized paths to the open recognition test corpus"

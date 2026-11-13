@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# REUSE annotations (https://reuse.software/spec-3.3/) for files that cannot
+# carry a header (data, lockfiles, images) or that come from third parties.
+# Source files carry their own `SPDX-License-Identifier: MPL-2.0` header
+# (docs/ROADMAP.md §0.3 p.11, ADR-0005); `reuse lint` flags a new source file
+# without it. Check locally with `reuse lint`.
+version = 1
+
+# Copyright of every file defaults to the project contributors. A file that
+# has its own SPDX-FileCopyrightText line keeps it ("closest").
+# This entry sets no licence on purpose: source files must declare it.
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "project_alpha contributors"
+
+# Documentation is project content under the repository licence. "override"
+# because several docs quote the header text inline (ROADMAP, ADR-0005), which
+# REUSE would otherwise parse as a broken licence expression.
+[[annotations]]
+path = "**/*.md"
+precedence = "override"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
+# Templates and plain data that cannot (or need not) carry a comment header.
+[[annotations]]
+path = [
+  "**/*.json",
+  "**/*.jsonl",
+  "**/.gitkeep",
+  "**/.gitignore",
+  ".github/CODEOWNERS",
+  ".github/ISSUE_TEMPLATE/**",
+  ".github/DISCUSSION_TEMPLATE/**",
+  "Cargo.lock",
+  "**/pubspec.lock",
+  "**/.metadata",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
+# Contributor Covenant 2.1 text (Organization for Ethical Source), CC-BY-4.0.
+[[annotations]]
+path = "CODE_OF_CONDUCT.md"
+precedence = "override"
+SPDX-FileCopyrightText = [
+  "2014-2021 Coraline Ada Ehmke and Contributor Covenant contributors",
+  "project_alpha contributors",
+]
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Flutter-generated platform scaffolding in spikes (`flutter create` templates,
+# generated plugin registrants, default launcher icons, Gradle wrapper config).
+# Template code is BSD-3-Clause by The Flutter Authors; our edits are MPL-2.0.
+[[annotations]]
+path = [
+  "spikes/*/analysis_options.yaml",
+  "spikes/*/android/build.gradle.kts",
+  "spikes/*/android/settings.gradle.kts",
+  "spikes/*/android/gradle.properties",
+  "spikes/*/android/gradle/wrapper/gradle-wrapper.properties",
+  "spikes/*/android/app/build.gradle.kts",
+  "spikes/*/android/app/src/debug/AndroidManifest.xml",
+  "spikes/*/android/app/src/profile/AndroidManifest.xml",
+  "spikes/*/android/app/src/main/res/drawable/launch_background.xml",
+  "spikes/*/android/app/src/main/res/drawable-v21/launch_background.xml",
+  "spikes/*/android/app/src/main/res/mipmap-*/ic_launcher.png",
+  "spikes/*/android/app/src/main/res/values/styles.xml",
+  "spikes/*/android/app/src/main/res/values-night/styles.xml",
+  "spikes/*/linux/CMakeLists.txt",
+  "spikes/*/linux/flutter/CMakeLists.txt",
+  "spikes/*/linux/flutter/generated_plugin_registrant.cc",
+  "spikes/*/linux/flutter/generated_plugin_registrant.h",
+  "spikes/*/linux/flutter/generated_plugins.cmake",
+  "spikes/*/linux/runner/CMakeLists.txt",
+  "spikes/*/linux/runner/main.cc",
+  "spikes/*/linux/runner/my_application.cc",
+  "spikes/*/linux/runner/my_application.h",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"

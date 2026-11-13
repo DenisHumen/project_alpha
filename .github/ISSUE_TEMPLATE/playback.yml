@@ -1,0 +1,80 @@
+name: Проблема воспроизведения / Playback issue
+description: Файл не играет, тормозит, рассинхрон, нет HDR/звука, неверная частота кадров
+labels: ["playback", "bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо! Самое полезное — **отчёт статистики плеера** и `mediainfo` файла. Не прикладывайте сам файл и не указывайте пароли и адреса своих серверов.
+        Thanks! The most useful bits are the **player stats report** and `mediainfo` output. Do not attach the media file itself or share credentials or server addresses.
+  - type: textarea
+    id: what
+    attributes:
+      label: Что происходит / What happens
+      description: "Например: зелёные кадры, рассинхрон звука на 300 мс, нет Dolby Vision, падение на 12-й минуте"
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Платформа / Platform
+      options:
+        - Android
+        - Android TV / Google TV
+        - iOS / iPadOS
+        - tvOS (Apple TV)
+        - macOS
+        - Windows
+        - Linux
+        - Другое / Other
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Устройство, версия ОС и приложения / Device, OS and app version
+      placeholder: "Nvidia Shield Pro 2019, Android TV 11, app 0.3.1 (store)"
+    validations:
+      required: true
+  - type: input
+    id: output
+    attributes:
+      label: Вывод изображения и звука / Video and audio output
+      description: "ТВ или монитор, ресивер, режим HDR, включены ли AFR и passthrough"
+      placeholder: "LG C2 4K HDR, Denon AVR, AFR on, passthrough E-AC-3/TrueHD"
+  - type: dropdown
+    id: source
+    attributes:
+      label: Источник / Source
+      options:
+        - Локальный файл / Local file
+        - SMB
+        - NFS
+        - WebDAV
+        - Plex / Jellyfin / Emby
+        - Медиасервер project_alpha / project_alpha server
+        - Twitch
+        - Другое / Other
+  - type: textarea
+    id: stats
+    attributes:
+      label: Отчёт статистики плеера / Player stats report
+      description: "В плеере: меню → «Статистика» → «Скопировать отчёт». Вставьте как есть."
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: mediainfo
+    attributes:
+      label: mediainfo
+      description: "Вывод `mediainfo <файл>` (или `ffprobe -hide_banner <файл>`). Имя файла можно обезличить."
+      render: text
+  - type: textarea
+    id: steps
+    attributes:
+      label: Шаги воспроизведения / Steps to reproduce
+  - type: textarea
+    id: logs
+    attributes:
+      label: Логи / Logs
+      render: text
