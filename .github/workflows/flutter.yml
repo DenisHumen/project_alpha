@@ -52,6 +52,7 @@ env:
 
 jobs:
   discover:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Discover Flutter projects
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -82,7 +83,7 @@ jobs:
   check:
     name: check (${{ matrix.project }})
     needs: discover
-    if: needs.discover.outputs.has_projects == 'true'
+    if: ${{ (needs.discover.outputs.has_projects == 'true') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -131,7 +132,7 @@ jobs:
   linux:
     name: Linux build smoke
     needs: discover
-    if: needs.discover.outputs.has_app == 'true'
+    if: ${{ (needs.discover.outputs.has_app == 'true') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -166,7 +167,7 @@ jobs:
   android:
     name: Android build smoke
     needs: discover
-    if: needs.discover.outputs.has_app == 'true'
+    if: ${{ (needs.discover.outputs.has_app == 'true') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
@@ -197,7 +198,7 @@ jobs:
 
   flutter-green:
     name: flutter-green
-    if: always()
+    if: ${{ (always()) && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     needs: [discover, check, linux, android]
     runs-on: ubuntu-24.04
     timeout-minutes: 5

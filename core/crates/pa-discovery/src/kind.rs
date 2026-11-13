@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-//! DNS-SD service types the core browses for (ADR-0018).
+//! DNS-SD service types the core browses for (ADR-0019).
 
 use std::fmt;
 

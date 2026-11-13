@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 
-# ADR-0018: Обнаружение в LAN — `mdns-sd` в ядре, NWBrowser на Apple, свои типы DNS-SD
+# ADR-0019: Обнаружение в LAN — `mdns-sd` в ядре, NWBrowser на Apple, свои типы DNS-SD
 
 - **Статус:** Принят
 - **Дата:** 2026-11-14

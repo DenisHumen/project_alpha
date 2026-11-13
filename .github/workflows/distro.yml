@@ -48,7 +48,7 @@ env:
 jobs:
   build:
     name: build (no push)
-    if: github.event_name == 'pull_request'
+    if: ${{ (github.event_name == 'pull_request') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     permissions:
@@ -95,7 +95,7 @@ jobs:
 
   publish:
     name: build, push, sign
-    if: >-
+    if: ${{ (>-) && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
       github.repository == 'DenisHumen/project_alpha' &&
       (github.event_name == 'push' ||
        (github.event_name == 'workflow_dispatch' && inputs.promote == 'none'))
@@ -220,7 +220,7 @@ jobs:
 
   promote:
     name: promote to ${{ inputs.promote }}
-    if: >-
+    if: ${{ (>-) && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
       github.repository == 'DenisHumen/project_alpha' &&
       github.event_name == 'workflow_dispatch' && inputs.promote != 'none'
     runs-on: ubuntu-24.04

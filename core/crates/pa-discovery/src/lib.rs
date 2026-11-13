@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-//! LAN discovery over mDNS/DNS-SD (NET-009, ADR-0018).
+//! LAN discovery over mDNS/DNS-SD (NET-009, ADR-0019).
 //!
 //! What the core looks for ([`ServiceKind`]):
 //!

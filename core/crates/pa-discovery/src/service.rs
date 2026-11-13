@@ -231,7 +231,7 @@ fn check_txtvers(txt: &Txt) -> Result<(), TxtError> {
     }
 }
 
-/// TXT schema of `_projectalpha._tcp` (research 04 §1.6, ADR-0018).
+/// TXT schema of `_projectalpha._tcp` (research 04 §1.6, ADR-0019).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ServerTxt {
     /// `id`: stable server UUID.
@@ -317,7 +317,7 @@ impl DeviceClass {
     }
 }
 
-/// TXT schema of `_alpha-sync._tcp` (ADR-0018, used by SYNC-006).
+/// TXT schema of `_alpha-sync._tcp` (ADR-0019, used by SYNC-006).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PeerTxt {
     /// `id`: `device_id` of the peer (the same id HLC timestamps carry).
