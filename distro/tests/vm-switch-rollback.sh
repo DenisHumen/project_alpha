@@ -108,6 +108,9 @@ log "Starting local registry on 127.0.0.1:${REGISTRY_PORT}"
 "${ENGINE}" tag "${BASE_IMAGE}" "${LOCAL_BASE}"
 "${ENGINE}" push -q "${LOCAL_BASE}" >/dev/null
 
+# Test images are unsigned and come from a local registry: keep the stock signature policy
+# (the policy itself is covered by tests/signature-policy.sh).
+export ALPHA_SIGNATURE_POLICY=off
 V1="0.0.1-test.1"
 V2="0.0.1-test.2"
 "${DISTRO_DIR}/scripts/build-image.sh" "${LOCAL_REPO}:v1" "${V1}"

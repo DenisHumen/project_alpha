@@ -1,22 +1,226 @@
 {
-  "$description": "Semantic tokens: roles referenced by platform code. Skeleton from DSN-001; the full set (bg/base, text/*, accent, accent/live, focus/*, badge/*, scrim, glass/*, motion/*) is DSN-002.",
+  "$description": "Semantic tokens (DSN-002): roles referenced by platform code. Values here are the DEFAULT DARK theme (01 §4.1 — dark first); themes/light.tokens.json overrides colour roles only. Density-dependent roles (type, layout, radius of cards…) live in density/*.tokens.json.",
   "bg": {
     "$type": "color",
-    "base": { "$value": "{color.neutral.950}", "$description": "Default app background (dark theme first, 01 §4.1)." }
+    "base": { "$value": "{color.gray.950}", "$description": "App background (01 §4.5: #0B0B0F)." },
+    "elevated": {
+      "$value": "{color.gray.900}",
+      "$description": "Panels without glass; also the glass fallback base (#16161C)."
+    },
+    "elevated-2": { "$value": "{color.gray.850}", "$description": "Nested panels, list cells on elevated surfaces." },
+    "sunken": { "$value": "{color.black}", "$description": "Player canvas and letterboxing." },
+    "hover": {
+      "$value": "{color.white-alpha.8}",
+      "$description": "Hover/pressed overlay on any surface (desktop, phone)."
+    },
+    "selected": { "$value": "{color.white-alpha.16}", "$description": "Selected row/chip overlay." }
   },
   "text": {
     "$type": "color",
-    "primary": { "$value": "{color.neutral.50}" }
+    "primary": { "$value": "{color.white}", "$description": "White @ 100 %." },
+    "secondary": {
+      "$value": "{color.white-alpha.64}",
+      "$description": "Metadata. 01 §4.5 proposed 60 %; raised to 64 % to keep ≥ 4.5:1 on bg/elevated-2."
+    },
+    "tertiary": {
+      "$value": "{color.white-alpha.38}",
+      "$description": "Inactive/disabled text (WCAG 1.4.3 exempt); kept ≥ 3:1 on bg/base. 01 §4.5 proposed 35 %."
+    },
+    "link": { "$value": "{color.blue.400}", "$description": "Links and accent-coloured text on bg/*." },
+    "on-accent": { "$value": "{color.white}", "$description": "Text/icons on accent/default fills." },
+    "on-live": { "$value": "{color.white}", "$description": "Text on the LIVE badge." },
+    "on-scrim": { "$value": "{color.white}", "$description": "Text over artwork with scrim/*." }
+  },
+  "icon": {
+    "$type": "color",
+    "primary": { "$value": "{text.primary}" },
+    "secondary": { "$value": "{text.secondary}" },
+    "disabled": { "$value": "{text.tertiary}" }
+  },
+  "border": {
+    "$type": "color",
+    "subtle": { "$value": "{color.white-alpha.12}", "$description": "Hairlines; prefer depth over lines (01 §4.1)." },
+    "strong": { "$value": "{color.white-alpha.24}" }
   },
   "accent": {
     "$type": "color",
-    "default": { "$value": "{color.brand.500}" },
-    "live": { "$value": "{color.red.500}" }
+    "default": {
+      "$value": "{color.blue.600}",
+      "$description": "Brand accent fill: progress, selected tab, primary non-TV buttons. Placeholder hue until DSN-006."
+    },
+    "pressed": { "$value": "{color.blue.700}" },
+    "subtle": { "$value": "{color.blue.800}", "$description": "Tinted backgrounds (selected chip)." },
+    "live": {
+      "$value": "{color.red.600}",
+      "$description": "LIVE status only (Twitch, live TV). Never used as brand accent (01 §4.9 п.11)."
+    }
+  },
+  "status": {
+    "$type": "color",
+    "success": { "$value": "{color.green.400}" },
+    "warning": { "$value": "{color.amber.400}" },
+    "danger": { "$value": "{color.red.400}" }
+  },
+  "state": {
+    "$type": "color",
+    "watched": { "$value": "{accent.default}", "$description": "Watched tick and progress fill (01 §4.5)." },
+    "progress-track": { "$value": "{color.white-alpha.24}", "$description": "Unfilled part of progress bars and the scrubber." }
   },
   "focus": {
-    "scale": { "$type": "number", "$value": "{number.scale-110}" }
+    "fill": {
+      "$type": "color",
+      "$value": "{color.white}",
+      "$description": "Focused button background on TV — inverted (01 §4.2)."
+    },
+    "label": { "$type": "color", "$value": "{color.black}", "$description": "Text/icon on focus/fill." },
+    "ring": {
+      "$type": "color",
+      "$value": "{color.blue.400}",
+      "$description": "Keyboard focus ring on desktop/phone (no scale there)."
+    },
+    "ring-width": { "$type": "dimension", "$value": { "value": 3, "unit": "px" } },
+    "scale": {
+      "$type": "number",
+      "poster": { "$value": "{number.scale-110}", "$description": "Poster 2:3 on focus (01 §4.2: 1.10)." },
+      "card": { "$value": "{number.scale-108}", "$description": "Card 16:9 on focus (1.08)." },
+      "button": { "$value": "{number.scale-105}", "$description": "Button on focus (1.05–1.06)." },
+      "hover": { "$value": "{number.scale-104}", "$description": "Desktop hover (1.03–1.05)." },
+      "press": { "$value": "{number.scale-097}", "$description": "Press feedback on touch (0.97)." },
+      "idle-boost": {
+        "$value": "{number.scale-102}",
+        "$description": "Extra scale of the focused item after idle-dim kicks in (+2 %)."
+      }
+    },
+    "shadow": {
+      "$type": "shadow",
+      "$value": {
+        "color": "{color.black-alpha.55}",
+        "offsetX": { "value": 0, "unit": "px" },
+        "offsetY": { "value": 20, "unit": "px" },
+        "blur": { "value": 50, "unit": "px" },
+        "spread": { "value": 0, "unit": "px" }
+      },
+      "$description": "Focus shadow: y 16–24, blur 40–60, opacity ≈ 0.45 (01 §4.2). Alpha 0.55 compensates for the dark background."
+    },
+    "specular-opacity": {
+      "$type": "number",
+      "$value": "{number.opacity-025}",
+      "$description": "Max opacity of the radial specular highlight."
+    },
+    "tilt-max": {
+      "$type": "number",
+      "$value": "{number.angle-006}",
+      "$description": "Max tilt in degrees (touch-surface remotes only; off for D-pad)."
+    },
+    "parallax-offset": { "$type": "dimension", "$value": "{size.8}", "$description": "Max layer shift for parallax (2–8 pt)." },
+    "idle-dim-opacity": {
+      "$type": "number",
+      "$value": "{number.opacity-060}",
+      "$description": "Opacity of unfocused items after idle."
+    },
+    "idle-dim-delay": { "$type": "duration", "$value": "{duration.8000}", "$description": "Idle time before dimming (6–10 s)." }
+  },
+  "badge": {
+    "$type": "color",
+    "$description": "Technical badges (resolution, HDR, audio): monochrome outline, no Dolby/DTS logos (01 §4.5).",
+    "label": { "$value": "{color.white}" },
+    "border": { "$value": "{color.white-alpha.64}" },
+    "fill": { "$value": "{color.black-alpha.64}", "$description": "Badge backing over artwork." },
+    "new": { "$value": "{accent.default}", "$description": "\"New\" badge fill; label = text/on-accent." }
+  },
+  "scrim": {
+    "bottom": {
+      "$type": "gradient",
+      "$value": [
+        { "color": "{color.black-alpha.85}", "position": 0 },
+        {
+          "color": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0, "hex": "#000000" },
+          "position": 1
+        }
+      ],
+      "$description": "Under text on backdrops: black 85 % → 0 % (01 §4.5). Position 0 = edge with text."
+    },
+    "bottom-strong": {
+      "$type": "color",
+      "$value": "{color.black-alpha.85}",
+      "$description": "Darkest stop of scrim/bottom; used for contrast checks."
+    },
+    "modal": { "$type": "color", "$value": "{color.black-alpha.64}", "$description": "Dimming behind modal sheets." }
+  },
+  "glass": {
+    "$description": "Custom \"Glass\" material for non-Apple platforms (01 §4.6). Apple platforms use native materials. Each level: tint over a blurred, saturated backdrop, 1 px highlight stroke, fallback colour when blur is disabled by the performance profile.",
+    "thin": {
+      "tint": { "$type": "color", "$value": "{color.white-alpha.8}", "$description": "OSD, chips." },
+      "blur": { "$type": "dimension", "$value": "{blur.sm}" },
+      "saturation": { "$type": "number", "$value": "{number.saturate-120}" },
+      "highlight": { "$type": "color", "$value": "{color.white-alpha.12}" },
+      "fallback": {
+        "$type": "color",
+        "$value": { "colorSpace": "srgb", "components": [0.086, 0.086, 0.11], "alpha": 0.85, "hex": "#16161c" },
+        "$description": "bg/elevated @ 85 %."
+      }
+    },
+    "regular": {
+      "tint": { "$type": "color", "$value": "{color.white-alpha.12}", "$description": "Panels, menus." },
+      "blur": { "$type": "dimension", "$value": "{blur.md}" },
+      "saturation": { "$type": "number", "$value": "{number.saturate-130}" },
+      "highlight": { "$type": "color", "$value": "{color.white-alpha.16}" },
+      "fallback": {
+        "$type": "color",
+        "$value": { "colorSpace": "srgb", "components": [0.086, 0.086, 0.11], "alpha": 0.88, "hex": "#16161c" },
+        "$description": "bg/elevated @ 88 %."
+      }
+    },
+    "thick": {
+      "tint": { "$type": "color", "$value": "{color.white-alpha.16}", "$description": "Modals." },
+      "blur": { "$type": "dimension", "$value": "{blur.lg}" },
+      "saturation": { "$type": "number", "$value": "{number.saturate-140}" },
+      "highlight": { "$type": "color", "$value": "{color.white-alpha.24}" },
+      "fallback": {
+        "$type": "color",
+        "$value": { "colorSpace": "srgb", "components": [0.086, 0.086, 0.11], "alpha": 0.92, "hex": "#16161c" },
+        "$description": "bg/elevated @ 92 %."
+      }
+    }
   },
   "motion": {
-    "focus": { "$type": "duration", "$value": "{duration.fast}" }
+    "$description": "01 §4.7. Reduce Motion: platforms swap transitions for crossfades and disable parallax/tilt.",
+    "focus": {
+      "response": { "$type": "duration", "$value": "{duration.300}", "$description": "Spring response (≈ 0.3 s)." },
+      "damping": { "$type": "number", "$value": "{number.damping-080}", "$description": "Spring damping ratio (≈ 0.8)." },
+      "out-duration": { "$type": "duration", "$value": "{duration.200}", "$description": "Focus leaving is faster (≈ 0.2 s)." }
+    },
+    "press": {
+      "$type": "transition",
+      "$value": { "duration": "{duration.100}", "delay": "{duration.0}", "timingFunction": "{easing.ease-out}" },
+      "$description": "Press: 0.1 s ease-out with focus/scale/press."
+    },
+    "page": {
+      "$type": "transition",
+      "$value": { "duration": "{duration.400}", "delay": "{duration.0}", "timingFunction": "{easing.standard}" },
+      "$description": "Screen push/pop: 0.35–0.45 s."
+    },
+    "osd": {
+      "$type": "transition",
+      "$value": { "duration": "{duration.250}", "delay": "{duration.0}", "timingFunction": "{easing.ease-out}" },
+      "$description": "Player OSD fade + slide."
+    },
+    "osd-offset": { "$type": "dimension", "$value": "{size.8}", "$description": "OSD slide distance." },
+    "osd-autohide": { "$type": "duration", "$value": "{duration.4000}", "$description": "OSD auto-hide delay." },
+    "crossfade-art": {
+      "$type": "transition",
+      "$value": { "duration": "{duration.700}", "delay": "{duration.0}", "timingFunction": "{easing.ease-in-out}" },
+      "$description": "Backdrop change on focus move (0.6–0.8 s)."
+    },
+    "crossfade-debounce": {
+      "$type": "duration",
+      "$value": "{duration.200}",
+      "$description": "Debounce before starting crossfade-art (150–250 ms)."
+    },
+    "hero": {
+      "$type": "transition",
+      "$value": { "duration": "{duration.400}", "delay": "{duration.0}", "timingFunction": "{easing.standard}" },
+      "$description": "Matched-geometry hero transition (poster → Detail, cover → Now Playing)."
+    }
   }
 }

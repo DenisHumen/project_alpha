@@ -1,9 +1,80 @@
 {
-  "$description": "Component tokens. Skeleton from DSN-001; the full set is DSN-002.",
+  "$description": "Component tokens (DSN-002): per-component bindings of semantic/density roles. Platform code may use these directly.",
   "poster": {
-    "radius": { "$type": "dimension", "$value": "{radius.md}" },
+    "radius": { "$value": "{shape.card}", "$type": "dimension" },
+    "aspect-ratio": { "$type": "number", "$value": 0.667, "$description": "2:3 (width / height)." },
     "focus": {
-      "scale": { "$type": "number", "$value": "{focus.scale}" }
+      "scale": { "$type": "number", "$value": "{focus.scale.poster}" },
+      "shadow": { "$type": "shadow", "$value": "{focus.shadow}" }
+    },
+    "hover": {
+      "scale": { "$type": "number", "$value": "{focus.scale.hover}" }
+    },
+    "press": {
+      "scale": { "$type": "number", "$value": "{focus.scale.press}" }
+    },
+    "progress": {
+      "fill": { "$type": "color", "$value": "{state.watched}" },
+      "track": { "$type": "color", "$value": "{state.progress-track}" },
+      "height": { "$type": "dimension", "$value": "{size.4}" }
     }
+  },
+  "card": {
+    "radius": { "$value": "{shape.card}", "$type": "dimension" },
+    "aspect-ratio": { "$type": "number", "$value": 1.778, "$description": "16:9 (width / height)." },
+    "focus": {
+      "scale": { "$type": "number", "$value": "{focus.scale.card}" },
+      "shadow": { "$type": "shadow", "$value": "{focus.shadow}" }
+    }
+  },
+  "button": {
+    "radius": { "$value": "{shape.control}", "$type": "dimension" },
+    "height": { "$value": "{control.height-md}", "$type": "dimension" },
+    "primary": {
+      "$type": "color",
+      "bg": { "$value": "{accent.default}" },
+      "label": { "$value": "{text.on-accent}" }
+    },
+    "secondary": {
+      "$type": "color",
+      "bg": { "$value": "{glass.regular.tint}" },
+      "label": { "$value": "{text.primary}" }
+    },
+    "focused": {
+      "$type": "color",
+      "bg": {
+        "$value": "{focus.fill}",
+        "$description": "TV: every focused button inverts to white with dark label (01 §4.2)."
+      },
+      "label": { "$value": "{focus.label}" }
+    },
+    "focus": {
+      "scale": { "$type": "number", "$value": "{focus.scale.button}" }
+    }
+  },
+  "media-badge": {
+    "$description": "Technical badges on posters/Detail (resolution, HDR, audio) and the LIVE badge.",
+    "radius": { "$value": "{radius.xs}", "$type": "dimension" },
+    "border-width": { "$value": "{size.1}", "$type": "dimension" },
+    "label": { "$type": "color", "$value": "{badge.label}" },
+    "border": { "$type": "color", "$value": "{badge.border}" },
+    "live": {
+      "$type": "color",
+      "bg": { "$value": "{accent.live}" },
+      "label": { "$value": "{text.on-live}" }
+    }
+  },
+  "osd": {
+    "material": {
+      "tint": { "$type": "color", "$value": "{glass.thin.tint}" },
+      "fallback": { "$type": "color", "$value": "{glass.thin.fallback}" }
+    },
+    "transition": { "$type": "transition", "$value": "{motion.osd}" },
+    "autohide-delay": { "$type": "duration", "$value": "{motion.osd-autohide}" }
+  },
+  "dialog": {
+    "radius": { "$value": "{shape.panel}", "$type": "dimension" },
+    "scrim": { "$type": "color", "$value": "{scrim.modal}" },
+    "bg": { "$type": "color", "$value": "{glass.thick.fallback}" }
   }
 }
