@@ -353,8 +353,9 @@ DELETE FROM items WHERE kind = 'show' AND NOT EXISTS
       await for (final f in scanFolder(root)) {
         files.add(f);
         found++;
-        if (found % 50 == 0)
+        if (found % 50 == 0) {
           emit(ScanPhase.scanning, src: src.id, path: f.path);
+        }
       }
       final videosPerDir = <String, int>{};
       for (final f in files.where((f) => f.type == MediaType.video)) {
@@ -792,8 +793,9 @@ UPDATE items SET title = ?, original_title = ?, year = COALESCE(?, year), overvi
       'SELECT id, kind, show_id FROM items WHERE id = ?',
       [itemId],
     );
-    if (rows.isEmpty)
+    if (rows.isEmpty) {
       throw ArgumentError.value(itemId, 'itemId', 'no such item');
+    }
     var targetId = itemId;
     var kind = ItemKind.values.byName(rows.first['kind'] as String);
     if (kind == ItemKind.episode && rows.first['show_id'] != null) {
