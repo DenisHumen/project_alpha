@@ -2,10 +2,12 @@
 //! Integration test against the real OS keychain: macOS Keychain, Windows
 //! Credential Manager, Linux Secret Service.
 //!
-//! Without a keychain (headless Linux CI) the test prints a notice and
-//! passes, unless `PA_SECRETS_REQUIRE_NATIVE=1` is set: CI sets it on macOS
-//! and Windows, and on Linux runs it under `dbus-run-session` with an
-//! unlocked gnome-keyring (see docs/dev/secrets.md).
+//! Runs only with `PA_SECRETS_NATIVE_TEST=1`, and then fails if the keychain
+//! does not work. Without it the test prints a notice and passes: on a
+//! developer machine a locked login keyring would show an unlock prompt and
+//! the test would hang. CI sets the variable on macOS and Windows, and on
+//! Linux runs the test under `dbus-run-session` with a throwaway unlocked
+//! gnome-keyring (see docs/dev/secrets.md).
 
 #![cfg(any(
     target_os = "linux",
@@ -18,8 +20,8 @@
 
 use pa_secrets::{Backend, NativeStore, OpenOptions, SecretKey, SecretStore, SecretString, open};
 
-fn require_native() -> bool {
-    std::env::var("PA_SECRETS_REQUIRE_NATIVE").is_ok_and(|v| v == "1")
+fn native_test_enabled() -> bool {
+    std::env::var("PA_SECRETS_NATIVE_TEST").is_ok_and(|v| v == "1")
 }
 
 /// A service name of its own per run, so the test never touches the app's
@@ -34,15 +36,12 @@ fn test_service() -> String {
 
 #[test]
 fn os_keychain_round_trip() {
+    if !native_test_enabled() {
+        eprintln!("skipped: set PA_SECRETS_NATIVE_TEST=1 to test the OS keychain");
+        return;
+    }
     let service = test_service();
-    let store = match NativeStore::open(&service) {
-        Ok(store) => store,
-        Err(e) if !require_native() => {
-            eprintln!("skipped: no OS keychain here ({e}); set PA_SECRETS_REQUIRE_NATIVE=1 to fail");
-            return;
-        }
-        Err(e) => panic!("OS keychain is required but failed: {e}"),
-    };
+    let store = NativeStore::open(&service).expect("OS keychain must work");
     let expected = if cfg!(target_os = "macos") {
         Backend::Keychain
     } else if cfg!(windows) {
