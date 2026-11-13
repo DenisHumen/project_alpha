@@ -108,6 +108,22 @@ pub enum ScanEvent {
         /// Human-readable message (no secrets).
         message: String,
     },
+    /// [`index_music`](crate::index_music): tags of `done` of `total`
+    /// files are read and written.
+    TagsProgress {
+        /// Files written so far.
+        done: usize,
+        /// Files to read in this run.
+        total: usize,
+    },
+    /// [`index_music`](crate::index_music): the tags of a file could not
+    /// be read; it is indexed from its path.
+    TagsFailed {
+        /// The file.
+        path: VfsPath,
+        /// Human-readable message (no secrets).
+        message: String,
+    },
 }
 
 /// What a scan did.
@@ -154,6 +170,8 @@ pub enum ScanError {
     SourceUnavailable(VfsError),
     /// A database error. Batches committed before it stay.
     Library(rusqlite::Error),
+    /// A library operation refused its input (music indexing).
+    Catalog(pa_library::Error),
 }
 
 impl fmt::Display for ScanError {
@@ -162,6 +180,7 @@ impl fmt::Display for ScanError {
             Self::SourceNotFound(id) => write!(f, "source {id} not found"),
             Self::SourceUnavailable(e) => write!(f, "source unavailable: {e}"),
             Self::Library(e) => write!(f, "library database: {e}"),
+            Self::Catalog(e) => write!(f, "library: {e}"),
         }
     }
 }
@@ -172,6 +191,7 @@ impl std::error::Error for ScanError {
             Self::SourceNotFound(_) => None,
             Self::SourceUnavailable(e) => Some(e),
             Self::Library(e) => Some(e),
+            Self::Catalog(e) => Some(e),
         }
     }
 }
@@ -179,6 +199,15 @@ impl std::error::Error for ScanError {
 impl From<rusqlite::Error> for ScanError {
     fn from(e: rusqlite::Error) -> Self {
         Self::Library(e)
+    }
+}
+
+impl From<pa_library::Error> for ScanError {
+    fn from(e: pa_library::Error) -> Self {
+        match e {
+            pa_library::Error::Sqlite(e) => Self::Library(e),
+            e => Self::Catalog(e),
+        }
     }
 }
 
@@ -467,7 +496,7 @@ fn to_i64(size: u64) -> i64 {
     i64::try_from(size).unwrap_or(i64::MAX)
 }
 
-fn system_now_ms() -> i64 {
+pub(crate) fn system_now_ms() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX))
