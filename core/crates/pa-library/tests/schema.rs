@@ -39,6 +39,9 @@ const TABLES: &[&str] = &[
     "profiles",
     "progress",
     "provider_cache",
+    "search_docs",
+    "search_fts",
+    "search_queue",
     "seasons",
     "sources",
     "sync_outbox",
@@ -49,7 +52,9 @@ const TABLES: &[&str] = &[
 fn tables(conn: &Connection) -> Vec<String> {
     let mut stmt = conn
         .prepare(
-            "SELECT name FROM sqlite_schema WHERE type = 'table' \
+            // Virtual tables count, their shadow tables (search_fts_data…) do not.
+            "SELECT name FROM pragma_table_list WHERE schema = 'main' \
+             AND type IN ('table', 'virtual') \
              AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\' AND name <> ?1 ORDER BY name",
         )
         .unwrap();
@@ -398,6 +403,11 @@ fn build_graph(conn: &Connection) -> Graph {
         "
     ))
     .unwrap();
+    // Index the graph, then leave one entity queued so that every search
+    // table has a row.
+    pa_library::search::sync(conn).unwrap();
+    conn.execute("INSERT INTO search_queue VALUES ('work', 31)", [])
+        .unwrap();
     Graph {
         source: 10,
         work: 30,
