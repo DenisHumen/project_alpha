@@ -57,6 +57,13 @@ unused-allowed-license = "allow"
 [licenses.private]
 ignore = false
 
+# Per-crate exceptions (narrow: one crate, one licence, with a reason).
+[[licenses.exceptions]]
+# Mozilla's CA root list as Rust data (pa-metadata HTTPS, ADR-0017). CDLA
+# Permissive 2.0 is a permissive data licence: no copyleft, attribution only.
+crate = "webpki-roots"
+allow = ["CDLA-Permissive-2.0"]
+
 # --- Bans and duplicates -----------------------------------------------------
 [bans]
 # Duplicate versions are reported; the core crates below must never be
