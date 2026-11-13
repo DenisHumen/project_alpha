@@ -28,6 +28,7 @@
 | [0020](0020-music-tags-lofty.md) | Музыкальные теги в ядре через `lofty`, альбомы по ключу группировки | Предложен | MUS-001 |
 | [0021](0021-anime-providers-graphql-post.md) | Аниме-провайдеры AniList и Shikimori: GraphQL `POST` в общем транспорте, общий конвейер запросов | Предложен | META-010 |
 | [0022](0022-local-title-index.md) | Локальный индекс названий: свой индекс в памяти в `pa-recognition`, синонимы anime-offline-database в бандле | Предложен | META-007 |
+| [NNNN](NNNN-apple-engines-foreign-player-engine-mpvkit.md) | Apple-движки — Swift-реализации `PlayerEngine` через UniFFI foreign trait; MPVKit только LGPL с точной версией | Предложен | PLAY-APL-001 |
 
 ## Запланированные ADR
 

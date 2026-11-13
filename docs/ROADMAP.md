@@ -751,7 +751,7 @@ project_alpha/
 
 ### 3.10. PLAY-APL — плеер iOS, iPadOS, macOS и tvOS
 
-- [ ] **PLAY-APL-001** `AlphaPlayerKit` и MPVKit (этап 1)
+- [x] **PLAY-APL-001** `AlphaPlayerKit` и MPVKit (этап 1)
   - Что: Swift package: MPVKit только в LGPL-варианте (не `-GPL`, проверка в CI), рендер в Metal-слой, `PlayerEngine` через UniFFI; пакет используют и Flutter-плагин, и tvOS-приложение.
   - deps: CORE-003, PLAY-003 · size: L · parallel: no · веха: M5 · ref: 02 §2.2, §3.1, §7
   - done when: MKV из QA-002 играют на симуляторах iOS и tvOS; лицензионная проверка в CI.

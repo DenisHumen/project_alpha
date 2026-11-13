@@ -1,7 +1,27 @@
 # SPDX-License-Identifier: MPL-2.0
-# `apple` module: Swift: AlphaPlayerKit, TVApp, AudioKit.
-# Owned by the PLAY-APL workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+# `apple` module: Swift: AlphaPlayerKit, TVApp, AudioKit (PLAY-APL, TV, MUS).
+# Owned by the PLAY-APL workstream (docs/ROADMAP.md §0.4).
 
-# Placeholder until the area gets real recipes
-info:
-    @echo "apple: no recipes yet (PLAY-APL, see docs/ROADMAP.md)"
+set working-directory := '../..'
+
+kit := 'clients/apple/AlphaPlayerKit'
+
+# Contract fixtures (two MKVs + SRT) into DIR; needs ffmpeg
+fixtures dir='target/pa-fixtures':
+    {{ kit }}/scripts/make-fixtures.sh {{ dir }}
+
+# QA-002 MKV samples into DIR (selected recipes of tools/qa/media)
+qa-media dir='target/pa-qa-media':
+    python3 {{ kit }}/scripts/make-qa-media.py {{ dir }}
+
+# AlphaPlayerKit XCTest + licence check (ios | tvos | macos); macOS + Xcode, after `just core xcframework`
+test platform='ios' fixtures='target/pa-fixtures' qa='target/pa-qa-media':
+    {{ kit }}/scripts/test.sh {{ platform }} "$PWD/{{ fixtures }}" "$PWD/{{ qa }}"
+
+# MPVKit licence gate on the manifest
+check-license:
+    {{ kit }}/scripts/check-license.sh manifest
+
+# AlphaPlayerKit tests on Linux against the distro libmpv in Docker (dev only, not the Apple CI)
+test-linux *args:
+    {{ kit }}/scripts/linux-dev-test.sh docker {{ args }}
