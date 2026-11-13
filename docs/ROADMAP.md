@@ -1141,7 +1141,7 @@ project_alpha/
   - Что: users, channels/followed, streams/followed, streams, channels, videos, clips, games и games/top, search, schedule, chat emotes, badges, color, settings; token bucket по заголовкам `Ratelimit-*`; курсорная пагинация с дедупликацией.
   - deps: CORE-006 · size: M · parallel: yes · веха: M7 · ref: 06 §1.1, §1.4
   - done when: тесты на записанных ответах; 429 обрабатывается корректно.
-- [ ] **TWI-002** Вход через Device Code Flow
+- [x] **TWI-002** Вход через Device Code Flow
   - Что: публичный client_id без секрета; QR и `user_code`; опрос токена; refresh заранее (меньше 10 мин до истечения) и строго по одному; повторный вход после 30 дней неактивности; отдельный токен на каждое устройство в SecretStore; минимальные scope.
   - deps: TWI-001, CORE-007 · size: M · parallel: yes · веха: M7 · ref: 06 §1.3, 04 §5.1.1
   - done when: тест гонки refresh; токены не появляются в логах и sync-журнале.
