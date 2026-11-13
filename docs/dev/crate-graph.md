@@ -21,6 +21,7 @@ flowchart LR
     pa_runtime["pa-runtime"]
     pa_scanner["pa-scanner"]
     pa_sync["pa-sync"]
+    pa_twitch["pa-twitch"]
     pa_vfs["pa-vfs"]
   end
   subgraph g1["server — медиасервер"]
@@ -41,6 +42,7 @@ flowchart LR
   pa_server --> pa_runtime
   pa_sync --> pa_library
   pa_sync --> pa_model
+  pa_twitch -. dev .-> pa_twitch
 ```
 
 | Крейт | Каталог | Внешних зависимостей | Описание |
@@ -57,6 +59,7 @@ flowchart LR
 | `pa-scanner` | `core/crates/pa-scanner` | 0 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003) |
 | `pa-server` | `server` | 8 | Kinolune media server (mode B): axum HTTP on top of the core crates |
 | `pa-sync` | `core/crates/pa-sync` | 4 | Serverless state sync: hybrid logical clock, sync operations, LWW merge and the SQLite outbox (SYNC-001) |
+| `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client: users, follows, streams, VODs, clips, categories, chat metadata (TWI-001) |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
 
 <!-- END GENERATED: crate-graph -->
