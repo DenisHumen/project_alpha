@@ -1,0 +1,260 @@
+# SPDX-License-Identifier: MPL-2.0
+# NAS OS image (DIST-002): build -> rechunk -> bootc lint -> SBOM -> signature-policy test;
+# on main / os-v* tags also push to GHCR and sign with cosign. See distro/README.md.
+#
+# Security model:
+#  - pull_request (forks included): build and tests only, read-only token, no secrets;
+#  - push to main, os-v* tags, manual run: push + sign, `packages: write` in that job only;
+#  - promote (manual, environment `release`): move :beta / :stable to a signed version.
+name: distro
+
+on:
+  pull_request:
+    paths:
+      - "distro/**"
+      - ".github/workflows/distro.yml"
+  push:
+    branches: [main]
+    tags: ["os-v*"]
+    paths:
+      - "distro/**"
+      - ".github/workflows/distro.yml"
+  workflow_dispatch:
+    inputs:
+      promote:
+        description: "Move a channel tag to a published version (none: build and publish)"
+        type: choice
+        options: ["none", "beta", "stable"]
+        default: "none"
+      version:
+        description: "Version to promote, e.g. 45.20261113.12"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: distro-${{ github.ref }}-${{ inputs.promote || 'build' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IMAGE_REPO: ghcr.io/denishumen/alpha-os
+  # cosign v2: signatures as <repo>:sha256-<digest>.sig, the format containers/image (bootc)
+  # verifies. Move to v3 only together with a policy test against its bundle format.
+  COSIGN_VERSION: v2.6.5
+  SYFT_VERSION: v1.57.1
+  LOCAL_TAG: localhost/alpha-os:ci
+
+jobs:
+  build:
+    name: build (no push)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/share/swift
+          sudo docker image prune -af >/dev/null
+          df -h /
+
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        with:
+          cosign-release: ${{ env.COSIGN_VERSION }}
+
+      - id: syft
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          syft-version: ${{ env.SYFT_VERSION }}
+
+      - name: Build, rechunk, lint
+        env:
+          VERSION: 0.0.0-pr.${{ github.event.pull_request.number }}
+        run: sudo distro/scripts/ci-build.sh "$LOCAL_TAG" "$VERSION"
+
+      - name: SBOM (syft, SPDX)
+        env:
+          SYFT: ${{ steps.syft.outputs.cmd }}
+        run: distro/scripts/ci-sbom.sh "$LOCAL_TAG" sbom.spdx.json
+
+      - name: Signature policy test (unsigned image is rejected)
+        run: sudo env "PATH=$PATH" ENGINE=podman distro/tests/signature-policy.sh "$LOCAL_TAG"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-pr-${{ github.event.pull_request.number }}
+          path: sbom.spdx.json
+          retention-days: 14
+
+  publish:
+    name: build, push, sign
+    if: >-
+      github.repository == 'DenisHumen/project_alpha' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.promote == 'none'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      packages: write
+    env:
+      HAS_SIGNING_KEY: ${{ secrets.COSIGN_PRIVATE_KEY != '' }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - name: Version and signing mode
+        id: meta
+        run: |
+          major="$(sed -n 's|^ARG BASE_IMAGE=.*fedora-bootc:\([0-9]*\)@.*|\1|p' distro/Containerfile)"
+          if [[ "$GITHUB_REF" == refs/tags/os-v* ]]; then
+            version="${GITHUB_REF#refs/tags/os-v}"
+            floating=""
+          else
+            version="${major}.$(date -u +%Y%m%d).${GITHUB_RUN_NUMBER}"
+            floating="nightly"
+          fi
+          [[ "$version" =~ ^[0-9A-Za-z][0-9A-Za-z._-]{0,100}$ ]] || { echo "::error::bad version $version"; exit 1; }
+          if [[ -s distro/keys/alpha-os.pub ]]; then
+            [[ "$HAS_SIGNING_KEY" == true ]] || {
+              echo "::error::distro/keys/alpha-os.pub is committed but the COSIGN_PRIVATE_KEY secret is missing: refusing to publish images that devices would reject"
+              exit 1; }
+            policy=enforce
+          else
+            policy=off
+            echo "::warning::distro/keys/alpha-os.pub is not committed yet: the image keeps the stock signature policy (see distro/README.md, owner steps)"
+          fi
+          [[ "$HAS_SIGNING_KEY" == true ]] || echo "::warning::COSIGN_PRIVATE_KEY secret is not set: the image is pushed unsigned"
+          { echo "version=$version"; echo "floating=$floating"; echo "policy=$policy"; } >> "$GITHUB_OUTPUT"
+          echo "version=$version floating=${floating:-none} policy=$policy"
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/share/swift
+          sudo docker image prune -af >/dev/null
+          df -h /
+
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        with:
+          cosign-release: ${{ env.COSIGN_VERSION }}
+
+      - id: syft
+        uses: anchore/sbom-action/download-syft@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          syft-version: ${{ env.SYFT_VERSION }}
+
+      - name: Build, rechunk, lint
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          ALPHA_SIGNATURE_POLICY: ${{ steps.meta.outputs.policy }}
+          ALPHA_IMAGE_REPO: ${{ env.IMAGE_REPO }}
+        run: |
+          sudo --preserve-env=ALPHA_SIGNATURE_POLICY,ALPHA_IMAGE_REPO \
+            distro/scripts/ci-build.sh "$LOCAL_TAG" "$VERSION"
+
+      - name: SBOM (syft, SPDX)
+        env:
+          SYFT: ${{ steps.syft.outputs.cmd }}
+        run: distro/scripts/ci-sbom.sh "$LOCAL_TAG" sbom.spdx.json
+
+      - name: Signature policy test (unsigned image is rejected)
+        run: sudo env "PATH=$PATH" ENGINE=podman distro/tests/signature-policy.sh "$LOCAL_TAG"
+
+      - name: Push version tag
+        id: push
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$GH_TOKEN" | sudo podman login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          sudo podman push --digestfile digest.txt "$LOCAL_TAG" "docker://$IMAGE_REPO:$VERSION"
+          digest="$(cat digest.txt)"
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "Pushed $IMAGE_REPO:$VERSION@$digest" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sign with cosign and attach SBOM
+        if: env.HAS_SIGNING_KEY == 'true'
+        env:
+          REF: ${{ env.IMAGE_REPO }}@${{ steps.push.outputs.digest }}
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          printf '%s' "$GH_TOKEN" | cosign login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          distro/scripts/sign-image.sh "$REF"
+          cosign attest --yes --key env://COSIGN_PRIVATE_KEY --tlog-upload=false \
+            --type spdxjson --predicate sbom.spdx.json "$REF"
+          if [[ -s distro/keys/alpha-os.pub ]]; then
+            cosign verify --key distro/keys/alpha-os.pub "$REF" > /dev/null
+            echo "Signature verified with distro/keys/alpha-os.pub" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Move floating tag
+        if: steps.meta.outputs.floating != ''
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          FLOATING: ${{ steps.meta.outputs.floating }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Copy by digest inside the registry: the floating tag gets exactly the signed manifest.
+          printf '%s' "$GH_TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          skopeo copy --all --preserve-digests \
+            "docker://$IMAGE_REPO@$DIGEST" "docker://$IMAGE_REPO:$FLOATING"
+          echo "Tagged $IMAGE_REPO:$FLOATING -> $VERSION" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom-${{ steps.meta.outputs.version }}
+          path: sbom.spdx.json
+          retention-days: 90
+
+  promote:
+    name: promote to ${{ inputs.promote }}
+    if: >-
+      github.repository == 'DenisHumen/project_alpha' &&
+      github.event_name == 'workflow_dispatch' && inputs.promote != 'none'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      - uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532 # v4.1.3
+        with:
+          cosign-release: ${{ env.COSIGN_VERSION }}
+
+      - name: Verify signature and move the channel tag
+        env:
+          CHANNEL: ${{ inputs.promote }}
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$CHANNEL" == beta || "$CHANNEL" == stable ]] || { echo "::error::bad channel"; exit 1; }
+          [[ "$VERSION" =~ ^[0-9A-Za-z][0-9A-Za-z._-]{0,100}$ ]] || { echo "::error::bad version '$VERSION'"; exit 1; }
+          printf '%s' "$GH_TOKEN" | cosign login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          printf '%s' "$GH_TOKEN" | skopeo login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          digest="$(skopeo inspect --format '{{.Digest}}' "docker://$IMAGE_REPO:$VERSION")"
+          if [[ -s distro/keys/alpha-os.pub ]]; then
+            cosign verify --key distro/keys/alpha-os.pub "$IMAGE_REPO@$digest" > /dev/null
+          else
+            echo "::warning::no public key committed: promoting an unverified image"
+          fi
+          skopeo copy --all --preserve-digests \
+            "docker://$IMAGE_REPO@$digest" "docker://$IMAGE_REPO:$CHANNEL"
+          echo "$IMAGE_REPO:$CHANNEL -> $VERSION ($digest)" >> "$GITHUB_STEP_SUMMARY"

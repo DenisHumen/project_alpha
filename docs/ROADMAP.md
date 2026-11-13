@@ -293,7 +293,7 @@ project_alpha/
 
 ### 3.3. CORE — ядро на Rust, FFI, общие сервисы
 
-- [ ] **CORE-001** `pa-ffi`: каркас UniFFI
+- [x] **CORE-001** `pa-ffi`: каркас UniFFI
   - Что: крейт `pa-ffi` с UniFFI proc-macro, функция `core_version()`, генерация Kotlin и Swift через `just bindings` (сгенерированное не коммитится, кроме требований Xcode).
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 02 §1.4, 04 §1.3
   - done when: unit-тест FFI, биндинги Kotlin и Swift генерируются в CI.
@@ -1195,7 +1195,7 @@ project_alpha/
   - Что: `distro/Containerfile` FROM `quay.io/fedora/fedora-bootc:45@sha256:…` (пин по digest), Samba, Avahi, wsdd, firewalld, smartd, заглушки наших сервисов; ручная проверка `bootc switch`, `upgrade` и `rollback` на VM; ADR по фазе 0 (Go для установщика, нативный медиасервер или Quadlet).
   - deps: — · size: M · parallel: yes · веха: M8 · ref: 05 §1.4, §8 (фаза 0)
   - done when: VM переключается на образ и откатывается назад; ADR принят.
-- [ ] **DIST-002** Сборка образа в CI и политика подписи
+- [x] **DIST-002** Сборка образа в CI и политика подписи
   - Что: `podman build` → rechunk → `bootc container lint` → push в GHCR (`:<ver>`, `:beta`, `:stable`) → cosign (ключ в секрете или KMS) → SBOM (syft); на устройстве `policy.json` (по умолчанию reject, sigstoreSigned для нашего образа) и `registries.d` с sigstore attachments.
   - deps: DIST-001 · size: M · parallel: no · веха: M8 · ref: 05 §4.2 п.4, §6.2
   - done when: тест в CI — неподписанный образ отклоняется устройством.
