@@ -242,7 +242,7 @@ project_alpha/
 
 ### 3.2. CI — сборка и проверки
 
-- [ ] **CI-001** `rust.yml`: fmt, clippy, nextest
+- [x] **CI-001** `rust.yml`: fmt, clippy, nextest
   - Что: `cargo fmt --check`, `clippy -D warnings`, `cargo nextest` на ubuntu; кэш `Swatinem/rust-cache`; `dorny/paths-filter`; агрегирующий job `all-green` для branch protection.
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 04 §4.4
   - done when: PR, затрагивающий только `docs/`, не запускает Rust-сборку; `all-green` обязателен.
@@ -309,7 +309,7 @@ project_alpha/
   - Что: cargo-ndk → jniLibs (arm64-v8a, armeabi-v7a, x86_64), Gradle-модуль с UniFFI Kotlin.
   - deps: CORE-001 · size: S · parallel: yes · веха: M0 · ref: 02 §1.4
   - done when: instrumented-тест на эмуляторе вызывает ядро.
-- [ ] **CORE-005** `pa-model`: доменные типы
+- [x] **CORE-005** `pa-model`: доменные типы
   - Что: MediaItem, Work, Season, Episode, MediaFile, Track, Album, Artist, Streamer, Video; `MediaKey` (`file:<fp>`, `tmdb:…`, `twitch:vod:<id>`, `twitch:rec:<id>`, `twitch:clip:<slug>`); `PlaybackItem` (source_type, position, duration, updated_at, device_id); serde и версия схемы.
   - deps: REPO-001 · size: M · parallel: no · веха: M0 · ref: 04 §1.8, 06 §5.2, 01 §2.7
   - done when: round-trip-тесты serde; `MediaKey` парсится и печатается без потерь.
@@ -1491,7 +1491,7 @@ project_alpha/
   - Что: `docs/dev/setup.md`: bootstrap на Linux, macOS и Windows, just-команды, сборка каждой платформы, эмуляторы и симуляторы, Apple-сборки без платного аккаунта.
   - deps: REPO-008 · size: S · parallel: yes · веха: M0 · ref: 04 §4.3
   - done when: новый контрибьютор собирает проект по документу (проверка «с нуля» в devcontainer).
-- [ ] **DOC-003** Обзор архитектуры
+- [x] **DOC-003** Обзор архитектуры
   - Что: `docs/dev/architecture.md`: ядро, клиенты, сервер, дистрибутив; режимы A, B и C; потоки данных; граф крейтов (генерируется).
   - deps: DOC-001 · size: M · parallel: yes · веха: M1 · ref: 04 §1.1, 02 §2.8
   - done when: схемы актуальны для M1; граф крейтов обновляется в CI.
