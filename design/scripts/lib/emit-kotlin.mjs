@@ -1,0 +1,110 @@
+// SPDX-License-Identifier: MPL-2.0
+// Kotlin emitter (Android native code: player OSD, TV channels, widgets). Dependency-free:
+// colours are ARGB Int (android.graphics.Color, Compose `Color(Int)`), sizes are Float dp/sp,
+// durations Long ms. Same shape as the Dart API: PaTokens, PaColorScheme.dark|light, PaDensity.*.
+
+import { camelName, checkNames, fmt, fontFeatures, rgba8, toMs, toPx } from './tokens-model.mjs';
+
+const RESERVED = new Set(`as break class continue do else false for fun if in interface is null object package return super
+this throw true try typealias typeof val var when while`.split(/\s+/));
+
+const color = (c) => {
+  const [r, g, b, a] = rgba8(c);
+  return `0x${[a, r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('').toUpperCase()}.toInt()`;
+};
+const f = (n) => `${fmt(n)}f`;
+const px = (d) => f(toPx(d));
+const ms = (d) => `${toMs(d)}L`;
+const curve = (v) => `PaCurve(${v.map(f).join(', ')})`;
+const weight = (w) => String(Math.round(w / 100) * 100);
+const shadow1 = (v) => {
+  if (Array.isArray(v) && v.length > 1) throw new Error('multi-layer shadows are not supported by the generators yet');
+  return Array.isArray(v) ? v[0] : v;
+};
+
+const TYPE = {
+  color: 'Int', dimension: 'Float', number: 'Float', duration: 'Long', cubicBezier: 'PaCurve',
+  shadow: 'PaShadow', gradient: 'List<PaGradientStop>', transition: 'PaTransition', typography: 'PaTypography',
+  fontWeight: 'Int', fontFamily: 'String',
+};
+
+function value(type, v, ext) {
+  switch (type) {
+    case 'color': return color(v);
+    case 'dimension': return px(v);
+    case 'number': return f(v);
+    case 'duration': return ms(v);
+    case 'cubicBezier': return curve(v);
+    case 'fontWeight': return weight(v);
+    case 'fontFamily': return JSON.stringify(Array.isArray(v) ? v[0] : v);
+    case 'shadow': {
+      const s = shadow1(v);
+      return `PaShadow(color = ${color(s.color)}, offsetX = ${px(s.offsetX)}, offsetY = ${px(s.offsetY)}, blur = ${px(s.blur)}, spread = ${px(s.spread ?? { value: 0, unit: 'px' })})`;
+    }
+    case 'gradient':
+      return `listOf(${v.map((s) => `PaGradientStop(${color(s.color)}, ${f(s.position)})`).join(', ')})`;
+    case 'transition':
+      return `PaTransition(durationMillis = ${ms(v.duration)}, delayMillis = ${ms(v.delay)}, curve = ${curve(v.timingFunction)})`;
+    case 'typography': {
+      const feats = fontFeatures(ext);
+      const family = Array.isArray(v.fontFamily) ? v.fontFamily[0] : v.fontFamily;
+      return `PaTypography(fontFamily = ${JSON.stringify(family)}, fontSize = ${px(v.fontSize)}, fontWeight = ${weight(v.fontWeight)}, letterSpacing = ${px(v.letterSpacing)}, lineHeight = ${f(v.lineHeight)}, fontFeatures = ${feats.length ? `listOf(${feats.map((x) => JSON.stringify(x)).join(', ')})` : 'emptyList()'})`;
+    }
+    default:
+      throw new Error(`no Kotlin mapping for $type ${type}`);
+  }
+}
+
+const PRELUDE = `/** Cubic Bézier easing (DTCG \`cubicBezier\`), e.g. Compose \`CubicBezierEasing(x1, y1, x2, y2)\`. */
+data class PaCurve(val x1: Float, val y1: Float, val x2: Float, val y2: Float)
+
+/** Transition (DTCG \`transition\`). */
+data class PaTransition(val durationMillis: Long, val delayMillis: Long, val curve: PaCurve)
+
+/** Drop shadow (DTCG \`shadow\`), dp; \`blur\` is the CSS blur radius. */
+data class PaShadow(val color: Int, val offsetX: Float, val offsetY: Float, val blur: Float, val spread: Float)
+
+/** Gradient stop; position 0 is the edge that carries text (bottom of a backdrop). */
+data class PaGradientStop(val color: Int, val position: Float)
+
+/** Text style (DTCG \`typography\`): size in sp, letter spacing in sp, line height as a multiple of the size. */
+data class PaTypography(
+    val fontFamily: String,
+    val fontSize: Float,
+    val fontWeight: Int,
+    val letterSpacing: Float,
+    val lineHeight: Float,
+    val fontFeatures: List<String>,
+)
+`;
+
+/** @param {import('./tokens-model.mjs').TokenModel} model */
+export function emitKotlin(model) {
+  const all = [...model.constant, ...model.byTheme, ...model.byDensity];
+  for (const e of all) if (!TYPE[e.type]) throw new Error(`${e.p}: unsupported type ${e.type}`);
+  checkNames(all.map((e) => [e.p, camelName(e.p)]), RESERVED, 'Kotlin name');
+
+  const cls = (name, doc, list, variants, extOf) => {
+    const params = list.map((e) => `    /** \`${e.p}\` */\n    val ${camelName(e.p)}: ${TYPE[e.type]},`).join('\n');
+    const consts = variants
+      .map((v) => `        val ${v} = ${name}(\n${list.map((e) => `            ${camelName(e.p)} = ${value(e.type, e.values[v], extOf(e, v))},`).join('\n')}\n        )`)
+      .join('\n\n');
+    return `/** ${doc} */\nclass ${name} private constructor(\n${params}\n) {\n    companion object {\n${consts}\n\n        val values: Map<String, ${name}> = mapOf(${variants.map((v) => `"${v}" to ${v}`).join(', ')})\n    }\n}\n`;
+  };
+
+  return `// SPDX-License-Identifier: MPL-2.0
+// GENERATED by design/scripts/tokens-build.mjs from design/tokens (W3C DTCG). Do not edit;
+// change the JSON and run \`just design tokens\`.
+@file:Suppress("MagicNumber", "LargeClass", "LongParameterList", "MaxLineLength")
+
+package app.kinolune.design
+
+${PRELUDE}
+/** Theme-independent, density-independent tokens. */
+object PaTokens {
+${model.constant.map((e) => `    /** \`${e.p}\` */\n    val ${camelName(e.p)}: ${TYPE[e.type]} = ${value(e.type, e.value, e.ext)}`).join('\n')}
+}
+
+${cls('PaColorScheme', 'Tokens that depend on the colour theme. Dark is the default; TV is always dark.', model.byTheme, model.themes, (e) => e.ext)}
+${cls('PaDensity', 'Tokens that depend on the density profile: tv (10-foot UI, values for a 1920×1080 canvas), desktop, tablet, phone.', model.byDensity, model.densities, (e, d) => e.exts[d])}`;
+}

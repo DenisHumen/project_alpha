@@ -195,3 +195,19 @@ async fn certificate_survives_restart() {
     assert_eq!(second.fingerprint(), fp);
     assert!(fp.is_some());
 }
+
+#[tokio::test]
+async fn pairing_qr_carries_address_and_fingerprint() {
+    let tmp = tempfile::tempdir().unwrap();
+    let config = Config {
+        listen: "127.0.0.1:0".parse().unwrap(),
+        ..Config::default()
+    };
+    let server = Server::bind(&config, tmp.path()).await.unwrap();
+    let invite = server.hub().pairing().invite(true).unwrap();
+    let qr = pa_pairing::pair::QrInvite::parse(&invite.qr).unwrap();
+    let addr = server.local_addr().unwrap().to_string();
+    assert_eq!(qr.addr.as_deref(), Some(addr.as_str()));
+    let fp: Fingerprint = qr.fp.as_deref().unwrap().parse().unwrap();
+    assert_eq!(Some(fp), server.fingerprint());
+}

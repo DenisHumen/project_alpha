@@ -22,6 +22,7 @@ pub mod announce;
 pub mod config;
 mod http;
 pub mod logging;
+pub mod pairing;
 pub mod sync;
 pub mod tls;
 
@@ -72,6 +73,14 @@ pub enum Error {
     /// Certificate or key could not be loaded, created or used.
     #[error("tls: {0}")]
     Tls(String),
+    /// The device family (keys, roster) could not be loaded.
+    #[error("device family in {path}: {source}")]
+    Pairing {
+        /// Data directory.
+        path: PathBuf,
+        /// Cause.
+        source: pa_pairing::Error,
+    },
     /// Socket or other I/O error.
     #[error("{context}: {source}")]
     Io {
@@ -157,6 +166,18 @@ impl Server {
     pub async fn bind(config: &Config, data_dir: &Path) -> Result<Self, Error> {
         let path = data_dir.join(config::LIBRARY_FILE);
         let journal = data_dir.join(sync::JOURNAL_FILE);
+        let listener = TcpListener::bind(config.listen)
+            .await
+            .map_err(|source| Error::Io {
+                context: format!("bind {}", config.listen),
+                source,
+            })?;
+        // Pairing QR codes carry the actual address, when it is a concrete one.
+        let addr = listener
+            .local_addr()
+            .ok()
+            .filter(|a| !a.ip().is_unspecified())
+            .map(|a| a.to_string());
         let (library, hub, tls) = {
             let path = path.clone();
             let sync_config = config.sync.clone();
@@ -164,7 +185,8 @@ impl Server {
             let data_dir = data_dir.to_owned();
             tokio::task::spawn_blocking(move || {
                 let library = Library::open(&path)?;
-                let hub = sync::Hub::open(&journal, library.clone(), &sync_config)?;
+                let hub =
+                    sync::Hub::open(&journal, library.clone(), &sync_config, &data_dir, addr)?;
                 // The server id is the hub id: one stable UUID per server.
                 let tls = tls_config
                     .enabled
@@ -177,17 +199,16 @@ impl Server {
                         )
                     })
                     .transpose()?;
+                if let Some(identity) = &tls {
+                    // Pairing QR codes carry the fingerprint to pin.
+                    hub.pairing()
+                        .set_fingerprint(identity.fingerprint().to_string());
+                }
                 Ok::<_, Error>((library, hub, tls))
             })
             .await
             .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()))?
         };
-        let listener = TcpListener::bind(config.listen)
-            .await
-            .map_err(|source| Error::Io {
-                context: format!("bind {}", config.listen),
-                source,
-            })?;
         tracing::info!(
             db = %path.display(),
             schema = pa_library::latest_version(),
@@ -308,18 +329,24 @@ impl Server {
                         context: "TLS listener".to_owned(),
                         source,
                     })?;
-                let served = axum::serve(listener, app)
-                    .with_graceful_shutdown(shutdown)
-                    .await;
+                let served = axum::serve(
+                    listener,
+                    app.into_make_service_with_connect_info::<SocketAddr>(),
+                )
+                .with_graceful_shutdown(shutdown)
+                .await;
                 // The accept task owns the socket: close the port now.
                 accept_task.abort();
                 let _ = accept_task.await;
                 served
             }
             None => {
-                axum::serve(self.listener, app)
-                    .with_graceful_shutdown(shutdown)
-                    .await
+                axum::serve(
+                    self.listener,
+                    app.into_make_service_with_connect_info::<SocketAddr>(),
+                )
+                .with_graceful_shutdown(shutdown)
+                .await
             }
         };
         if let Some(announcer) = announcer {

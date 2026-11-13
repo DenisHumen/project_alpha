@@ -37,6 +37,9 @@ targets:
         group: Design
       - path: ../../../design/icons/generated/apple/PaIcons.xcassets
         group: Design
+      # Design tokens (DSN-003): PaTokens, PaColorScheme, PaDensity, generated in design/.
+      - path: ../../../design/tokens/generated/apple/Tokens.swift
+        group: Design
     dependencies:
       - package: PACore
     settings:

@@ -22,6 +22,7 @@
 //! [sync]
 //! playback_ttl_secs = 600   # how long the hub remembers "now playing"
 //! max_connections = 256     # devices connected to the sync hub at once
+//! require_pairing = true    # only paired devices may sync (SYNC-005)
 //! ```
 
 use std::net::SocketAddr;
@@ -148,6 +149,10 @@ pub struct SyncConfig {
     pub playback_max_entries: usize,
     /// Devices connected to the hub at once; more get HTTP 503.
     pub max_connections: u32,
+    /// Only devices paired with the server may sync; others get
+    /// `error{unauthorized}`. `false` admits unpaired devices too (tests,
+    /// a trusted loopback setup).
+    pub require_pairing: bool,
 }
 
 impl Default for SyncConfig {
@@ -156,6 +161,7 @@ impl Default for SyncConfig {
             playback_ttl_secs: 600,
             playback_max_entries: 10_000,
             max_connections: 256,
+            require_pairing: true,
         }
     }
 }
@@ -328,6 +334,7 @@ mod tests {
             .sync;
         assert_eq!(sync.max_connections, 8);
         assert_eq!(sync.playback_ttl_secs, 600);
+        assert!(sync.require_pairing);
 
         config
             .apply_env(|name| match name {

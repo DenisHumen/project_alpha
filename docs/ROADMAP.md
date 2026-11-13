@@ -468,7 +468,7 @@ project_alpha/
   - Что: дисковые структуры (BDMV, VIDEO_TS, ISO) как один элемент; склейка частей (cd1/part1/disc1); extras (`-trailer`, Featurettes, NCOP/NCED, sample, «файл меньше N % длительности соседей»); sidecar-субтитры (`movie.ru.forced.srt`); NFO; локальный арт (poster, fanart, clearlogo).
   - deps: LIB-003 · size: M · parallel: yes · веха: M1 · ref: 03 §4.2 [1], 01 §1.5
   - done when: таблица тест-кейсов A10, A12 и A13 из таксономии проходит.
-- [ ] **LIB-008** Поиск FTS5
+- [x] **LIB-008** Поиск FTS5
   - Что: индекс фильмов, сериалов, эпизодов, людей, коллекций, Twitch-VOD и стримеров, музыки; ранжирование; нормализация с транслитом; группировка результатов.
   - deps: LIB-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 06 §5.3
   - done when: запрос «ирония судьбы» находит `Ironiya.sudby…`; поиск по 50 000 элементам быстрее 50 мс.
@@ -968,7 +968,7 @@ project_alpha/
   - Что: ключ — внешние ID + S/E; иначе отпечаток контента (OSHash); музыка — MBID или хэш тегов и длительности; Twitch — свои ключи; одна шара по разным путям (`smb://nas` и `smb://192.168.1.5`).
   - deps: SYNC-001, LIB-004 · size: M · parallel: yes · веха: M3 · ref: 04 §1.8, 06 §5.2
   - done when: тест: один файл на двух устройствах с разными путями даёт один ключ.
-- [ ] **SYNC-005** Pairing устройств («семья устройств»)
+- [x] **SYNC-005** Pairing устройств («семья устройств»)
   - Что: общие ключи через QR или 6-значный код в LAN, список устройств, отзыв устройства, ротация ключей; без облака.
   - deps: SYNC-001, CORE-007 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: отозванное устройство больше не может подключиться (тест).
@@ -1082,7 +1082,7 @@ project_alpha/
   - Что: Artist, ReleaseGroup, Release, Recording, Track (MBID), AudioFile, жанры, композиторы, вид «папки»; чтение тегов (ID3v2, Vorbis, MP4, APE через lofty), встроенные обложки и `folder.jpg`, мультидиск.
   - deps: LIB-001, LIB-003 · size: M · parallel: yes · веха: M6 · ref: 03 §5 (музыка), 01 §4.11
   - done when: коллекция из 5 000 треков индексируется; сборники разбираются правильно.
-- [ ] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
+- [x] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
   - Что: `gapless-audio`, `prefetch-playlist`, `replaygain=track|album` на десктопе и Android; на Apple — MPVKit audio.
   - deps: PLAY-002, MUS-001 · size: M · parallel: no · веха: M6 · ref: 02 §5.2 (вариант A)
   - done when: тестовый gapless-альбом без пауз на стыках (проверка по сэмплам).
@@ -1138,6 +1138,10 @@ project_alpha/
   - Что: синхронизация очереди и позиции (по аналогии со Spotify Connect, через SYNC); Last.fm и ListenBrainz с ключом пользователя [P2]; эквалайзер [P2].
   - deps: MUS-003, SYNC-003 · size: M · parallel: yes · веха: M6 · ref: 01 §4.11, §1.5
   - done when: очередь продолжается на втором устройстве с той же позиции.
+- [ ] **MUS-016** Аудиорежим MPVKit на Apple (`AudioKit`)
+  - Что: часть MUS-002 для Apple: `clients/apple/AudioKit` на MPVKit (LGPL) с тем же профилем, что `AudioProfile` в `pa_player` (gapless, prefetch, ReplayGain track/album/auto, pre-amp, защита от клиппинга); проверка стыков по сэмплам, как в `gapless_libmpv_test.dart`.
+  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-NNNN (music-audio-mode-libmpv)
+  - done when: XCTest на macOS проигрывает тестовый альбом через MPVKit без пауз на стыках (проверка по сэмплам).
 
 ### 3.16. TWI — Twitch
 
@@ -1351,7 +1355,7 @@ project_alpha/
   - Что: primitive (палитра, отступы 4–100, радиусы, тени), semantic (`bg/base`, `text/*`, `accent`, `accent/live`, `focus/*`, `badge/*`, `scrim`, `glass/thin|regular|thick`, `motion/*`), component (`poster/focus/scale` и т. п.), профили плотности (TV, desktop, tablet, phone).
   - deps: DSN-001 · size: M · parallel: yes · веха: M0 · ref: 01 §4.3–4.7, §4.10 п.1–2
   - done when: JSON проходит валидацию DTCG; значения из 01 §4 перенесены.
-- [ ] **DSN-003** Пайплайн Style Dictionary и контраст-линт
+- [x] **DSN-003** Пайплайн Style Dictionary и контраст-линт
   - Что: генерация `tokens.dart`, `Tokens.swift`, `tokens.css` (админки и сайт) в CI; проверка актуальности сгенерированного; проверка контраста WCAG AA для текстовых пар.
   - deps: DSN-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §5.2 (CI-шаги)
   - done when: изменение токена без перегенерации роняет CI; пара с контрастом меньше 4.5:1 роняет CI.
@@ -1752,7 +1756,7 @@ project_alpha/
 |---|---|---|---|
 | DEC | 8 | SYNC | 12 |
 | REPO | 13 | SRV | 18 |
-| CI | 12 | MUS | 15 |
+| CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
 | NET | 20 | DIST | 27 |
 | LIB | 15 | DSN | 15 |

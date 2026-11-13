@@ -13,14 +13,15 @@ design/
 ├── README.md              # этот файл
 ├── LICENSES.md            # лицензии шрифтов, иконок и стороннего арта
 ├── justfile, package.json # инструменты: `just design setup|check|build|tokens|icons|fonts|contrast`
-├── decisions/             # ADR дизайн-workstream (0001 инструмент, 0002 иконки и шрифт)
+├── decisions/             # ADR дизайн-workstream (0001 инструмент, 0002 иконки и шрифт, генерация токенов)
 ├── tokens/                # W3C DTCG JSON — источник правды (DSN-002), см. tokens/README.md
 │   ├── primitive.tokens.json   # палитра, отступы 0–100, радиусы, тени, шрифт, длительности, кривые
 │   ├── semantic.tokens.json    # роли, тёмная тема по умолчанию: bg/*, text/*, accent, focus/*, glass/* …
 │   ├── themes/light.tokens.json  # светлая тема — переопределяет только цвета
 │   ├── component.tokens.json   # poster/focus/scale, button/*, media-badge/* …
 │   ├── density/                # tv, desktop, tablet, phone: типографика, сетка, радиусы, размеры
-│   └── contrast.pairs.json     # пары текст/фон для проверки WCAG AA
+│   ├── contrast.pairs.json     # пары текст/фон для проверки WCAG AA
+│   └── generated/              # Tokens.swift, PaTokens.kt, tokens.css (генерируется, DSN-003)
 ├── icons/                 # иконки (DSN-004), см. icons/svg/README.md
 │   ├── manifest.json      # курированный набор: наше имя → иконка Lucide
 │   ├── svg/               # исходные SVG 24×24, штрих 1.75 px
@@ -40,7 +41,7 @@ design/
 ```bash
 just design setup     # npm ci в design/ (Node ≥ 20)
 just design check     # то же, что CI: токены (DTCG, ссылки, контраст), иконки, свежесть сгенерированного, тесты
-just design build     # перегенерировать Dart-токены, код иконок, образец шрифта
+just design build     # перегенерировать код токенов (Dart, Swift, Kotlin, CSS), иконки, бренд, образец шрифта
 just design fonts     # скачать Inter (SHA-256) — нужно перед сборкой Flutter
 ```
 
@@ -79,11 +80,11 @@ design/**/*.woff2 filter=lfs diff=lfs merge=lfs -text
 
 ## Токены
 
-- Формат — [W3C Design Tokens Community Group (DTCG)](https://www.designtokens.org/): ключи `$value`, `$type`, `$description`; ссылки — `{group.token}`. Значения цвета, размера и длительности записаны объектами (`{"colorSpace": "srgb", "components": [...], "hex": "..."}`, `{"value": 4, "unit": "px"}`), как в стабильной версии спецификации 2025.10 **[проверить поддержку в выбранной версии Style Dictionary — DSN-003]**.
+- Формат — [W3C Design Tokens Community Group (DTCG)](https://www.designtokens.org/): ключи `$value`, `$type`, `$description`; ссылки — `{group.token}`. Значения цвета, размера и длительности записаны объектами (`{"colorSpace": "srgb", "components": [...], "hex": "..."}`, `{"value": 4, "unit": "px"}`), как в стабильной версии спецификации 2025.10.
 - Имена файлов — `*.tokens.json` (рекомендация DTCG).
 - Три слоя: **primitive → semantic → component**. Код платформ ссылается только на semantic и component.
 - Плотности (TV, desktop, tablet, phone) — отдельные файлы в `tokens/density/`, переопределяют масштаб, а не цвета.
-- Значения перенесены из 01 §4 (DSN-002); правила слоёв, тем и плотностей, проверки — в [`tokens/README.md`](tokens/README.md). Dart-экспорт для релиза 0.1 — `scripts/tokens-dart.mjs`; Style Dictionary (`Tokens.swift`, `tokens.css`) и CI-гейт — DSN-003. Сгенерированный код руками не правится.
+- Значения перенесены из 01 §4 (DSN-002); правила слоёв, тем и плотностей, проверки — в [`tokens/README.md`](tokens/README.md). Код платформ — `scripts/tokens-build.mjs` (DSN-003): Dart (`pa_design`), Swift (`tokens/generated/apple/Tokens.swift`), Kotlin (`tokens/generated/android/PaTokens.kt`), CSS (`tokens/generated/web/tokens.css`); CI падает, если токен изменён без перегенерации. Сгенерированный код руками не правится.
 
 ## Как вносить изменения
 

@@ -37,7 +37,8 @@ struct Running {
 
 impl Running {
     async fn start(data: &Path) -> Self {
-        let config = Config {
+        // Unpaired test devices: pairing is covered by tests/pairing.rs.
+        let mut config = Config {
             listen: "127.0.0.1:0".parse().unwrap(),
             // Plain HTTP: these tests speak raw HTTP/WebSocket (TLS: tls_mdns.rs).
             tls: pa_server::config::TlsConfig {
@@ -46,6 +47,7 @@ impl Running {
             },
             ..Config::default()
         };
+        config.sync.require_pairing = false;
         let server = Server::bind(&config, data).await.unwrap();
         let addr = server.local_addr().unwrap();
         let hub_id = server.hub().hub_id().to_owned();
@@ -104,6 +106,7 @@ fn hello(device: &str, cursor: Option<Cursor>) -> Message {
         role: Role::Device,
         cursor,
         head: None,
+        nonce: None,
     })
 }
 
@@ -187,6 +190,7 @@ async fn handshake_rules() {
             role: Role::Device,
             cursor: None,
             head: None,
+            nonce: None,
         }),
     )
     .await;
