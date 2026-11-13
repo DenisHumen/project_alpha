@@ -122,10 +122,34 @@ jobs:
       - name: cargo test --doc
         run: cargo test --workspace --all-features --locked --doc
 
+  # Crates whose behavior depends on the host OS (file systems, paths) also
+  # run their tests on Windows and macOS. One `-p` per crate.
+  test-os:
+    name: tests (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.rust == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: cargo test
+        run: cargo test --locked -p pa-vfs
+
   all-green:
     name: all-green
     if: always()
-    needs: [changes, fmt, clippy, test]
+    needs: [changes, fmt, clippy, test, test-os]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
