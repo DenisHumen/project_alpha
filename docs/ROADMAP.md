@@ -593,7 +593,7 @@ project_alpha/
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
-- [ ] **PLAY-002** LGPL-сборка libmpv
+- [x] **PLAY-002** LGPL-сборка libmpv
   - Что: mpv с `-Dgpl=false`, libplacebo, libass, libdovi (MIT); для Linux, Windows и macOS, а также Android (fallback-движок).
   - deps: PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §2.2, §3.1
   - done when: `mpv_client_api_version` доступен; в выводе конфигурации нет GPL.

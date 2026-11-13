@@ -187,7 +187,7 @@ pack_sources() {
     (cd "$stage/upstream" && for file in *; do printf '%s  %s\n' "$(sha256_of "$file")" "$file"; done) \
         > "$stage/upstream/SHA256SUMS"
     mkdir -p "$PA_MPV_OUT"
-    tar -C "$PA_MPV_WORK" -cJf "$PA_MPV_OUT/$name.tar.xz" "$name"
+    XZ_OPT="${XZ_OPT:--T0}" tar -C "$PA_MPV_WORK" -cJf "$PA_MPV_OUT/$name.tar.xz" "$name"
     log "wrote $PA_MPV_OUT/$name.tar.xz"
 }
 
