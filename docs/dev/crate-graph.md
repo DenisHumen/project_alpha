@@ -22,6 +22,7 @@ flowchart LR
     pa_model["pa-model"]
     pa_pairing["pa-pairing"]
     pa_playback["pa-playback"]
+    pa_player_io["pa-player-io"]
     pa_recognition["pa-recognition"]
     pa_runtime["pa-runtime"]
     pa_scanner["pa-scanner"]
@@ -49,6 +50,7 @@ flowchart LR
   pa_library --> pa_recognition
   pa_metadata --> pa_recognition
   pa_pairing --> pa_secrets
+  pa_player_io --> pa_vfs
   pa_recognition --> pa_anime_mappings
   pa_scanner --> pa_library
   pa_scanner -. dev .-> pa_model
@@ -78,6 +80,7 @@ flowchart LR
 | `pa-model` | `core/crates/pa-model` | 1 | Domain types of the project_alpha core: media entities, sync keys, playback state |
 | `pa-pairing` | `core/crates/pa-pairing` | 11 | Device family of Kinolune: device keys, pairing by code or QR (SPAKE2), trust store, revocation and family key rotation (SYNC-005) |
 | `pa-playback` | `core/crates/pa-playback` | 2 | PlayerEngine contract, capability matrix and Auto engine selection, mock engine and engine contract tests (PLAY-003) |
+| `pa-player-io` | `core/crates/pa-player-io` | 0 | ByteSource adapters for players: FFmpeg AVIOContext callbacks and the mpv stream_cb protocol (NET-008) |
 | `pa-recognition` | `core/crates/pa-recognition` | 3 | Media recognition core (sans-IO): filename parser with N-best hypotheses, title normalization and local title index, Provider boundary |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |

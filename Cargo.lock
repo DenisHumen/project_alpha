@@ -2312,6 +2312,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-player-io"
+version = "0.1.0"
+dependencies = [
+ "pa-vfs",
+]
+
+[[package]]
 name = "pa-recognition"
 version = "0.1.0"
 dependencies = [

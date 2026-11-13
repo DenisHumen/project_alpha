@@ -384,7 +384,7 @@ project_alpha/
   - Что: `127.0.0.1:<port>` со случайным токеном в пути, отдаёт любой ByteSource с поддержкой Range; лимиты соединений; запасной путь для AVPlayer и ExoPlayer.
   - deps: NET-001 · size: S · parallel: yes · веха: M1 · ref: 02 §1.4, 04 §1.2
   - done when: ffprobe и curl читают файл через прокси; запрос без токена получает 403.
-- [ ] **NET-008** Адаптеры ByteSource для FFmpeg и mpv
+- [x] **NET-008** Адаптеры ByteSource для FFmpeg и mpv
   - Что: FFmpeg `AVIOContext` (read/seek) и mpv `stream_cb` (C ABI) поверх ByteSource.
   - deps: NET-001, PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §4
   - done when: тест: libavformat открывает MKV с WebDAV через адаптер; mpv играет `pa://<id>`.
