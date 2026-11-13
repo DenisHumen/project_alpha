@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# cargo-deny policy for the whole Cargo workspace (CI-003).
+# Run locally: `cargo deny check` (CI: .github/workflows/deps.yml).
+#
+# Licence policy follows docs/adr/0005-license-mpl2-dco.md: dependencies may
+# only use MIT, Apache-2.0, BSD, ISC, MPL-2.0 and equivalent permissive
+# licences. Rust crates are linked statically, so LGPL (allowed by ADR-0005
+# only for dynamic linking) and every GPL/AGPL/SSPL licence are not allowed:
+# a crate that can only be used under them fails `cargo deny check licenses`.
+# Data licences (ODbL, CC-BY) are not code licences and are tracked by REUSE,
+# not here.
+
+[graph]
+# Include optional features (e.g. the uniffi-bindgen CLI) in the graph.
+all-features = true
+
+[output]
+feature-depth = 1
+
+# --- Security advisories (RustSec) -------------------------------------------
+[advisories]
+db-urls = ["https://github.com/rustsec/advisory-db"]
+# Vulnerabilities always fail. Unmaintained crates fail only when they are
+# direct dependencies of our crates; yanked versions fail.
+unmaintained = "workspace"
+yanked = "deny"
+# Accepted advisories go here with a reason and a link to the issue, e.g.
+# { id = "RUSTSEC-0000-0000", reason = "not reachable: …, see #123" }.
+ignore = []
+
+# --- Licences ----------------------------------------------------------------
+[licenses]
+# ADR-0005 allow-list. Anything not listed (GPL-*, AGPL-*, LGPL-*, SSPL-*,
+# proprietary, unknown) is denied.
+allow = [
+    # ADR-0005 list
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",
+    # Permissive licences equivalent to MIT/BSD (no copyleft, no extra terms)
+    "MIT-0",        # borrow-or-share
+    "Zlib",         # foldhash
+    "Unicode-3.0",  # unicode-ident tables
+    "CC0-1.0",
+    "Unlicense",
+]
+# Exact SPDX match; low-confidence licence-text detection is an error.
+confidence-threshold = 0.93
+# Our own crates are checked too: they must stay MPL-2.0.
+unused-allowed-license = "allow"
+
+[licenses.private]
+ignore = false
+
+# --- Bans and duplicates -----------------------------------------------------
+[bans]
+# Duplicate versions are reported; the core crates below must never be
+# duplicated (two copies of serde or uniffi in one binary break FFI and bloat
+# the client libraries).
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+highlight = "all"
+workspace-default-features = "allow"
+external-default-features = "allow"
+deny = [
+    { crate = "serde", deny-multiple-versions = true },
+    { crate = "serde_json", deny-multiple-versions = true },
+    { crate = "uniffi", deny-multiple-versions = true },
+    { crate = "uniffi_core", deny-multiple-versions = true },
+    { crate = "tokio", deny-multiple-versions = true },
+    { crate = "sha2", deny-multiple-versions = true },
+    { crate = "quick-xml", deny-multiple-versions = true },
+    { crate = "jsonschema", deny-multiple-versions = true },
+    # TLS: rustls only; OpenSSL is not shipped in clients.
+    { crate = "openssl", reason = "use rustls; OpenSSL is not shipped in clients" },
+    { crate = "openssl-sys", reason = "use rustls; OpenSSL is not shipped in clients" },
+]
+
+# --- Sources -----------------------------------------------------------------
+[sources]
+# Only crates.io; git dependencies must be added here explicitly.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

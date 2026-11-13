@@ -39,7 +39,10 @@ path = [
   "**/go.mod",
   "**/go.sum",
   "Cargo.lock",
+  "tools/qa/media/hdrmeta/Cargo.lock",
   "**/pubspec.lock",
+  ".xcode-version",
+  "mise.toml",
   "**/.metadata",
 ]
 precedence = "closest"
@@ -88,6 +91,47 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
 SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
 
+# flutter_rust_bridge bindings generated from core/crates/pa-frb by
+# `just core frb` (CORE-002, ADR-0013). Committed so that pa_core works
+# without the codegen installed; CI checks they are up to date.
+[[annotations]]
+path = [
+  "core/crates/pa-frb/src/frb_generated.rs",
+  "clients/flutter/packages/pa_core/lib/src/rust/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
+# Flutter-generated scaffolding anywhere in the tree (apps, packages, examples):
+# `flutter create` templates, plugin registrants, Gradle/CMake glue, launcher
+# icons, Xcode projects. Files that carry their own SPDX header keep it
+# ("closest"); otherwise template code is BSD-3-Clause (The Flutter Authors)
+# with our edits under MPL-2.0.
+[[annotations]]
+path = [
+  "**/analysis_options.yaml",
+  "**/android/**",
+  "**/ios/**",
+  "**/macos/**",
+  "**/windows/**",
+  "**/web/**",
+  "**/linux/CMakeLists.txt",
+  "**/linux/flutter/**",
+  "**/linux/runner/**",
+  "**/.metadata",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
+
+# Screenshots and generated images in docs and design (project-authored).
+[[annotations]]
+path = ["docs/screenshots/**", "design/**/*.png", "design/**/*.webp", "**/assets/**/*.png"]
+precedence = "closest"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
 # UI icons based on Lucide (ISC; icons derived from Feather are also MIT) —
 # the licence is in each SVG header, the copyright is added here (DSN-004).
 [[annotations]]
@@ -101,3 +145,23 @@ path = "design/icons/LICENSE-lucide.txt"
 precedence = "override"
 SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
 SPDX-License-Identifier = "ISC AND MIT"
+
+# Kinolune brand exports and placeholder PNGs generated from the SVG masters
+# in design/brand/src and design/placeholders by design/scripts/brand-build.mjs
+# (DSN-006). Own artwork; the wordmark is outlined Inter (OFL-1.1) glyphs.
+[[annotations]]
+path = ["design/brand/export/**", "design/brand/preview.png", "design/placeholders/export/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
+# Flutter-generated platform scaffolding of package example apps
+# (`flutter create`; same terms as the spikes above).
+[[annotations]]
+path = [
+  "clients/flutter/packages/*/example/android/**",
+  "clients/flutter/packages/*/example/linux/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"

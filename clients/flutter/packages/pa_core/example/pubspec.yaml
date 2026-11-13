@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: MPL-2.0
+name: pa_core_example
+description: Smoke app for pa_core — shows the Rust core version on Linux and Android.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  pa_core:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter

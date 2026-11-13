@@ -199,7 +199,7 @@ project_alpha/
   - Что: CONTRIBUTING (DCO, Conventional Commits, worktree-процесс, ссылка на §0.3); Contributor Covenant 2.1; SECURITY.md с GitHub Private Vulnerability Reporting и сроками ответа.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: файлы есть, GitHub показывает их во вкладке Community Standards.
-- [ ] **REPO-004** DCO-проверка и линт заголовка PR
+- [x] **REPO-004** DCO-проверка и линт заголовка PR
   - Что: DCO GitHub App или workflow, который проверяет `Signed-off-by` у каждого коммита; `amannn/action-semantic-pull-request` со списком scope из §0.3; проверка `[ID]` в заголовке.
   - deps: REPO-003, CI-001 · size: S · parallel: yes · веха: M0 · ref: S §5, 04 §4.2
   - done when: PR без sign-off или с неверным заголовком красный; тестовый PR из форка проходит проверку.
@@ -235,7 +235,7 @@ project_alpha/
   - Что: скрипт в `tools/roadmap/` (блоки кода игнорируются) проверяет уникальность ID, формат полей, существование ID в deps, отсутствие циклов, что у `[x]` нет открытых deps; `next` выдаёт задачи с закрытыми deps, у которых нет открытого PR (через `gh`).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: —
   - done when: lint в CI зелёный на этом файле; `next` на текущем состоянии выдаёт список первой волны (§6).
-- [ ] **REPO-013** Dependabot или Renovate
+- [x] **REPO-013** Dependabot или Renovate
   - Что: обновления cargo, pub, gradle, swiftpm, gomod, github-actions; группировка по экосистемам; auto-merge только для patch-обновлений dev-зависимостей.
   - deps: CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §5.3
   - done when: приходят сгруппированные PR, и CI на них проходит.
@@ -250,7 +250,7 @@ project_alpha/
   - Что: только `pull_request` (не `pull_request_target`) для кода из форков; `permissions: read-all` по умолчанию; actions закреплены по SHA; одобрение запуска для новых контрибьюторов; self-hosted runners никогда не берут PR; секреты только в окружениях.
   - deps: CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.4–4.5
   - done when: тестовый PR из форка не видит секретов; `zizmor` или `actionlint` проходит на всех workflow.
-- [ ] **CI-003** `cargo deny` и `cargo audit`
+- [x] **CI-003** `cargo deny` и `cargo audit`
   - Что: deny-list лицензий (GPL, AGPL и SSPL запрещены в графе клиентских крейтов), advisories, запрет дубликатов основных крейтов.
   - deps: CI-001, REPO-002 · size: S · parallel: yes · веха: M0 · ref: 02 §3.1, 04 §5.3
   - done when: добавление GPL-крейта в `pa-ffi` роняет CI.
@@ -297,7 +297,7 @@ project_alpha/
   - Что: крейт `pa-ffi` с UniFFI proc-macro, функция `core_version()`, генерация Kotlin и Swift через `just bindings` (сгенерированное не коммитится, кроме требований Xcode).
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 02 §1.4, 04 §1.3
   - done when: unit-тест FFI, биндинги Kotlin и Swift генерируются в CI.
-- [ ] **CORE-002** flutter_rust_bridge: пакет `pa_core`
+- [x] **CORE-002** flutter_rust_bridge: пакет `pa_core`
   - Что: `clients/flutter/packages/pa_core` с FRB codegen, async-функции и Stream; загрузка нативной библиотеки на 5 Flutter-платформах.
   - deps: CORE-001 · size: M · parallel: no · веха: M0 · ref: 02 §1.4
   - done when: Dart-тест вызывает `core_version()` и подписывается на тестовый Stream.
@@ -313,7 +313,7 @@ project_alpha/
   - Что: MediaItem, Work, Season, Episode, MediaFile, Track, Album, Artist, Streamer, Video; `MediaKey` (`file:<fp>`, `tmdb:…`, `twitch:vod:<id>`, `twitch:rec:<id>`, `twitch:clip:<slug>`); `PlaybackItem` (source_type, position, duration, updated_at, device_id); serde и версия схемы.
   - deps: REPO-001 · size: M · parallel: no · веха: M0 · ref: 04 §1.8, 06 §5.2, 01 §2.7
   - done when: round-trip-тесты serde; `MediaKey` парсится и печатается без потерь.
-- [ ] **CORE-006** `pa-runtime`: жизненный цикл и конфигурация
+- [x] **CORE-006** `pa-runtime`: жизненный цикл и конфигурация
   - Что: tokio-runtime в ядре, init/shutdown/foreground/background, каталоги данных по платформам (на tvOS — Application Support и Caches), колбэк-интерфейсы платформы, настройки (KV в SQLite, миграции, экспорт и импорт).
   - deps: CORE-001, CORE-005 · size: M · parallel: no · веха: M0 · ref: 02 §4, 04 §1.4 п.5
   - done when: тесты жизненного цикла; повторный init после shutdown работает; настройки переживают перезапуск.
@@ -352,7 +352,7 @@ project_alpha/
 
 ### 3.4. NET — источники, сетевые протоколы, Plex/Jellyfin/Emby
 
-- [ ] **NET-001** `pa-vfs`: трейт Vfs и локальная ФС
+- [x] **NET-001** `pa-vfs`: трейт Vfs и локальная ФС
   - Что: `Vfs` (list, stat, open → `ByteSource{read_at, size}`), `LocalFs`, общий контракт-тест-сьют, который обязаны проходить все бэкенды.
   - deps: REPO-001, CORE-005 · size: S · parallel: no · веха: M1 · ref: 02 §1.4, 04 §1.3
   - done when: контракт-тесты проходят на LocalFs под Linux, Windows и macOS.
@@ -431,7 +431,7 @@ project_alpha/
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
-- [ ] **LIB-001** Схема SQLite v1 и миграции
+- [x] **LIB-001** Схема SQLite v1 и миграции
   - Что: File, FileGroup, FileGroupMember, Work, ExternalId, Title, Season, Episode, EpisodeMapping, AnimeEntry, Match, MatchCandidate, FolderRule, DisplayPreference, ProviderCache, Profile, Progress, Favorite, Collection, Playlist, jobs; WAL, foreign keys; refinery-миграции; одна схема для клиента и сервера.
   - deps: CORE-005 · size: M · parallel: no · веха: M1 · ref: 03 §5, 04 §1.3, §1.5
   - done when: миграция с нуля проходит; тест целостности FK; схема задокументирована в `docs/dev/db.md`.
@@ -487,7 +487,15 @@ project_alpha/
   - Что: по команде пользователя записать `.nfo` (формат Kodi/Jellyfin) или переименовать с `{tmdb-…}`; импорт NFO при скане.
   - deps: LIB-007, META-017 · size: M · parallel: yes · веха: M2 · ref: 03 §4.6
   - done when: экспортированный NFO читается Jellyfin в Docker-тесте.
+- [ ] **LIB-015** Импорт медиатеки pa_library v0 (релиз 0.1)
+  - Что: перенос базы Dart-пакета `pa_library` v0 в схему v1 по таблице соответствия из `docs/dev/db.md` §«Переход с pa_library v0»: источники, файлы, произведения, эпизоды, матчи, прогресс по `media_key`; старый файл только на чтение, после успеха — `*.v0.bak`.
+  - deps: LIB-001, LIB-004, LIB-011 · size: M · parallel: yes · веха: M1 · ref: ADR-0013
+  - done when: тест на фикстуре v0: все элементы и прогресс распознанных видны в v1, повторный запуск ничего не дублирует.
 
+- [x] **LIB-016** Убрать уязвимый SQLite: refinery → rusqlite_migration
+  - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
+  - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
+  - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
 ### 3.6. META — распознавание и метаданные
 
 - [x] **META-001** Таксономия, гайд по разметке, формат корпуса
@@ -578,7 +586,15 @@ project_alpha/
   - Что: формат и экспорт подтверждённых пользователем матчей (oshash/ed2k → ID и маппинг) в виде PR в публичный датасет, только по opt-in; k-анонимность; импорт датасета в индекс; без серверов.
   - deps: META-017 · size: M · parallel: yes · веха: M10 · ref: S §10, 03 §4.8
   - done when: экспорт не содержит путей и имён файлов (тест); импорт ускоряет матч известных релизов.
-- [ ] **META-023** Сверка draft-записей корпуса v0
+- [ ] **META-023** Парсер: замер на тест-кейсах guessit и anitomy в eval-репо и доводка до ≥ 85 %
+  - Что: выделено из META-005 (первый срез парсера — крейт `pa-recognition::parse`). Конвертер тест-кейсов guessit (LGPL) и anitomy (MPL) в `parse`-блоки корпуса — только в eval-репо, в продукт не попадают; отчёт по полям (title, year, season, episodes, absolute, release_group, resolution, source); доводка правил без копирования кода. После закрытия отметить и META-005.
+  - deps: META-002, META-005 · size: M · parallel: yes · веха: M2 · ref: 03 §2.2, §6.1
+  - done when: ≥ 85 % кейсов guessit по сравниваемым полям, отчёт лежит в eval-репо; регрессионный порог добавлен в CI eval-репо.
+- [ ] **META-024** Адаптер парсера для `pa-eval`: метрики разбора имён
+  - Что: `Recognizer`-адаптер и/или отдельная метрика «Парсинг» (03 §6.2) в `pa-eval` поверх `pa_recognition::parse`: точность по полям `parse`-блоков корпуса для top-1 и N-best, разрез по категориям, отчёт в Markdown и JSON.
+  - deps: META-003, META-005 · size: S · parallel: yes · веха: M2 · ref: 03 §6.2
+  - done when: отчёт `pa-eval` содержит раздел «Парсинг»; на `examples.jsonl` воспроизводит числа теста `corpus_examples` крейта `pa-recognition`.
+- [ ] **META-025** Сверка draft-записей корпуса v0
   - Что: перевести `draft`-записи корпуса v0 (`tools/recognition-eval/corpus`) в `verified`: позиции `tmdb` сериалов (сейчас из эфирного порядка TVmaze) и `tmdb`/`tvdb_absolute` аниме (правила `titles.yaml`) сверить с API TMDB/TVDB через клиент META-009; добавить вторую схему OVA/спешлам, где она есть; расхождения — в `titles.yaml` и `notes`; затем пересчитать бейзлайны.
   - deps: META-002, META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §6.1
   - done when: все записи A1–A4, A9 и A16 `verified` (или `disputed` с `notes`); `corpus-validate --strict` без ошибок.
@@ -1326,10 +1342,11 @@ project_alpha/
   - Что: Inter Variable (OFL) для не-Apple платформ, проверка кириллицы (запасные варианты — Manrope или Golos UI); на Apple — системный SF; лицензии в `LICENSES.md`; табличные цифры.
   - deps: DSN-001 · size: S · parallel: yes · веха: M1 · ref: 01 §4.4
   - done when: образец типографики ru и en утверждён; шрифты подключены во Flutter.
-- [ ] **DSN-006** Бренд, иконки приложения, плейсхолдеры
+- [x] **DSN-006** Бренд, иконки приложения, плейсхолдеры
   - Что: логотип; мастер иконки 1024+; layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer); Android adaptive (foreground, background, monochrome) и баннер TV 320×180; Windows ICO и ассеты MSIX; Linux hicolor, `.desktop` и AppStream; собственные плейсхолдеры постеров и обложек; иллюстрации пустых состояний.
   - deps: DSN-001, DEC-004 · size: L · parallel: yes · веха: M5 · ref: 01 §5.2 п.3
   - done when: все платформенные ассеты генерируются из мастер-файлов скриптом.
+  - Итог: знак, словесный знак, акцент `color.lune`, Android (adaptive, themed, TV-баннер), Linux, Windows ICO, веб и плейсхолдеры — `design/brand/`; Apple-слои, MSIX, AppStream и пустые состояния перенесены в DSN-016.
 - [ ] **DSN-007** Иконки источников и сервисов
   - Что: нейтральные иконки протоколов; Plex, Jellyfin, Emby, Twitch и TMDB — только официальные ассеты и строго по их brand guidelines (проверка в LEGAL-009).
   - deps: DSN-004, LEGAL-009 · size: S · parallel: yes · веха: M4 · ref: 01 §4.8, 06 §1.5
@@ -1366,6 +1383,10 @@ project_alpha/
   - Что: сравнение Flutter-экранов и tvOS SwiftUI с макетами на 4 плотностях, исправление расхождений, обновление golden-тестов.
   - deps: CI-009, DSN-012, TV-007 · size: M · parallel: yes · веха: M9 · ref: 01 §4.10
   - done when: список расхождений закрыт; golden-тесты зелёные.
+- [ ] **DSN-016** Бренд: Apple-слои, MSIX, AppStream и иллюстрации пустых состояний
+  - Что: остаток DSN-006, не нужный для релиза 0.1: layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer `.icon`), ассеты MSIX (Square44/150, Wide310, StoreLogo, scale-100…400), AppStream metainfo с иконками, иллюстрации пустых состояний; всё — из мастеров `design/brand/src` тем же генератором.
+  - deps: DSN-006 · size: M · parallel: yes · веха: M5 · ref: 01 §5.2 п.3, design/brand/README.md
+  - done when: ассеты генерируются `just design brand`, `brand:check` в CI зелёный.
 
 ### 3.19. PKG — упаковка и каналы публикации
 
@@ -1440,11 +1461,11 @@ project_alpha/
 
 ### 3.20. QA — качество, тестовые данные, безопасность
 
-- [ ] **QA-001** Тест-стратегия
+- [x] **QA-001** Тест-стратегия
   - Что: `docs/dev/testing.md`: уровни тестов, что обязательно в PR, golden-тесты, device lab, ручные чек-листы; ответственные за платформы.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4, 01 §4.10 п.5
   - done when: документ принят; ссылка в CONTRIBUTING.
-- [ ] **QA-002** Тестовые медиа-сэмплы
+- [x] **QA-002** Тестовые медиа-сэмплы
   - Что: `tests/media/` в LFS, только свободные лицензии: Blender Open Movies; синтетические сэмплы ffmpeg (все контейнеры и кодеки, HDR10, HDR10+, HLG, DV-метаданные, многоканальное аудио); субтитры ASS, PGS, VobSub; gapless-альбом; манифест с лицензиями.
   - deps: REPO-001 · size: M · parallel: yes · веха: M0 · ref: 01 §5.2, 02 §2
   - done when: манифест описывает каждый файл и его лицензию; общий размер набора меньше 2 ГБ.
@@ -1713,8 +1734,8 @@ project_alpha/
 | CI | 12 | MUS | 15 |
 | CORE | 14 | TWI | 22 |
 | NET | 19 | DIST | 27 |
-| LIB | 14 | DSN | 15 |
-| META | 23 | PKG | 17 |
+| LIB | 15 | DSN | 15 |
+| META | 25 | PKG | 17 |
 | PLAY | 12 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
 | PLAY-DSK | 8 | LEGAL | 10 |

@@ -39,7 +39,7 @@ cargo run -p pa-recognition-eval --bin corpus-validate -- --min-per-category 50 
   - `tmdb` у сериалов взят из эфирного порядка TVmaze (season/number) — для выбранных западных и российских сериалов он совпадает с TMDB, но API TMDB не запрашивался (ключа проекта ещё нет, DEC-008);
   - у аниме номер `anidb` выведен из порядка записей франшизы и числа эпизодов anime-offline-database, а `tmdb` (сезон и смещение) и `tvdb_absolute` — по правилам мейнтейнера в `titles.yaml` (поля `tmdb_season`, `tmdb_offset`, `abs`); TMDB/TVDB не запрашивались.
 
-  В `review.notes` каждой такой записи сказано, какая схема не сверена. Перевод в `verified` — задача META-023 (сверка с TMDB/TVDB, когда появится ключ, и двойная разметка по META-019).
+  В `review.notes` каждой такой записи сказано, какая схема не сверена. Перевод в `verified` — задача META-025 (сверка с TMDB/TVDB, когда появится ключ, и двойная разметка по META-019).
 
 `review.annotators` — псевдоним генератора `pa-meta002`; `double_labelled` не ставится: человеческая двойная разметка 10 % корпуса — META-019.
 

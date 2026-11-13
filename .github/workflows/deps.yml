@@ -1,0 +1,105 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Dependency policy for the Cargo workspace (CI-003), configured in deny.toml:
+#   deny        — licences (ADR-0005 allow-list, no GPL/AGPL/SSPL/LGPL crates),
+#                 bans (no duplicates of core crates), sources (crates.io only)
+#   advisories  — RustSec advisories via cargo-deny and cargo-audit; also runs
+#                 daily on a schedule so new advisories surface without a PR
+#   gpl-canary  — proves the licence gate works: adds a GPL-3.0 path crate to
+#                 pa-ffi in a scratch copy and expects `cargo deny` to fail
+#
+# Fork-safe: `pull_request` only, read-only token, no secrets, actions pinned
+# to full commit SHAs, tools pinned to exact versions.
+
+name: Dependencies
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  schedule:
+    - cron: "17 5 * * *" # daily, advisories only
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_DENY_VERSION: "0.20.2"
+  CARGO_AUDIT_VERSION: "0.23.0"
+
+jobs:
+  deny:
+    name: cargo-deny (licenses, bans, sources)
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-deny@${{ env.CARGO_DENY_VERSION }}
+      - run: cargo deny --locked check licenses bans sources
+
+  advisories:
+    name: advisories (cargo-deny, cargo-audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-deny@${{ env.CARGO_DENY_VERSION }},cargo-audit@${{ env.CARGO_AUDIT_VERSION }}
+      - run: cargo deny --locked check advisories
+      - name: cargo audit
+        run: cargo audit --deny unsound --deny yanked
+
+  gpl-canary:
+    name: licence gate rejects GPL in pa-ffi
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: cargo-deny@${{ env.CARGO_DENY_VERSION }}
+      - name: Add a GPL-3.0 crate to pa-ffi in a scratch copy and expect rejection
+        run: |
+          work="$RUNNER_TEMP/canary"
+          mkdir -p "$work"
+          cp -r Cargo.toml Cargo.lock deny.toml rust-toolchain.toml core tools "$work/"
+          cd "$work"
+          mkdir -p core/crates/gpl-canary/src
+          : > core/crates/gpl-canary/src/lib.rs
+          printf '%s\n' '[package]' 'name = "gpl-canary"' 'version = "0.0.0"' \
+            'edition = "2024"' 'license = "GPL-3.0-only"' 'publish = false' \
+            > core/crates/gpl-canary/Cargo.toml
+          sed -i 's|^uniffi.workspace = true$|&\ngpl-canary = { path = "../gpl-canary" }|' \
+            core/crates/pa-ffi/Cargo.toml
+          grep -q 'gpl-canary' <(cargo tree -p pa-ffi --depth 1)
+          if cargo deny check licenses > deny.log 2>&1; then
+            cat deny.log
+            echo "::error::cargo deny accepted a GPL-3.0 dependency of pa-ffi"
+            exit 1
+          fi
+          grep -q 'rejected' deny.log
+          echo "cargo deny rejected the GPL-3.0 crate as expected"
