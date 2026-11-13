@@ -68,7 +68,7 @@ RUN set -eux; \
         firewall-offline-cmd --zone=home --add-service="${svc}"; \
     done; \
     firewall-offline-cmd --zone=home --remove-service-from-zone=samba-client; \
-    firewall-offline-cmd --zone=home --add-port=8096/tcp; \
+    firewall-offline-cmd --zone=home --add-port=8487/tcp; \
     # Leftovers of package scriptlets in runtime-only dirs (bootc lint: nonempty-run-tmp).
     rm -rf /run/dnf /run/cockpit /run/selinux-policy /var/log/* /var/cache/* /var/tmp/* /tmp/*; \
     bootc container lint

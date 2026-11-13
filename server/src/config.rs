@@ -3,8 +3,17 @@
 //! environment variables on top.
 //!
 //! ```toml
-//! listen = "127.0.0.1:8096"
+//! listen = "0.0.0.0:8487"
 //! data_dir = "/var/lib/alpha-media"
+//!
+//! [tls]
+//! enabled = true            # false: plain HTTP (old TVs), explicit opt-out
+//! cert = "/etc/alpha/cert.pem"  # optional, both or neither; default: a
+//! key = "/etc/alpha/key.pem"    # self-signed pair in data_dir/tls
+//!
+//! [discovery]
+//! enabled = true            # mDNS `_projectalpha._tcp` (not on loopback)
+//! name = "Living room"      # default: host name
 //!
 //! [log]
 //! format = "json"   # or "text"
@@ -23,9 +32,15 @@ use serde::Deserialize;
 
 use crate::Error;
 
-/// Default address. Loopback only: until authentication (SRV-003) and TLS
-/// (SRV-004) exist, exposing the server to the LAN is an explicit choice.
-pub const DEFAULT_LISTEN: &str = "127.0.0.1:8096";
+/// Default port: 8487, unassigned by IANA (8475–8499 is free) and not used
+/// by Jellyfin/Emby (8096, 8920), Plex (32400), Syncthing (8384), NAS admin
+/// UIs (5000/5001, 8080) or the *arr apps, so they can run side by side.
+/// ADR-NNNN.
+pub const DEFAULT_PORT: u16 = 8487;
+
+/// Default address. Loopback only: until authentication (SRV-003) exists,
+/// exposing the server to the LAN is an explicit choice.
+pub const DEFAULT_LISTEN: &str = "127.0.0.1:8487";
 
 /// Name of the app directory when `data_dir` is not set (platform data,
 /// config and cache locations of `pa-runtime`).
@@ -42,6 +57,10 @@ pub const ENV_DATA_DIR: &str = "ALPHA_MEDIA_DATA_DIR";
 pub const ENV_LOG_FORMAT: &str = "ALPHA_MEDIA_LOG_FORMAT";
 /// See [`ENV_LISTEN`].
 pub const ENV_LOG_FILTER: &str = "ALPHA_MEDIA_LOG";
+/// See [`ENV_LISTEN`]: `on`/`off` for [`TlsConfig::enabled`].
+pub const ENV_TLS: &str = "ALPHA_MEDIA_TLS";
+/// See [`ENV_LISTEN`]: `on`/`off` for [`DiscoveryConfig::enabled`].
+pub const ENV_MDNS: &str = "ALPHA_MEDIA_MDNS";
 
 /// Server configuration.
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
@@ -56,6 +75,53 @@ pub struct Config {
     pub log: LogConfig,
     /// Sync hub (`/api/v1/sync`).
     pub sync: SyncConfig,
+    /// HTTPS.
+    pub tls: TlsConfig,
+    /// mDNS announcement.
+    pub discovery: DiscoveryConfig,
+}
+
+/// TLS settings (SRV-004).
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct TlsConfig {
+    /// Serve HTTPS. On by default; plain HTTP only by explicit choice.
+    pub enabled: bool,
+    /// PEM certificate chain (leaf first). With [`key`](Self::key); when
+    /// both are absent a self-signed pair is created in `data_dir/tls`.
+    pub cert: Option<PathBuf>,
+    /// PEM private key (PKCS#8, PKCS#1 or SEC1).
+    pub key: Option<PathBuf>,
+}
+
+impl Default for TlsConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            cert: None,
+            key: None,
+        }
+    }
+}
+
+/// mDNS/DNS-SD announcement settings (SRV-004, ADR-0019).
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct DiscoveryConfig {
+    /// Announce `_projectalpha._tcp`. Never done while listening on a
+    /// loopback address: nobody else could connect.
+    pub enabled: bool,
+    /// Display name (TXT `name` and instance name); the host name if absent.
+    pub name: Option<String>,
+}
+
+impl Default for DiscoveryConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            name: None,
+        }
+    }
 }
 
 impl Default for Config {
@@ -65,6 +131,8 @@ impl Default for Config {
             data_dir: None,
             log: LogConfig::default(),
             sync: SyncConfig::default(),
+            tls: TlsConfig::default(),
+            discovery: DiscoveryConfig::default(),
         }
     }
 }
@@ -165,6 +233,12 @@ impl Config {
         if let Some(filter) = var(ENV_LOG_FILTER) {
             self.log.filter = filter;
         }
+        if let Some(value) = var(ENV_TLS) {
+            self.tls.enabled = parse_switch(ENV_TLS, &value)?;
+        }
+        if let Some(value) = var(ENV_MDNS) {
+            self.discovery.enabled = parse_switch(ENV_MDNS, &value)?;
+        }
         Ok(())
     }
 
@@ -189,6 +263,16 @@ impl Config {
     }
 }
 
+fn parse_switch(name: &str, value: &str) -> Result<bool, Error> {
+    match value.to_ascii_lowercase().as_str() {
+        "1" | "on" | "true" | "yes" => Ok(true),
+        "0" | "off" | "false" | "no" => Ok(false),
+        other => Err(Error::Config(format!(
+            "{name}: expected on or off, got {other:?}"
+        ))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -197,6 +281,37 @@ mod tests {
     fn empty_file_gives_defaults() {
         assert_eq!(Config::from_toml("").unwrap(), Config::default());
         assert!(Config::default().listen.ip().is_loopback());
+        assert_eq!(Config::default().listen.port(), DEFAULT_PORT);
+        assert!(Config::default().tls.enabled);
+        assert!(Config::default().discovery.enabled);
+    }
+
+    #[test]
+    fn tls_and_discovery_sections() {
+        let config = Config::from_toml(
+            "[tls]\nenabled = false\ncert = \"/c.pem\"\nkey = \"/k.pem\"\n[discovery]\nname = \"Den\"\n",
+        )
+        .unwrap();
+        assert!(!config.tls.enabled);
+        assert_eq!(config.tls.cert, Some(PathBuf::from("/c.pem")));
+        assert_eq!(config.discovery.name.as_deref(), Some("Den"));
+        assert!(config.discovery.enabled);
+
+        let mut config = Config::default();
+        config
+            .apply_env(|n| match n {
+                ENV_TLS => Some("off".to_owned()),
+                ENV_MDNS => Some("0".to_owned()),
+                _ => None,
+            })
+            .unwrap();
+        assert!(!config.tls.enabled);
+        assert!(!config.discovery.enabled);
+        assert!(
+            config
+                .apply_env(|n| (n == ENV_TLS).then(|| "maybe".to_owned()))
+                .is_err()
+        );
     }
 
     #[test]
