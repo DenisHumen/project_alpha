@@ -1,0 +1,10 @@
+# Build outputs and generated media are never committed.
+/build/
+/out/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+linux/flutter/ephemeral/
+*.iml
+.idea/

@@ -707,6 +707,10 @@ project_alpha/
   - Что: смена частоты дисплея: Windows — `ChangeDisplaySettingsEx`; Linux — xrandr или wlr-output-management; `display-fps-override`; опция выключена по умолчанию.
   - deps: PLAY-DSK-002 · size: M · parallel: yes · веха: M10 · ref: 02 §2.7
   - done when: 23.976-контент переключает монитор на 24 Гц и возвращает частоту после выхода.
+- [ ] **PLAY-DSK-009** Замеры спайка libmpv на Windows, macOS и реальном Linux-композиторе
+  - Что: повторить методику `spikes/desktop-player` (метрики `SPIKE_RESULT`) на Windows 11 (ANGLE/DXGI-текстура и дочерний HWND), macOS (`CVPixelBuffer` и `NSView` под прозрачным `FlutterView`) и на GNOME/KDE Wayland с реальным монитором; дописать таблицы в ADR-0009.
+  - deps: PLAY-DSK-001 · size: M · parallel: yes · веха: M1 · ref: ADR-0009, 02 §2.8
+  - done when: в ADR-0009 есть замеры для Windows, macOS и Wayland на реальном композиторе; подтверждено или опровергнуто, что Flutter-OSD работает поверх `NSView` на macOS.
 
 ### 3.10. PLAY-APL — плеер iOS, iPadOS, macOS и tvOS
 
