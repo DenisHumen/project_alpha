@@ -301,7 +301,7 @@ project_alpha/
   - Что: `clients/flutter/packages/pa_core` с FRB codegen, async-функции и Stream; загрузка нативной библиотеки на 5 Flutter-платформах.
   - deps: CORE-001 · size: M · parallel: no · веха: M0 · ref: 02 §1.4
   - done when: Dart-тест вызывает `core_version()` и подписывается на тестовый Stream.
-- [ ] **CORE-003** Apple: xcframework и SwiftPM `PACore`
+- [x] **CORE-003** Apple: xcframework и SwiftPM `PACore`
   - Что: `tools/bindings/build-xcframework.sh` (ios, ios-sim, tvos, tvos-sim, macos universal), binary target и Swift-обёртка UniFFI.
   - deps: CORE-001 · size: M · parallel: yes · веха: M0 · ref: 02 §1.4, 04 §4.4
   - done when: XCTest на симуляторах iOS и tvOS вызывает `core_version()`.
