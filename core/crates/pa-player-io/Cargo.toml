@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-player-io"
+version = "0.1.0"
+description = "ByteSource adapters for players: FFmpeg AVIOContext callbacks and the mpv stream_cb protocol (NET-008)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# No FFmpeg or libmpv crate and no link-time dependency: the adapters are
+# plain C-ABI callbacks, and the few library functions they need are passed
+# in as function pointers that the caller resolves from the LGPL shared
+# libraries it already loads (tools/ffmpeg, tools/mpv). The crate never
+# links FFmpeg or libmpv itself, statically or dynamically.
+[dependencies]
+pa-vfs = { path = "../pa-vfs" }
