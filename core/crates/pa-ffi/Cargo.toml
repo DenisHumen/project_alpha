@@ -19,7 +19,13 @@ crate-type = ["lib", "cdylib", "staticlib"]
 cli = ["uniffi/cli", "uniffi/cargo-metadata"]
 
 [dependencies]
+pa-runtime = { path = "../pa-runtime" }
+serde_json.workspace = true
+thiserror.workspace = true
 uniffi.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
 
 [[bin]]
 name = "uniffi-bindgen"

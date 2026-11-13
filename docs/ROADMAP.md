@@ -199,7 +199,7 @@ project_alpha/
   - Что: CONTRIBUTING (DCO, Conventional Commits, worktree-процесс, ссылка на §0.3); Contributor Covenant 2.1; SECURITY.md с GitHub Private Vulnerability Reporting и сроками ответа.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: файлы есть, GitHub показывает их во вкладке Community Standards.
-- [ ] **REPO-004** DCO-проверка и линт заголовка PR
+- [x] **REPO-004** DCO-проверка и линт заголовка PR
   - Что: DCO GitHub App или workflow, который проверяет `Signed-off-by` у каждого коммита; `amannn/action-semantic-pull-request` со списком scope из §0.3; проверка `[ID]` в заголовке.
   - deps: REPO-003, CI-001 · size: S · parallel: yes · веха: M0 · ref: S §5, 04 §4.2
   - done when: PR без sign-off или с неверным заголовком красный; тестовый PR из форка проходит проверку.
@@ -235,7 +235,7 @@ project_alpha/
   - Что: скрипт в `tools/roadmap/` (блоки кода игнорируются) проверяет уникальность ID, формат полей, существование ID в deps, отсутствие циклов, что у `[x]` нет открытых deps; `next` выдаёт задачи с закрытыми deps, у которых нет открытого PR (через `gh`).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: —
   - done when: lint в CI зелёный на этом файле; `next` на текущем состоянии выдаёт список первой волны (§6).
-- [ ] **REPO-013** Dependabot или Renovate
+- [x] **REPO-013** Dependabot или Renovate
   - Что: обновления cargo, pub, gradle, swiftpm, gomod, github-actions; группировка по экосистемам; auto-merge только для patch-обновлений dev-зависимостей.
   - deps: CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §5.3
   - done when: приходят сгруппированные PR, и CI на них проходит.
@@ -250,7 +250,7 @@ project_alpha/
   - Что: только `pull_request` (не `pull_request_target`) для кода из форков; `permissions: read-all` по умолчанию; actions закреплены по SHA; одобрение запуска для новых контрибьюторов; self-hosted runners никогда не берут PR; секреты только в окружениях.
   - deps: CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.4–4.5
   - done when: тестовый PR из форка не видит секретов; `zizmor` или `actionlint` проходит на всех workflow.
-- [ ] **CI-003** `cargo deny` и `cargo audit`
+- [x] **CI-003** `cargo deny` и `cargo audit`
   - Что: deny-list лицензий (GPL, AGPL и SSPL запрещены в графе клиентских крейтов), advisories, запрет дубликатов основных крейтов.
   - deps: CI-001, REPO-002 · size: S · parallel: yes · веха: M0 · ref: 02 §3.1, 04 §5.3
   - done when: добавление GPL-крейта в `pa-ffi` роняет CI.
@@ -297,7 +297,7 @@ project_alpha/
   - Что: крейт `pa-ffi` с UniFFI proc-macro, функция `core_version()`, генерация Kotlin и Swift через `just bindings` (сгенерированное не коммитится, кроме требований Xcode).
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 02 §1.4, 04 §1.3
   - done when: unit-тест FFI, биндинги Kotlin и Swift генерируются в CI.
-- [ ] **CORE-002** flutter_rust_bridge: пакет `pa_core`
+- [x] **CORE-002** flutter_rust_bridge: пакет `pa_core`
   - Что: `clients/flutter/packages/pa_core` с FRB codegen, async-функции и Stream; загрузка нативной библиотеки на 5 Flutter-платформах.
   - deps: CORE-001 · size: M · parallel: no · веха: M0 · ref: 02 §1.4
   - done when: Dart-тест вызывает `core_version()` и подписывается на тестовый Stream.
@@ -313,7 +313,7 @@ project_alpha/
   - Что: MediaItem, Work, Season, Episode, MediaFile, Track, Album, Artist, Streamer, Video; `MediaKey` (`file:<fp>`, `tmdb:…`, `twitch:vod:<id>`, `twitch:rec:<id>`, `twitch:clip:<slug>`); `PlaybackItem` (source_type, position, duration, updated_at, device_id); serde и версия схемы.
   - deps: REPO-001 · size: M · parallel: no · веха: M0 · ref: 04 §1.8, 06 §5.2, 01 §2.7
   - done when: round-trip-тесты serde; `MediaKey` парсится и печатается без потерь.
-- [ ] **CORE-006** `pa-runtime`: жизненный цикл и конфигурация
+- [x] **CORE-006** `pa-runtime`: жизненный цикл и конфигурация
   - Что: tokio-runtime в ядре, init/shutdown/foreground/background, каталоги данных по платформам (на tvOS — Application Support и Caches), колбэк-интерфейсы платформы, настройки (KV в SQLite, миграции, экспорт и импорт).
   - deps: CORE-001, CORE-005 · size: M · parallel: no · веха: M0 · ref: 02 §4, 04 §1.4 п.5
   - done when: тесты жизненного цикла; повторный init после shutdown работает; настройки переживают перезапуск.
@@ -431,7 +431,7 @@ project_alpha/
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
-- [ ] **LIB-001** Схема SQLite v1 и миграции
+- [x] **LIB-001** Схема SQLite v1 и миграции
   - Что: File, FileGroup, FileGroupMember, Work, ExternalId, Title, Season, Episode, EpisodeMapping, AnimeEntry, Match, MatchCandidate, FolderRule, DisplayPreference, ProviderCache, Profile, Progress, Favorite, Collection, Playlist, jobs; WAL, foreign keys; refinery-миграции; одна схема для клиента и сервера.
   - deps: CORE-005 · size: M · parallel: no · веха: M1 · ref: 03 §5, 04 §1.3, §1.5
   - done when: миграция с нуля проходит; тест целостности FK; схема задокументирована в `docs/dev/db.md`.
@@ -487,7 +487,15 @@ project_alpha/
   - Что: по команде пользователя записать `.nfo` (формат Kodi/Jellyfin) или переименовать с `{tmdb-…}`; импорт NFO при скане.
   - deps: LIB-007, META-017 · size: M · parallel: yes · веха: M2 · ref: 03 §4.6
   - done when: экспортированный NFO читается Jellyfin в Docker-тесте.
+- [ ] **LIB-015** Импорт медиатеки pa_library v0 (релиз 0.1)
+  - Что: перенос базы Dart-пакета `pa_library` v0 в схему v1 по таблице соответствия из `docs/dev/db.md` §«Переход с pa_library v0»: источники, файлы, произведения, эпизоды, матчи, прогресс по `media_key`; старый файл только на чтение, после успеха — `*.v0.bak`.
+  - deps: LIB-001, LIB-004, LIB-011 · size: M · parallel: yes · веха: M1 · ref: ADR-0013
+  - done when: тест на фикстуре v0: все элементы и прогресс распознанных видны в v1, повторный запуск ничего не дублирует.
 
+- [ ] **LIB-016** Убрать уязвимый SQLite: refinery → rusqlite_migration
+  - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
+  - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
+  - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
 ### 3.6. META — распознавание и метаданные
 
 - [x] **META-001** Таксономия, гайд по разметке, формат корпуса
@@ -1722,7 +1730,7 @@ project_alpha/
 | CI | 12 | MUS | 15 |
 | CORE | 14 | TWI | 22 |
 | NET | 19 | DIST | 27 |
-| LIB | 14 | DSN | 15 |
+| LIB | 15 | DSN | 15 |
 | META | 22 | PKG | 17 |
 | PLAY | 12 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |

@@ -1,30 +1,96 @@
 # SPDX-License-Identifier: MPL-2.0
+#
+# Contribution checks for every PR (REPO-004):
+#   signoff  — every commit carries a DCO `Signed-off-by` line (ADR-0005)
+#   pr-title — the PR title follows CONTRIBUTING.md:
+#              `<type>(<scope>): <summary> [<ID>]`
+#
+# Fork-safe: `pull_request` only (never `pull_request_target`), read-only
+# token, no secrets; the PR title is passed through an env var, never
+# interpolated into the script.
 name: DCO
 
 on:
   pull_request:
+    types: [opened, edited, synchronize, reopened]
+  merge_group:
 
 permissions:
   contents: read
 
 jobs:
   signoff:
+    name: DCO sign-off
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
       - name: Check Signed-off-by on every commit
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
         run: |
           missing=0
           for c in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            # Dependabot cannot sign off. Its commits are exempt only in PRs
+            # opened by Dependabot itself (the PR author cannot be forged).
+            if [ "$PR_AUTHOR" = "dependabot[bot]" ] &&
+               [ "$(git log -1 --format=%an "$c")" = "dependabot[bot]" ]; then
+              continue
+            fi
             if ! git log -1 --format=%B "$c" | grep -qE '^Signed-off-by: .+ <.+>'; then
               echo "::error::Commit $c has no Signed-off-by line (use git commit -s)"
               missing=1
             fi
           done
           exit $missing
+
+  pr-title:
+    name: PR title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Conventional Commits title with task ID
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # Workstream scopes from CONTRIBUTING.md plus `deps` for Dependabot.
+          scopes='core|net|lib|meta|play|play-and|play-apl|play-dsk|ui|tv|sync|srv|mus|twi|dist|dsn|pkg|qa|docs|legal|site|comm|repo|ci|roadmap|deps|app|release'
+          types='feat|fix|docs|ci|build|chore|test|refactor|perf|style|revert'
+          id='\[([A-Z]+(-[A-Z]+)*-[0-9]{3}|R[0-9]{2}-[A-Z]+)\]'
+          re="^($types)(\\(($scopes)(,($scopes))*\\))?!?: [^ ].*[^ ]$"
+          fail() {
+            echo "::error title=PR title::$1"
+            echo "Expected: <type>(<scope>): <summary> [<ID>], e.g. 'feat(sync): add HLC clock [SYNC-001]'"
+            echo "  type:  ${types//|/, }"
+            echo "  scope: ${scopes//|/, } (optional)"
+            echo "  [ID]:  ROADMAP task ID(s) at the end; optional for fix, chore, docs, revert and (deps)"
+            exit 1
+          }
+          printf 'Title: %s\n' "$TITLE"
+          [[ "$TITLE" =~ $re ]] || fail "Not a Conventional Commits title"
+          type="${BASH_REMATCH[1]}"
+          scope="${BASH_REMATCH[3]}"
+          ids_re="[^ ] ?($id ?)*$id$"
+          has_id=0
+          [[ "$TITLE" =~ $ids_re ]] && has_id=1
+          # Brackets that look like an ID but are malformed (e.g. [core-12]).
+          if [[ "$TITLE" =~ \[[^]]*\]$ ]] && [ "$has_id" -eq 0 ]; then
+            fail "Task ID must look like [CORE-012] or [PLAY-AND-003]"
+          fi
+          case "$type" in
+            fix|chore|docs|revert) need_id=0 ;;
+            *) need_id=1 ;;
+          esac
+          [ "$scope" = "deps" ] && need_id=0
+          if [ "$need_id" -eq 1 ] && [ "$has_id" -eq 0 ]; then
+            fail "'$type' PRs must end with the ROADMAP task ID, e.g. [CORE-012]"
+          fi
+          echo "PR title OK"

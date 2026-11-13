@@ -15,14 +15,17 @@
 | [0007](0007-store-full-build-flavors.md) | Два флейвора сборки — `store` и `full` | Принят; донаты в store — предложен (DEC-003) | CORE-013, PKG-014, PKG-015 |
 | [0008](0008-android-player-embedding.md) | Встраивание плеера в Android: Activity + Flutter OSD, запасной — нативные контролы | Предложен (нужны замеры на реальном Android TV) | PLAY-AND-001 |
 | [0009](0009-desktop-player-embedding.md) | Встраивание libmpv во Flutter-десктоп: texture по умолчанию, нативное окно для HDR | Предложен (нужны замеры Windows/macOS) | PLAY-DSK-001, PLAY-DSK-009 |
-| [0012](0012-release-0-1-player-media-kit.md) | media_kit как плеер релиза 0.1 | Принят | R01-PLAYER |
-| [0011](0011-maintainer-decisions-release-0-1.md) | Решения мейнтейнера: релиз 0.1 первым, Kinolune, Twitch store/full, TMDB, Penpot | Принят | DEC-003…008 |
 | [0010](0010-nas-os-phase0.md) | NAS-ОС, фаза 0: bootc-основа, Go для установщика и демонов, медиасервер в образе | Принят | DIST-001 |
+| [0011](0011-maintainer-decisions-release-0-1.md) | Решения мейнтейнера: релиз 0.1 первым, Kinolune, Twitch store/full, TMDB, Penpot | Принят | DEC-003…008 |
+| [0012](0012-release-0-1-player-media-kit.md) | media_kit как плеер релиза 0.1 | Принят | R01-PLAYER |
 | [0013](0013-pa-vfs-blocking-positional-reads.md) | `pa-vfs`: синхронные объектно-безопасные трейты и позиционное чтение | Принят | NET-001 |
+| [0014](0014-core-runtime-settings-rusqlite.md) | Процессный runtime ядра, настройки в SQLite через rusqlite | Принят | CORE-006 |
+| [0015](0015-frb-native-assets-committed-bindings.md) | pa_core через Native Assets, привязки FRB в git | Принят | CORE-002 |
+| [0016](0016-library-sqlite-schema-refinery.md) | Медиатека в SQLite: одна схема, миграции refinery | Принят | LIB-001 |
 
 ## Запланированные ADR
 
-Решения владельца, которые ещё не приняты, оформляются ADR в статусе «Предложен» с рекомендацией и получают следующий свободный номер (сейчас 0014) в момент написания: DEC-003 (донаты в сторах), DEC-004 (название и бренд), DEC-005 (кодеки и состав FFmpeg на сервере), DEC-006 (Twitch без логина), DEC-007 (аккаунты и юрисдикция), DEC-008 (ключ TMDB в открытом коде). Рекомендации по DEC-003, DEC-006 и DEC-008 уже записаны в разделах «Открытые вопросы» ADR-0007 и ADR-0004.
+Решения владельца, которые ещё не приняты, оформляются ADR в статусе «Предложен» с рекомендацией и получают следующий свободный номер (сейчас 0017) в момент написания: DEC-003 (донаты в сторах), DEC-004 (название и бренд), DEC-005 (кодеки и состав FFmpeg на сервере), DEC-006 (Twitch без логина), DEC-007 (аккаунты и юрисдикция), DEC-008 (ключ TMDB в открытом коде). Рекомендации по DEC-003, DEC-006 и DEC-008 уже записаны в разделах «Открытые вопросы» ADR-0007 и ADR-0004.
 
 ## Статусы
 
