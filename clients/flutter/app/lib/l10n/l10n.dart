@@ -7,6 +7,7 @@
 
 import 'package:material_ui/material_ui.dart';
 
+import '../integration/player.dart';
 import 'app_localizations.dart';
 
 export 'app_localizations.dart';
@@ -20,12 +21,14 @@ extension L10nContext on BuildContext {
 /// debug builds; also picked when the device itself is set to en-XA.
 const kPseudoLocale = Locale('en', 'XA');
 
-/// Delegates for MaterialApp: our strings plus Material/Cupertino/Widgets
-/// strings from material_ui (the generated `localizationsDelegates` list
-/// points at the flutter_localizations copy of the Material delegate, which
-/// the material_ui widgets do not read).
+/// Delegates for MaterialApp: our strings, the player's own strings
+/// (pa_player, ru/en, UI-023) plus Material/Cupertino/Widgets strings from
+/// material_ui (the generated `localizationsDelegates` list points at the
+/// flutter_localizations copy of the Material delegate, which the
+/// material_ui widgets do not read).
 const List<LocalizationsDelegate<Object?>> kLocalizationsDelegates = [
   AppLocalizations.delegate,
+  PaPlayerStrings.delegate,
   ...GlobalMaterialLocalizations.delegates,
 ];
 
