@@ -1362,6 +1362,10 @@ project_alpha/
   - Что: сравнение Flutter-экранов и tvOS SwiftUI с макетами на 4 плотностях, исправление расхождений, обновление golden-тестов.
   - deps: CI-009, DSN-012, TV-007 · size: M · parallel: yes · веха: M9 · ref: 01 §4.10
   - done when: список расхождений закрыт; golden-тесты зелёные.
+- [ ] **DSN-016** Бренд: Apple-слои, MSIX, AppStream и иллюстрации пустых состояний
+  - Что: остаток DSN-006, не нужный для релиза 0.1: layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer `.icon`), ассеты MSIX (Square44/150, Wide310, StoreLogo, scale-100…400), AppStream metainfo с иконками, иллюстрации пустых состояний; всё — из мастеров `design/brand/src` тем же генератором.
+  - deps: DSN-006 · size: M · parallel: yes · веха: M5 · ref: 01 §5.2 п.3, design/brand/README.md
+  - done when: ассеты генерируются `just design brand`, `brand:check` в CI зелёный.
 
 ### 3.19. PKG — упаковка и каналы публикации
 
