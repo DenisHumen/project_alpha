@@ -3,11 +3,11 @@
 # CORE-002: Dart package pa_core (flutter_rust_bridge, Native Assets).
 # - bindings: committed FRB bindings match a fresh codegen run; the crate's
 #   rust-toolchain.toml uses the same channel as the root one.
-# - dart: format, analyze and `dart test` (tests call into the Rust core).
 # - linux: example app build + integration test under Xvfb.
 # - android: example APK (debug) build for all Android ABIs.
-# Generic Flutter checks of every package live in flutter.yml (R01-REL) once
-# it lands; this workflow keeps the Rust-specific parts.
+# Format, analyze and `dart test` of pa_core (tests call into the Rust core)
+# run in flutter.yml like for every package; this workflow keeps the
+# Rust-specific parts.
 #
 # Safe for PRs from forks: `pull_request` only, read-only token, no secrets,
 # every third-party action pinned to a full commit SHA.
@@ -73,28 +73,6 @@ jobs:
           tool: just,flutter_rust_bridge_codegen@${{ env.FRB_VERSION }}
       - name: Regenerate and diff
         run: just core frb-check
-
-  dart:
-    name: dart test (calls into Rust)
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: ${{ env.PKG }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
-        with:
-          channel: stable
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-      - run: dart pub get
-      - run: dart format --output=none --set-exit-if-changed .
-      - run: dart analyze --fatal-infos
-      - name: dart test (Native Assets hook builds pa-frb)
-        run: dart test
 
   linux:
     name: Linux example + integration test
