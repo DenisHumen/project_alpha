@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: MPL-2.0
+//! Media recognition core of project_alpha (sans-IO).
+//!
+//! The crate follows the pipeline from `docs/research/03-metadata-recognition.md`
+//! §4.2 and §7.2. For now it contains stage \[3\]: the filename/path parser
+//! ([`parse`]), which turns a relative media path into N-best
+//! [`ParsedName`](parse::ParsedName) hypotheses with weights.
+//!
+//! ```
+//! use pa_recognition::parse::parse;
+//!
+//! let result = parse("Anime/One Piece/[SubsPlease] One Piece - 1085 (1080p) [ABCD1234].mkv");
+//! let best = &result.best().parsed;
+//! assert_eq!(best.title.as_deref(), Some("One Piece"));
+//! assert_eq!(best.release_group.as_deref(), Some("SubsPlease"));
+//! assert_eq!(best.crc32.as_deref(), Some("ABCD1234"));
+//! ```
+//!
+//! The crate does no I/O and contains no network code: everything is a pure
+//! function of its input, so results are deterministic and reproducible in
+//! the evaluation harness.
+
+#![forbid(unsafe_code)]
+#![warn(missing_docs)]
+
+pub mod parse;
