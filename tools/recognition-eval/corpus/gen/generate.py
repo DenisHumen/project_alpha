@@ -184,21 +184,33 @@ def movie_ids(m):
 
 
 def movie_work(m):
-    return {"kind": "movie", "title": m["title"], "year": m["year"], "ids": movie_ids(m)}
+    return {"kind": "movie", "title": m["title"], "year": m["work_year"], "ids": movie_ids(m)}
 
 
 def show_work(s):
     ids = {k: s[k] for k in ("tmdb", "tvdb", "imdb", "tvmaze") if s.get(k)}
-    return {"kind": "show", "title": s["title"], "year": s["year"], "ids": ids}
+    return {"kind": "show", "title": s["title"], "year": s["work_year"], "ids": ids}
 
 
 # ---------------------------------------------------------------- data model
+
+def own_tv(fact):
+    """TMDB TV series of an AniDB entry: its own Wikidata id or its parent series (P179/P361)."""
+    if fact.get("tmdb", "").startswith("tv:"):
+        return fact["tmdb"]
+    return fact.get("tmdb_series")
+
 
 class Data:
     def __init__(self, titles, facts):
         self.movies = [m for m in facts["movies"] if not m.get("problems") and m.get("tmdb")]
         self.shows = [s for s in facts["shows"] if not s.get("problems") and s.get("tmdb") and s.get("episodes")]
         self.daily = [s for s in facts["daily"] if not s.get("problems") and s.get("tmdb") and s.get("episodes")]
+        for m in self.movies + self.shows + self.daily:
+            # `year` is what releasers write (titles.yaml); `work_year` is the
+            # premiere year from Wikidata (they differ by one for some films).
+            m["work_year"] = m["year"]
+            m["year"] = m.get("name_year", m["year"])
         self.anime_facts = facts["anime"]
         self.franchises = []
         for fr in titles["anime"]:
@@ -215,8 +227,13 @@ class Data:
             fr = dict(fr)
             fr["entries"] = entries
             # franchise-level TMDB series id: GUIDE §3 (TMDB id points to the common series)
-            tm = next((x["fact"]["tmdb"] for x in entries if x["fact"].get("tmdb", "").startswith("tv:")), None)
-            fr["tmdb"] = tm
+            fr["tmdb"] = own_tv(entries[0]["fact"])
+            for x in entries:
+                own = own_tv(x["fact"])
+                if x.get("tmdb_season") and (not fr["tmdb"] or (own and own != fr["tmdb"])):
+                    # TMDB positions only make sense inside the franchise's TMDB series.
+                    x.pop("tmdb_season", None)
+                    x.pop("tmdb_offset", None)
             cum = 0
             for x in entries:
                 x["abs_offset"] = cum
@@ -236,11 +253,10 @@ class Data:
         for k in ("anilist", "mal", "kitsu"):
             if f.get(k):
                 ids[k] = f[k]
-        tm = f.get("tmdb") if f.get("tmdb", "").startswith("tv:") else None
-        tm = tm or (fr.get("tmdb") if fr and entry.get("tmdb_season") else None)
+        tm = own_tv(f) or (fr.get("tmdb") if fr and (entry.get("tmdb_season") or fr.get("tmdb_shared")) else None)
         if tm:
             ids["tmdb"] = tm
-        if f.get("imdb") and f.get("tmdb"):
+        if f.get("imdb") and own_tv(f) and f.get("tmdb") == tm:
             ids["imdb"] = f["imdb"]
         return {"kind": "anime", "anime_type": f["anime_type"], "title": f["title"], "year": f["year"],
                 "ids": ids}
@@ -823,9 +839,9 @@ class Gen:
         return s["title"]
 
     # ===== anime =====
-    def fansub_name(self, rng, title, epstr, res, style, version=None, bd=False):
+    def fansub_name(self, rng, title, epstr, res, style, version=None, bd=False, grp=None):
         """Return (name, parse-extras)."""
-        grp = rng.choice(FANSUB)
+        grp = grp or rng.choice(FANSUB)
         c = crc(rng)
         v = f"v{version}" if version else ""
         if style == 0:
@@ -854,12 +870,13 @@ class Gen:
         ref = rec.work(f"aid:{entry['aid']}", work)
         has_tmdb = "tmdb" in work["ids"]
         sec = entry["fact"].get("episode_seconds") or 1440
+        grp = rec.__dict__.setdefault("fansub", rng.choice(FANSUB))  # one group per release folder
         for i, n in enumerate(numbers):
             ns = n if isinstance(n, tuple) else (n,)
             wr = written[i] if written else ns
             epstr = "-".join(f"{x:02d}" if x < 100 else str(x) for x in wr)
             version = 2 if (version_one and i == 0) else None
-            name, extra, grp, c = self.fansub_name(rng, title, epstr, res, style, version)
+            name, extra, _, c = self.fansub_name(rng, title, epstr, res, style, version, grp=grp)
             parse = {"title": title}
             if abs_numbers:
                 parse["absolute"] = list(wr)
@@ -1328,7 +1345,7 @@ class Gen:
 
     def tpl_dump(self, rng, rec):
         root = rng.choice(["Downloads", "Загрузки", "Video", "Desktop/new", "Torrents/complete", "NAS/incoming"])
-        n_movies = rng.randint(1, 3)
+        n_movies = rng.randint(2, 3)
         allow_eps = rng.random() < 0.35
         for m in rng.sample(self.d.movies, n_movies):
             style = rng.choice(["scene", "plain", "brackets"])
@@ -1368,9 +1385,9 @@ class Gen:
 
 # ---------------------------------------------------------------- driver
 
-QUOTAS = {  # primary category -> list of (template, weight)
-    "A1": 120, "A2": 115, "A3": 105, "A4": 115, "A5": 115, "A6": 120, "A7": 150, "A8": 120,
-    "A9": 110, "A10": 120, "A11": 110, "A12": 110, "A13": 105, "A14": 130, "A15": 110, "A16": 95, "A17": 120,
+QUOTAS = {  # records per primary category (secondary categories come on top)
+    "A1": 120, "A2": 115, "A3": 110, "A4": 120, "A5": 120, "A6": 120, "A7": 150, "A8": 130,
+    "A9": 120, "A10": 120, "A11": 120, "A12": 115, "A13": 110, "A14": 130, "A15": 115, "A16": 100, "A17": 120,
 }
 
 

@@ -46,7 +46,7 @@ movies:
   - {t: "The Prestige", y: 2006}
   - {t: "Dunkirk", y: 2017}
   - {t: "Oppenheimer", y: 2023}
-  - {t: "Barbie", y: 2023}
+  - {t: "Barbie", y: 2023, wd: Q55436290}
   - {t: "Gravity", y: 2013}
   - {t: "The Revenant", y: 2015}
   - {t: "Birdman", y: 2014}
@@ -69,7 +69,7 @@ movies:
   - {t: "Terminator 2: Judgment Day", y: 1991, tags: [old, digits]}
   - {t: "The Godfather", y: 1972, tags: [old]}
   - {t: "The Godfather Part II", y: 1974, tags: [old]}
-  - {t: "Jurassic Park", y: 1993, tags: [old]}
+  - {t: "Jurassic Park", y: 1993, tags: [old], wd: Q167726}
   - {t: "The Silence of the Lambs", y: 1991, tags: [old]}
   - {t: "No Country for Old Men", y: 2007}
   - {t: "There Will Be Blood", y: 2007}
@@ -111,7 +111,7 @@ movies:
   - {t: "Ocean's Eleven", y: 2001, tags: [old, remake:oceans-eleven]}
   - {t: "Halloween", y: 1978, tags: [old, remake:halloween]}
   - {t: "Halloween", y: 2007, tags: [remake:halloween]}
-  - {t: "Halloween", y: 2018, tags: [remake:halloween]}
+  - {t: "Halloween", y: 2018, tags: [remake:halloween], wd: Q20666646}
   - {t: "A Star Is Born", y: 1954, tags: [old, remake:a-star-is-born]}
   - {t: "A Star Is Born", y: 1976, tags: [old, remake:a-star-is-born]}
   - {t: "A Star Is Born", y: 2018, tags: [remake:a-star-is-born]}
@@ -123,7 +123,7 @@ movies:
   - {t: "The Lion King", y: 2019, tags: [remake:the-lion-king]}
   - {t: "Beauty and the Beast", y: 1991, tags: [old, remake:beauty-and-the-beast]}
   - {t: "Beauty and the Beast", y: 2017, tags: [remake:beauty-and-the-beast]}
-  - {t: "Aladdin", y: 1992, tags: [old, remake:aladdin]}
+  - {t: "Aladdin", y: 1992, tags: [old, remake:aladdin], wd: Q215518}
   - {t: "Aladdin", y: 2019, tags: [remake:aladdin]}
   - {t: "Godzilla", y: 1954, tags: [old, remake:godzilla]}
   - {t: "Godzilla", y: 1998, tags: [old, remake:godzilla]}
@@ -141,7 +141,7 @@ movies:
   - {t: "Crash", y: 1996, tags: [old, remake:crash]}
   - {t: "Crash", y: 2004, tags: [old, remake:crash]}
   - {t: "Cinderella", y: 1950, tags: [old, remake:cinderella]}
-  - {t: "Cinderella", y: 2015, tags: [remake:cinderella]}
+  - {t: "Cinderella", y: 2015, tags: [remake:cinderella], wd: Q15046091}
   - {t: "The Fly", y: 1958, tags: [old, remake:the-fly]}
   - {t: "The Fly", y: 1986, tags: [old, remake:the-fly]}
   - {t: "Scarface", y: 1932, tags: [old, remake:scarface]}
@@ -155,10 +155,10 @@ movies:
 
   # --- digits in the title (A14) ---
   - {t: "1917", y: 2019, tags: [digits]}
-  - {t: "2012", y: 2009, tags: [digits]}
+  - {t: "2012", y: 2009, tags: [digits], wd: Q184605}
   - {t: "300", y: 2006, tags: [digits]}
   - {t: "21", y: 2008, tags: [digits]}
-  - {t: "9", y: 2009, tags: [digits]}
+  - {t: "9", y: 2009, tags: [digits], wd: Q685785}
   - {t: "10 Cloverfield Lane", y: 2016, tags: [digits]}
   - {t: "2001: A Space Odyssey", y: 1968, tags: [old, digits]}
   - {t: "12 Angry Men", y: 1957, tags: [old, digits]}
@@ -187,7 +187,6 @@ movies:
   - {t: "Super 8", y: 2011, tags: [digits]}
   - {t: "47 Ronin", y: 2013, tags: [digits]}
   - {t: "6 Underground", y: 2019, tags: [digits]}
-  - {t: "1922", y: 2017, tags: [digits]}
   - {t: "3 Idiots", y: 2009, tags: [digits]}
   - {t: "300: Rise of an Empire", y: 2014, tags: [digits]}
   - {t: "9 to 5", y: 1980, tags: [old, digits]}
@@ -200,7 +199,7 @@ movies:
   - {t: "Deadpool 2", y: 2018, tags: [digits]}
   - {t: "John Wick: Chapter 4", y: 2023, tags: [digits]}
   - {t: "Thirteen Days", y: 2000, tags: [old]}
-  - {t: "Fantastic 4: Rise of the Silver Surfer", y: 2007, tags: [digits]}
+  - {t: "Fantastic 4: Rise of the Silver Surfer", y: 2007, tags: [digits], wd: Q390063}
   - {t: "The Intouchables", y: 2011, ru: "1+1"}
 
   # --- Soviet and Russian films (A7) ---
@@ -213,7 +212,7 @@ movies:
   - {t: "Ivan Vasilievich: Back to the Future", y: 1973, tags: [old, ru]}
   - {t: "The Diamond Arm", y: 1968, tags: [old, ru]}
   - {t: "Kidnapping, Caucasian Style", y: 1967, tags: [old, ru]}
-  - {t: "Operation Y and Shurik's Other Adventures", y: 1965, tags: [old, ru]}
+  - {t: "Operation Y and Shurik's Other Adventures", y: 1965, tags: [old, ru], wd: Q2513681}
   - {t: "Gentlemen of Fortune", y: 1971, tags: [old, ru]}
   - {t: "Office Romance", y: 1977, tags: [old, ru]}
   - {t: "White Sun of the Desert", y: 1970, tags: [old, ru]}
@@ -221,7 +220,7 @@ movies:
   - {t: "The Master and Margarita", y: 2024, tags: [ru]}
   - {t: "Leviathan", y: 2014, tags: [ru]}
   - {t: "Loveless", y: 2017, tags: [ru]}
-  - {t: "The Return", y: 2003, tags: [old, ru]}
+  - {t: "The Return", y: 2003, tags: [old, ru], wd: Q385494}
   - {t: "Night Watch", y: 2004, tags: [old, ru]}
   - {t: "Day Watch", y: 2006, tags: [ru]}
   - {t: "Stalingrad", y: 2013, tags: [ru]}
@@ -232,12 +231,12 @@ movies:
   - {t: "Going Vertical", y: 2017, tags: [ru]}
   - {t: "T-34", y: 2018, tags: [ru, digits]}
   - {t: "Serf", y: 2019, tags: [ru]}
-  - {t: "Bimmer", y: 2003, tags: [old, ru]}
+  - {t: "Bimmer", y: 2003, tags: [old, ru], wd: Q1004801}
   - {t: "The 9th Company", y: 2005, tags: [old, ru, digits]}
   - {t: "Peculiarities of the National Hunt", y: 1995, tags: [old, ru]}
   - {t: "Come and See", y: 1985, tags: [old, ru]}
   - {t: "Andrei Rublev", y: 1966, tags: [old, ru]}
-  - {t: "Mirror", y: 1975, tags: [old, ru]}
+  - {t: "Mirror", y: 1975, tags: [old, ru], wd: Q838149}
   - {t: "The Cranes Are Flying", y: 1957, tags: [old, ru]}
   - {t: "Jack Frost", y: 1964, tags: [old, ru]}
   - {t: "Kin-dza-dza!", y: 1986, tags: [old, ru]}
@@ -246,13 +245,11 @@ movies:
   - {t: "We Are from the Future", y: 2008, tags: [ru]}
   - {t: "The Fool", y: 2014, tags: [ru]}
   - {t: "Arrhythmia", y: 2017, tags: [ru]}
-  - {t: "Ice", y: 2018, tags: [ru]}
+  - {t: "Ice", y: 2018, tags: [ru], wd: Q28855345}
   - {t: "Attraction", y: 2017, tags: [ru]}
   - {t: "Major Grom: Plague Doctor", y: 2021, tags: [ru]}
   - {t: "Viy", y: 1967, tags: [old, ru, remake:viy]}
   - {t: "Forbidden Empire", y: 2014, tags: [ru, remake:viy]}
-  - {t: "War and Peace", y: 1966, tags: [old, ru]}
-  - {t: "28 Panfilov Men", y: 2016, tags: [ru, digits]}
   - {t: "8 First Dates", y: 2012, tags: [ru, digits]}
   - {t: "1612", y: 2007, tags: [ru, digits]}
   - {t: "Yolki", y: 2010, tags: [ru]}
@@ -268,8 +265,6 @@ shows:
   - {t: "Stranger Things", y: 2016}
   - {t: "The Wire", y: 2002}
   - {t: "Sherlock", y: 2010}
-  - {t: "Doctor Who", y: 2005, tags: [remake:doctor-who]}
-  - {t: "Doctor Who", y: 1963, tags: [remake:doctor-who]}
   - {t: "Battlestar Galactica", y: 2004, tags: [remake:battlestar-galactica]}
   - {t: "Battlestar Galactica", y: 1978, tags: [remake:battlestar-galactica]}
   - {t: "House of Cards", y: 2013, tags: [remake:house-of-cards]}
@@ -309,11 +304,8 @@ shows:
   - {t: "8 Simple Rules", y: 2002, tags: [digits]}
   - {t: "Station 19", y: 2018, tags: [digits]}
   - {t: "Brooklyn Nine-Nine", y: 2013}
-  - {t: "3%", y: 2016, tags: [digits]}
   # Russian series (A7)
   - {t: "The Method", y: 2015, tags: [ru]}
-  - {t: "To the Lake", y: 2019, tags: [ru]}
-  - {t: "The Boy's Word: Blood on the Asphalt", y: 2023, tags: [ru]}
   - {t: "Kitchen", y: 2012, tags: [ru]}
   - {t: "Interns", y: 2010, tags: [ru]}
   - {t: "Univer", y: 2008, tags: [ru]}
@@ -321,12 +313,9 @@ shows:
   - {t: "Brigada", y: 2002, tags: [ru]}
   - {t: "Liquidation", y: 2007, tags: [ru]}
   - {t: "The Master and Margarita", y: 2005, tags: [ru]}
-  - {t: "Major", y: 2014, tags: [ru]}
   - {t: "Fizruk", y: 2014, tags: [ru]}
-  - {t: "Trigger", y: 2018, tags: [ru]}
   - {t: "Chiki", y: 2020, tags: [ru]}
   - {t: "Psycho", y: 2020, tags: [ru]}
-  - {t: "Vampires of Midland", y: 2021, tags: [ru]}
   - {t: "An Ordinary Woman", y: 2018, tags: [ru]}
   - {t: "The Sniffer", y: 2013, tags: [ru]}
   - {t: "Guest from the Future", y: 1985, tags: [ru]}
@@ -345,7 +334,6 @@ daily:
   - {t: "The View", y: 1997}
   - {t: "Real Time with Bill Maher", y: 2003}
   - {t: "The Late Late Show with James Corden", y: 2015}
-  - {t: "Evening Urgant", y: 2012, tags: [ru]}
   - {t: "Late Night with Conan O'Brien", y: 1993}
   - {t: "The Tonight Show with Jay Leno", y: 1992}
 
@@ -356,6 +344,8 @@ daily:
 #   tmdb_offset   episodes of that TMDB season that precede this entry
 # Per franchise:
 #   abs           tvdb_absolute = regular episodes of previous entries + n
+#   tmdb_shared   every entry belongs to the TMDB series of the first entry
+#                 (maintainer knowledge, used when Wikidata has no id for it)
 #   names         filename titles: romaji, en, ru (as written by releasers)
 anime:
   - key: one-piece
@@ -383,6 +373,7 @@ anime:
       - {aid: 17765, names: {romaji: "Bleach - Sennen Kessen-hen - Ketsubetsu-tan", en: "Bleach - Thousand-Year Blood War - The Separation"}}
       - {aid: 18220, names: {romaji: "Bleach - Sennen Kessen-hen - Soukoku-tan", en: "Bleach - Thousand-Year Blood War - The Conflict"}}
   - key: gintama
+    tmdb_shared: true
     names: {romaji: "Gintama", ru: "Гинтама"}
     abs: true
     long: true
@@ -399,6 +390,7 @@ anime:
     long: true
     entries: [{aid: 266}]
   - key: fairy-tail
+    tmdb_shared: true
     names: {romaji: "Fairy Tail", ru: "Хвост Феи"}
     abs: true
     long: true

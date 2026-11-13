@@ -193,8 +193,6 @@ def pick(wd: Wikidata, title: str, year: int, prop: str, qid: str | None, proble
     if not cands:
         problems.append("no wikidata match")
         return None
-    if not exact:
-        problems.append(f"year differs by one in wikidata: {sorted(years(cands[0]))}")
     return cands[0]
 
 
@@ -208,12 +206,16 @@ def tvmaze_episodes(fx: Fetcher, tvmaze_id: int):
     return out
 
 
-def resolve_video(wd, fx, item, kind, problems):
+def resolve_video(wd, fx, item, kind, problems, daily=False):
     prop = P_TMDB_MOVIE if kind == "movie" else P_TMDB_TV
     e = pick(wd, item["t"], item["y"], prop, item.get("wd"), problems)
     if e is None:
         return None
-    rec = {"qid": e["id"], "title": item["t"], "year": item["y"],
+    ys = years(e)
+    year = item["y"] if item["y"] in ys or not ys else min(ys, key=lambda y: (abs(y - item["y"]), y))
+    if abs(year - item["y"]) > 1:
+        problems.append(f"year {item['y']} not in wikidata {sorted(ys)}")
+    rec = {"qid": e["id"], "title": item["t"], "year": year, "name_year": item["y"],
            "label_en": label(e, "en"), "label_ru": item.get("ru") or label(e, "ru"),
            "checks": []}
     tmdb = claim_str(e, prop)
@@ -258,7 +260,12 @@ def resolve_video(wd, fx, item, kind, problems):
         rec["tvdb"] = tv
     prem = (show.get("premiered") or "")[:4]
     if prem.isdigit() and abs(int(prem) - item["y"]) > 1:
-        problems.append(f"tvmaze premiered {prem} vs {item['y']}")
+        if daily:
+            # TVmaze splits long-running talk shows by host; the air dates are
+            # still episodes of the same TMDB series.
+            rec["note"] = f"tvmaze show {show['id']} premiered {prem}"
+        else:
+            problems.append(f"tvmaze premiered {prem} vs {item['y']}")
     rec["runtime_min"] = show.get("averageRuntime") or show.get("runtime")
     rec["episodes"] = tvmaze_episodes(fx, show["id"])
     rec["checks"].append("episodes:tvmaze")
@@ -325,6 +332,23 @@ def resolve_anime(wd, aod, aid, problems):
         rec["label_ja"] = label(e, "ja")
     elif len(hits) > 1:
         rec["note"] = f"several wikidata items for aid {aid}: {hits}"
+    if rec["anime_type"] != "movie" and hits:
+        # Season items carry the AniDB id, the TMDB TV id sits on the series
+        # item ("part of the series" P179 / "part of" P361). GUIDE §3: the
+        # TMDB id of a season-like AniDB entry is the common series.
+        series = set()
+        for e in wd.entities(hits).values():
+            parents = [v["id"] for p in ("P179", "P361") for v in claim_values(e, p)
+                       if isinstance(v, dict) and v.get("id")]
+            for pe in wd.entities(parents[:5]).values():
+                t = claim_str(pe, P_TMDB_TV)
+                if t:
+                    series.add(f"tv:{t}")
+        if len(series) == 1:
+            rec["tmdb_series"] = series.pop()
+            rec["checks"].append("tmdb_series:wikidata(P179/P361)")
+        elif series:
+            rec["note"] = (rec.get("note", "") + f" several parent series {sorted(series)}").strip()
     return rec
 
 
@@ -351,7 +375,7 @@ def main():
         kind = "movie" if section == "movies" else "show"
         for item in titles[section]:
             problems: list[str] = []
-            rec = resolve_video(wd, fx, item, kind, problems)
+            rec = resolve_video(wd, fx, item, kind, problems, daily=section == "daily")
             key = f"{section}:{item['t']} ({item['y']})"
             if rec is None:
                 facts["problems"].append({"key": key, "problems": problems})
