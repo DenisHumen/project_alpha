@@ -1,0 +1,28 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "total": 3,
+    "data": [
+      {
+        "broadcaster_id": "1003",
+        "broadcaster_login": "nordlicht",
+        "broadcaster_name": "Nordlicht",
+        "followed_at": "2024-01-05T18:00:00Z"
+      },
+      {
+        "broadcaster_id": "1002",
+        "broadcaster_login": "quiet_owl",
+        "broadcaster_name": "Quiet_Owl",
+        "followed_at": "2023-05-11T12:30:00Z"
+      }
+    ],
+    "pagination": {
+      "cursor": "eyJiIjpudWxsLCJhIjp7Ik9mZnNldCI6Mn19"
+    }
+  }
+}
