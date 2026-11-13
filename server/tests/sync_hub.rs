@@ -416,7 +416,7 @@ async fn load_50_devices_10_messages_per_second() {
     let mut tasks = Vec::new();
     for (i, ws) in devices.into_iter().enumerate() {
         let (mut tx, mut rx) = ws.split();
-        let sent_ops = Arc::clone(&sent_ops);
+        let ops_sent = Arc::clone(&sent_ops);
         let device = format!("dev{i}");
         let writer = tokio::spawn(async move {
             // Spread the devices over the 100 ms tick.
@@ -427,7 +427,7 @@ async fn load_50_devices_10_messages_per_second() {
                 tick.tick().await;
                 let msg = if n % PER_SECOND == PER_SECOND - 1 {
                     let op = progress_op(&device, i as u32, n * 1000, 1_763_000_000_000 + n);
-                    sent_ops.lock().unwrap().insert(op.op_id, Instant::now());
+                    ops_sent.lock().unwrap().insert(op.op_id, Instant::now());
                     ops += 1;
                     Message::Op(OpFrame::plain(&op).unwrap())
                 } else {
