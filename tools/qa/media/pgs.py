@@ -71,14 +71,20 @@ def _bitmap(width: int, height: int, blocks: int) -> list[list[int]]:
 def write_sup(path, events: list[tuple[float, float]], video=(1920, 1080)) -> None:
     """Writes `events` [(start_s, end_s), ...]; event N shows N yellow blocks."""
     vw, vh = video
-    out = bytearray()
+    # An empty epoch at PTS 0, so the stream starts at 0 and FFmpeg does not
+    # shift the real events when muxing with video.
+    out = bytearray(
+        _segment(PCS, 0, struct.pack(">HHBHBBBB", vw, vh, 0x10, 0, 0x80, 0, 0, 0))
+        + _segment(WDS, 0, struct.pack(">B", 0))
+        + _segment(END, 0, b"")
+    )
     for k, (start, end) in enumerate(events):
         blocks = k + 1
         w, h = 20 + 40 * blocks, 50
         x, y = (vw - w) // 2, vh - h - vh // 12
         rle = b"".join(rle_line(r) for r in _bitmap(w, h, blocks))
         pts = round(start * 90000)
-        pcs = struct.pack(">HHBHBBBB", vw, vh, 0x10, 2 * k, 0x80, 0, 0, 1)
+        pcs = struct.pack(">HHBHBBBB", vw, vh, 0x10, 2 * k + 1, 0x80, 0, 0, 1)
         pcs += struct.pack(">HBBHH", 0, 0, 0, x, y)
         wds = struct.pack(">BBHHHH", 1, 0, x, y, w, h)
         pds = struct.pack(">BB", 0, 0) + b"".join(bytes(e) for e in PALETTE)
@@ -88,7 +94,7 @@ def write_sup(path, events: list[tuple[float, float]], video=(1920, 1080)) -> No
         out += _segment(ODS, pts, ods) + _segment(END, pts, b"")
         # Clearing display set: composition without objects.
         pts = round(end * 90000)
-        pcs = struct.pack(">HHBHBBBB", vw, vh, 0x10, 2 * k + 1, 0x00, 0, 0, 0)
+        pcs = struct.pack(">HHBHBBBB", vw, vh, 0x10, 2 * k + 2, 0x00, 0, 0, 0)
         out += _segment(PCS, pts, pcs) + _segment(WDS, pts, wds) + _segment(END, pts, b"")
     with open(path, "wb") as f:
         f.write(out)

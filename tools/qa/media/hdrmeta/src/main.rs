@@ -41,9 +41,11 @@ fn main() -> ExitCode {
     let result = match args.iter().map(String::as_str).collect::<Vec<_>>()[..] {
         ["dovi", profile, input, output] => run(input, output, Mode::Dovi(profile.to_owned())),
         ["hdr10plus", input, output] => run(input, output, Mode::Hdr10Plus),
-        _ => Err("usage: pa-hdrmeta dovi <5|8.1|8.4> <in.hevc> <out.hevc>\n       \
+        _ => Err(
+            "usage: pa-hdrmeta dovi <5|8.1|8.4> <in.hevc> <out.hevc>\n       \
                   pa-hdrmeta hdr10plus <in.hevc> <out.hevc>"
-            .into()),
+                .into(),
+        ),
     };
     match result {
         Ok(frames) => {
@@ -111,7 +113,10 @@ fn dovi_rpus(profile: &str, frames: usize) -> Res<Vec<Vec<u8>>> {
     // One shot, constant L1 (min/max/avg PQ) — enough for parsers and players
     // to recognise and apply the RPU.
     let l1 = ExtMetadataBlock::Level1(ExtMetadataBlockLevel1::from_stats_cm_version(
-        0, 2081, 1229, dolby_vision::rpu::vdr_dm_data::CmVersion::V40,
+        0,
+        2081,
+        1229,
+        dolby_vision::rpu::vdr_dm_data::CmVersion::V40,
     ));
     let config = GenerateConfig {
         profile,
@@ -146,7 +151,10 @@ fn hdr10plus_metadata() -> Hdr10PlusMetadata {
         distribution_maxrgb: percentages
             .iter()
             .zip(percentiles)
-            .map(|(&percentage, percentile)| DistributionMaxRgb { percentage, percentile })
+            .map(|(&percentage, percentile)| DistributionMaxRgb {
+                percentage,
+                percentile,
+            })
             .collect(),
         tone_mapping_flag: true,
         bezier_curve: Some(BezierCurve {
