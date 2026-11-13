@@ -48,6 +48,18 @@ xcframework *args:
 test-pacore platform='macos':
     tools/bindings/test-pacore.sh {{ platform }}
 
+# Android: AAR pa-core-android (cargo-ndk jniLibs + UniFFI Kotlin) into target/android (CORE-004)
+aar *args:
+    tools/bindings/build-aar.sh {{ args }}
+
+# Android: check the AAR contents (ABIs, ELF machine, 16 KB alignment, Kotlin API); no device needed
+check-aar *args:
+    tools/bindings/check-aar.sh {{ args }}
+
+# Android: instrumented tests of pa-core-android on a running emulator or device
+test-aar:
+    tools/bindings/test-aar.sh
+
 # flutter_rust_bridge version; keep equal to Cargo.toml and pa_core/pubspec.yaml
 frb_version := '2.13.0'
 

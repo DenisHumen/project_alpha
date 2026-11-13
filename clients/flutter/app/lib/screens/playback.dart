@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
 import '../integration/player.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../widgets/format.dart';
 
@@ -16,7 +17,7 @@ Future<void> playVideo(
 }) async {
   final services = Services.read(context);
   final title = item.kind == ItemKind.episode
-      ? '${episodeCode(item)}  ${item.title}'
+      ? '${episodeCode(context.l10n, item)}  ${item.title}'
       : item.title;
   services.music.pause();
   await Navigator.of(context, rootNavigator: true).push(

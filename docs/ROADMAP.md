@@ -305,7 +305,7 @@ project_alpha/
   - Что: `tools/bindings/build-xcframework.sh` (ios, ios-sim, tvos, tvos-sim, macos universal), binary target и Swift-обёртка UniFFI.
   - deps: CORE-001 · size: M · parallel: yes · веха: M0 · ref: 02 §1.4, 04 §4.4
   - done when: XCTest на симуляторах iOS и tvOS вызывает `core_version()`.
-- [ ] **CORE-004** Android: AAR `pa-core-android`
+- [x] **CORE-004** Android: AAR `pa-core-android`
   - Что: cargo-ndk → jniLibs (arm64-v8a, armeabi-v7a, x86_64), Gradle-модуль с UniFFI Kotlin.
   - deps: CORE-001 · size: S · parallel: yes · веха: M0 · ref: 02 §1.4
   - done when: instrumented-тест на эмуляторе вызывает ядро.
@@ -878,7 +878,7 @@ project_alpha/
   - Что: добавление источника, сервера или настроек на TV с телефона или десктопа в той же LAN (без облака); ввод текста на TV с телефона.
   - deps: UI-002, SYNC-005 · size: M · parallel: yes · веха: M3 · ref: 01 §3 п.12, S §2
   - done when: пароль SMB, введённый на телефоне, попадает на Android TV и сохраняется в SecretStore TV, а не в логи и не в sync-журнал.
-- [ ] **UI-020** Локализация ru и en
+- [x] **UI-020** Локализация ru и en
   - Что: gen-l10n (ARB), ключи с префиксом фичи, плюрализация для ru (one, few, many), форматы дат и чисел; CI-проверка отсутствующих ключей; псевдолокализация.
   - deps: UI-001 · size: M · parallel: yes · веха: M1 · ref: CLAUDE.md (язык), 01 §4.4
   - done when: CI падает на непереведённом ключе; длинные русские строки не обрезаются в golden-тестах.
@@ -976,7 +976,7 @@ project_alpha/
   - Что: `.project_alpha/state/<device_id>.jsonl` в папке SMB или WebDAV — append-only журнал на каждое устройство, слияние по HLC, компакция в снапшоты, блокировки не нужны (каждое устройство пишет свой файл).
   - deps: SYNC-001, NET-003, NET-004 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: тест с тремя устройствами, работающими офлайн и онлайн в произвольном порядке, сходится.
-- [ ] **SYNC-008** Хаб синхронизации на сервере
+- [x] **SYNC-008** Хаб синхронизации на сервере
   - Что: WebSocket-эндпоинт в SRV; сервер авторитетен для своей библиотеки; fan-out не дольше 200 мс; журнал `server_seq`; клиенты одновременно держат сервер и P2P, дубликаты гасятся по op_id и HLC.
   - deps: SYNC-002, SRV-001 · size: M · parallel: yes · веха: M4 · ref: 04 §1.8.1
   - done when: нагрузочный тест: 50 устройств, 10 сообщений в секунду, задержка p95 меньше 200 мс.
@@ -1074,7 +1074,7 @@ project_alpha/
 
 ### 3.15. MUS — музыкальный плеер
 
-- [ ] **MUS-001** Музыкальная библиотека: схема и скан тегов
+- [x] **MUS-001** Музыкальная библиотека: схема и скан тегов
   - Что: Artist, ReleaseGroup, Release, Recording, Track (MBID), AudioFile, жанры, композиторы, вид «папки»; чтение тегов (ID3v2, Vorbis, MP4, APE через lofty), встроенные обложки и `folder.jpg`, мультидиск.
   - deps: LIB-001, LIB-003 · size: M · parallel: yes · веха: M6 · ref: 03 §5 (музыка), 01 §4.11
   - done when: коллекция из 5 000 треков индексируется; сборники разбираются правильно.
@@ -1141,7 +1141,7 @@ project_alpha/
   - Что: users, channels/followed, streams/followed, streams, channels, videos, clips, games и games/top, search, schedule, chat emotes, badges, color, settings; token bucket по заголовкам `Ratelimit-*`; курсорная пагинация с дедупликацией.
   - deps: CORE-006 · size: M · parallel: yes · веха: M7 · ref: 06 §1.1, §1.4
   - done when: тесты на записанных ответах; 429 обрабатывается корректно.
-- [ ] **TWI-002** Вход через Device Code Flow
+- [x] **TWI-002** Вход через Device Code Flow
   - Что: публичный client_id без секрета; QR и `user_code`; опрос токена; refresh заранее (меньше 10 мин до истечения) и строго по одному; повторный вход после 30 дней неактивности; отдельный токен на каждое устройство в SecretStore; минимальные scope.
   - deps: TWI-001, CORE-007 · size: M · parallel: yes · веха: M7 · ref: 06 §1.3, 04 §5.1.1
   - done when: тест гонки refresh; токены не появляются в логах и sync-журнале.

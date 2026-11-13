@@ -26,6 +26,13 @@ const TABLES: &[&str] = &[
     "match_candidates",
     "match_episodes",
     "matches",
+    "music_album_artists",
+    "music_albums",
+    "music_artists",
+    "music_genres",
+    "music_track_artists",
+    "music_track_genres",
+    "music_tracks",
     "parse_results",
     "playlist_items",
     "playlists",
@@ -376,6 +383,18 @@ fn build_graph(conn: &Connection) -> Graph {
             VALUES (90, 'library_scan', 2, {now}, {now});
         INSERT INTO sync_outbox (op_id, op, payload, hlc, next_attempt_at_ms, created_at_ms)
             VALUES ('0190f5b8-7d2c-7cc0-8a4e-2b7d6f1e9a10', 'watched', '{{}}', '1.0@dev-a', {now}, {now});
+
+        INSERT INTO files (id, source_id, path, size_bytes, added_at_ms)
+            VALUES (102, 10, 'Music/Artist/Album/01.flac', 1000, {now});
+        INSERT INTO music_artists (id, name, name_key, created_at_ms) VALUES (110, 'Artist', 'artist', {now});
+        INSERT INTO music_albums (id, album_key, title, art_kind, art_source_id, art_path, created_at_ms, updated_at_ms)
+            VALUES (111, 'aa:artist|album', 'Album', 'folder', 10, 'Music/Artist/Album/cover.jpg', {now}, {now});
+        INSERT INTO music_album_artists (album_id, artist_id, position) VALUES (111, 110, 0);
+        INSERT INTO music_tracks (id, file_id, album_id, title, tagged_size_bytes, tagged_at_ms)
+            VALUES (112, 102, 111, 'Song', 1000, {now});
+        INSERT INTO music_track_artists (track_id, artist_id, role, position) VALUES (112, 110, 'artist', 0);
+        INSERT INTO music_genres (id, name, name_key) VALUES (113, 'Rock', 'rock');
+        INSERT INTO music_track_genres (track_id, genre_id, position) VALUES (112, 113, 0);
         "
     ))
     .unwrap();
@@ -436,9 +455,19 @@ fn deleting_a_source_removes_its_files_but_keeps_the_catalog() {
         "match_episodes",
         "match_candidates",
         "folder_rules",
+        "music_tracks",
+        "music_track_artists",
+        "music_track_genres",
     ] {
         assert_eq!(count(&conn, table), 0, "{table}");
     }
+    // Albums and artists stay until `music::remove_orphans`; the cover
+    // reference loses its source.
+    assert_eq!(count(&conn, "music_albums"), 1);
+    let art_source: Option<i64> = conn
+        .query_row("SELECT art_source_id FROM music_albums", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(art_source, None);
     assert_eq!(count(&conn, "works"), 2);
     assert_eq!(count(&conn, "episodes"), 2);
     // User state is keyed by media key and survives the source.
@@ -474,7 +503,7 @@ fn deleting_a_work_cascades_through_the_catalog() {
         .unwrap();
     assert_eq!(favorites_of_work, 0);
     // Files stay, now unmatched; the anime entry loses its relation.
-    assert_eq!(count(&conn, "files"), 2);
+    assert_eq!(count(&conn, "files"), 3);
     let prev: Option<i64> = conn
         .query_row(
             "SELECT relation_prev FROM anime_entries WHERE work_id = ?1",
@@ -677,6 +706,10 @@ fn checks_reject_bad_values() {
         "INSERT INTO jobs (type, state, created_at_ms, updated_at_ms) VALUES ('cleanup', 'stuck', 0, 0)",
         "INSERT INTO jobs (type, params_json, created_at_ms, updated_at_ms) VALUES ('cleanup', '{', 0, 0)",
         "INSERT INTO collections (name, kind, created_at_ms, updated_at_ms) VALUES ('s', 'smart', 0, 0)",
+        "INSERT INTO music_artists (name, name_key, mbid, created_at_ms) VALUES ('a', 'a', 'B1A9C0E9-D987-4042-AE91-78D6A3267D69', 0)",
+        "INSERT INTO music_albums (album_key, title, art_kind, created_at_ms, updated_at_ms) VALUES ('k', 't', 'folder', 0, 0)",
+        "INSERT INTO music_albums (album_key, title, art_kind, art_path, created_at_ms, updated_at_ms) VALUES ('k', 't', 'web', 'x', 0, 0)",
+        "INSERT INTO music_genres (name, name_key) VALUES ('', '')",
     ];
     for sql in bad {
         let err = conn.execute(sql, []).unwrap_err();

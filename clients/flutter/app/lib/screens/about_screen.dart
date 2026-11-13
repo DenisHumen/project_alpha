@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../branding.dart';
+import '../l10n/l10n.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/focusable.dart';
 import '../widgets/logo.dart';
@@ -14,6 +15,7 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
     final theme = Theme.of(context);
+    final l = context.l10n;
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -28,7 +30,7 @@ class AboutScreen extends StatelessWidget {
               Align(
                 alignment: Alignment.centerLeft,
                 child: IconButton(
-                  tooltip: 'Back',
+                  tooltip: l.commonBack,
                   onPressed: () => Navigator.of(context).maybePop(),
                   icon: const Icon(Icons.arrow_back),
                 ),
@@ -39,14 +41,15 @@ class AboutScreen extends StatelessWidget {
               child: KinoluneLogo(size: d.isTv ? 44 : 56),
             ),
             const SizedBox(height: 16),
-            Text('Version $kAppVersion', style: theme.textTheme.labelMedium),
+            Text(
+              l.aboutVersion(kAppVersion),
+              style: theme.textTheme.labelMedium,
+            ),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 640),
               child: Text(
-                '$kAppName is a free, open-source media player for your own library: movies, shows and music '
-                'from local folders and network shares. Everything runs on your devices — no accounts, no cloud, '
-                'no tracking. Licensed under the Mozilla Public License 2.0.',
+                l.aboutDescription(kAppName),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: KColors.textSecondary,
                 ),
@@ -64,7 +67,7 @@ class AboutScreen extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: KButton(
                 autofocus: !d.isPhone,
-                label: 'Open-source licences',
+                label: l.aboutLicenses,
                 icon: Icons.description_outlined,
                 onPressed: () => showLicensePage(
                   context: context,
@@ -74,8 +77,9 @@ class AboutScreen extends StatelessWidget {
                     padding: EdgeInsets.all(12),
                     child: KinoluneLogo(size: 48, showName: false),
                   ),
+                  // Legal notice, kept verbatim in English.
                   applicationLegalese:
-                      'Mozilla Public License 2.0. $kTmdbNotice',
+                      'Mozilla Public License 2.0. $kTmdbNotice', // l10n-ignore
                 ),
               ),
             ),
@@ -84,12 +88,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 640),
-              child: Text(
-                'Playback uses libmpv and FFmpeg, shared libraries under the '
-                'GNU LGPL v2.1+ (source: mpv.io, ffmpeg.org). Typeface: Inter, '
-                'SIL Open Font License 1.1. Full texts are in “Open-source licences”.',
-                style: theme.textTheme.bodySmall,
-              ),
+              child: Text(l.aboutThirdParty, style: theme.textTheme.bodySmall),
             ),
           ],
         ),
@@ -107,6 +106,7 @@ class TmdbAttribution extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = context.l10n;
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 640),
       child: Container(
@@ -126,7 +126,7 @@ class TmdbAttribution extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                'TMDB',
+                'TMDB', // l10n-ignore: brand name
                 style: theme.textTheme.titleSmall?.copyWith(letterSpacing: 1.5),
               ),
             ),
@@ -135,12 +135,9 @@ class TmdbAttribution extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Metadata and images',
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  Text(l.aboutTmdbHeading, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 4),
-                  Text(kTmdbNotice, style: theme.textTheme.bodySmall),
+                  Text(l.commonTmdbNotice, style: theme.textTheme.bodySmall),
                   const SizedBox(height: 4),
                   SelectableText(
                     kTmdbUrl,

@@ -1,0 +1,88 @@
+# SPDX-License-Identifier: MPL-2.0
+# CORE-004: Rust core as the AAR pa-core-android (cargo-ndk jniLibs for
+# arm64-v8a, armeabi-v7a, x86_64 + UniFFI Kotlin bindings); checks the AAR
+# contents and runs the instrumented test (Kotlin calls the core) on an
+# x86_64 emulator. May be folded into the Android CI job by CI-006.
+name: Android core (pa-core-android)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
+    paths:
+      - "core/crates/**"
+      - "tools/bindings/**"
+      - "core/justfile"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/android-core.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-core-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in sync with tools/bindings/build-aar.sh and pa-core-android/build.gradle.kts.
+  NDK_VERSION: "29.0.14206865"
+  CARGO_NDK_VERSION: "4.1.2"
+
+jobs:
+  aar:
+    name: AAR and instrumented test
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          gradle-version: "9.9.1"
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Install cargo-ndk and the NDK
+        run: |
+          cargo install cargo-ndk --version "$CARGO_NDK_VERSION" --locked
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;$NDK_VERSION" "platforms;android-36"
+      - name: Build pa-core-android.aar (all ABIs)
+        run: tools/bindings/build-aar.sh
+      - name: Check AAR contents
+        run: tools/bindings/check-aar.sh
+      - name: Enable KVM for the emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Instrumented test on the emulator (API 34, x86_64)
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d # v2.38.0
+        with:
+          api-level: 34
+          arch: x86_64
+          target: default
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          script: tools/bindings/test-aar.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: pa-core-android
+          path: |
+            target/android/pa-core-android.aar
+            tools/bindings/pa-core-android/build/outputs/androidTest-results
+          retention-days: 7
+          if-no-files-found: warn

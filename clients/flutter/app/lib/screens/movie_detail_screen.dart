@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/focusable.dart';
@@ -33,6 +34,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   Widget build(BuildContext context) {
     final item = widget.item;
     final d = KDensity.of(context);
+    final l = context.l10n;
     return StreamBuilder<List<(LibraryItem, Progress)>>(
       stream: _cw,
       builder: (context, snap) {
@@ -42,8 +44,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
         }
         final meta = [
           if (item.year != null) '${item.year}',
-          formatRuntime(item.durationMs),
-          if (progress != null) formatRemaining(progress),
+          formatRuntime(l, item.durationMs),
+          if (progress != null) formatRemaining(l, progress),
         ].where((s) => s.isNotEmpty).join('  ·  ');
         return DetailBackdropPage(
           item: item,
@@ -54,8 +56,8 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               primary: true,
               icon: Icons.play_arrow_rounded,
               label: progress != null
-                  ? 'Resume ${formatClock(progress.positionMs)}'
-                  : 'Play',
+                  ? l.detailResumeAt(formatClock(progress.positionMs))
+                  : l.commonPlay,
               onPressed: () => playVideo(
                 context,
                 item,
@@ -65,12 +67,12 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
             if (progress != null)
               KButton(
                 icon: Icons.replay,
-                label: 'From beginning',
+                label: l.detailFromBeginning,
                 onPressed: () => playVideo(context, item),
               ),
             KButton(
               icon: Icons.manage_search,
-              label: 'Fix match',
+              label: l.commonFixMatch,
               onPressed: () => showFixMatchDialog(
                 context,
                 item,

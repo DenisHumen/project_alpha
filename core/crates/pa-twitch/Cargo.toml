@@ -2,7 +2,7 @@
 [package]
 name = "pa-twitch"
 version = "0.1.0"
-description = "Twitch Helix API client: users, follows, streams, VODs, clips, categories, chat metadata (TWI-001)"
+description = "Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -19,12 +19,13 @@ reqwest = ["dep:reqwest", "dep:rustls"]
 testing = []
 
 [dependencies]
+pa-secrets = { path = "../pa-secrets" }
 reqwest = { workspace = true, optional = true, features = ["http2", "rustls-no-provider"] }
 rustls = { workspace = true, optional = true, features = ["ring", "std", "tls12"] }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["time"] }
+tokio = { workspace = true, features = ["rt", "sync", "time"] }
 
 [dev-dependencies]
 pa-twitch = { path = ".", features = ["testing"] }

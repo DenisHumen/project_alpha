@@ -14,6 +14,9 @@ analyzer:
     - build/**
     - android/**
     - linux/**
+    # gen-l10n output: its unused localizationsDelegates list refers to the
+    # deprecated flutter_localizations Material delegate (see lib/l10n/l10n.dart).
+    - lib/l10n/app_localizations*.dart
 
 linter:
   # The lint rules applied to this project can be customized in the

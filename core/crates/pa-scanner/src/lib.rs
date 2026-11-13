@@ -15,6 +15,10 @@
 //! - [`ScanRules`] decides what is recorded; the defaults are the
 //!   release-0.1 rules (samples, extras, BDMV/VIDEO_TS, NAS service folders
 //!   and hidden entries are skipped).
+//! - [`index_music`] (MUS-001) runs after [`scan`]: it reads the tags of new
+//!   and changed audio files with `lofty` ([`read_tags`], path fallback
+//!   [`path_info`]) and fills the music tables of `pa_library::music`
+//!   (artists, albums, tracks, genres, ReplayGain, covers).
 //!
 //! ```
 //! use pa_scanner::{CancelToken, ScanOptions, scan};
@@ -39,9 +43,13 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
+mod music;
 mod rules;
 mod scan;
+mod tags;
 mod walk;
+
+pub use music::{COVER_EXTENSIONS, COVER_NAMES, MusicOptions, MusicReport, index_music};
 
 pub use rules::{
     AUDIO_EXTENSIONS, IGNORED_FOLDERS, MediaKind, ScanRules, VIDEO_EXTENSIONS, is_extra_file,
@@ -50,4 +58,7 @@ pub use rules::{
 pub use scan::{
     CancelToken, DEFAULT_GRACE_PERIOD, ScanError, ScanEvent, ScanOptions, ScanProgress, ScanReport,
     scan,
+};
+pub use tags::{
+    EmbeddedArt, PathInfo, TagError, path_info, read_embedded_art, read_tags, with_path_fallback,
 };

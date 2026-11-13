@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 
-String formatRuntime(int? ms) {
+String formatRuntime(AppLocalizations l, int? ms) {
   if (ms == null || ms <= 0) return '';
   final m = (ms / 60000).round();
-  if (m < 60) return '$m min';
-  return '${m ~/ 60} h ${m % 60} min';
+  if (m < 60) return l.formatMinutes(m);
+  return l.formatHoursMinutes(m ~/ 60, m % 60);
 }
 
 String formatClock(int ms) {
@@ -15,14 +16,15 @@ String formatClock(int ms) {
   return '${d.inMinutes}:${s.toString().padLeft(2, '0')}';
 }
 
-String formatRemaining(Progress p) {
+String formatRemaining(AppLocalizations l, Progress p) {
   final left = ((p.durationMs - p.positionMs) / 60000).round();
   return left >= 60
-      ? '${left ~/ 60} h ${left % 60} min left'
-      : '$left min left';
+      ? l.formatHoursMinutesLeft(left ~/ 60, left % 60)
+      : l.formatMinutesLeft(left);
 }
 
-String episodeCode(LibraryItem e) => 'S${e.season ?? 0} · E${e.episode ?? 0}';
+String episodeCode(AppLocalizations l, LibraryItem e) =>
+    l.showEpisodeCode(e.season ?? 0, e.episode ?? 0);
 
 /// Seed for generated album art: the folder of the track (shared by an album).
 String albumSeedFor(LibraryItem track) {
@@ -31,16 +33,16 @@ String albumSeedFor(LibraryItem track) {
 }
 
 /// Groups tracks into albums, preserving first-seen order.
-List<Album> groupAlbums(List<LibraryItem> tracks) {
+List<Album> groupAlbums(AppLocalizations l, List<LibraryItem> tracks) {
   final map = <String, Album>{};
   for (final t in tracks) {
-    final key = '${t.artist ?? ''}\u0000${t.album ?? 'Unknown album'}';
+    final key = '${t.artist ?? ''}\u0000${t.album ?? ''}';
     map
         .putIfAbsent(
           key,
           () => Album(
-            t.album ?? 'Unknown album',
-            t.artist ?? 'Unknown artist',
+            t.album ?? l.musicUnknownAlbum,
+            t.artist ?? l.musicUnknownArtist,
             t.year,
             albumSeedFor(t),
             t.posterUrl,

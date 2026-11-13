@@ -28,6 +28,7 @@ concurrency:
 
 jobs:
   xcframework:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: xcframework and XCTest
     runs-on: macos-15
     timeout-minutes: 60
