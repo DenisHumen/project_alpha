@@ -1,4 +1,4 @@
-# ADR-NNNN: Xcode-проект tvOS-приложения генерируется XcodeGen из `project.yml`
+# ADR-0023: Xcode-проект tvOS-приложения генерируется XcodeGen из `project.yml`
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
