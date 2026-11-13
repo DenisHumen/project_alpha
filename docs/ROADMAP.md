@@ -313,7 +313,7 @@ project_alpha/
   - Что: MediaItem, Work, Season, Episode, MediaFile, Track, Album, Artist, Streamer, Video; `MediaKey` (`file:<fp>`, `tmdb:…`, `twitch:vod:<id>`, `twitch:rec:<id>`, `twitch:clip:<slug>`); `PlaybackItem` (source_type, position, duration, updated_at, device_id); serde и версия схемы.
   - deps: REPO-001 · size: M · parallel: no · веха: M0 · ref: 04 §1.8, 06 §5.2, 01 §2.7
   - done when: round-trip-тесты serde; `MediaKey` парсится и печатается без потерь.
-- [ ] **CORE-006** `pa-runtime`: жизненный цикл и конфигурация
+- [x] **CORE-006** `pa-runtime`: жизненный цикл и конфигурация
   - Что: tokio-runtime в ядре, init/shutdown/foreground/background, каталоги данных по платформам (на tvOS — Application Support и Caches), колбэк-интерфейсы платформы, настройки (KV в SQLite, миграции, экспорт и импорт).
   - deps: CORE-001, CORE-005 · size: M · parallel: no · веха: M0 · ref: 02 §4, 04 §1.4 п.5
   - done when: тесты жизненного цикла; повторный init после shutdown работает; настройки переживают перезапуск.
