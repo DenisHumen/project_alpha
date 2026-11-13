@@ -77,15 +77,25 @@ pub(crate) fn lookup(lower: &str) -> Option<Entry> {
         "hdr" | "hdr10" | "hdr10+" | "hdr10plus" | "dovi" | "hlg" | "dolbyvision" => strong(Hdr),
         "dv" | "sdr" => weak(Hdr),
         // Languages.
-        "rus" | "russian" => strong(Lang("rus")),
-        "eng" | "english" => strong(Lang("eng")),
-        "jap" | "jpn" | "japanese" => strong(Lang("jpn")),
-        "ukr" | "ukrainian" => strong(Lang("ukr")),
-        "ger" | "deu" | "german" => strong(Lang("ger")),
-        "fre" | "fra" | "french" | "vostfr" | "vff" | "truefrench" => strong(Lang("fre")),
-        "spa" | "spanish" | "castellano" => strong(Lang("spa")),
-        "ita" | "italian" => strong(Lang("ita")),
-        "kor" | "korean" => strong(Lang("kor")),
+        // Full language names are also title words (`The Italian Job`): weak.
+        "rus" => strong(Lang("rus")),
+        "russian" => weak(Lang("rus")),
+        "eng" => strong(Lang("eng")),
+        "english" => weak(Lang("eng")),
+        "jap" | "jpn" => strong(Lang("jpn")),
+        "japanese" => weak(Lang("jpn")),
+        "ukr" => strong(Lang("ukr")),
+        "ukrainian" => weak(Lang("ukr")),
+        "ger" | "deu" => strong(Lang("ger")),
+        "german" => weak(Lang("ger")),
+        "fre" | "fra" | "vostfr" | "vff" | "truefrench" => strong(Lang("fre")),
+        "french" => weak(Lang("fre")),
+        "spa" | "castellano" => strong(Lang("spa")),
+        "spanish" => weak(Lang("spa")),
+        "ita" => strong(Lang("ita")),
+        "italian" => weak(Lang("ita")),
+        "kor" => strong(Lang("kor")),
+        "korean" => weak(Lang("kor")),
         "chi" | "chs" | "cht" | "chinese" | "gb" | "big5" => {
             if matches!(lower, "gb" | "big5") {
                 weak(Lang("chi"))
@@ -239,6 +249,9 @@ pub(crate) fn is_dub_studio(lower: &str) -> bool {
             | "flarrow"
             | "lakefilms"
             | "anistar"
+            | "animaunt"
+            | "jamclub"
+            | "jam-club"
             | "animedia"
     )
 }
@@ -280,6 +293,12 @@ pub(crate) const PHRASES: &[(&[&str], Lex)] = &[
     (&["red", "head", "sound"], Lex::Dub),
     (&["gears", "media"], Lex::Dub),
     (&["hdrezka", "studio"], Lex::Dub),
+    (&["jam", "club"], Lex::Dub),
+    (&["anything", "group"], Lex::Dub),
+    (&["anilibria", "tv"], Lex::Dub),
+    (&["animevost", "org"], Lex::Dub),
+    (&["sovet", "romantica"], Lex::Dub),
+    (&["кравец", "рекордз"], Lex::Dub),
     (&["nekomoe", "kissaten"], Lex::Group),
     (&["anime", "time"], Lex::Group),
     (&["creditless", "opening"], Lex::Kind(EpisodeKind::Ncop)),
