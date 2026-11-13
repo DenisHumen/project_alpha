@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'branding.dart';
 import 'fakes/fake_library.dart';
 import 'l10n/l10n.dart';
+import 'licenses.dart';
 import 'platform/form_factor.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/app_services.dart';
@@ -35,6 +36,12 @@ class KinoluneApp extends StatefulWidget {
 class _KinoluneAppState extends State<KinoluneApp> {
   late AppServices _services = widget.services;
   late bool _showLibmpvWarning = widget.libmpvMissing;
+
+  @override
+  void initState() {
+    super.initState();
+    registerAppLicenses();
+  }
 
   Future<void> _useDemo() async {
     final demo = AppServices(

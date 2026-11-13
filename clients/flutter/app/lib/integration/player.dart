@@ -10,6 +10,7 @@ export 'package:pa_player/pa_player.dart'
         MusicPlayerController,
         NowPlayingBar,
         NowPlayingScreen,
+        PaPlayerStrings,
         PlayerEngine,
         PlayerEngineFactory,
         ensurePaPlayerInitialized;
