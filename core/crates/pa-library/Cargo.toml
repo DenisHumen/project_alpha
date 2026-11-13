@@ -2,7 +2,7 @@
 [package]
 name = "pa-library"
 version = "0.1.0"
-description = "Media library storage: SQLite schema v1, embedded migrations, connection setup (LIB-001); progress, Continue watching and Up Next (LIB-011); music library (MUS-001); Twitch data model (TWI-007)"
+description = "Media library storage: SQLite schema v1, embedded migrations, connection setup (LIB-001); progress, Continue watching and Up Next (LIB-011); music library (MUS-001); Twitch data model (TWI-007); FTS5 search (LIB-008)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -11,6 +11,7 @@ publish.workspace = true
 
 [dependencies]
 pa-model = { path = "../pa-model" }
+pa-recognition = { path = "../pa-recognition" }
 rusqlite.workspace = true
 
 [dev-dependencies]

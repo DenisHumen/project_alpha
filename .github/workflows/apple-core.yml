@@ -17,6 +17,7 @@ on:
       - "tools/bindings/**"
       - "clients/apple/TVApp/**"
       - "design/icons/generated/apple/**"
+      - "design/tokens/generated/apple/**"
       - "Cargo.toml"
       - "Cargo.lock"
       - "rust-toolchain.toml"
