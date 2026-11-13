@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 import 'package:flutter/material.dart';
 
+import '../l10n/pa_player_strings.dart';
 import '../ui/focus_button.dart';
 import '../ui/tokens.dart';
 import 'artwork.dart';
@@ -35,6 +36,7 @@ class NowPlayingBar extends StatelessWidget {
       builder: (context, _) {
         final t = controller.current;
         if (t == null) return const SizedBox.shrink();
+        final l = PaPlayerStrings.of(context);
         final d = controller.duration.inMilliseconds;
         final f = d <= 0
             ? 0.0
@@ -94,14 +96,14 @@ class NowPlayingBar extends StatelessWidget {
                             icon: controller.playing
                                 ? Icons.pause_rounded
                                 : Icons.play_arrow_rounded,
-                            tooltip: controller.playing ? 'Pause' : 'Play',
+                            tooltip: controller.playing ? l.pause : l.play,
                             size: 44,
                             onPressed: controller.togglePlay,
                           ),
                           FocusIconButton(
                             key: const ValueKey('bar-next'),
                             icon: Icons.skip_next_rounded,
-                            tooltip: 'Next',
+                            tooltip: l.next,
                             size: 44,
                             onPressed: controller.queue.nextPosition() == null
                                 ? null
