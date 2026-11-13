@@ -342,7 +342,7 @@ fn phone_hands_playback_over_to_tv_through_a_hub() {
     let pos = &tv.state().progress[&("default".to_owned(), movie())];
     assert_eq!(pos.value.position_ms, 2_471_200);
 
-    // The TV starts playing; the phone gets a takeover and its pb.update.
+    // The TV starts playing and tells the phone (same profile) to pause.
     let start = Takeover {
         profile: "default".into(),
         key: movie(),
