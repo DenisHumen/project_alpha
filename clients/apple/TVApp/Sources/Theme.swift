@@ -11,15 +11,15 @@ enum Theme {
     static let density = PaDensity.tv
 
     enum Color {
-        static let bgBase = colors.bgBase
-        static let bgElevated = colors.bgElevated
-        static let bgElevated2 = colors.bgElevated2
-        static let textPrimary = colors.textPrimary
-        static let textSecondary = colors.textSecondary
-        static let textTertiary = colors.textTertiary
+        static let bgBase = Theme.colors.bgBase
+        static let bgElevated = Theme.colors.bgElevated
+        static let bgElevated2 = Theme.colors.bgElevated2
+        static let textPrimary = Theme.colors.textPrimary
+        static let textSecondary = Theme.colors.textSecondary
+        static let textTertiary = Theme.colors.textTertiary
         static let accent = PaTokens.accentDefault
-        static let accentText = colors.textLink
-        static let accentSubtle = colors.accentSubtle
+        static let accentText = Theme.colors.textLink
+        static let accentSubtle = Theme.colors.accentSubtle
     }
 
     /// TV safe area (`layout.safe-side`, `layout.safe-top`: 80 / 60 pt).
