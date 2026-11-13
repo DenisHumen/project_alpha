@@ -42,11 +42,8 @@ final _flows = <String, (Section, _Step?)>{
   'about': (
     Section.settings,
     (t, l) async {
-      await t.scrollUntilVisible(
-        find.text(l.settingsAboutApp('Kinolune')),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
+      await t.ensureVisible(find.text(l.settingsAboutApp('Kinolune')));
+      await settle(t, 4);
       await _tap(t, l.settingsAboutApp('Kinolune'));
     },
   ),
@@ -127,11 +124,8 @@ void main() {
     await settle(tester);
     // System locale ru-RU → Russian.
     expect(find.text('Настройки'), findsWidgets);
-    await tester.scrollUntilVisible(
-      find.text('English'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
+    await tester.ensureVisible(find.text('English'));
+    await settle(tester, 4);
     await tester.tap(find.text('English'));
     await settle(tester, 4);
     expect(find.text('Settings'), findsWidgets);

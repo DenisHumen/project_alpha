@@ -122,7 +122,9 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
                             children: [
                               for (final s in seasons)
                                 _SeasonChip(
-                                  label: s == 0 ? l.showSpecials : l.showSeason(s),
+                                  label: s == 0
+                                      ? l.showSpecials
+                                      : l.showSeason(s),
                                   selected: s == season,
                                   onTap: () => setState(() => _season = s),
                                 ),

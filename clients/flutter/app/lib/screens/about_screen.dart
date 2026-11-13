@@ -88,10 +88,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 640),
-              child: Text(
-                l.aboutThirdParty,
-                style: theme.textTheme.bodySmall,
-              ),
+              child: Text(l.aboutThirdParty, style: theme.textTheme.bodySmall),
             ),
           ],
         ),
@@ -138,10 +135,7 @@ class TmdbAttribution extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    l.aboutTmdbHeading,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  Text(l.aboutTmdbHeading, style: theme.textTheme.titleMedium),
                   const SizedBox(height: 4),
                   Text(l.commonTmdbNotice, style: theme.textTheme.bodySmall),
                   const SizedBox(height: 4),

@@ -62,77 +62,74 @@ class _KinoluneAppState extends State<KinoluneApp> {
   }
 
   Widget _app(bool tv, Locale? locale) => MaterialApp(
-          title: kAppName,
-          // null = system locale; unsupported system locales fall back to
-          // English (the first supported locale).
-          locale: locale,
-          supportedLocales: AppLocalizations.supportedLocales,
-          localizationsDelegates: kLocalizationsDelegates,
-          debugShowCheckedModeBanner: false,
-          theme: buildKinoluneTheme(widget.formFactor),
-          darkTheme: buildKinoluneTheme(widget.formFactor),
-          themeMode: ThemeMode.dark,
-          shortcuts: {
-            ...WidgetsApp.defaultShortcuts,
-            // D-pad centre / remote OK.
-            const SingleActivator(LogicalKeyboardKey.select):
-                const ActivateIntent(),
-          },
-          // On TV, the focus highlight must always be visible.
-          builder: (context, child) {
-            if (tv) {
-              FocusManager.instance.highlightStrategy =
-                  FocusHighlightStrategy.alwaysTraditional;
-            }
-            if (!_showLibmpvWarning) return child!;
-            return Column(
-              children: [
-                Material(
-                  color: KColors.bgElevated2,
-                  child: SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.amber,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              context.l10n.appLibmpvMissing(kAppName),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () =>
-                                setState(() => _showLibmpvWarning = false),
-                            child: Text(context.l10n.commonDismiss),
-                          ),
-                        ],
-                      ),
+    title: kAppName,
+    // null = system locale; unsupported system locales fall back to
+    // English (the first supported locale).
+    locale: locale,
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: kLocalizationsDelegates,
+    debugShowCheckedModeBanner: false,
+    theme: buildKinoluneTheme(widget.formFactor),
+    darkTheme: buildKinoluneTheme(widget.formFactor),
+    themeMode: ThemeMode.dark,
+    shortcuts: {
+      ...WidgetsApp.defaultShortcuts,
+      // D-pad centre / remote OK.
+      const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
+    },
+    // On TV, the focus highlight must always be visible.
+    builder: (context, child) {
+      if (tv) {
+        FocusManager.instance.highlightStrategy =
+            FocusHighlightStrategy.alwaysTraditional;
+      }
+      if (!_showLibmpvWarning) return child!;
+      return Column(
+        children: [
+          Material(
+            color: KColors.bgElevated2,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.amber,
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(context.l10n.appLibmpvMissing(kAppName)),
+                    ),
+                    TextButton(
+                      onPressed: () =>
+                          setState(() => _showLibmpvWarning = false),
+                      child: Text(context.l10n.commonDismiss),
+                    ),
+                  ],
                 ),
-                Expanded(child: child!),
-              ],
-            );
-          },
-          home: ListenableBuilder(
-            listenable: _services,
-            builder: (context, _) {
-              if (!_services.loaded) {
-                return const Scaffold(body: SizedBox.shrink());
-              }
-              if (_services.sources.isEmpty) {
-                return OnboardingScreen(onTryDemo: _useDemo);
-              }
-              return AppShell(
-                key: ObjectKey(_services),
-                initialSection: widget.initialSection,
-              );
-            },
+              ),
+            ),
           ),
+          Expanded(child: child!),
+        ],
+      );
+    },
+    home: ListenableBuilder(
+      listenable: _services,
+      builder: (context, _) {
+        if (!_services.loaded) {
+          return const Scaffold(body: SizedBox.shrink());
+        }
+        if (_services.sources.isEmpty) {
+          return OnboardingScreen(onTryDemo: _useDemo);
+        }
+        return AppShell(
+          key: ObjectKey(_services),
+          initialSection: widget.initialSection,
         );
+      },
+    ),
+  );
 }

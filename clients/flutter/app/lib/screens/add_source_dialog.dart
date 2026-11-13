@@ -72,9 +72,7 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
         });
       }
     } catch (e) {
-      setState(
-        () => _error = l.addSourcePickerUnavailable('$e'),
-      );
+      setState(() => _error = l.addSourcePickerUnavailable('$e'));
     }
   }
 
@@ -163,9 +161,7 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
                     enabled: !_smbUnsupported,
                     icon: const Icon(Icons.lan_outlined),
                     label: Text(
-                      _smbUnsupported
-                          ? l.addSourceSmbSoon
-                          : l.addSourceSmbBeta,
+                      _smbUnsupported ? l.addSourceSmbSoon : l.addSourceSmbBeta,
                     ),
                   ),
                 ],
@@ -197,10 +193,7 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  l.addSourceFolderTip,
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text(l.addSourceFolderTip, style: theme.textTheme.bodySmall),
               ] else ...[
                 TextField(
                   controller: _smbUrl,
@@ -213,9 +206,7 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _user,
-                  decoration: InputDecoration(
-                    labelText: l.addSourceUsername,
-                  ),
+                  decoration: InputDecoration(labelText: l.addSourceUsername),
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -230,9 +221,7 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _name,
-                decoration: InputDecoration(
-                  labelText: l.addSourceDisplayName,
-                ),
+                decoration: InputDecoration(labelText: l.addSourceDisplayName),
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),

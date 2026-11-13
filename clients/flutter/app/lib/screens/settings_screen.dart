@@ -152,43 +152,43 @@ class _NavTile extends StatelessWidget {
       selected: selected,
       inMutuallyExclusiveGroup: selected != null,
       child: KFocusable(
-      onActivate: onTap,
-      focusScale: 1.0,
-      light: false,
-      radius: 12,
-      semanticLabel: title,
-      builder: (context, focused) => AnimatedContainer(
-        duration: KMotion.focus,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        color: focused
-            ? Colors.white.withValues(alpha: .09)
-            : Colors.transparent,
-        child: Row(
-          children: [
-            Icon(icon, color: KColors.textSecondary),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: theme.textTheme.titleMedium),
-                  if (subtitle != null)
-                    Text(
-                      subtitle!,
-                      style: theme.textTheme.labelSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                ],
+        onActivate: onTap,
+        focusScale: 1.0,
+        light: false,
+        radius: 12,
+        semanticLabel: title,
+        builder: (context, focused) => AnimatedContainer(
+          duration: KMotion.focus,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          color: focused
+              ? Colors.white.withValues(alpha: .09)
+              : Colors.transparent,
+          child: Row(
+            children: [
+              Icon(icon, color: KColors.textSecondary),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.titleMedium),
+                    if (subtitle != null)
+                      Text(
+                        subtitle!,
+                        style: theme.textTheme.labelSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                  ],
+                ),
               ),
-            ),
-            trailing ??
-                (onTap != null
-                    ? Icon(Icons.chevron_right, color: KColors.textTertiary)
-                    : const SizedBox.shrink()),
-          ],
+              trailing ??
+                  (onTap != null
+                      ? Icon(Icons.chevron_right, color: KColors.textTertiary)
+                      : const SizedBox.shrink()),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

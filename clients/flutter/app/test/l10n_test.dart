@@ -46,8 +46,14 @@ final _uiArg = RegExp(
   dotAll: true,
 );
 
-/// Sentence-like literals anywhere (`'Two words'` starting with a capital).
-final _sentence = RegExp(r'''(['"])([A-Z][a-z]+ [^'"]*[a-z][^'"]*)\1''');
+/// Sentence-like literals anywhere: `'Capitalised lower…'` (not `'Noto Sans'`).
+final _sentence = RegExp(r'''(['"])([A-Z][a-z]* [a-z][^'"]*)\1''');
+
+/// Replaces [pattern] matches by their line breaks only, so line numbers stay.
+String _blank(String code, RegExp pattern) => code.replaceAllMapped(
+  pattern,
+  (m) => '\n' * '\n'.allMatches(m.group(0)!).length,
+);
 
 bool _hasWords(String literal) {
   // Interpolations and escapes are not text.
@@ -69,12 +75,19 @@ List<String> _hardcoded() {
     if (_exempt.any(path.startsWith)) continue;
     final lines = f.readAsLinesSync();
     // Drop comments and lines marked `// l10n-ignore`.
-    final code = [
+    var code = [
       for (final line in lines)
         line.contains('l10n-ignore') || line.trimLeft().startsWith('//')
             ? ''
             : line,
     ].join('\n');
+    // Interpolations (may hold nested quotes) and log calls are not UI text.
+    var prev = '';
+    while (prev != code) {
+      prev = code;
+      code = _blank(code, RegExp(r'\$\{[^{}]*\}'));
+    }
+    code = _blank(code, RegExp(r'debugPrint\([^;]*\);', dotAll: true));
     int lineOf(int offset) => '\n'.allMatches(code.substring(0, offset)).length;
     for (final m in _uiArg.allMatches(code)) {
       final literal = m.group(3) ?? m.group(6)!;
@@ -83,8 +96,7 @@ List<String> _hardcoded() {
       }
     }
     for (final m in _sentence.allMatches(code)) {
-      final line = lines[lineOf(m.start)];
-      if (line.contains('debugPrint') || line.contains('Exception(')) continue;
+      if (lines[lineOf(m.start)].contains('Exception(')) continue;
       found.add('$path:${lineOf(m.start) + 1}: ${m.group(0)}');
     }
   }

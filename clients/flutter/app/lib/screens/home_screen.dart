@@ -298,7 +298,9 @@ class _Hero extends StatelessWidget {
                   Row(
                     children: [
                       KButton(
-                        label: item.kind == ItemKind.show ? l.homeEpisodes : l.commonPlay,
+                        label: item.kind == ItemKind.show
+                            ? l.homeEpisodes
+                            : l.commonPlay,
                         icon: item.kind == ItemKind.show
                             ? Icons.list
                             : Icons.play_arrow_rounded,

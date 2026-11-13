@@ -177,8 +177,10 @@ class AlbumScreen extends StatelessWidget {
         ),
       ),
       SizedBox(width: 28, height: 20),
-      Flexible(
-        child: Column(
+      // On phones the header is a Column inside a ListView: no flex there.
+      _flexibleUnlessPhone(
+        d.isPhone,
+        Column(
           crossAxisAlignment: d.isPhone
               ? CrossAxisAlignment.center
               : CrossAxisAlignment.start,
@@ -356,3 +358,6 @@ class TrackTile extends StatelessWidget {
     );
   }
 }
+
+Widget _flexibleUnlessPhone(bool phone, Widget child) =>
+    phone ? child : Flexible(child: child);
