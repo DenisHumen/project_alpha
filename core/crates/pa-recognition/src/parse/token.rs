@@ -313,7 +313,10 @@ mod tests {
     fn brackets_and_dashes() {
         let (toks, br) = tokenize("[SubsPlease] One Piece - 1085 (1080p) [ABCD1234]");
         let t: Vec<_> = toks.iter().map(|t| t.text.as_str()).collect();
-        assert_eq!(t, ["SubsPlease", "One", "Piece", "1085", "1080p", "ABCD1234"]);
+        assert_eq!(
+            t,
+            ["SubsPlease", "One", "Piece", "1085", "1080p", "ABCD1234"]
+        );
         assert_eq!(br.len(), 3);
         assert!(toks[3].dash_before);
         assert_eq!(toks[0].bracket, Some(0));

@@ -49,10 +49,10 @@ pub(crate) fn lookup(lower: &str) -> Option<Entry> {
         // Sources.
         "bluray" | "blu-ray" | "bdrip" | "bd-rip" | "brrip" | "br-rip" | "bdremux" | "remux"
         | "web-dl" | "webdl" | "webrip" | "web-rip" | "webdlrip" | "web-dlrip" | "hdtv"
-        | "hdtvrip" | "dvdrip" | "dvd-rip" | "dvdscr" | "hdrip" | "tvrip" | "satrip"
-        | "camrip" | "hdcam" | "telesync" | "telecine" | "uhdrip" | "iptvrip" | "dvd5"
-        | "dvd9" | "hddvd" | "hd-dvd" | "vhsrip" | "ppvrip" | "dsrip" | "pdtv" | "bdmv"
-        | "amzn" | "nf" | "dsnp" | "hmax" | "atvp" | "itunes" => {
+        | "hdtvrip" | "dvdrip" | "dvd-rip" | "dvdscr" | "hdrip" | "tvrip" | "satrip" | "camrip"
+        | "hdcam" | "telesync" | "telecine" | "uhdrip" | "iptvrip" | "dvd5" | "dvd9" | "hddvd"
+        | "hd-dvd" | "vhsrip" | "ppvrip" | "dsrip" | "pdtv" | "bdmv" | "amzn" | "nf" | "dsnp"
+        | "hmax" | "atvp" | "itunes" => {
             if matches!(lower, "amzn" | "nf" | "dsnp" | "hmax" | "atvp" | "itunes") {
                 // Streaming service tags: treated as release flags, not source.
                 weak(Other)
@@ -98,13 +98,16 @@ pub(crate) fn lookup(lower: &str) -> Option<Entry> {
         "sub" | "subs" | "subbed" | "dub" | "dubbed" | "raw" | "raws" | "hardsub" | "softsub" => {
             weak(Other)
         }
-        "mvo" | "dvo" | "avo" | "дубляж" | "многоголосый" | "одноголосый" => strong(Lang("rus")),
+        "mvo" | "dvo" | "avo" | "дубляж" | "многоголосый" | "одноголосый" => {
+            strong(Lang("rus"))
+        }
         // Editions.
         "extended" | "unrated" | "uncut" | "remastered" | "imax" | "theatrical" | "criterion"
         | "redux" | "restored" | "director's" | "directors" => weak(Edition),
         // Other release flags.
         "proper" | "repack" | "rerip" | "internal" | "readnfo" | "nfofix" | "batch" | "hfr"
-        | "60fps" | "uncensored" | "sbs" | "hsbs" | "3d" | "complete" | "limited" | "dubbed-rus" => {
+        | "60fps" | "uncensored" | "sbs" | "hsbs" | "3d" | "complete" | "limited"
+        | "dubbed-rus" => {
             if matches!(lower, "complete" | "limited" | "3d") {
                 weak(Other)
             } else {
@@ -262,7 +265,10 @@ pub(crate) const PHRASES: &[(&[&str], Lex)] = &[
     (&["uhd", "bluray"], Lex::Source),
     (&["uhd", "blu-ray"], Lex::Source),
     (&["web", "dl"], Lex::Source),
-    (&["behind", "the", "scenes"], Lex::Extra(ExtraKind::BehindTheScenes)),
+    (
+        &["behind", "the", "scenes"],
+        Lex::Extra(ExtraKind::BehindTheScenes),
+    ),
     (&["making", "of"], Lex::Extra(ExtraKind::BehindTheScenes)),
     (&["deleted", "scenes"], Lex::Extra(ExtraKind::DeletedScene)),
     (&["deleted", "scene"], Lex::Extra(ExtraKind::DeletedScene)),
@@ -344,13 +350,36 @@ pub(crate) fn library_root(lower: &str) -> Option<RootKind> {
         "movies" | "movie" | "films" | "film" | "фильмы" | "кино" | "кинофильмы" => {
             RootKind::Movies
         }
-        "tv" | "tv shows" | "tvshows" | "tv series" | "shows" | "series" | "сериалы" | "тв"
-        | "телешоу" | "documentaries" | "документальные" => RootKind::Shows,
+        "tv"
+        | "tv shows"
+        | "tvshows"
+        | "tv series"
+        | "shows"
+        | "series"
+        | "сериалы"
+        | "тв"
+        | "телешоу"
+        | "documentaries"
+        | "документальные" => RootKind::Shows,
         "anime" | "аниме" | "anime series" | "anime tv" => RootKind::Anime,
         "anime movies" | "anime films" | "аниме фильмы" => RootKind::AnimeMovies,
-        "downloads" | "download" | "загрузки" | "video" | "videos" | "видео" | "media"
-        | "медиа" | "мультфильмы" | "cartoons" | "kids" | "torrents" | "complete"
-        | "incoming" | "library" | "share" | "public" => RootKind::Generic,
+        "downloads"
+        | "download"
+        | "загрузки"
+        | "video"
+        | "videos"
+        | "видео"
+        | "media"
+        | "медиа"
+        | "мультфильмы"
+        | "cartoons"
+        | "kids"
+        | "torrents"
+        | "complete"
+        | "incoming"
+        | "library"
+        | "share"
+        | "public" => RootKind::Generic,
         _ => return None,
     })
 }
@@ -358,8 +387,16 @@ pub(crate) fn library_root(lower: &str) -> Option<RootKind> {
 /// Extras folder (`Extras/`, `Featurettes/`, `NCOP/`…).
 pub(crate) fn extras_folder(lower: &str) -> Option<ExtraKind> {
     Some(match lower {
-        "extras" | "extra" | "bonus" | "bonuses" | "бонусы" | "доп. материалы"
-        | "дополнительные материалы" | "other" | "others" | "misc" => ExtraKind::Other,
+        "extras"
+        | "extra"
+        | "bonus"
+        | "bonuses"
+        | "бонусы"
+        | "доп. материалы"
+        | "дополнительные материалы"
+        | "other"
+        | "others"
+        | "misc" => ExtraKind::Other,
         "featurettes" | "featurette" => ExtraKind::Featurette,
         "behind the scenes" | "making of" => ExtraKind::BehindTheScenes,
         "deleted scenes" => ExtraKind::DeletedScene,

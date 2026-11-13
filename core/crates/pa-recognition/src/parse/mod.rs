@@ -169,7 +169,15 @@ fn season_folder(name: &str) -> Option<u32> {
     let lower = name.to_lowercase();
     if matches!(
         lower.as_str(),
-        "specials" | "special" | "sp" | "sps" | "спецвыпуски" | "спешлы" | "season 0" | "s0" | "s00"
+        "specials"
+            | "special"
+            | "sp"
+            | "sps"
+            | "спецвыпуски"
+            | "спешлы"
+            | "season 0"
+            | "s0"
+            | "s00"
     ) {
         return Some(0);
     }
@@ -179,7 +187,12 @@ fn season_folder(name: &str) -> Option<u32> {
         .collect();
     let num = |w: &str| w.parse::<u32>().ok().filter(|n| *n < 100 && w.len() <= 3);
     match words.as_slice() {
-        [w, n] if matches!(*w, "season" | "saison" | "сезон" | "temporada" | "staffel" | "series") => {
+        [w, n]
+            if matches!(
+                *w,
+                "season" | "saison" | "сезон" | "temporada" | "staffel" | "series"
+            ) =>
+        {
             num(n)
         }
         [n, w] if matches!(*w, "сезон" | "season") => num(n),
@@ -255,7 +268,7 @@ fn folder_context(folders: &[String]) -> FolderContext {
 fn parse_name(name: &str, ctx: Context) -> Vec<Hypothesis> {
     let (tokens, mut brackets) = token::tokenize(name);
     let classified = classify::classify(tokens, &mut brackets);
-    let analysis: Analysis = interpret::analyze(classified, brackets, ctx);
+    let analysis: Analysis = interpret::analyze(name, classified, brackets, ctx);
     interpret::choices(&analysis.points)
         .into_iter()
         .map(|(choice, weight)| {
@@ -297,7 +310,10 @@ fn apply_path(p: &mut ParsedName, reasons: &mut Vec<String>, split: &SplitPath, 
         }
         _ => {}
     }
-    if p.year.is_none() && f.year.is_some() && (same_work || reasons.iter().any(|r| r == "title:folder")) {
+    if p.year.is_none()
+        && f.year.is_some()
+        && (same_work || reasons.iter().any(|r| r == "title:folder"))
+    {
         p.year = f.year;
     }
     let episodic = !p.episodes.is_empty() || p.episode_kind.is_some();

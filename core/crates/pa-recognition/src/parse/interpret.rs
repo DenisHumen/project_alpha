@@ -70,7 +70,32 @@ fn plain(t: &Classified) -> bool {
 }
 
 /// Finds the release group and the ambiguity points.
-pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Context) -> Analysis {
+pub(crate) fn analyze(
+    name: &str,
+    mut toks: Vec<Classified>,
+    brackets: Vec<Bracket>,
+    ctx: Context,
+) -> Analysis {
+    let inner_text = |b: &Bracket| name[b.inner.clone()].trim().to_string();
+    // Tags that never occur inside a release-group bracket.
+    let hard = |t: &Classified| {
+        matches!(
+            t.tag,
+            Tag::Num(_)
+                | Tag::Year(_)
+                | Tag::Resolution
+                | Tag::VideoCodec
+                | Tag::AudioCodec
+                | Tag::Crc(_)
+                | Tag::SeasonEp { .. }
+                | Tag::Season(_)
+                | Tag::Kind(..)
+                | Tag::Date(_)
+                | Tag::Part(_)
+                | Tag::Edition
+                | Tag::Version(_)
+        )
+    };
     // --- Release group -------------------------------------------------
     let mut group = None;
     let mut group_bracket = None;
@@ -78,28 +103,26 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
         && b0.inner.start == b0.open.len_utf8()
         && !b0.tokens.is_empty()
         && toks.first().is_some_and(|t| t.tok.bracket == Some(0))
+        && !toks[b0.tokens.clone()].iter().any(hard)
         && toks[b0.tokens.clone()]
             .iter()
-            .all(|t| matches!(t.tag, Tag::Free | Tag::Group | Tag::Dub | Tag::Consumed))
+            .any(|t| matches!(t.tag, Tag::Free | Tag::Group | Tag::Dub))
         && b0.tokens.len() <= 6
     {
         // Leading `[Group]`: everything in it.
-        group = Some(
-            toks[b0.tokens.clone()]
-                .iter()
-                .map(|t| t.tok.text.as_str())
-                .collect::<Vec<_>>()
-                .join(" "),
-        );
+        group = Some(inner_text(b0));
         group_bracket = Some(0);
         for t in &mut toks[b0.tokens.clone()] {
-            if t.tag == Tag::Free {
+            if t.tag != Tag::Consumed {
                 t.tag = Tag::Group;
             }
         }
     }
     let first_marker = toks.iter().position(|t| {
-        plain(t) && (t.tag.is_release_info() || t.tag.is_episode_marker() || matches!(t.tag, Tag::Season(_)))
+        plain(t)
+            && (t.tag.is_release_info()
+                || t.tag.is_episode_marker()
+                || matches!(t.tag, Tag::Season(_)))
     });
     if group.is_none() {
         // `x264-GROUP` glued after a release token, last plain token.
@@ -128,17 +151,17 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
             && bi > 0
             && !b.tokens.is_empty()
             && b.tokens.len() <= 2
-            && first_marker.is_some_and(|f| f < b.tokens.start)
-            && toks[b.tokens.clone()].iter().all(|t| matches!(t.tag, Tag::Free | Tag::Group))
+            && toks[..b.tokens.start].iter().any(|t| {
+                t.tag.is_release_info()
+                    || t.tag.is_episode_marker()
+                    || matches!(t.tag, Tag::Year(_))
+            })
+            && toks[b.tokens.clone()]
+                .iter()
+                .all(|t| matches!(t.tag, Tag::Free | Tag::Group))
             && b.tokens.end == toks.len()
         {
-            group = Some(
-                toks[b.tokens.clone()]
-                    .iter()
-                    .map(|t| t.tok.text.as_str())
-                    .collect::<Vec<_>>()
-                    .join(" "),
-            );
+            group = Some(inner_text(b));
             for t in &mut toks[b.tokens.clone()] {
                 t.tag = Tag::Group;
             }
@@ -165,6 +188,7 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
     let strong_year = toks.iter().any(|t| matches!(t.tag, Tag::Year(_)));
     let plain_idx: Vec<usize> = (0..toks.len()).filter(|&k| plain(&toks[k])).collect();
     let first_plain = plain_idx.first().copied();
+    let has_free_words = plain_idx.iter().any(|&k| toks[k].tag == Tag::Free);
     let is_end_of_title = |k: usize| {
         // Next non-consumed token is a bracket, release info, marker or end.
         let next = (k + 1..toks.len()).find(|&j| toks[j].tag != Tag::Consumed);
@@ -184,16 +208,19 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
     let year_tok = if strong_year {
         None
     } else {
-        plain_idx
-            .iter()
-            .copied()
-            .filter(|&k| num(&toks[k]).is_some_and(|n| n.year_like.is_some()) && Some(k) != first_plain)
-            .next_back()
+        plain_idx.iter().copied().rfind(|&k| {
+            num(&toks[k]).is_some_and(|n| n.year_like.is_some()) && Some(k) != first_plain
+        })
     };
     if let Some(k) = year_tok {
         let followed_by_release = (k + 1..toks.len())
             .find(|&j| toks[j].tag != Tag::Consumed)
-            .is_some_and(|j| !plain(&toks[j]) || toks[j].tag.is_release_info() || toks[j].tag.is_episode_marker() || matches!(toks[j].tag, Tag::Part(_)));
+            .is_some_and(|j| {
+                !plain(&toks[j])
+                    || toks[j].tag.is_release_info()
+                    || toks[j].tag.is_episode_marker()
+                    || matches!(toks[j].tag, Tag::Part(_))
+            });
         let w = if followed_by_release { 0.93 } else { 0.8 };
         points.push(Point {
             token: k,
@@ -228,8 +255,7 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
         let after_dash = plain_idx
             .iter()
             .copied()
-            .filter(|&k| candidate(k) && toks[k].tok.dash_before)
-            .next_back();
+            .rfind(|&k| candidate(k) && toks[k].tok.dash_before);
         let in_bracket = || {
             brackets.iter().enumerate().find_map(|(bi, b)| {
                 (Some(bi) != group_bracket && b.tokens.len() == 1 && candidate(b.tokens.start))
@@ -237,11 +263,9 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
             })
         };
         let at_title_end = || {
-            plain_idx
-                .iter()
-                .copied()
-                .filter(|&k| candidate(k) && Some(k) != first_plain && is_end_of_title(k))
-                .next_back()
+            plain_idx.iter().copied().rfind(|&k| {
+                candidate(k) && (Some(k) != first_plain || !has_free_words) && is_end_of_title(k)
+            })
         };
         let (cand, style) = match after_dash {
             Some(k) => (Some(k), 0),
@@ -256,8 +280,11 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
             let n = num(&toks[k]).expect("candidate is a number");
             let big = n.digits >= 3 || n.values[0].number >= 100;
             let structured = n.range || n.version.is_some() || n.values[0].fraction.is_some();
+            let movie_like = style == 2 && (strong_year || year_tok.is_some());
             let mut w = if has_season || has_kind {
                 [0.86, 0.04, 0.10]
+            } else if movie_like {
+                [0.12, 0.03, 0.85]
             } else if big {
                 [0.22, 0.70, 0.08]
             } else if style == 0 || style == 1 {
@@ -275,10 +302,14 @@ pub(crate) fn analyze(mut toks: Vec<Classified>, brackets: Vec<Bracket>, ctx: Co
             if n.values[0].fraction.is_some() {
                 w = [0.95, 0.05, 0.0];
             }
-            let options = [(Role::Episode, w[0]), (Role::Absolute, w[1]), (Role::Title, w[2])]
-                .into_iter()
-                .filter(|&(_, w)| w > 0.0)
-                .collect();
+            let options = [
+                (Role::Episode, w[0]),
+                (Role::Absolute, w[1]),
+                (Role::Title, w[2]),
+            ]
+            .into_iter()
+            .filter(|&(_, w)| w > 0.0)
+            .collect();
             points.push(Point { token: k, options });
         }
     }
@@ -313,7 +344,11 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
     for (p, &c) in a.points.iter().zip(choice) {
         let role = p.options[c].0;
         roles[p.token] = Some(role);
-        reasons.push(format!("number {}:{}", toks[p.token].tok.text, role.reason()));
+        reasons.push(format!(
+            "number {}:{}",
+            toks[p.token].tok.text,
+            role.reason()
+        ));
     }
     let mut out = ParsedName::default();
 
@@ -337,6 +372,7 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
     let mut seen_marker_before_title = false;
     let mut after_marker = false;
     let mut in_ep_title = false;
+    #[allow(clippy::needless_range_loop)] // `k` also indexes `roles`
     for k in 0..toks.len() {
         let t = &toks[k];
         if t.tag == Tag::Consumed {
@@ -390,8 +426,12 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
                 continue;
             }
             let ts = &toks[b.tokens.clone()];
-            if ts.iter().all(|t| matches!(t.tag, Tag::Free | Tag::Consumed))
-                && ts.iter().any(|t| t.tag == Tag::Free && t.tok.text.chars().any(char::is_alphabetic))
+            if ts
+                .iter()
+                .all(|t| matches!(t.tag, Tag::Free | Tag::Consumed))
+                && ts
+                    .iter()
+                    .any(|t| t.tag == Tag::Free && t.tok.text.chars().any(char::is_alphabetic))
             {
                 titles.push(ts.iter().collect());
                 reasons.push("title:bracket".into());
@@ -399,7 +439,10 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
             }
         }
     }
-    let mut titles = titles.into_iter().map(|p| join_title(&p)).filter(|s| !s.is_empty());
+    let mut titles = titles
+        .into_iter()
+        .map(|p| join_title(&p))
+        .filter(|s| !s.is_empty());
     out.title = titles.next();
     out.alt_titles = titles.collect();
     if !episode_title.is_empty() {
@@ -491,7 +534,7 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
                 let l = t.display.to_lowercase();
                 if lexicon::is_dub_studio(&l) || lexicon::is_dub_studio(l.trim_end_matches(".tv")) {
                     if out.dub_studio.is_none() {
-                        out.dub_studio = Some(t.display.clone());
+                        out.dub_studio = a.group.clone();
                     }
                     dub_seen = true;
                 }
@@ -506,16 +549,15 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
     out.release_group = a.group.clone();
 
     out.anime_hint = a.crc_or_fansub
-        || roles.iter().any(|r| matches!(r, Some(Role::Episode | Role::Absolute)))
+        || roles
+            .iter()
+            .any(|r| matches!(r, Some(Role::Episode | Role::Absolute)))
             && a.toks.iter().any(|t| t.tok.dash_before)
         || matches!(
             out.episode_kind,
             Some(EpisodeKind::Ncop | EpisodeKind::Nced | EpisodeKind::Ova | EpisodeKind::Ona)
         )
-        || out
-            .title
-            .as_deref()
-            .is_some_and(|t| t.chars().any(is_cjk));
+        || out.title.as_deref().is_some_and(|t| t.chars().any(is_cjk));
     out.media = media_hint(&out);
     (out, reasons)
 }

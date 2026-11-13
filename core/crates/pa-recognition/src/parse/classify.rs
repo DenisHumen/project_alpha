@@ -220,7 +220,9 @@ impl Cur<'_> {
     }
     fn num(&mut self, max_digits: usize) -> Option<u32> {
         let start = self.i;
-        while self.i < self.b.len() && self.b[self.i].is_ascii_digit() && self.i - start < max_digits
+        while self.i < self.b.len()
+            && self.b[self.i].is_ascii_digit()
+            && self.i - start < max_digits
         {
             self.i += 1;
         }
@@ -228,7 +230,10 @@ impl Cur<'_> {
             self.i = start;
             return None;
         }
-        std::str::from_utf8(&self.b[start..self.i]).ok()?.parse().ok()
+        std::str::from_utf8(&self.b[start..self.i])
+            .ok()?
+            .parse()
+            .ok()
     }
     fn done(&self) -> bool {
         self.i == self.b.len()
@@ -249,7 +254,11 @@ fn push_episode(eps: &mut Vec<EpisodeNumber>, n: u32, range: bool) -> Option<()>
 }
 
 /// Episode list after the first number: `e02`, `-03`, `-e03`, `x02`, `v2`.
-fn episode_tail(c: &mut Cur<'_>, eps: &mut Vec<EpisodeNumber>, x_style: bool) -> Option<Option<u32>> {
+fn episode_tail(
+    c: &mut Cur<'_>,
+    eps: &mut Vec<EpisodeNumber>,
+    x_style: bool,
+) -> Option<Option<u32>> {
     let mut version = None;
     loop {
         if c.done() {
@@ -411,13 +420,12 @@ fn parse_date(s: &str) -> Option<Date> {
 }
 
 fn valid_date(y: u32, m: u32, d: u32) -> Option<Date> {
-    ((YEAR_MIN..=YEAR_MAX).contains(&y) && (1..=12).contains(&m) && (1..=31).contains(&d)).then(
-        || Date {
+    ((YEAR_MIN..=YEAR_MAX).contains(&y) && (1..=12).contains(&m) && (1..=31).contains(&d))
+        .then_some(Date {
             year: y as u16,
             month: m as u8,
             day: d as u8,
-        },
-    )
+        })
 }
 
 /// `1080p`, `720i`, `4k`, `1920x1080`.
@@ -441,7 +449,9 @@ fn is_resolution(lower: &str) -> bool {
 /// `v2`.
 fn parse_version(lower: &str) -> Option<u32> {
     let rest = lower.strip_prefix('v')?;
-    (rest.len() <= 2).then(|| ascii_digits_value(rest)).flatten()
+    (rest.len() <= 2)
+        .then(|| ascii_digits_value(rest))
+        .flatten()
 }
 
 /// `ncop1`, `nced2`, `ova2`, `sp1`, `op1`, `ed2`, `special2`.
@@ -664,7 +674,10 @@ fn ordinal(lower: &str) -> Option<u32> {
 pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Classified> {
     let tokens = split_glued(tokens, brackets);
     let n = tokens.len();
-    let lowers: Vec<String> = tokens.iter().map(|t| core(&t.text).to_lowercase()).collect();
+    let lowers: Vec<String> = tokens
+        .iter()
+        .map(|t| core(&t.text).to_lowercase())
+        .collect();
     let bracket_len = |t: &Token| t.bracket.map(|b| brackets[b].tokens.len());
     // `same_run(i, j)`: tokens i..=j may form a phrase (same bracket, no delimiter).
     let same_run = |i: usize, j: usize| {
@@ -698,7 +711,9 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
             let prev_num = parse_num(core(&t.text));
             let small = |n: &Option<NumTok>, max: u32| {
                 n.as_ref()
-                    .filter(|n| n.year_like.is_none() && n.values[0].number <= max && n.version.is_none())
+                    .filter(|n| {
+                        n.year_like.is_none() && n.values[0].number <= max && n.version.is_none()
+                    })
                     .map(|n| n.values[0].number)
             };
             tag = match a {
@@ -706,17 +721,20 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                     small(&next_num, 99).map(Tag::Season)
                 }
                 "episode" | "ep" | "e" | "серия" | "серии" | "эпизод" | "session" | "folge" => {
-                    next_num.as_ref().filter(|n| n.year_like.is_none()).map(|n| Tag::SeasonEp {
-                        season: None,
-                        episodes: n.values.clone(),
-                        version: n.version,
-                    })
+                    next_num
+                        .as_ref()
+                        .filter(|n| n.year_like.is_none())
+                        .map(|n| Tag::SeasonEp {
+                            season: None,
+                            episodes: n.values.clone(),
+                            version: n.version,
+                        })
                 }
                 "part" | "pt" | "cd" | "disc" | "disk" | "часть" | "серия-" => {
                     small(&next_num, 20).filter(|&p| p >= 1).map(Tag::Part)
                 }
-                "ova" | "oad" | "ona" | "sp" | "special" | "ncop" | "nced" => {
-                    small(&next_num, 999).map(|e| {
+                "ova" | "oad" | "ona" | "sp" | "special" | "ncop" | "nced" => small(&next_num, 999)
+                    .map(|e| {
                         let kind = match a {
                             "ova" | "oad" => EpisodeKind::Ova,
                             "ona" => EpisodeKind::Ona,
@@ -726,20 +744,21 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                             _ => EpisodeKind::Nced,
                         };
                         Tag::Kind(kind, Some(EpisodeNumber::whole(e)))
-                    })
-                }
+                    }),
                 _ => None,
             };
             if tag.is_none() {
                 tag = match b {
-                    "season" | "сезон" if !t.text.contains(['-', '.']) => ordinal(a)
-                        .or_else(|| small(&prev_num, 99))
-                        .map(Tag::Season),
-                    "серия" | "серии" | "эпизод" => prev_num.as_ref().map(|n| Tag::SeasonEp {
-                        season: None,
-                        episodes: n.values.clone(),
-                        version: n.version,
-                    }),
+                    "season" | "сезон" if !t.text.contains(['-', '.']) => {
+                        ordinal(a).or_else(|| small(&prev_num, 99)).map(Tag::Season)
+                    }
+                    "серия" | "серии" | "эпизод" => {
+                        prev_num.as_ref().map(|n| Tag::SeasonEp {
+                            season: None,
+                            episodes: n.values.clone(),
+                            version: n.version,
+                        })
+                    }
                     _ => None,
                 };
             }
@@ -761,7 +780,7 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
             None => {
                 let alone = bracket_len(t) == Some(1);
                 let (tag, w) = classify_single(&t.text, alone);
-                weak[i] = w;
+                weak[i] = w && !t.glued_hyphen;
                 tag
             }
         };
@@ -781,9 +800,14 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
             display,
             covers: covers.clone(),
         });
-        for k in covers.start + 1..covers.end {
+        for (k, tok) in tokens
+            .iter()
+            .enumerate()
+            .take(covers.end)
+            .skip(covers.start + 1)
+        {
             out.push(Classified {
-                tok: tokens[k].clone(),
+                tok: tok.clone(),
                 tag: Tag::Consumed,
                 display: String::new(),
                 covers: k..k + 1,
@@ -820,9 +844,8 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
 /// the first strong marker, or next to another release token. Otherwise they
 /// are title words (`Web of Lies`, `The Trailer`, `City of Ember`).
 fn demote_weak(out: &mut [Classified], weak: &[bool]) {
-    let strong = |c: &Classified, w: bool| {
-        !w && !matches!(c.tag, Tag::Free | Tag::Num(_) | Tag::Consumed)
-    };
+    let strong =
+        |c: &Classified, w: bool| !w && !matches!(c.tag, Tag::Free | Tag::Num(_) | Tag::Consumed);
     let first_strong = out
         .iter()
         .enumerate()
