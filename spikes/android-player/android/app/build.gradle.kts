@@ -52,6 +52,6 @@ dependencies {
     val media3 = "1.11.1"
     implementation("androidx.media3:media3-exoplayer:$media3")
     implementation("androidx.media3:media3-ui:$media3")
-    implementation("androidx.fragment:fragment-ktx:1.8.9")
+    implementation("androidx.fragment:fragment-ktx:1.9.1")
     testImplementation("junit:junit:4.13.2")
 }
