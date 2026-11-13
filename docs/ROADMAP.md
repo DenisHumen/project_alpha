@@ -231,7 +231,7 @@ project_alpha/
   - Что: скан всей истории gitleaks, проверка на приватные ссылки и чужие ассеты, переключение видимости, судьба `project_alpha-releases` по DEC-001, редиректы в README.
   - deps: DEC-001, REPO-002, REPO-009 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: репо публичный, в истории нет секретов, Actions на публичных runners работают.
-- [ ] **REPO-012** Инструменты ROADMAP: `just roadmap lint` и `just roadmap next`
+- [x] **REPO-012** Инструменты ROADMAP: `just roadmap lint` и `just roadmap next`
   - Что: скрипт в `tools/roadmap/` (блоки кода игнорируются) проверяет уникальность ID, формат полей, существование ID в deps, отсутствие циклов, что у `[x]` нет открытых deps; `next` выдаёт задачи с закрытыми deps, у которых нет открытого PR (через `gh`).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: —
   - done when: lint в CI зелёный на этом файле; `next` на текущем состоянии выдаёт список первой волны (§6).
@@ -578,6 +578,14 @@ project_alpha/
   - Что: формат и экспорт подтверждённых пользователем матчей (oshash/ed2k → ID и маппинг) в виде PR в публичный датасет, только по opt-in; k-анонимность; импорт датасета в индекс; без серверов.
   - deps: META-017 · size: M · parallel: yes · веха: M10 · ref: S §10, 03 §4.8
   - done when: экспорт не содержит путей и имён файлов (тест); импорт ускоряет матч известных релизов.
+- [ ] **META-023** Парсер: замер на тест-кейсах guessit и anitomy в eval-репо и доводка до ≥ 85 %
+  - Что: выделено из META-005 (первый срез парсера — крейт `pa-recognition::parse`). Конвертер тест-кейсов guessit (LGPL) и anitomy (MPL) в `parse`-блоки корпуса — только в eval-репо, в продукт не попадают; отчёт по полям (title, year, season, episodes, absolute, release_group, resolution, source); доводка правил без копирования кода. После закрытия отметить и META-005.
+  - deps: META-002, META-005 · size: M · parallel: yes · веха: M2 · ref: 03 §2.2, §6.1
+  - done when: ≥ 85 % кейсов guessit по сравниваемым полям, отчёт лежит в eval-репо; регрессионный порог добавлен в CI eval-репо.
+- [ ] **META-024** Адаптер парсера для `pa-eval`: метрики разбора имён
+  - Что: `Recognizer`-адаптер и/или отдельная метрика «Парсинг» (03 §6.2) в `pa-eval` поверх `pa_recognition::parse`: точность по полям `parse`-блоков корпуса для top-1 и N-best, разрез по категориям, отчёт в Markdown и JSON.
+  - deps: META-003, META-005 · size: S · parallel: yes · веха: M2 · ref: 03 §6.2
+  - done when: отчёт `pa-eval` содержит раздел «Парсинг»; на `examples.jsonl` воспроизводит числа теста `corpus_examples` крейта `pa-recognition`.
 
 ### 3.7. PLAY — общий плеерный слой
 
@@ -1306,7 +1314,7 @@ project_alpha/
   - Что: выбор Figma или Penpot (для open source рекомендуется Penpot; источник правды — JSON в git, а не файл макетов); каталоги tokens, icons/svg, brand, illustrations, motion, placeholders; `LICENSES.md` для шрифтов и иконок; Git LFS.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: 01 §5.1–5.2
   - done when: ADR о дизайн-инструменте; структура создана.
-- [ ] **DSN-002** Токены W3C DTCG
+- [x] **DSN-002** Токены W3C DTCG
   - Что: primitive (палитра, отступы 4–100, радиусы, тени), semantic (`bg/base`, `text/*`, `accent`, `accent/live`, `focus/*`, `badge/*`, `scrim`, `glass/thin|regular|thick`, `motion/*`), component (`poster/focus/scale` и т. п.), профили плотности (TV, desktop, tablet, phone).
   - deps: DSN-001 · size: M · parallel: yes · веха: M0 · ref: 01 §4.3–4.7, §4.10 п.1–2
   - done when: JSON проходит валидацию DTCG; значения из 01 §4 перенесены.
@@ -1314,11 +1322,11 @@ project_alpha/
   - Что: генерация `tokens.dart`, `Tokens.swift`, `tokens.css` (админки и сайт) в CI; проверка актуальности сгенерированного; проверка контраста WCAG AA для текстовых пар.
   - deps: DSN-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §5.2 (CI-шаги)
   - done when: изменение токена без перегенерации роняет CI; пара с контрастом меньше 4.5:1 роняет CI.
-- [ ] **DSN-004** Набор иконок и конвейер
+- [x] **DSN-004** Набор иконок и конвейер
   - Что: основа — Lucide (ISC) или Phosphor (MIT), доработка (штрих 1.75–2 px на 24 px); svgo и линтер (stroke, viewBox); генерация `Icon.*` для Flutter и asset catalog (или шаблоны SF Symbols) для Swift.
   - deps: DSN-001 · size: M · parallel: yes · веха: M1 · ref: 01 §4.8, §5.2
   - done when: 60 базовых иконок MVP доступны на обеих платформах; линтер в CI.
-- [ ] **DSN-005** Шрифты
+- [x] **DSN-005** Шрифты
   - Что: Inter Variable (OFL) для не-Apple платформ, проверка кириллицы (запасные варианты — Manrope или Golos UI); на Apple — системный SF; лицензии в `LICENSES.md`; табличные цифры.
   - deps: DSN-001 · size: S · parallel: yes · веха: M1 · ref: 01 §4.4
   - done when: образец типографики ru и en утверждён; шрифты подключены во Flutter.

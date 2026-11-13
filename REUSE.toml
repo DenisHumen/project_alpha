@@ -40,6 +40,8 @@ path = [
   "**/go.sum",
   "Cargo.lock",
   "**/pubspec.lock",
+  ".xcode-version",
+  "mise.toml",
   "**/.metadata",
 ]
 precedence = "closest"
@@ -87,6 +89,49 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
 SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
+
+# Flutter-generated scaffolding anywhere in the tree (apps, packages, examples):
+# `flutter create` templates, plugin registrants, Gradle/CMake glue, launcher
+# icons, Xcode projects. Files that carry their own SPDX header keep it
+# ("closest"); otherwise template code is BSD-3-Clause (The Flutter Authors)
+# with our edits under MPL-2.0.
+[[annotations]]
+path = [
+  "**/analysis_options.yaml",
+  "**/android/**",
+  "**/ios/**",
+  "**/macos/**",
+  "**/windows/**",
+  "**/web/**",
+  "**/linux/CMakeLists.txt",
+  "**/linux/flutter/**",
+  "**/linux/runner/**",
+  "**/.metadata",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
+
+# Screenshots and generated images in docs and design (project-authored).
+[[annotations]]
+path = ["docs/screenshots/**", "design/**/*.png", "design/**/*.webp", "**/assets/**/*.png"]
+precedence = "closest"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
+# UI icons based on Lucide (ISC; icons derived from Feather are also MIT) —
+# the licence is in each SVG header, the copyright is added here (DSN-004).
+[[annotations]]
+path = ["design/icons/svg/*.svg", "design/icons/generated/apple/**/*.svg"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
+
+# Verbatim Lucide licence file (ISC + MIT for Feather-derived icons).
+[[annotations]]
+path = "design/icons/LICENSE-lucide.txt"
+precedence = "override"
+SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
+SPDX-License-Identifier = "ISC AND MIT"
 
 # Patches to third-party LGPL sources (mpv, FFmpeg and their libraries) are
 # distributed under the licence of the code they modify.

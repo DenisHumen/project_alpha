@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Pinned developer toolchains (REPO-008). Install with `just bootstrap`
+# (or `mise install` directly). Rust is pinned separately in
+# rust-toolchain.toml and installed by rustup; Xcode is pinned in
+# .xcode-version; Android SDK packages are pinned in tools/bootstrap/versions.env.
+#
+# Bumping a version: change it here, run `just bootstrap`, rebuild the
+# Dev Container, and mention the bump in the PR description.
+
+[tools]
+# Flutter ships its own Dart SDK.
+flutter = "3.50.0-stable"
+# Gradle/AGP for clients/android and Flutter Android builds (AGP 9 needs JDK 17+).
+java = "temurin-21"
+go = "1.27.4"
+node = "26.13.1"
+just = "1.59.0"
+"cargo:cargo-ndk" = "4.1.2"
+"cargo:cargo-nextest" = "0.9.151"
+
+[settings]
+# Prefer prebuilt binaries for cargo:* tools when cargo-binstall is present.
+cargo.binstall = true
