@@ -8,7 +8,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/libexec/alpha/alpha-stub alpha-media 8096
+ExecStart=/usr/libexec/alpha/alpha-stub alpha-media 8487
 DynamicUser=yes
 StateDirectory=alpha-media
 NoNewPrivileges=yes

@@ -21,6 +21,8 @@
 //!   `mdns-sd` for Linux, Windows, macOS and Android (Android holds a
 //!   [`MulticastLock`]).
 //! - [`PlatformBackend`]: `NWBrowser` on iOS and tvOS through a callback.
+//! - `pin` (feature `tls`): the TXT `fp` format of our server and a rustls
+//!   verifier that trusts only the pinned certificate (SRV-004).
 //!
 //! ```
 //! use std::sync::Arc;
@@ -43,6 +45,8 @@ mod discovery;
 mod kind;
 #[cfg(feature = "mdns")]
 mod mdns;
+#[cfg(feature = "tls")]
+mod pin;
 mod platform;
 mod registry;
 mod service;
@@ -53,6 +57,10 @@ pub use kind::{LOCAL_DOMAIN, ServiceKind};
 pub use mdns::{
     Advertiser, Announcement, Interfaces, MDNS_PORT, MdnsBackend, MdnsConfig, MulticastLock,
     Registration, host_for_id,
+};
+#[cfg(feature = "tls")]
+pub use pin::{
+    FINGERPRINT_PREFIX, Fingerprint, FingerprintError, PinCheck, PinnedVerifier, check_pin,
 };
 pub use platform::{
     PlatformBackend, PlatformBrowser, PlatformService, PlatformSink, bonjour_services,

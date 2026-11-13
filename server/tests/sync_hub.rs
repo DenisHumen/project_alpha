@@ -40,6 +40,11 @@ impl Running {
         // Unpaired test devices: pairing is covered by tests/pairing.rs.
         let mut config = Config {
             listen: "127.0.0.1:0".parse().unwrap(),
+            // Plain HTTP: these tests speak raw HTTP/WebSocket (TLS: tls_mdns.rs).
+            tls: pa_server::config::TlsConfig {
+                enabled: false,
+                ..Default::default()
+            },
             ..Config::default()
         };
         config.sync.require_pairing = false;

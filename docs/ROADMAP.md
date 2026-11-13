@@ -1015,7 +1015,7 @@ project_alpha/
   - Что: локальные пользователи (админ и домочадцы), Argon2, PASETO v4.public (access на 15 мин, refresh с ротацией), PIN-профили, rate limit на логин, pairing клиента по QR или коду (без облачного аккаунта), полностью офлайн.
   - deps: SRV-001, SYNC-005 · size: M · parallel: yes · веха: M4 · ref: 04 §1.5 (Auth), §5.3
   - done when: тесты перебора (блокировка), ротации и отзыва токенов.
-- [ ] **SRV-004** TLS и mDNS-анонс
+- [x] **SRV-004** TLS и mDNS-анонс
   - Что: самоподписанный сертификат, анонс `_projectalpha._tcp` (TXT: id, v, name, fp), pinning отпечатка в клиенте (TOFU); HTTP без TLS — только по явной опции.
   - deps: SRV-001, NET-009 · size: S · parallel: yes · веха: M4 · ref: 04 §1.6, §5.2
   - done when: клиент находит сервер и отклоняет подменённый сертификат.

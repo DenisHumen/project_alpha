@@ -6,18 +6,40 @@ use std::time::Instant;
 use std::net::SocketAddr;
 
 use axum::Router;
+use axum::extract::connect_info::Connected;
 use axum::extract::ws::WebSocketUpgrade;
 use axum::extract::{ConnectInfo, FromRef, Path, Query, Request, State};
 use axum::http::StatusCode;
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Json, Response};
 use axum::routing::{delete, get, post};
+use axum::serve::IncomingStream;
 use serde::Deserialize;
 use serde_json::json;
+use tokio::net::TcpListener;
+
+use crate::tls::TlsListener;
 
 use crate::pairing::{self, Pairing};
 use crate::sync::{self, Hub};
 use crate::{Library, SERVICE, VERSION};
+
+/// Remote address of a connection, for plain TCP and TLS alike (axum only
+/// implements `Connected` for `SocketAddr` over `TcpListener`).
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct PeerAddr(pub(crate) SocketAddr);
+
+impl Connected<IncomingStream<'_, TcpListener>> for PeerAddr {
+    fn connect_info(stream: IncomingStream<'_, TcpListener>) -> Self {
+        Self(*stream.remote_addr())
+    }
+}
+
+impl Connected<IncomingStream<'_, TlsListener>> for PeerAddr {
+    fn connect_info(stream: IncomingStream<'_, TlsListener>) -> Self {
+        Self(*stream.remote_addr())
+    }
+}
 
 #[derive(Clone)]
 struct AppState {
@@ -82,7 +104,7 @@ struct InviteQuery {
 /// `POST /api/v1/pair/invite[?kind=qr]`: a new pairing code and its QR
 /// payload, replacing an open invitation.
 async fn invite(
-    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    ConnectInfo(PeerAddr(peer)): ConnectInfo<PeerAddr>,
     State(pairing): State<Pairing>,
     Query(query): Query<InviteQuery>,
 ) -> Response {
@@ -106,7 +128,7 @@ async fn invite(
 
 /// `GET /api/v1/devices`: the devices of the family, revoked ones too.
 async fn devices(
-    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    ConnectInfo(PeerAddr(peer)): ConnectInfo<PeerAddr>,
     State(pairing): State<Pairing>,
 ) -> Response {
     if let Some(denied) = local_only(peer) {
@@ -122,7 +144,7 @@ async fn devices(
 /// `DELETE /api/v1/devices/{id}`: revokes a device and rotates the family
 /// key.
 async fn revoke(
-    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    ConnectInfo(PeerAddr(peer)): ConnectInfo<PeerAddr>,
     State(pairing): State<Pairing>,
     Path(id): Path<String>,
 ) -> Response {

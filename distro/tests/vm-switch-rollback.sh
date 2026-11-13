@@ -88,7 +88,7 @@ check_services() {
     for svc in alpha-media alpha-admin alpha-updated smb wsdd avahi-daemon firewalld chronyd; do
         vm systemctl is-active --quiet "${svc}" || die "service ${svc} is not active"
     done
-    for port in 8096 80 7091; do
+    for port in 8487 80 7091; do
         vm "curl -fsS http://127.0.0.1:${port}/health" >/dev/null || die "no /health on :${port}"
     done
     vm "ss -ltn | grep -q ':445 '" || die "smbd is not listening on 445"

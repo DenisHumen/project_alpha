@@ -55,6 +55,7 @@ flowchart LR
   pa_scanner --> pa_library
   pa_scanner -. dev .-> pa_model
   pa_scanner --> pa_vfs
+  pa_server --> pa_discovery
   pa_server --> pa_library
   pa_server --> pa_model
   pa_server --> pa_pairing
@@ -70,7 +71,7 @@ flowchart LR
 | Крейт | Каталог | Внешних зависимостей | Описание |
 |---|---|---|---|
 | `pa-anime-mappings` | `core/crates/pa-anime-mappings` | 4 | Anime cross-ID and episode mappings: bundled ODbL data plus runtime-downloaded upstream lists (META-008) |
-| `pa-discovery` | `core/crates/pa-discovery` | 2 | LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009) |
+| `pa-discovery` | `core/crates/pa-discovery` | 4 | LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009) |
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
 | `pa-frb` | `core/crates/pa-frb` | 1 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |
@@ -86,7 +87,7 @@ flowchart LR
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |
 | `pa-scanner` | `core/crates/pa-scanner` | 1 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003); music tags and index (MUS-001) |
 | `pa-secrets` | `core/crates/pa-secrets` | 11 | Secret storage of project_alpha: OS keychains, platform callbacks, encrypted-file fallback, log redaction |
-| `pa-server` | `server` | 9 | Kinolune media server (mode B): axum HTTP on top of the core crates |
+| `pa-server` | `server` | 12 | Kinolune media server (mode B): axum HTTP on top of the core crates |
 | `pa-sync` | `core/crates/pa-sync` | 4 | Serverless state sync: hybrid logical clock, sync operations, LWW merge and the SQLite outbox (SYNC-001) |
 | `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002) |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |

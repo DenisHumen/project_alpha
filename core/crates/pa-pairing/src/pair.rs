@@ -162,12 +162,14 @@ impl Invitation {
         self.attempts_left > 0 && now_ms < self.expires_ms
     }
 
-    /// The QR payload for this invitation: see [`QrInvite`].
-    pub fn qr(&self, inviter: &PublicKeys, addr: Option<&str>) -> String {
+    /// The QR payload for this invitation: see [`QrInvite`]. `fp`: the
+    /// TLS certificate fingerprint of the inviter (`sha256:<hex>`, SRV-004).
+    pub fn qr(&self, inviter: &PublicKeys, addr: Option<&str>, fp: Option<&str>) -> String {
         QrInvite {
             code: self.code.clone(),
             inviter: inviter.sign,
             addr: addr.map(str::to_owned),
+            fp: fp.map(str::to_owned),
         }
         .to_uri()
     }
@@ -182,7 +184,7 @@ impl Invitation {
 }
 
 /// What a QR code tells the joiner:
-/// `projectalpha://pair?v=1&c=<code>&k=<inviter key>[&a=<host:port>]`.
+/// `projectalpha://pair?v=1&c=<code>&k=<inviter key>[&a=<host:port>][&f=<fp>]`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QrInvite {
     pub code: PairingCode,
@@ -190,6 +192,9 @@ pub struct QrInvite {
     pub inviter: [u8; 32],
     /// Where the inviter listens, if it is reachable over the network.
     pub addr: Option<String>,
+    /// TLS certificate fingerprint of the inviter (`sha256:<hex>`): the
+    /// joiner pins it instead of trusting the first certificate it sees.
+    pub fp: Option<String>,
 }
 
 fn encode_component(s: &str) -> String {
@@ -233,13 +238,17 @@ impl QrInvite {
             uri.push_str("&a=");
             uri.push_str(&encode_component(addr));
         }
+        if let Some(fp) = &self.fp {
+            uri.push_str("&f=");
+            uri.push_str(&encode_component(fp));
+        }
         uri
     }
 
     /// Parses a scanned QR code. Unknown parameters are ignored.
     pub fn parse(uri: &str) -> Result<Self> {
         let query = uri.strip_prefix(QR_PREFIX).ok_or(Error::Invalid("qr"))?;
-        let (mut v, mut code, mut key, mut addr) = (None, None, None, None);
+        let (mut v, mut code, mut key, mut addr, mut fp) = (None, None, None, None, None);
         for pair in query.split('&') {
             let (name, value) = pair.split_once('=').unwrap_or((pair, ""));
             match name {
@@ -247,6 +256,7 @@ impl QrInvite {
                 "c" => code = Some(PairingCode::parse(value)?),
                 "k" => key = Some(codec::from_hex_array::<32>(value)?),
                 "a" => addr = Some(decode_component(value)?),
+                "f" => fp = Some(decode_component(value)?),
                 _ => {}
             }
         }
@@ -257,6 +267,7 @@ impl QrInvite {
             code: code.ok_or(Error::Invalid("qr"))?,
             inviter: key.ok_or(Error::Invalid("qr"))?,
             addr,
+            fp,
         })
     }
 }
@@ -686,12 +697,19 @@ mod tests {
     fn qr_round_trip() {
         let fam = server();
         let inv = Invitation::long(0).unwrap();
-        let uri = inv.qr(&fam.identity().public(), Some("[fe80::1%eth0]:8096"));
+        let uri = inv.qr(
+            &fam.identity().public(),
+            Some("[fe80::1%eth0]:8487"),
+            Some("sha256:00ff"),
+        );
         assert!(uri.starts_with(QR_PREFIX));
         let qr = QrInvite::parse(&uri).unwrap();
         assert_eq!(qr.code, *inv.code());
         assert_eq!(qr.inviter, fam.identity().public().sign);
-        assert_eq!(qr.addr.as_deref(), Some("[fe80::1%eth0]:8096"));
+        assert_eq!(qr.addr.as_deref(), Some("[fe80::1%eth0]:8487"));
+        assert_eq!(qr.fp.as_deref(), Some("sha256:00ff"));
+        let bare = QrInvite::parse(&inv.qr(&fam.identity().public(), None, None)).unwrap();
+        assert_eq!((bare.addr, bare.fp), (None, None));
         assert!(QrInvite::parse("projectalpha://pair?v=2&c=123456&k=00").is_err());
         assert!(QrInvite::parse("https://example.org/?v=1").is_err());
     }

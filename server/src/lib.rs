@@ -8,15 +8,23 @@
 //! graceful shutdown and the sync hub ([`sync`], WebSocket at
 //! [`sync::PATH`]). The REST API comes with SRV-002 and later tasks.
 //!
-//! [`Server::bind`] opens the databases and the socket; [`Server::run`]
-//! serves until the shutdown future resolves, lets in-flight requests finish,
-//! closes sync connections and checkpoints the databases.
+//! Transport (SRV-004, ADR-NNNN): HTTPS by default with a self-signed
+//! certificate ([`tls`]) whose fingerprint clients pin; the server announces
+//! itself on mDNS as `_projectalpha._tcp` with that fingerprint in TXT `fp`
+//! ([`announce`]). Plain HTTP only with `[tls] enabled = false`.
+//!
+//! [`Server::bind`] opens the databases, loads or creates the certificate and
+//! binds the socket; [`Server::run`] announces the server, serves until the
+//! shutdown future resolves, lets in-flight requests finish, withdraws the
+//! announcement, closes sync connections and checkpoints the databases.
 
+pub mod announce;
 pub mod config;
 mod http;
 pub mod logging;
 pub mod pairing;
 pub mod sync;
+pub mod tls;
 
 use std::future::Future;
 use std::net::SocketAddr;
@@ -24,6 +32,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
+use pa_discovery::{Fingerprint, Interfaces, MdnsConfig};
 use pa_library::rusqlite::Connection;
 use tokio::net::TcpListener;
 
@@ -61,6 +70,9 @@ pub enum Error {
         /// Cause.
         source: sync::journal::JournalError,
     },
+    /// Certificate or key could not be loaded, created or used.
+    #[error("tls: {0}")]
+    Tls(String),
     /// The device family (keys, roster) could not be loaded.
     #[error("device family in {path}: {source}")]
     Pairing {
@@ -142,11 +154,15 @@ pub struct Server {
     listener: TcpListener,
     library: Library,
     hub: sync::Hub,
+    tls: Option<tls::TlsIdentity>,
+    discovery: config::DiscoveryConfig,
+    mdns: MdnsConfig,
 }
 
 impl Server {
-    /// Opens `data_dir/library.sqlite3` and `data_dir/sync.sqlite3` and
-    /// binds `config.listen`.
+    /// Opens `data_dir/library.sqlite3` and `data_dir/sync.sqlite3`, loads
+    /// or creates the TLS certificate (unless TLS is off) and binds
+    /// `config.listen`.
     pub async fn bind(config: &Config, data_dir: &Path) -> Result<Self, Error> {
         let path = data_dir.join(config::LIBRARY_FILE);
         let journal = data_dir.join(sync::JOURNAL_FILE);
@@ -162,15 +178,33 @@ impl Server {
             .ok()
             .filter(|a| !a.ip().is_unspecified())
             .map(|a| a.to_string());
-        let (library, hub) = {
+        let (library, hub, tls) = {
             let path = path.clone();
             let sync_config = config.sync.clone();
+            let tls_config = config.tls.clone();
             let data_dir = data_dir.to_owned();
             tokio::task::spawn_blocking(move || {
                 let library = Library::open(&path)?;
                 let hub =
                     sync::Hub::open(&journal, library.clone(), &sync_config, &data_dir, addr)?;
-                Ok::<_, Error>((library, hub))
+                // The server id is the hub id: one stable UUID per server.
+                let tls = tls_config
+                    .enabled
+                    .then(|| {
+                        tls::TlsIdentity::load_or_create(
+                            tls_config.cert.as_deref(),
+                            tls_config.key.as_deref(),
+                            &data_dir,
+                            &pa_discovery::host_for_id(hub.hub_id()),
+                        )
+                    })
+                    .transpose()?;
+                if let Some(identity) = &tls {
+                    // Pairing QR codes carry the fingerprint to pin.
+                    hub.pairing()
+                        .set_fingerprint(identity.fingerprint().to_string());
+                }
+                Ok::<_, Error>((library, hub, tls))
             })
             .await
             .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()))?
@@ -181,11 +215,40 @@ impl Server {
             "library database ready"
         );
         tracing::info!(hub = hub.hub_id(), path = sync::PATH, "sync hub ready");
+        match &tls {
+            Some(identity) => tracing::info!(
+                fingerprint = %identity.fingerprint(),
+                cert = %identity.cert_path().display(),
+                "TLS ready"
+            ),
+            None => tracing::warn!("TLS is off: serving plain HTTP"),
+        }
         Ok(Self {
             listener,
             library,
             hub,
+            tls,
+            discovery: config.discovery.clone(),
+            mdns: MdnsConfig::default(),
         })
+    }
+
+    /// Replaces the mDNS settings of the announcement (tests: loopback and
+    /// a private port). With [`Interfaces::LoopbackOnly`] the server is
+    /// announced even when it listens on loopback.
+    pub fn with_mdns(mut self, mdns: MdnsConfig) -> Self {
+        self.mdns = mdns;
+        self
+    }
+
+    /// Stable server id (TXT `id`), the same as the sync hub id.
+    pub fn server_id(&self) -> &str {
+        self.hub.hub_id()
+    }
+
+    /// Fingerprint of the TLS certificate (TXT `fp`); `None` with TLS off.
+    pub fn fingerprint(&self) -> Option<Fingerprint> {
+        self.tls.as_ref().map(tls::TlsIdentity::fingerprint)
     }
 
     /// Actual address (useful with port 0).
@@ -206,14 +269,50 @@ impl Server {
         &self.hub
     }
 
+    /// Starts the mDNS announcement unless it is off or pointless (loopback
+    /// address). Failures are logged, not fatal: the server is still
+    /// reachable by address.
+    async fn announce(&self, addr: SocketAddr) -> Option<announce::Announcer> {
+        if !self.discovery.enabled {
+            tracing::info!("mDNS announcement is off");
+            return None;
+        }
+        if addr.ip().is_loopback() && self.mdns.interfaces != Interfaces::LoopbackOnly {
+            tracing::info!(%addr, "not announcing on mDNS: listening on loopback only");
+            return None;
+        }
+        let name = announce::display_name(self.discovery.name.as_deref());
+        let id = self.server_id().to_owned();
+        let fingerprint = self.fingerprint();
+        let mdns = self.mdns.clone();
+        let started = tokio::task::spawn_blocking(move || {
+            announce::Announcer::start(&mdns, &name, &id, addr.port(), fingerprint)
+        })
+        .await
+        .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()));
+        match started {
+            Ok(announcer) => {
+                tracing::info!(service = announcer.fullname(), "announced on mDNS");
+                Some(announcer)
+            }
+            Err(e) => {
+                tracing::warn!(error = %e, "mDNS announcement failed");
+                None
+            }
+        }
+    }
+
     /// Serves until `shutdown` resolves, then waits for in-flight requests,
-    /// closes sync connections and checkpoints the databases.
+    /// withdraws the mDNS announcement, closes sync connections and
+    /// checkpoints the databases.
     pub async fn run(
         self,
         shutdown: impl Future<Output = ()> + Send + 'static,
     ) -> Result<(), Error> {
         let addr = self.local_addr()?;
-        tracing::info!(%addr, version = VERSION, "listening");
+        let announcer = self.announce(addr).await;
+        let scheme = if self.tls.is_some() { "https" } else { "http" };
+        tracing::info!(%addr, scheme, version = VERSION, "listening");
         let app = http::router(self.library.clone(), self.hub.clone());
         let hub = self.hub.clone();
         let shutdown = async move {
@@ -222,13 +321,40 @@ impl Server {
             // shutdown of axum: close them ourselves.
             hub.close();
         };
-        axum::serve(
-            self.listener,
-            app.into_make_service_with_connect_info::<SocketAddr>(),
-        )
-        .with_graceful_shutdown(shutdown)
-        .await
-        .map_err(|source| Error::Io {
+        let served = match &self.tls {
+            Some(identity) => {
+                let config = identity.server_config()?;
+                let (listener, accept_task) = tls::TlsListener::start(self.listener, config)
+                    .map_err(|source| Error::Io {
+                        context: "TLS listener".to_owned(),
+                        source,
+                    })?;
+                let served = axum::serve(
+                    listener,
+                    app.into_make_service_with_connect_info::<http::PeerAddr>(),
+                )
+                .with_graceful_shutdown(shutdown)
+                .await;
+                // The accept task owns the socket: close the port now.
+                accept_task.abort();
+                let _ = accept_task.await;
+                served
+            }
+            None => {
+                axum::serve(
+                    self.listener,
+                    app.into_make_service_with_connect_info::<http::PeerAddr>(),
+                )
+                .with_graceful_shutdown(shutdown)
+                .await
+            }
+        };
+        if let Some(announcer) = announcer {
+            tokio::task::spawn_blocking(move || announcer.stop())
+                .await
+                .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()));
+        }
+        served.map_err(|source| Error::Io {
             context: "serve".to_owned(),
             source,
         })?;

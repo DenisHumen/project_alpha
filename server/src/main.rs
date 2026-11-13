@@ -19,10 +19,12 @@ Options:
 
 Environment (overrides the file):
   ALPHA_MEDIA_CONFIG      configuration file, same as --config
-  ALPHA_MEDIA_LISTEN      listen address, default 127.0.0.1:8096
+  ALPHA_MEDIA_LISTEN      listen address, default 127.0.0.1:8487
   ALPHA_MEDIA_DATA_DIR    state directory (library database, settings, cache)
   ALPHA_MEDIA_LOG         log filter, default info
   ALPHA_MEDIA_LOG_FORMAT  text or json
+  ALPHA_MEDIA_TLS         on (default: HTTPS, self-signed) or off (plain HTTP)
+  ALPHA_MEDIA_MDNS        on (default: announce _projectalpha._tcp) or off
 ";
 
 enum Command {

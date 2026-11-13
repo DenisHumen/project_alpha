@@ -14,20 +14,24 @@ publish.workspace = true
 name = "alpha-media"
 path = "src/main.rs"
 
-# No TLS yet. When it arrives (SRV-004) it is rustls only: openssl is banned
-# by deny.toml.
+# TLS is rustls with the ring provider only (openssl is banned by deny.toml);
+# rcgen makes the self-signed certificate (SRV-004, ADR-NNNN).
 [dependencies]
 axum = { workspace = true, features = ["http1", "json", "query", "tokio", "ws"] }
+pa-discovery = { path = "../core/crates/pa-discovery", features = ["mdns", "tls"] }
 pa-library = { path = "../core/crates/pa-library" }
 pa-model = { path = "../core/crates/pa-model" }
 pa-pairing = { path = "../core/crates/pa-pairing" }
 pa-runtime = { path = "../core/crates/pa-runtime" }
 pa-secrets = { path = "../core/crates/pa-secrets" }
 pa-sync = { path = "../core/crates/pa-sync" }
+rcgen = { workspace = true, features = ["crypto", "pem", "ring"] }
+rustls = { workspace = true, features = ["ring", "std", "tls12"] }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["macros", "net", "rt", "signal", "sync", "time"] }
+tokio-rustls = { workspace = true, features = ["ring", "tls12"] }
 toml.workspace = true
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["ansi", "env-filter", "fmt", "json", "std"] }

@@ -69,6 +69,8 @@ struct Inner {
     invitation: Mutex<Option<Invitation>>,
     /// Where devices reach the server, for the QR code.
     addr: Option<String>,
+    /// TLS fingerprint for the QR code (SRV-004); set once TLS is ready.
+    fingerprint: std::sync::OnceLock<String>,
     events: broadcast::Sender<FamilyEvent>,
 }
 
@@ -118,6 +120,7 @@ impl Pairing {
                 family: Mutex::new(family),
                 invitation: Mutex::new(None),
                 addr,
+                fingerprint: std::sync::OnceLock::new(),
                 events,
             }),
         })
@@ -147,6 +150,12 @@ impl Pairing {
         }
     }
 
+    /// Puts the server TLS fingerprint (`sha256:<hex>`) into QR codes, so
+    /// a joining device pins it right away. Only the first call counts.
+    pub fn set_fingerprint(&self, fingerprint: String) {
+        let _ = self.inner.fingerprint.set(fingerprint);
+    }
+
     /// A new invitation, replacing an open one: a 6-digit code, or with
     /// `long` a 128-bit code for a QR code only.
     pub fn invite(&self, long: bool) -> Result<Invite, pa_pairing::Error> {
@@ -159,7 +168,11 @@ impl Pairing {
         let keys = self.family().identity().public();
         let invite = Invite {
             code: invitation.code().expose().to_owned(),
-            qr: invitation.qr(&keys, self.inner.addr.as_deref()),
+            qr: invitation.qr(
+                &keys,
+                self.inner.addr.as_deref(),
+                self.inner.fingerprint.get().map(String::as_str),
+            ),
             expires_ms: invitation.expires_ms(),
         };
         *lock(&self.inner.invitation) = Some(invitation);

@@ -33,6 +33,11 @@ impl Running {
     async fn start(data: &Path) -> Self {
         let config = Config {
             listen: "127.0.0.1:0".parse().unwrap(),
+            // Plain WebSocket (TLS and the QR fingerprint: tls_mdns.rs).
+            tls: pa_server::config::TlsConfig {
+                enabled: false,
+                ..Default::default()
+            },
             ..Config::default()
         };
         assert!(config.sync.require_pairing, "pairing is on by default");
