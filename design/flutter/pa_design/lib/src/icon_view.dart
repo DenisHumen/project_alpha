@@ -8,7 +8,8 @@ import 'icons.g.dart';
 /// Draws a [PaIcon]. Size and colour default to the ambient [IconTheme],
 /// so it behaves like Flutter's `Icon`.
 class PaIconView extends StatelessWidget {
-  const PaIconView(this.icon, {super.key, this.size, this.color, this.semanticLabel});
+  const PaIconView(this.icon,
+      {super.key, this.size, this.color, this.semanticLabel});
 
   final PaIcon icon;
   final double? size;

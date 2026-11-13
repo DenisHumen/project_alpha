@@ -36,7 +36,9 @@ class SmbUrl {
       uri.host,
       segs.first,
       segs.skip(1).join('/'),
-      user: uri.userInfo.isEmpty ? null : Uri.decodeComponent(uri.userInfo.split(':').first),
+      user: uri.userInfo.isEmpty
+          ? null
+          : Uri.decodeComponent(uri.userInfo.split(':').first),
     );
   }
 
@@ -73,10 +75,15 @@ String? findGvfsPath(SmbUrl url, String gvfsRoot) {
     final attrs = <String, String>{};
     for (final kv in name.substring('smb-share:'.length).split(',')) {
       final i = kv.indexOf('=');
-      if (i > 0) attrs[kv.substring(0, i)] = Uri.decodeComponent(kv.substring(i + 1)).toLowerCase();
+      if (i > 0)
+        attrs[kv.substring(0, i)] = Uri.decodeComponent(
+          kv.substring(i + 1),
+        ).toLowerCase();
     }
     if (attrs['server'] == host && attrs['share'] == share) {
-      return url.path.isEmpty ? e.path : p.joinAll([e.path, ...url.path.split('/')]);
+      return url.path.isEmpty
+          ? e.path
+          : p.joinAll([e.path, ...url.path.split('/')]);
     }
   }
   return null;
@@ -86,7 +93,12 @@ String? findGvfsPath(SmbUrl url, String gvfsRoot) {
 class SmbResolver {
   /// Overridable for tests.
   final String? gvfsRootOverride;
-  final Future<ProcessResult> Function(String exe, List<String> args, {String? stdinText})? runner;
+  final Future<ProcessResult> Function(
+    String exe,
+    List<String> args, {
+    String? stdinText,
+  })?
+  runner;
 
   SmbResolver({this.gvfsRootOverride, this.runner});
 
@@ -98,28 +110,42 @@ class SmbResolver {
     return '/run/user/${(id.stdout as String).trim()}/gvfs';
   }
 
-  Future<ProcessResult> _run(String exe, List<String> args, {String? stdinText}) async {
+  Future<ProcessResult> _run(
+    String exe,
+    List<String> args, {
+    String? stdinText,
+  }) async {
     if (runner != null) return runner!(exe, args, stdinText: stdinText);
     final proc = await Process.start(exe, args);
     if (stdinText != null) proc.stdin.write(stdinText);
     await proc.stdin.close();
     final out = proc.stdout.transform(utf8.decoder).join();
     final err = proc.stderr.transform(utf8.decoder).join();
-    final code = await proc.exitCode.timeout(const Duration(seconds: 45), onTimeout: () {
-      proc.kill();
-      return -1;
-    });
+    final code = await proc.exitCode.timeout(
+      const Duration(seconds: 45),
+      onTimeout: () {
+        proc.kill();
+        return -1;
+      },
+    );
     return ProcessResult(proc.pid, code, await out, await err);
   }
 
-  Future<String> resolve(String url, {String? username, String? password}) async {
+  Future<String> resolve(
+    String url, {
+    String? username,
+    String? password,
+  }) async {
     if (Platform.isAndroid || Platform.isIOS) {
       throw SmbUnsupportedException(
-          'SMB is not supported on this platform in Kinolune 0.1 (beta). '
-          'Copy media to the device or use a folder source.');
+        'SMB is not supported on this platform in Kinolune 0.1 (beta). '
+        'Copy media to the device or use a folder source.',
+      );
     }
     if (!Platform.isLinux && gvfsRootOverride == null) {
-      throw SmbUnsupportedException('SMB sources are supported on Linux only in 0.1.');
+      throw SmbUnsupportedException(
+        'SMB sources are supported on Linux only in 0.1.',
+      );
     }
     final smb = SmbUrl.parse(url);
     final root = await _gvfsRoot();
@@ -137,15 +163,17 @@ class SmbResolver {
       res = await _run('gio', ['mount', smb.shareUrl], stdinText: stdinText);
     } on ProcessException {
       throw SmbMountException(
-          'Could not run "gio" to mount ${smb.shareUrl}. Mount the share in your '
-          'file manager (or with mount.cifs) and add the mounted folder as a local folder source.');
+        'Could not run "gio" to mount ${smb.shareUrl}. Mount the share in your '
+        'file manager (or with mount.cifs) and add the mounted folder as a local folder source.',
+      );
     }
     local = findGvfsPath(smb, root);
     if (local != null) return local;
     final err = (res.stderr is String ? res.stderr as String : '').trim();
     throw SmbMountException(
-        'Could not mount ${smb.shareUrl}${err.isNotEmpty ? ': $err' : ''}. '
-        'Check the address and credentials, or mount it in your file manager and '
-        'add the mounted folder as a local folder source.');
+      'Could not mount ${smb.shareUrl}${err.isNotEmpty ? ': $err' : ''}. '
+      'Check the address and credentials, or mount it in your file manager and '
+      'add the mounted folder as a local folder source.',
+    );
   }
 }

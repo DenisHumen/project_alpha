@@ -26,7 +26,7 @@
       "$value": "{color.white-alpha.38}",
       "$description": "Inactive/disabled text (WCAG 1.4.3 exempt); kept ≥ 3:1 on bg/base. 01 §4.5 proposed 35 %."
     },
-    "link": { "$value": "{color.blue.400}", "$description": "Links and accent-coloured text on bg/*." },
+    "link": { "$value": "{color.lune.400}", "$description": "Links and accent-coloured text on bg/*." },
     "on-accent": { "$value": "{color.white}", "$description": "Text/icons on accent/default fills." },
     "on-live": { "$value": "{color.white}", "$description": "Text on the LIVE badge." },
     "on-scrim": { "$value": "{color.white}", "$description": "Text over artwork with scrim/*." }
@@ -45,11 +45,11 @@
   "accent": {
     "$type": "color",
     "default": {
-      "$value": "{color.blue.600}",
-      "$description": "Brand accent fill: progress, selected tab, primary non-TV buttons. Placeholder hue until DSN-006."
+      "$value": "{color.lune.600}",
+      "$description": "Brand accent fill (lune teal, DSN-006): progress, selected tab, primary non-TV buttons."
     },
-    "pressed": { "$value": "{color.blue.700}" },
-    "subtle": { "$value": "{color.blue.800}", "$description": "Tinted backgrounds (selected chip)." },
+    "pressed": { "$value": "{color.lune.700}" },
+    "subtle": { "$value": "{color.lune.800}", "$description": "Tinted backgrounds (selected chip)." },
     "live": {
       "$value": "{color.red.600}",
       "$description": "LIVE status only (Twitch, live TV). Never used as brand accent (01 §4.9 п.11)."
@@ -75,7 +75,7 @@
     "label": { "$type": "color", "$value": "{color.black}", "$description": "Text/icon on focus/fill." },
     "ring": {
       "$type": "color",
-      "$value": "{color.blue.400}",
+      "$value": "{color.lune.400}",
       "$description": "Keyboard focus ring on desktop/phone (no scale there)."
     },
     "ring-width": { "$type": "dimension", "$value": { "value": 3, "unit": "px" } },

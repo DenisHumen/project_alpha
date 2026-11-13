@@ -107,7 +107,12 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: dart format
-        run: dart format --output=none --set-exit-if-changed .
+        # Generated files (*.g.dart, *.freezed.dart) are checked by their own
+        # generators' freshness checks, not by the formatter.
+        run: |
+          find . -name '*.dart' -not -path './.dart_tool/*' -not -path './build/*' \
+            -not -name '*.g.dart' -not -name '*.freezed.dart' -print0 \
+            | xargs -0 -r dart format --output=none --set-exit-if-changed
       - name: flutter analyze
         run: flutter analyze
       - name: Tests

@@ -58,24 +58,24 @@ class ParsedName {
     int? season,
     int? episode,
     double? confidence,
-  }) =>
-      ParsedName(
-        title: title ?? this.title,
-        altTitle: altTitle ?? this.altTitle,
-        year: year ?? this.year,
-        isEpisode: isEpisode ?? this.isEpisode,
-        season: season ?? this.season,
-        episode: episode ?? this.episode,
-        episodeEnd: episodeEnd,
-        episodeTitle: episodeTitle,
-        releaseGroup: releaseGroup,
-        isAnime: isAnime,
-        resolution: resolution,
-        confidence: confidence ?? this.confidence,
-      );
+  }) => ParsedName(
+    title: title ?? this.title,
+    altTitle: altTitle ?? this.altTitle,
+    year: year ?? this.year,
+    isEpisode: isEpisode ?? this.isEpisode,
+    season: season ?? this.season,
+    episode: episode ?? this.episode,
+    episodeEnd: episodeEnd,
+    episodeTitle: episodeTitle,
+    releaseGroup: releaseGroup,
+    isAnime: isAnime,
+    resolution: resolution,
+    confidence: confidence ?? this.confidence,
+  );
 
   @override
-  String toString() => 'ParsedName("$title"'
+  String toString() =>
+      'ParsedName("$title"'
       '${altTitle != null ? ' / "$altTitle"' : ''}'
       '${year != null ? ' ($year)' : ''}'
       '${isEpisode ? ' S${season}E$episode${episodeEnd != null ? '-E$episodeEnd' : ''}' : ''}'
@@ -144,20 +144,63 @@ const List<String> _junkPhrases = [
 
 /// Generic folder names that never carry a title.
 const Set<String> genericFolderNames = {
-  'movies', 'movie', 'films', 'film', 'video', 'videos', 'downloads',
-  'download', 'tv', 'tv shows', 'tvshows', 'shows', 'series', 'serials',
-  'anime', 'cartoons', 'media', 'library', 'kids', 'documentaries', 'new',
-  'torrents', 'complete', 'фильмы', 'фильм', 'кино', 'видео', 'сериалы',
-  'сериал', 'аниме', 'мультфильмы', 'мультики', 'мультсериалы', 'загрузки',
-  'документальные', 'новое', 'video_ts', 'bdmv', 'stream', 'mnt', 'media1',
-  'music', 'музыка', 'home', 'public', 'share', 'nas', 'data', 'volume1',
+  'movies',
+  'movie',
+  'films',
+  'film',
+  'video',
+  'videos',
+  'downloads',
+  'download',
+  'tv',
+  'tv shows',
+  'tvshows',
+  'shows',
+  'series',
+  'serials',
+  'anime',
+  'cartoons',
+  'media',
+  'library',
+  'kids',
+  'documentaries',
+  'new',
+  'torrents',
+  'complete',
+  'фильмы',
+  'фильм',
+  'кино',
+  'видео',
+  'сериалы',
+  'сериал',
+  'аниме',
+  'мультфильмы',
+  'мультики',
+  'мультсериалы',
+  'загрузки',
+  'документальные',
+  'новое',
+  'video_ts',
+  'bdmv',
+  'stream',
+  'mnt',
+  'media1',
+  'music',
+  'музыка',
+  'home',
+  'public',
+  'share',
+  'nas',
+  'data',
+  'volume1',
 };
 
 final RegExp _resolutionRe = RegExp(r'^(\d{3,4})[pi]$', caseSensitive: false);
 final RegExp _dimensionsRe = RegExp(r'^\d{3,4}x\d{3,4}$', caseSensitive: false);
-final RegExp _audioChannelsRe =
-    RegExp(r'^(?:dd\+?|ddp|aac|ac3|eac3|dts|truehd|atmos|flac|opus)?[257]\.[01]$',
-        caseSensitive: false);
+final RegExp _audioChannelsRe = RegExp(
+  r'^(?:dd\+?|ddp|aac|ac3|eac3|dts|truehd|atmos|flac|opus)?[257]\.[01]$',
+  caseSensitive: false,
+);
 final RegExp _junkRegexes = RegExp(
   r'^(?:'
   r'[xh]\.?26[45]|'
@@ -176,21 +219,28 @@ final RegExp _yearRe = RegExp(r'^(?:19\d\d|20\d\d)$');
 /// SxxEyy with optional extra episodes: S01E01, S01E01E02, S01E01-E02,
 /// S01E01-02, s1e1.
 final RegExp _sxeRe = RegExp(
-    r'^s(\d{1,2})[ ._]?e(\d{1,4})(?:(?:-?e|-)(\d{1,4}))?(?:e(\d{1,4}))*$',
-    caseSensitive: false);
+  r'^s(\d{1,2})[ ._]?e(\d{1,4})(?:(?:-?e|-)(\d{1,4}))?(?:e(\d{1,4}))*$',
+  caseSensitive: false,
+);
 final RegExp _seasonOnlyRe = RegExp(r'^s(\d{1,2})$', caseSensitive: false);
-final RegExp _epOnlyRe =
-    RegExp(r'^(?:e|ep|ep\.)(\d{1,4})(?:v\d)?$', caseSensitive: false);
+final RegExp _epOnlyRe = RegExp(
+  r'^(?:e|ep|ep\.)(\d{1,4})(?:v\d)?$',
+  caseSensitive: false,
+);
 final RegExp _nxnRe = RegExp(r'^(\d{1,2})x(\d{2,3})(?:-(\d{2,3}))?$');
 final RegExp _plainNumberRe = RegExp(r'^(\d{1,4})(?:v\d)?$');
-final RegExp _seasonWordRe =
-    RegExp(r'^(?:season|сезон|series|saison|staffel|temporada)$',
-        caseSensitive: false);
+final RegExp _seasonWordRe = RegExp(
+  r'^(?:season|сезон|series|saison|staffel|temporada)$',
+  caseSensitive: false,
+);
 final RegExp _episodeWordRe = RegExp(
-    r'^(?:episode|ep|серия|серии|эпизод|episodio|folge|épisode)$',
-    caseSensitive: false);
-final RegExp _ordinalSeasonRe =
-    RegExp(r'^(\d{1,2})(?:st|nd|rd|th)$', caseSensitive: false);
+  r'^(?:episode|ep|серия|серии|эпизод|episodio|folge|épisode)$',
+  caseSensitive: false,
+);
+final RegExp _ordinalSeasonRe = RegExp(
+  r'^(\d{1,2})(?:st|nd|rd|th)$',
+  caseSensitive: false,
+);
 
 bool _isYear(String t) {
   if (!_yearRe.hasMatch(t)) return false;
@@ -231,8 +281,13 @@ class _Pre {
   final bool anime;
   final String? resolution;
   final String? trailingGroup;
-  _Pre(this.tokens, this.group, this.anime, this.resolution,
-      this.trailingGroup);
+  _Pre(
+    this.tokens,
+    this.group,
+    this.anime,
+    this.resolution,
+    this.trailingGroup,
+  );
 }
 
 _Pre _tokenise(String base) {
@@ -275,7 +330,10 @@ _Pre _tokenise(String base) {
     if (y != null && _isYear(y.group(1)!)) return ' ${y.group(1)} $_stop ';
     final words = inner.split(RegExp(r'[\s._,]+')).where((w) => w.isNotEmpty);
     if (words.isNotEmpty && words.any(isJunkToken)) {
-      final r = RegExp(r'(\d{3,4}[pi])', caseSensitive: false).firstMatch(inner);
+      final r = RegExp(
+        r'(\d{3,4}[pi])',
+        caseSensitive: false,
+      ).firstMatch(inner);
       if (r != null) resolution ??= r.group(1)!.toLowerCase();
       return ' $_stop ';
     }
@@ -285,18 +343,24 @@ _Pre _tokenise(String base) {
   // Multi-word junk phrases.
   for (final ph in _junkPhrases) {
     final re = RegExp(
-        RegExp.escape(ph).replaceAll(r'\ ', r'[\s._-]+'),
-        caseSensitive: false);
+      RegExp.escape(ph).replaceAll(r'\ ', r'[\s._-]+'),
+      caseSensitive: false,
+    );
     s = s.replaceAll(re, ' remastered ');
   }
 
   // Normalise dotted technical tokens before dots become separators.
-  s = s.replaceAllMapped(RegExp(r'\b([hx])\.(26[45])\b', caseSensitive: false),
-      (m) => '${m.group(1)}${m.group(2)}');
   s = s.replaceAllMapped(
-      RegExp(r'\b(dd\+?|ddp|aac|ac3|eac3|dts|truehd|atmos|flac|opus)[ .]?([257])\.([01])\b',
-          caseSensitive: false),
-      (m) => ' ${m.group(1)}${m.group(2)}.${m.group(3)} ');
+    RegExp(r'\b([hx])\.(26[45])\b', caseSensitive: false),
+    (m) => '${m.group(1)}${m.group(2)}',
+  );
+  s = s.replaceAllMapped(
+    RegExp(
+      r'\b(dd\+?|ddp|aac|ac3|eac3|dts|truehd|atmos|flac|opus)[ .]?([257])\.([01])\b',
+      caseSensitive: false,
+    ),
+    (m) => ' ${m.group(1)}${m.group(2)}.${m.group(3)} ',
+  );
 
   // Separators: '_' and '.' (except between digits, e.g. 5.1) → space.
   s = s.replaceAll('_', ' ');
@@ -347,8 +411,14 @@ class _Ep {
   final int episode;
   final int? episodeEnd;
   final double confidence;
-  _Ep(this.index, this.length, this.season, this.episode, this.episodeEnd,
-      this.confidence);
+  _Ep(
+    this.index,
+    this.length,
+    this.season,
+    this.episode,
+    this.episodeEnd,
+    this.confidence,
+  );
 }
 
 int? _int(String? s) => s == null ? null : int.tryParse(s);
@@ -377,8 +447,14 @@ _Ep? _findEpisode(List<String> t) {
     if (m != null && i + 1 < t.length) {
       final m2 = _epOnlyRe.firstMatch(t[i + 1]);
       if (m2 != null) {
-        return _Ep(i, 2, int.parse(m.group(1)!), int.parse(m2.group(1)!),
-            null, 0.9);
+        return _Ep(
+          i,
+          2,
+          int.parse(m.group(1)!),
+          int.parse(m2.group(1)!),
+          null,
+          0.9,
+        );
       }
     }
 
@@ -402,8 +478,14 @@ _Ep? _findEpisode(List<String> t) {
         if (j + 1 < t.length && _episodeWordRe.hasMatch(t[j])) {
           final en = _plainNumberRe.firstMatch(t[j + 1]);
           if (en != null) {
-            return _Ep(i, j + 2 - i, int.parse(sn.group(1)!),
-                int.parse(en.group(1)!), null, 0.9);
+            return _Ep(
+              i,
+              j + 2 - i,
+              int.parse(sn.group(1)!),
+              int.parse(en.group(1)!),
+              null,
+              0.9,
+            );
           }
         }
       }
@@ -415,8 +497,14 @@ _Ep? _findEpisode(List<String> t) {
         _seasonWordRe.hasMatch(t[i + 1]) &&
         _plainNumberRe.hasMatch(t[i + 2]) &&
         _episodeWordRe.hasMatch(t[i + 3])) {
-      return _Ep(i, 4, int.parse(_plainNumberRe.firstMatch(tok)!.group(1)!),
-          int.parse(_plainNumberRe.firstMatch(t[i + 2])!.group(1)!), null, 0.9);
+      return _Ep(
+        i,
+        4,
+        int.parse(_plainNumberRe.firstMatch(tok)!.group(1)!),
+        int.parse(_plainNumberRe.firstMatch(t[i + 2])!.group(1)!),
+        null,
+        0.9,
+      );
     }
     // "Episode 5" / "Серия 5" / "Ep 5"
     if (_episodeWordRe.hasMatch(low) && i + 1 < t.length) {
@@ -429,10 +517,18 @@ _Ep? _findEpisode(List<String> t) {
     if (_plainNumberRe.hasMatch(tok) &&
         !_isYear(tok) &&
         i + 1 < t.length &&
-        RegExp(r'^(?:серия|эпизод)$', caseSensitive: false)
-            .hasMatch(t[i + 1])) {
-      return _Ep(i, 2, null, int.parse(_plainNumberRe.firstMatch(tok)!.group(1)!),
-          null, 0.75);
+        RegExp(
+          r'^(?:серия|эпизод)$',
+          caseSensitive: false,
+        ).hasMatch(t[i + 1])) {
+      return _Ep(
+        i,
+        2,
+        null,
+        int.parse(_plainNumberRe.firstMatch(tok)!.group(1)!),
+        null,
+        0.75,
+      );
     }
     // E05 / Ep05
     m = _epOnlyRe.firstMatch(tok);
@@ -520,7 +616,8 @@ String _join(Iterable<String> tokens) {
   }
   if (n > 2 && _seasonWordRe.hasMatch(last)) {
     final prev = tokens[n - 2];
-    final om = _ordinalSeasonRe.firstMatch(prev) ?? _plainNumberRe.firstMatch(prev);
+    final om =
+        _ordinalSeasonRe.firstMatch(prev) ?? _plainNumberRe.firstMatch(prev);
     if (om != null && !_isYear(prev)) {
       return (tokens.sublist(0, n - 2), int.parse(om.group(1)!));
     }
@@ -568,7 +665,8 @@ ParsedName parseName(String name) {
     // Only accept a year if what follows it (up to `end`) is not more title,
     // unless the year was in parentheses (followed by a stop marker).
     final followedByStop =
-        yearIdx + 1 < t.length && (t[yearIdx + 1] == _stop || _isStop(t[yearIdx + 1]));
+        yearIdx + 1 < t.length &&
+        (t[yearIdx + 1] == _stop || _isStop(t[yearIdx + 1]));
     final atEnd = yearIdx == end - 1;
     if (followedByStop || atEnd || ep != null || yearIdx + 1 >= t.length) {
       year = int.parse(t[yearIdx]);
@@ -676,12 +774,17 @@ ParsedName parseName(String name) {
 // Folder context
 
 final RegExp _seasonFolderRe = RegExp(
-    r'^(?:season|сезон|series|saison|staffel|temporada|s)[\s._-]*(\d{1,2})(?:\b.*)?$',
-    caseSensitive: false);
-final RegExp _seasonFolderRe2 =
-    RegExp(r'^(\d{1,2})[\s._-]*(?:season|сезон)$', caseSensitive: false);
-final RegExp _specialsRe =
-    RegExp(r'^(?:specials?|extras? season|спецвыпуски|сп)$', caseSensitive: false);
+  r'^(?:season|сезон|series|saison|staffel|temporada|s)[\s._-]*(\d{1,2})(?:\b.*)?$',
+  caseSensitive: false,
+);
+final RegExp _seasonFolderRe2 = RegExp(
+  r'^(\d{1,2})[\s._-]*(?:season|сезон)$',
+  caseSensitive: false,
+);
+final RegExp _specialsRe = RegExp(
+  r'^(?:specials?|extras? season|спецвыпуски|сп)$',
+  caseSensitive: false,
+);
 
 /// Season number if [folder] is a season folder ("Season 1", "S01",
 /// "Сезон 2", "2 сезон", "Specials" → 0).
@@ -697,9 +800,28 @@ bool _isGeneric(String folder) =>
     genericFolderNames.contains(folder.trim().toLowerCase());
 
 const _videoExts = {
-  '.mkv', '.mp4', '.m4v', '.avi', '.mov', '.wmv', '.mpg', '.mpeg', '.ts',
-  '.m2ts', '.mts', '.webm', '.flv', '.ogv', '.3gp', '.rmvb', '.divx', '.vob',
-  '.iso', '.mp3', '.flac', '.m4a',
+  '.mkv',
+  '.mp4',
+  '.m4v',
+  '.avi',
+  '.mov',
+  '.wmv',
+  '.mpg',
+  '.mpeg',
+  '.ts',
+  '.m2ts',
+  '.mts',
+  '.webm',
+  '.flv',
+  '.ogv',
+  '.3gp',
+  '.rmvb',
+  '.divx',
+  '.vob',
+  '.iso',
+  '.mp3',
+  '.flac',
+  '.m4a',
 };
 
 String _stripExt(String name) {
@@ -751,9 +873,10 @@ ParsedName parsePath(String path, {String? root}) {
 
   // Bare numbers / "Episode 3" files inside a season or show folder.
   if (!parsed.isEpisode) {
-    final bare = RegExp(r'^(?:e|ep|episode|серия)?[\s._-]*(\d{1,3})(?:[\s._-]+(.*))?$',
-            caseSensitive: false)
-        .firstMatch(base.trim());
+    final bare = RegExp(
+      r'^(?:e|ep|episode|серия)?[\s._-]*(\d{1,3})(?:[\s._-]+(.*))?$',
+      caseSensitive: false,
+    ).firstMatch(base.trim());
     if (bare != null &&
         (parentSeason != null || (showFolderParsed?.isEpisode ?? false))) {
       parsed = ParsedName(
@@ -761,7 +884,9 @@ ParsedName parsePath(String path, {String? root}) {
         isEpisode: true,
         season: parentSeason ?? showFolderParsed?.season,
         episode: int.parse(bare.group(1)!),
-        episodeTitle: bare.group(2) != null ? parseName(bare.group(2)!).title : null,
+        episodeTitle: bare.group(2) != null
+            ? parseName(bare.group(2)!).title
+            : null,
         confidence: 0.7,
       );
     }

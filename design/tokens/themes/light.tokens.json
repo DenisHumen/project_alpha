@@ -22,7 +22,7 @@
       "$value": "{color.black-alpha.45}",
       "$description": "Inactive (WCAG exempt), ≥ 3:1 target. 01 §4.5 proposed 30 %; raised to 45 % for 3:1 on bg/base."
     },
-    "link": { "$value": "{color.blue.600}" }
+    "link": { "$value": "{color.lune.600}" }
   },
   "border": {
     "$type": "color",
@@ -31,7 +31,7 @@
   },
   "accent": {
     "$type": "color",
-    "subtle": { "$value": "{color.blue.100}" }
+    "subtle": { "$value": "{color.lune.100}" }
   },
   "status": {
     "$type": "color",
@@ -50,7 +50,7 @@
       "$description": "Inverted focus on light surfaces: dark fill."
     },
     "label": { "$type": "color", "$value": "{color.white}" },
-    "ring": { "$type": "color", "$value": "{color.blue.600}" }
+    "ring": { "$type": "color", "$value": "{color.lune.600}" }
   },
   "glass": {
     "thin": {
