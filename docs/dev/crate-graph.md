@@ -16,6 +16,7 @@ flowchart LR
     pa_ffi["pa-ffi"]
     pa_frb["pa-frb"]
     pa_library["pa-library"]
+    pa_metadata["pa-metadata"]
     pa_model["pa-model"]
     pa_playback["pa-playback"]
     pa_recognition["pa-recognition"]
@@ -32,11 +33,13 @@ flowchart LR
     pa_eval["pa-eval"]
     pa_recognition_eval["pa-recognition-eval"]
   end
+  pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
   pa_ffi --> pa_runtime
   pa_frb --> pa_ffi
   pa_frb --> pa_recognition
   pa_library -. dev .-> pa_model
+  pa_metadata --> pa_recognition
   pa_scanner --> pa_library
   pa_scanner --> pa_vfs
   pa_server --> pa_library
@@ -53,9 +56,10 @@ flowchart LR
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
 | `pa-frb` | `core/crates/pa-frb` | 1 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |
 | `pa-library` | `core/crates/pa-library` | 1 | Media library storage: SQLite schema v1, embedded migrations, connection setup (LIB-001) |
+| `pa-metadata` | `core/crates/pa-metadata` | 5 | Metadata provider clients outside the sans-IO core: TMDB client, rate limiting, ProviderCache (META-009) |
 | `pa-model` | `core/crates/pa-model` | 1 | Domain types of the project_alpha core: media entities, sync keys, playback state |
 | `pa-playback` | `core/crates/pa-playback` | 2 | PlayerEngine contract, capability matrix and Auto engine selection, mock engine and engine contract tests (PLAY-003) |
-| `pa-recognition` | `core/crates/pa-recognition` | 1 | Media recognition core (sans-IO): filename parser with N-best hypotheses |
+| `pa-recognition` | `core/crates/pa-recognition` | 2 | Media recognition core (sans-IO): filename parser with N-best hypotheses, Provider boundary |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |
 | `pa-scanner` | `core/crates/pa-scanner` | 0 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003) |

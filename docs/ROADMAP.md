@@ -530,7 +530,7 @@ project_alpha/
   - Что: по `docs/legal/anime-mappings.md` — в бандле только производная база из anime-offline-database (ODbL, с атрибуцией, сама под ODbL, воспроизводимая сборка `data/anime-mappings/build.sh`); Anime-Lists XML и Fribb `anime-list-full.json` (без лицензии) не встраиваются и не зеркалятся — приложение скачивает их с upstream прямо на устройство (зашитые URL, ETag, не чаще раза в сутки, проверка целостности и SHA-256, локальный кэш, атомарная замена); слияние слоёв только в памяти устройства; резервный форк — только для anime-offline-database.
   - deps: REPO-001, LEGAL-003 · size: M · parallel: yes · веха: M2 · ref: S §3, 03 §3.2, §9 п.3
   - done when: офлайн-тест маппинга AniDB ↔ TVDB ↔ TMDB на рукописных фикстурах (без копий Anime-Lists/Fribb); обновление применяется атомарно; в репозитории и бандле нет данных без лицензии.
-- [ ] **META-009** Трейт Provider и клиент TMDB
+- [x] **META-009** Трейт Provider и клиент TMDB
   - Что: сетевой слой вне sans-IO ядра; TMDB: поиск, детали, переводы ru-RU, альтернативные названия, episode groups, external ids, изображения, коллекции; rate limit, ProviderCache с TTL; ключ проекта по умолчанию (по DEC-008) и поле «свой ключ».
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 03 §3.1, §4.7, S §3
   - done when: тесты на записанных ответах; 429 от TMDB обрабатывается backoff-ом; атрибуция TMDB выводится в UI-016.

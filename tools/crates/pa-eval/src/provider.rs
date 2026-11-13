@@ -5,72 +5,19 @@
 //! providers through a trait. The eval runner plugs in a [`ReplayProvider`]
 //! that answers from a *tape* of previously recorded responses, so a run is
 //! offline and deterministic. A [`RecordingProvider`] wraps any live
-//! provider (META-009 and later) and writes such a tape.
+//! provider (`pa_metadata::tmdb::TmdbClient` and later ones) and writes such
+//! a tape. Request, error and trait types are the core's own
+//! ([`pa_recognition::provider`]), re-exported here, so the same recognizer
+//! code runs against live providers and tapes.
 //!
 //! Tape format: JSONL, one `{"request": {...}, "response": ...}` per line,
 //! sorted by the canonical JSON of the request, without duplicates.
 
 use std::collections::BTreeMap;
-use std::fmt;
 
+pub use pa_recognition::provider::{Provider, ProviderError, ProviderRequest};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-
-/// A provider call in a provider-neutral shape.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct ProviderRequest {
-    /// Provider name: `tmdb`, `anidb`, `tvdb`, `anilist`, ...
-    pub provider: String,
-    /// Operation: `search`, `details`, `episodes`, ...
-    pub endpoint: String,
-    /// Parameters; a `BTreeMap` keeps the canonical form stable.
-    #[serde(default)]
-    pub params: BTreeMap<String, String>,
-}
-
-impl ProviderRequest {
-    pub fn new(provider: &str, endpoint: &str) -> Self {
-        Self {
-            provider: provider.to_owned(),
-            endpoint: endpoint.to_owned(),
-            params: BTreeMap::new(),
-        }
-    }
-
-    pub fn param(mut self, key: &str, value: impl Into<String>) -> Self {
-        self.params.insert(key.to_owned(), value.into());
-        self
-    }
-
-    /// Canonical JSON used as the tape key.
-    pub fn key(&self) -> String {
-        serde_json::to_string(self).expect("request serializes")
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ProviderError {
-    /// Replay mode: the request is not on the tape.
-    TapeMiss(String),
-    /// Any other failure reported by a live provider.
-    Failed(String),
-}
-
-impl fmt::Display for ProviderError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::TapeMiss(key) => write!(f, "request not on tape: {key}"),
-            Self::Failed(msg) => write!(f, "provider failed: {msg}"),
-        }
-    }
-}
-
-impl std::error::Error for ProviderError {}
-
-/// Metadata provider as seen by a recognizer.
-pub trait Provider {
-    fn call(&mut self, request: &ProviderRequest) -> Result<Value, ProviderError>;
-}
 
 /// Recorded request/response pairs.
 #[derive(Debug, Clone, Default)]
