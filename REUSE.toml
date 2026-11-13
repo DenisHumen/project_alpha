@@ -41,6 +41,7 @@ path = [
   "Cargo.lock",
   "**/pubspec.lock",
   "**/.metadata",
+  ".xcode-version",
 ]
 precedence = "closest"
 SPDX-FileCopyrightText = "project_alpha contributors"
@@ -101,3 +102,12 @@ path = "design/icons/LICENSE-lucide.txt"
 precedence = "override"
 SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
 SPDX-License-Identifier = "ISC AND MIT"
+
+# Kinolune brand exports and placeholder PNGs generated from the SVG masters
+# in design/brand/src and design/placeholders by design/scripts/brand-build.mjs
+# (DSN-006). Own artwork; the wordmark is outlined Inter (OFL-1.1) glyphs.
+[[annotations]]
+path = ["design/brand/export/**", "design/brand/preview.png", "design/placeholders/export/**"]
+precedence = "closest"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
