@@ -25,6 +25,7 @@
 | [0017](0017-player-engine-contract.md) | Контракт `PlayerEngine` в ядре: события как источник состояния, выбор движка по capability-матрице | Принят | PLAY-003 |
 | [0018](0018-metadata-providers-blocking-http.md) | Провайдеры метаданных: трейт `Provider` в ядре, блокирующий HTTPS в `pa-metadata` | Принят | META-009 |
 | [0019](0019-lan-discovery-mdns.md) | Обнаружение в LAN: `mdns-sd` в ядре, NWBrowser на Apple, свои типы DNS-SD | Принят | NET-009, NET-020 |
+| [NNNN](NNNN-anime-providers-graphql-post.md) | Аниме-провайдеры AniList и Shikimori: GraphQL `POST` в общем транспорте, общий конвейер запросов | Предложен | META-010 |
 
 ## Запланированные ADR
 

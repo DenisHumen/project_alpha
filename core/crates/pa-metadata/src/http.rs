@@ -3,8 +3,9 @@
 //! send them through an injected [`HttpTransport`].
 //!
 //! Live builds use [`UreqTransport`] (feature `http`); tests and offline
-//! tools use [`ReplayTransport`](crate::replay::ReplayTransport). Only `GET`
-//! is needed: metadata providers are read-only for us.
+//! tools use [`ReplayTransport`](crate::replay::ReplayTransport). Metadata
+//! providers are read-only for us: `GET` for REST APIs, and `POST` with a
+//! JSON body only for GraphQL *queries* (AniList, META-010).
 
 use std::fmt::Write as _;
 
@@ -15,7 +16,8 @@ pub const AUTH_QUERY_PARAMS: &[&str] = &["api_key"];
 /// Headers that carry credentials (lower-case).
 pub const AUTH_HEADERS: &[&str] = &["authorization"];
 
-/// One `GET` request.
+/// One request: `GET`, or `POST` when sent with
+/// [`HttpTransport::post_json`] (the body is passed separately).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HttpRequest {
     /// Scheme, host and base path, without a trailing slash
@@ -60,6 +62,65 @@ impl HttpRequest {
         }
         out
     }
+
+    /// Credential-free canonical form of a `POST` with a JSON `body`:
+    /// [`canonical`](Self::canonical), a space, then [`canonical_body`] of
+    /// the body. Used for cache and fixture keys.
+    pub fn canonical_post(&self, body: &str) -> String {
+        let body = serde_json::from_str::<serde_json::Value>(body)
+            .map(|v| canonical_body(&v))
+            .unwrap_or_else(|_| body.to_owned());
+        format!("{} {body}", self.canonical())
+    }
+}
+
+/// Canonical form of a JSON request body.
+///
+/// A GraphQL body (`{"query": "query Name(...) {...}", "variables": {...}}`)
+/// is reduced to `graphql:Name{variables}`: the identity of a GraphQL request
+/// is its operation and variables, like path and query of a REST request, so
+/// cassettes stay short and survive whitespace changes of the query text.
+/// Any other body is compact JSON. Object keys are sorted (`serde_json`
+/// without `preserve_order`).
+pub fn canonical_body(body: &serde_json::Value) -> String {
+    match graphql_parts(body) {
+        Some((operation, variables)) => format!("graphql:{operation}{variables}"),
+        None => body.to_string(),
+    }
+}
+
+/// Operation name and compact variables of a GraphQL body.
+pub(crate) fn graphql_parts(body: &serde_json::Value) -> Option<(String, String)> {
+    let query = body.get("query")?.as_str()?;
+    let operation = body
+        .get("operationName")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_owned)
+        .unwrap_or_else(|| graphql_operation_name(query));
+    let variables = match body.get("variables") {
+        None | Some(serde_json::Value::Null) => "{}".to_owned(),
+        Some(v) => v.to_string(),
+    };
+    Some((operation, variables))
+}
+
+/// `Name` of `query Name(...)`; `anonymous` for `{ ... }`.
+fn graphql_operation_name(query: &str) -> String {
+    let rest = query.trim_start();
+    let rest = rest
+        .strip_prefix("query")
+        .or_else(|| rest.strip_prefix("mutation"))
+        .unwrap_or("");
+    let name: String = rest
+        .trim_start()
+        .chars()
+        .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+        .collect();
+    if name.is_empty() {
+        "anonymous".to_owned()
+    } else {
+        name
+    }
 }
 
 /// A response with the body read to a string.
@@ -93,6 +154,19 @@ pub struct TransportError(pub String);
 pub trait HttpTransport: Send + Sync {
     /// Performs a `GET`. Non-2xx statuses are responses, not errors.
     fn get(&self, request: &HttpRequest) -> Result<HttpResponse, TransportError>;
+
+    /// Performs a `POST` with a JSON `body` (`content-type:
+    /// application/json`). Non-2xx statuses are responses, not errors.
+    ///
+    /// Only GraphQL queries use it. Transports that do not support it keep
+    /// this default, which fails without touching the network.
+    fn post_json(&self, request: &HttpRequest, body: &str) -> Result<HttpResponse, TransportError> {
+        let _ = body;
+        Err(TransportError(format!(
+            "POST is not supported by this transport: {}",
+            request.canonical()
+        )))
+    }
 }
 
 /// Percent-encodes everything except RFC 3986 unreserved characters.
@@ -118,7 +192,7 @@ mod live {
 
     use super::{HttpRequest, HttpResponse, HttpTransport, TransportError};
 
-    /// Body size limit: TMDB responses are far below it.
+    /// Body size limit: provider responses are far below it.
     const MAX_BODY: u64 = 16 * 1024 * 1024;
 
     /// Blocking HTTPS transport on `ureq` with rustls (ring) and the Mozilla
@@ -156,27 +230,47 @@ mod live {
             }
             // ureq errors can quote the URL, which may hold a v3 `api_key`;
             // report only the error kind, never the URL.
-            let mut response = builder.call().map_err(|e| TransportError(describe(&e)))?;
-            let status = response.status().as_u16();
-            let headers = response
-                .headers()
-                .iter()
-                .filter_map(|(k, v)| {
-                    Some((k.as_str().to_ascii_lowercase(), v.to_str().ok()?.to_owned()))
-                })
-                .collect();
-            let body = response
-                .body_mut()
-                .with_config()
-                .limit(MAX_BODY)
-                .read_to_string()
-                .map_err(|e| TransportError(describe(&e)))?;
-            Ok(HttpResponse {
-                status,
-                headers,
-                body,
-            })
+            let response = builder.call().map_err(|e| TransportError(describe(&e)))?;
+            read(response)
         }
+
+        fn post_json(
+            &self,
+            request: &HttpRequest,
+            body: &str,
+        ) -> Result<HttpResponse, TransportError> {
+            let mut builder = self
+                .agent
+                .post(request.url())
+                .header("content-type", "application/json");
+            for (name, value) in &request.headers {
+                builder = builder.header(name.as_str(), value.as_str());
+            }
+            let response = builder
+                .send(body)
+                .map_err(|e| TransportError(describe(&e)))?;
+            read(response)
+        }
+    }
+
+    fn read(mut response: ureq::http::Response<ureq::Body>) -> Result<HttpResponse, TransportError> {
+        let status = response.status().as_u16();
+        let headers = response
+            .headers()
+            .iter()
+            .filter_map(|(k, v)| Some((k.as_str().to_ascii_lowercase(), v.to_str().ok()?.to_owned())))
+            .collect();
+        let body = response
+            .body_mut()
+            .with_config()
+            .limit(MAX_BODY)
+            .read_to_string()
+            .map_err(|e| TransportError(describe(&e)))?;
+        Ok(HttpResponse {
+            status,
+            headers,
+            body,
+        })
     }
 
     fn describe(e: &ureq::Error) -> String {
@@ -224,5 +318,23 @@ mod tests {
         assert_eq!(a.canonical(), b.canonical());
         assert_eq!(a.canonical(), "/search/movie?query=x&year=2001");
         assert!(!a.canonical().contains("secret"));
+    }
+
+    #[test]
+    fn canonical_post_reduces_graphql_to_operation_and_variables() {
+        let r = req(&[]);
+        let a = r.canonical_post(
+            r#"{"query":"query Search($q: String) { Page { media(search: $q) { id } } }","variables":{"q":"x","n":5}}"#,
+        );
+        let b = r.canonical_post(
+            r#"{"variables":{"n":5,"q":"x"},"query":"\n  query Search($q: String) {\n Page { media(search: $q) { id } } }"}"#,
+        );
+        assert_eq!(a, b);
+        assert_eq!(a, r#"/search/movie graphql:Search{"n":5,"q":"x"}"#);
+        assert_eq!(
+            r.canonical_post(r#"{"query":"{ Viewer { id } }"}"#),
+            "/search/movie graphql:anonymous{}"
+        );
+        assert_eq!(r.canonical_post(r#"{"b":1,"a":2}"#), r#"/search/movie {"a":2,"b":1}"#);
     }
 }
