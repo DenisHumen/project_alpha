@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: MPL-2.0
+# Packages added on top of the bootc base image (one per line, '#' starts a comment).
+# Versions are not locked yet; a lockfile arrives with the CI build (DIST-002).
+
+# File sharing and discovery (05 §5.2)
+samba
+wsdd
+avahi
+nss-mdns
+
+# Firewall
+firewalld
+
+# Disks and storage
+smartmontools
+mdadm
+btrfs-progs
+
+# Health checks for automatic rollback (wired up in DIST-011)
+greenboot
+greenboot-default-health-checks
+
+# "Advanced mode" admin console, disabled by default (05 §5.1)
+cockpit-system
+cockpit-ws

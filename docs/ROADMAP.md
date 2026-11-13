@@ -1187,7 +1187,7 @@ project_alpha/
 
 ### 3.17. DIST — NAS-дистрибутив (Fedora bootc)
 
-- [ ] **DIST-001** Прототип образа
+- [x] **DIST-001** Прототип образа
   - Что: `distro/Containerfile` FROM `quay.io/fedora/fedora-bootc:45@sha256:…` (пин по digest), Samba, Avahi, wsdd, firewalld, smartd, заглушки наших сервисов; ручная проверка `bootc switch`, `upgrade` и `rollback` на VM; ADR по фазе 0 (Go для установщика, нативный медиасервер или Quadlet).
   - deps: — · size: M · parallel: yes · веха: M8 · ref: 05 §1.4, §8 (фаза 0)
   - done when: VM переключается на образ и откатывается назад; ADR принят.

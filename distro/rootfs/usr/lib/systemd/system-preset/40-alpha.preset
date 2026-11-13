@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MPL-2.0
+# Services enabled in the NAS OS image (DIST-001). Applied with `systemctl preset` at build time.
+enable alpha-media.service
+enable alpha-admin.service
+enable alpha-updated.service
+enable smb.service
+enable wsdd.service
+enable avahi-daemon.service
+enable firewalld.service
+enable smartd.service
+enable chronyd.service
+enable sshd.service
+disable cockpit.socket
+disable bootc-fetch-apply-updates.timer

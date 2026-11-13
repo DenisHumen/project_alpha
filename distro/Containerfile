@@ -1,0 +1,60 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# NAS OS image (phase-0 prototype, DIST-001).
+# Image-based OS built on the upstream bootc base image; see
+# docs/adr/0010-nas-os-phase0.md and docs/research/05-nas-linux-distro.md.
+#
+# Build (from the repository root):
+#   docker build -f distro/Containerfile -t localhost/alpha-os:dev distro
+#   podman build -f distro/Containerfile -t localhost/alpha-os:dev distro
+#
+# The base is pinned by the digest of the multi-arch manifest list.
+# Bump it deliberately (one PR per bump) and re-run the VM checks in distro/README.md.
+ARG BASE_IMAGE=quay.io/fedora/fedora-bootc:45@sha256:42259b1db41a7f792a19cfd28e0c66e3e415392109a7d7095f292ad1e2a56453
+
+FROM ${BASE_IMAGE}
+
+COPY packages.txt /usr/share/alpha/packages.txt
+
+# hadolint ignore=DL3041
+RUN set -eux; \
+    dnf -y install --setopt=install_weak_deps=False \
+        $(grep -Ev '^\s*(#|$)' /usr/share/alpha/packages.txt); \
+    dnf clean all; \
+    rm -rf /var/cache/dnf /var/lib/dnf /var/log/dnf* /var/log/hawkey.log
+
+COPY rootfs/ /
+
+# Version of this image; the build scripts pass a unique value so that
+# `bootc upgrade` always sees a new image.
+ARG ALPHA_OS_VERSION=0.0.0-dev
+# (declared after the package layer so a version bump keeps the dnf layer cached)
+
+RUN set -eux; \
+    printf 'ALPHA_OS_VERSION=%s\n' "${ALPHA_OS_VERSION}" > /usr/share/alpha/version; \
+    chmod 0755 /usr/libexec/alpha/*; \
+    # Updates are driven by our own agent (alpha-updated), never by the stock timer
+    # that applies an update and reboots on its own (05 §4.2 p.1).
+    systemctl mask bootc-fetch-apply-updates.timer; \
+    # Enable/disable services according to rootfs/usr/lib/systemd/system-preset/.
+    # Cockpit is shipped but off; the admin UI turns it on for LAN only (05 §5.1).
+    systemctl preset alpha-media.service alpha-admin.service alpha-updated.service \
+        smb.service wsdd.service avahi-daemon.service firewalld.service smartd.service \
+        chronyd.service sshd.service cockpit.socket; \
+    # Firewall: default zone "home", only the services we need (05 §5.2).
+    firewall-offline-cmd --set-default-zone=home; \
+    for svc in samba mdns ws-discovery http https; do \
+        firewall-offline-cmd --zone=home --add-service="${svc}"; \
+    done; \
+    firewall-offline-cmd --zone=home --remove-service-from-zone=samba-client; \
+    firewall-offline-cmd --zone=home --add-port=8096/tcp; \
+    # Leftovers of package scriptlets in runtime-only dirs (bootc lint: nonempty-run-tmp).
+    rm -rf /run/dnf /run/cockpit /run/selinux-policy /var/log/* /var/cache/* /var/tmp/* /tmp/*; \
+    bootc container lint
+
+LABEL org.opencontainers.image.title="alpha-os" \
+      org.opencontainers.image.description="NAS OS prototype for project_alpha (image-based, bootc)" \
+      org.opencontainers.image.licenses="MPL-2.0" \
+      org.opencontainers.image.source="https://github.com/DenisHumen/project_alpha" \
+      org.opencontainers.image.version="${ALPHA_OS_VERSION}" \
+      containers.bootc="1"

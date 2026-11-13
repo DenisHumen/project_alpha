@@ -1,0 +1,3 @@
+# SPDX-License-Identifier: MPL-2.0
+# Local build/test artefacts: disk images, archives, ephemeral SSH keys.
+/.work/

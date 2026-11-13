@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MPL-2.0
+# Phase-0 placeholder (DIST-001): replaced by the real media server later.
+[Unit]
+Description=project_alpha media server (stub)
+Documentation=https://github.com/DenisHumen/project_alpha/tree/main/distro
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/alpha/alpha-stub alpha-media 8096
+DynamicUser=yes
+StateDirectory=alpha-media
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
