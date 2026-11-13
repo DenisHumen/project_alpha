@@ -29,7 +29,8 @@ publish = false
 dirs = "7.0"
 flutter_rust_bridge = "=2.13.0"
 quick-xml = "0.42"
-rusqlite = { version = "0.42", features = ["bundled"] }
+refinery = { version = "0.10", default-features = false, features = ["rusqlite", "int8-versions"] }
+rusqlite = { version = "0.40", features = ["bundled"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 sha2 = "0.11"
