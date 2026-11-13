@@ -38,6 +38,7 @@ flowchart LR
   pa_eval --> pa_anime_mappings
   pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
+  pa_ffi --> pa_playback
   pa_ffi --> pa_runtime
   pa_ffi --> pa_secrets
   pa_frb --> pa_ffi
