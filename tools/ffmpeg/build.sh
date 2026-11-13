@@ -104,8 +104,8 @@ build_target() {
     write_buildinfo
 
     "$PA_FF_ROOT/check-license.sh" --artifact "$OUT_DIR"
-    if [ "$T_CROSS" = 0 ]; then
-        "$PA_FF_ROOT/check-license.sh" --run "$OUT_DIR"
+    if [ "$T_RUNNABLE" = 1 ]; then
+        CFLAGS="$T_CFLAGS" LDFLAGS="$T_LDFLAGS" "$PA_FF_ROOT/check-license.sh" --run "$OUT_DIR"
     fi
     log "done: $OUT_DIR"
 }

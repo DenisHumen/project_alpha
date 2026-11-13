@@ -2,6 +2,10 @@
 # `distro` module: NAS OS.
 # Owned by the DIST workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
 
-# Placeholder until the area gets real recipes
-info:
-    @echo "distro: no recipes yet (DIST, see docs/ROADMAP.md)"
+# List disks the installer would offer (read-only; --all shows excluded ones)
+installer-disks *args:
+    cd installer && go run ./cmd/alpha-installer disks {{args}}
+
+# Installer Go checks: gofmt, vet, tests on recorded lsblk/udev fixtures
+installer-test:
+    cd installer && test -z "$(gofmt -l .)" && go vet ./... && go test ./...

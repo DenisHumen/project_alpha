@@ -1,0 +1,20 @@
+! Micron 2450 MTFDKBA512TFK  512 GB  NVMe      /dev/nvme0n1  S/N …BCDE
+      GPT partition table, 2 partition(s)
+      EFI system partition /dev/nvme0n1p1 (an OS is likely installed)
+      LUKS encrypted volume on /dev/nvme0n1p2
+      btrfs "fedora" on /dev/luks-9f8e7d6c
+! Intel SSDSC2KB960G8        960 GB  SATA SSD  /dev/sdc      S/N …0CGN
+      GPT partition table, 1 partition(s)
+      LVM physical volume on /dev/sdc1
+      ext4 "root" on /dev/vg0-root
+      swap on /dev/vg0-swap
+! HGST HUH721010AL5200        10 TB  SAS HDD   /dev/sda      S/N …ABCD
+      GPT partition table, 2 partition(s)
+      ZFS pool member "tank" on /dev/sda1
+! Seagate ST4000NM0035-1V4   4.0 TB  SAS HDD   /dev/sdb      S/N …BCDE
+      GPT partition table, 1 partition(s)
+      ZFS pool member "tank" on /dev/sdb1
+- PLDS DVD+-RW DU-8A5LH      2.0 GB  optical   /dev/sr0
+      excluded: optical
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sr0
+      /dev/sr0 is mounted at /run/initramfs/live

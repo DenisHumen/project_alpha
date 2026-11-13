@@ -3,6 +3,7 @@
 # Build the NAS OS container image.
 #   distro/scripts/build-image.sh [TAG] [VERSION]
 # Defaults: TAG=localhost/alpha-os:dev, VERSION=0.0.0-dev.<timestamp>
+# Env: ALPHA_SIGNATURE_POLICY=auto|enforce|off (see Containerfile), ALPHA_IMAGE_REPO.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
@@ -12,6 +13,8 @@ VERSION="${2:-0.0.0-dev.$(date -u +%Y%m%d%H%M%S)}"
 log "Building ${TAG} (version ${VERSION}) with ${ENGINE}"
 nice -n 10 "${ENGINE}" build \
     --build-arg "ALPHA_OS_VERSION=${VERSION}" \
+    --build-arg "ALPHA_SIGNATURE_POLICY=${ALPHA_SIGNATURE_POLICY:-auto}" \
+    ${ALPHA_IMAGE_REPO:+--build-arg "ALPHA_IMAGE_REPO=${ALPHA_IMAGE_REPO}"} \
     -f "${DISTRO_DIR}/Containerfile" \
     -t "${TAG}" \
     "${DISTRO_DIR}"

@@ -1,0 +1,22 @@
+{
+  "$comment": "Pinned font sources (DSN-005). Font binaries are NOT committed: `npm run fonts:fetch` downloads the archive, checks SHA-256 of the archive and of every extracted file, and writes them to design/fonts/files/ (git-ignored). Bump version + url + all hashes together.",
+  "fonts": [
+    {
+      "family": "Inter",
+      "version": "4.1",
+      "license": "OFL-1.1",
+      "homepage": "https://github.com/rsms/inter",
+      "archive": {
+        "url": "https://github.com/rsms/inter/releases/download/v4.1/Inter-4.1.zip",
+        "sha256": "9883fdd4a49d4fb66bd8177ba6625ef9a64aa45899767dde3d36aa425756b11e"
+      },
+      "files": [
+        { "from": "InterVariable.ttf", "to": "InterVariable.ttf", "sha256": "4989b125924991b90d05b2d16e0e388c48f7d5bb8b30539bbf9c755278d0ccaf", "use": "Flutter (Android, Android TV, Windows, Linux), native apps" },
+        { "from": "InterVariable-Italic.ttf", "to": "InterVariable-Italic.ttf", "sha256": "d6f1f6a172d9e588438db9f986fd5cfad7b30f644374080a8a9d4d91e344586f", "use": "Flutter, native apps" },
+        { "from": "web/InterVariable.woff2", "to": "InterVariable.woff2", "sha256": "693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3", "use": "web: site, server and NAS admin" },
+        { "from": "web/InterVariable-Italic.woff2", "to": "InterVariable-Italic.woff2", "sha256": "e564f652916db6c139570fefb9524a77c4d48f30c92928de9db19b6b5c7a262a", "use": "web" },
+        { "from": "LICENSE.txt", "to": "Inter-LICENSE.txt", "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a", "use": "must ship next to the font files (OFL-1.1)" }
+      ]
+    }
+  ]
+}

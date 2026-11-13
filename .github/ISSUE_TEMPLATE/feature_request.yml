@@ -1,5 +1,5 @@
 name: Предложение / Feature request
-description: Идея новой функции
+description: Идея новой функции (обсуждать и голосовать удобнее в Discussions → Ideas)
 labels: ["enhancement", "triage"]
 body:
   - type: textarea
@@ -12,3 +12,14 @@ body:
     id: proposal
     attributes:
       label: Предложение / Proposal
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Альтернативы / Alternatives considered
+  - type: input
+    id: roadmap
+    attributes:
+      label: Связанная задача ROADMAP / Related ROADMAP task
+      placeholder: "UI-012"
