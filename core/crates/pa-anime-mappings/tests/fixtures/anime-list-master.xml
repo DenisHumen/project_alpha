@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hand-written test fixture in the anime-list-master.xml format. Synthetic IDs; not upstream data. -->
+<anime-list>
+  <anime anidbid="9001" tvdbid="100001" defaulttvdbseason="1" episodeoffset="" tmdbtv="200001" tmdbseason="1" tmdboffset="" tmdbid="" imdbid="">
+    <name>Example Saga</name>
+    <supplemental-info>
+      <studio>Studio X</studio>
+    </supplemental-info>
+  </anime>
+  <anime anidbid="9002" tvdbid="100001" defaulttvdbseason="1" episodeoffset="12" tmdbtv="200001" tmdbseason="2" tmdboffset="" tmdbid="" imdbid="">
+    <name>Example Saga Part 2</name>
+  </anime>
+  <anime anidbid="9003" tvdbid="100003" defaulttvdbseason="1" episodeoffset="" tmdbtv="200003" tmdbseason="a" tmdboffset="" tmdbid="" imdbid="">
+    <name>Example Specials Show</name>
+    <mapping-list>
+      <mapping anidbseason="0" tvdbseason="0">;1-3;2-4+5;3-0;</mapping>
+      <mapping anidbseason="1" tvdbseason="0">;9-1;18-2;</mapping>
+      <mapping anidbseason="1" tvdbseason="1" start="10" end="17" offset="-1"/>
+      <mapping anidbseason="1" tvdbseason="1" start="19" end="26" offset="-2"/>
+    </mapping-list>
+  </anime>
+  <anime anidbid="9004" tvdbid="movie" defaulttvdbseason="" episodeoffset="" tmdbtv="" tmdbseason="" tmdboffset="" tmdbid="300004" imdbid="tt0000004">
+    <name>Example Movie</name>
+  </anime>
+  <anime anidbid="9006" tvdbid="100006" defaulttvdbseason="a" episodeoffset="" tmdbtv="" tmdbseason="" tmdboffset="" tmdbid="" imdbid="">
+    <name>Absolute &amp; Order</name>
+  </anime>
+  <anime anidbid="9007" tvdbid="unknown" defaulttvdbseason="" episodeoffset="" tmdbtv="" tmdbseason="" tmdboffset="" tmdbid="" imdbid=""/>
+</anime-list>
