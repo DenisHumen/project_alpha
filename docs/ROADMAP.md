@@ -897,7 +897,7 @@ project_alpha/
 
 ### 3.12. TV — Android TV (Flutter), режим Big Picture и tvOS (SwiftUI)
 
-- [ ] **TV-001** Каркас tvOS-приложения на SwiftUI
+- [x] **TV-001** Каркас tvOS-приложения на SwiftUI
   - Что: `clients/apple/TVApp` (Xcode-проект с SwiftPM), подключение PACore, экран с `core_version()`, store-флейвор.
   - deps: CORE-003 · size: S · parallel: yes · веха: M0 · ref: 02 §1.3, §7
   - done when: собирается в CI и запускается в симуляторе tvOS.
