@@ -14,6 +14,12 @@ just core test-ffi      # Rust-тесты, включая вызов через 
 just core bindings      # target/bindings/{kotlin,swift}
 just core smoke-jvm     # Kotlin на JVM через JNA (JDK 21 и gradle в PATH)
 just core smoke-swift   # Swift на хосте (swiftc, Linux или macOS)
+just core xcframework   # macOS + Xcode: PACoreFFI.xcframework и PACore.swift в tools/bindings/PACore
+just core test-pacore ios   # XCTest PACore: macos | ios | tvos (симулятор)
 ```
 
-Сгенерированные привязки не коммитятся. Сборка под Android (cargo-ndk, AAR) — CORE-004, xcframework и SwiftPM — CORE-003.
+Сгенерированные привязки не коммитятся. Сборка под Android (cargo-ndk, AAR) — CORE-004.
+
+## Apple: SwiftPM-пакет `PACore` (CORE-003)
+
+`tools/bindings/build-xcframework.sh` собирает `libpa_ffi.a` под iOS, iOS Simulator (arm64 + x86_64), tvOS, tvOS Simulator (arm64) и macOS (arm64 + x86_64) и упаковывает их в `PACoreFFI.xcframework` (binary target) рядом с `Package.swift`; Swift-обёртка UniFFI кладётся в `Sources/PACore/PACore.swift`. tvOS — tier 3 в Rust: std собирается из `rust-src` (`-Zbuild-std` при `RUSTC_BOOTSTRAP=1`) той же закреплённой версии компилятора. Минимальные версии: iOS 15, tvOS 15, macOS 12. Клиенты подключают пакет локально: `.package(path: "…/tools/bindings/PACore")`, продукт `PACore`. В CI — `.github/workflows/apple-core.yml` на `macos-15`.

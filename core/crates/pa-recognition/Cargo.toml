@@ -2,7 +2,7 @@
 [package]
 name = "pa-recognition"
 version = "0.1.0"
-description = "Media recognition core (sans-IO): filename parser with N-best hypotheses"
+description = "Media recognition core (sans-IO): filename parser with N-best hypotheses, Provider boundary"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -11,6 +11,4 @@ publish.workspace = true
 
 [dependencies]
 serde.workspace = true
-
-[dev-dependencies]
 serde_json.workspace = true

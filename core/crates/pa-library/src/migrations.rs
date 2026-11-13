@@ -31,6 +31,7 @@ macro_rules! migration {
 pub const MIGRATIONS: &[MigrationFile] = &[
     migration!(202611131200, "202611131200_LIB-001_schema_v1"),
     migration!(202611141200, "202611141200_SYNC-001_sync_outbox"),
+    migration!(202611141400, "202611141400_LIB-011_progress_hidden"),
 ];
 
 impl MigrationFile {

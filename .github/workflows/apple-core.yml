@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: MPL-2.0
+# CORE-003: Rust core as PACoreFFI.xcframework (iOS, iOS Simulator, tvOS,
+# tvOS Simulator, macOS universal) + SwiftPM package PACore; XCTest calls
+# coreVersion() on macOS and on iOS and tvOS simulators.
+# May be folded into the Apple CI job by CI-007.
+name: Apple core (PACore)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
+    paths:
+      - "core/crates/**"
+      - "tools/bindings/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/apple-core.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apple-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  xcframework:
+    name: xcframework and XCTest
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain from rust-toolchain.toml
+        run: |
+          rustup toolchain install && rustup show active-toolchain
+          xcodebuild -version
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Build PACoreFFI.xcframework (all slices) and Swift bindings
+        run: tools/bindings/build-xcframework.sh
+      - name: Check xcframework slices
+        run: |
+          plist=tools/bindings/PACore/PACoreFFI.xcframework/Info.plist
+          plutil -p "$plist"
+          for id in ios-arm64 ios-arm64_x86_64-simulator tvos-arm64 tvos-arm64-simulator macos-arm64_x86_64; do
+            plutil -p "$plist" | grep -q "\"$id\"" || { echo "::error::missing slice $id"; exit 1; }
+          done
+          find tools/bindings/PACore/PACoreFFI.xcframework -name '*.a' -exec lipo -info {} \;
+      - name: XCTest on macOS
+        run: tools/bindings/test-pacore.sh macos
+      - name: XCTest on iOS Simulator
+        run: tools/bindings/test-pacore.sh ios
+      - name: XCTest on tvOS Simulator
+        run: tools/bindings/test-pacore.sh tvos
+      - name: Pack xcframework
+        run: cd tools/bindings/PACore && ditto -c -k --keepParent PACoreFFI.xcframework "$RUNNER_TEMP/PACoreFFI.xcframework.zip"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: PACore
+          path: |
+            ${{ runner.temp }}/PACoreFFI.xcframework.zip
+            tools/bindings/PACore/Sources/PACore/PACore.swift
+          retention-days: 7
+          if-no-files-found: error
