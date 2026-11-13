@@ -150,8 +150,7 @@ fn generate(dir: &Path, cert: &Path, key: &Path, host: &str) -> Result<(), Error
     if !host.is_empty() {
         names.push(host.to_owned());
     }
-    let mut params =
-        rcgen::CertificateParams::new(names).map_err(|e| tls_err("certificate", e))?;
+    let mut params = rcgen::CertificateParams::new(names).map_err(|e| tls_err("certificate", e))?;
     params
         .distinguished_name
         .push(rcgen::DnType::CommonName, COMMON_NAME);

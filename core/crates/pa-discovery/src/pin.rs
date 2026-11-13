@@ -229,7 +229,10 @@ mod tests {
             .map(|b| format!("{b:02X}"))
             .collect::<Vec<_>>()
             .join(":");
-        assert_eq!(format!("SHA256:{openssl}").parse::<Fingerprint>().unwrap(), fp);
+        assert_eq!(
+            format!("SHA256:{openssl}").parse::<Fingerprint>().unwrap(),
+            fp
+        );
     }
 
     #[test]
