@@ -14,6 +14,7 @@
 | [`22-arch-dataflow.png`](22-arch-dataflow.png) | Архитектура §6: поток данных «скан → распознавание → медиатека → воспроизведение». |
 | [`30-recognition-eval-report.png`](30-recognition-eval-report.png) | Отчёт `pa-eval` (бейзлайн `naive`) на 54 примерах `tools/recognition-eval/examples`: точность разбора имён по полям; идентификация 0 %, т. к. кассеты ответов провайдеров ещё нет. |
 | [`40-nas-os-login.png`](40-nas-os-login.png) | NAS-ОС (`distro/`, bootc): образ собран `build-image.sh`, диск — `make-disk.sh`, загружен в QEMU/KVM; VGA-консоль с приглашением входа. |
+| [`41-nas-os-bootc-status.png`](41-nas-os-bootc-status.png) | Та же VM, вход на консоли: `bootc status` (загружен наш образ), сервисы `alpha-*` (заглушки), Samba, wsdd, Avahi, firewalld активны, `/health` отвечает, SELinux `Enforcing`, зона `home`. |
 
 ## Как получено
 
@@ -26,4 +27,5 @@
 - **Архитектура**: mermaid-cli 11, тема `dark`.
 - **Распознавание**: `cargo run -p pa-eval -- run --recognizer naive --json report.json --md report.md tools/recognition-eval/examples/examples.jsonl`,
   затем `compare` с бейзлайном `abstain` — «регресса нет». Markdown-отчёт отрисован в headless Chrome (разделы «по категориям» и пустая калибровка опущены).
-- **NAS-ОС**: QEMU 2 vCPU / 3 GiB, снимок через `screendump` монитора QEMU.
+- **NAS-ОС**: `build-image.sh` → локальный реестр → `make-disk.sh` (~5 мин), QEMU 2 vCPU / 3 GiB, `-vga std`;
+  снимки через `screendump` монитора QEMU, команды набраны на консоли через `sendkey` (одноразовый пароль root только в этой VM, VM удалена).
