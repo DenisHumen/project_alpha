@@ -6,7 +6,10 @@
 //! record/replay tape ([`provider`]) → score every labelled unit
 //! ([`metrics`]) → JSON and Markdown report, regression comparison against a
 //! stored baseline ([`report`]). Methodology: research 03 §6.2.
+//! [`candidates`] measures candidate recall@k of the local title index
+//! (META-007) without any provider calls.
 
+pub mod candidates;
 pub mod corpus;
 pub mod metrics;
 pub mod provider;

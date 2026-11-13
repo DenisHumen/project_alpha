@@ -33,6 +33,37 @@ pub struct OfflineEntry {
     pub episodes: Option<u32>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub year: Option<u16>,
+    /// Alternative titles in scripts that appear in file names (Latin,
+    /// Cyrillic, Japanese and Chinese): romaji, English, Russian, native.
+    /// Used by the title index (META-007); see [`keep_synonym`].
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub synonyms: Vec<String>,
+}
+
+/// Whether a synonym is worth bundling: every letter is Latin, Cyrillic,
+/// kana or CJK. Titles in other scripts (Arabic, Thai, Hangul…) do not occur
+/// in release names we parse and would only grow the bundle.
+pub fn keep_synonym(s: &str) -> bool {
+    let mut letters = false;
+    for c in s.chars().filter(|c| c.is_alphabetic()) {
+        letters = true;
+        let ok = matches!(c as u32,
+            0x0041..=0x024F        // Latin, Latin-1, Latin Extended-A/B
+            | 0x1E00..=0x1EFF      // Latin Extended Additional
+            | 0x0400..=0x04FF      // Cyrillic
+            | 0x3005..=0x3007      // 々 〆 〇
+            | 0x3040..=0x30FF      // Hiragana, Katakana
+            | 0x31F0..=0x31FF      // Katakana extensions
+            | 0x3400..=0x4DBF      // CJK Extension A
+            | 0x4E00..=0x9FFF      // CJK Unified Ideographs
+            | 0xFF00..=0xFFEF      // Half-width and full-width forms
+            | 0x2150..=0x218F      // Number forms (Ⅲ)
+        );
+        if !ok {
+            return false;
+        }
+    }
+    letters
 }
 
 /// First line of the derived bundle.
@@ -101,6 +132,18 @@ pub fn parse_upstream_jsonl(input: impl BufRead) -> Result<(UpstreamMeta, Vec<Of
                 .and_then(|x| u16::try_from(x).ok()),
             ..Default::default()
         };
+        for syn in v
+            .get("synonyms")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+        {
+            let syn = syn.trim();
+            if syn != e.title && keep_synonym(syn) && !e.synonyms.iter().any(|x| x == syn) {
+                e.synonyms.push(syn.to_owned());
+            }
+        }
         for s in v
             .get("sources")
             .and_then(Value::as_array)
@@ -204,4 +247,35 @@ pub fn read_bundle(input: impl BufRead) -> Result<(BundleHeader, Vec<OfflineEntr
 /// Count entries of an upstream JSONL (validation for runtime updates).
 pub fn validate_upstream(bytes: &[u8]) -> Result<usize> {
     parse_upstream_jsonl(bytes).map(|(_, e)| e.len())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn synonym_scripts() {
+        for keep in ["Ex Saga", "Атака титанов", "進撃の巨人", "モブサイコ100 Ⅲ", "Pokémon", "時々"] {
+            assert!(keep_synonym(keep), "{keep}");
+        }
+        for drop in ["진격의 거인", "ผ่าพิภพไททัน", "الهجوم على العمالقة", "123", ""] {
+            assert!(!keep_synonym(drop), "{drop}");
+        }
+    }
+
+    #[test]
+    fn synonyms_survive_the_bundle() {
+        let upstream = concat!(
+            r#"{"license":{"name":"ODbL v1.0"},"repository":"r","lastUpdate":"2026-11-08"}"#,
+            "\n",
+            r#"{"sources":["https://anidb.net/anime/1"],"title":"A","synonyms":["A","B","B","진격","Б"]}"#,
+            "\n"
+        );
+        let (meta, entries) = parse_upstream_jsonl(upstream.as_bytes()).unwrap();
+        assert_eq!(entries[0].synonyms, ["B", "Б"]);
+        let mut out = Vec::new();
+        write_bundle(&mut out, &bundle_header(&meta, "t", "x"), &entries).unwrap();
+        let (_, back) = read_bundle(out.as_slice()).unwrap();
+        assert_eq!(back, entries);
+    }
 }

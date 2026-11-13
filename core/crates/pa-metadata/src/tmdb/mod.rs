@@ -27,6 +27,7 @@
 
 pub mod model;
 pub mod provider;
+pub mod titles;
 
 use std::sync::{Arc, RwLock};
 use std::time::Duration;

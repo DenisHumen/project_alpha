@@ -10,6 +10,7 @@ repository.workspace = true
 publish.workspace = true
 
 [dependencies]
+pa-anime-mappings = { path = "../../../core/crates/pa-anime-mappings" }
 pa-recognition = { path = "../../../core/crates/pa-recognition" }
 pa-recognition-eval = { path = "../../recognition-eval" }
 serde.workspace = true
