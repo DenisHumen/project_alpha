@@ -2186,6 +2186,7 @@ name = "pa-library"
 version = "0.1.0"
 dependencies = [
  "pa-model",
+ "pa-recognition",
  "rusqlite",
  "serde",
  "serde_json",

@@ -54,6 +54,64 @@ void main() {
     });
   });
 
+  group('AudioProfile', () {
+    test('mpv properties of the default music profile', () {
+      expect(const AudioProfile().mpvProperties, {
+        'gapless-audio': 'yes',
+        'prefetch-playlist': 'yes',
+        'replaygain': 'track',
+        'replaygain-preamp': '0.00',
+        'replaygain-clip': 'no',
+        'replaygain-fallback': '0.00',
+        'audio-exclusive': 'no',
+      });
+    });
+
+    test('clipping, pre-amp and fallback map to mpv semantics', () {
+      final p = const AudioProfile(
+        gapless: false,
+        replayGain: ReplayGainMode.album,
+        preampDb: 40,
+        preventClipping: false,
+        fallbackDb: -6.5,
+        exclusive: true,
+      ).mpvProperties;
+      expect(p['gapless-audio'], 'no');
+      expect(p['prefetch-playlist'], 'no');
+      expect(p['replaygain'], 'album');
+      expect(p['replaygain-preamp'], '15.00', reason: 'mpv range -15..15');
+      expect(p['replaygain-clip'], 'yes', reason: 'yes = allow clipping');
+      expect(p['replaygain-fallback'], '-6.50');
+      expect(p['audio-exclusive'], 'yes');
+    });
+
+    test('auto resolves by album key and shuffle', () {
+      const auto = AudioProfile();
+      const a1 = PlayRequest(uri: '1', title: '1', album: 'A', albumId: '7');
+      const a2 = PlayRequest(uri: '2', title: '2', album: 'A', albumId: '7');
+      const sameNameOtherAlbum = PlayRequest(
+        uri: '3',
+        title: '3',
+        album: 'A',
+        albumId: '8',
+      );
+      const noAlbum = PlayRequest(uri: '4', title: '4');
+      ReplayGainMode r(List<PlayRequest> l, {bool shuffled = false}) =>
+          auto.resolveFor(l, shuffled: shuffled).replayGain;
+      expect(r([a1, a2]), ReplayGainMode.album);
+      expect(r([a1, a2], shuffled: true), ReplayGainMode.track);
+      expect(r([a1, sameNameOtherAlbum]), ReplayGainMode.track);
+      expect(r([noAlbum]), ReplayGainMode.track);
+      expect(r(const []), ReplayGainMode.track);
+      const fixed = AudioProfile(replayGain: ReplayGainMode.album);
+      expect(
+        fixed.resolveFor([a1, noAlbum], shuffled: true).replayGain,
+        ReplayGainMode.album,
+        reason: 'explicit modes are kept',
+      );
+    });
+  });
+
   group('MusicPlayerController', () {
     late FakePlayerEngine engine;
     late MusicPlayerController c;
@@ -103,6 +161,45 @@ void main() {
       expect(engine.calls.last, 'open:5:0:42000:true');
       expect(engine.uris.first, '/music/3.flac');
       expect(c.shuffle, isTrue);
+    });
+
+    test('ReplayGain auto: album in order, track when shuffled', () async {
+      await c.play(_tracks(3));
+      expect(engine.audioProfile!.replayGain, ReplayGainMode.album);
+      expect(engine.audioProfile!.mpvProperties['replaygain'], 'album');
+      expect(
+        engine.calls.indexOf('profile:album'),
+        lessThan(engine.calls.indexOf('open:3:0:0:true')),
+        reason: 'gain is set before the first track starts',
+      );
+      await c.setShuffle(true);
+      expect(engine.audioProfile!.replayGain, ReplayGainMode.track);
+      await c.setShuffle(false);
+      expect(engine.audioProfile!.replayGain, ReplayGainMode.album);
+
+      final mixed = [
+        ..._tracks(2),
+        const PlayRequest(uri: '/x.flac', title: 'X', album: 'Other'),
+      ];
+      await c.play(mixed);
+      expect(engine.audioProfile!.replayGain, ReplayGainMode.track);
+    });
+
+    test('audio profile changes reach the engine once', () async {
+      await c.play(_tracks(2));
+      final before = engine.calls.where((e) => e.startsWith('profile')).length;
+      await c.setAudioProfile(
+        const AudioProfile(replayGain: ReplayGainMode.off, preampDb: 3),
+      );
+      expect(engine.audioProfile!.mpvProperties['replaygain'], 'no');
+      expect(engine.audioProfile!.preampDb, 3);
+      await c.setAudioProfile(
+        const AudioProfile(replayGain: ReplayGainMode.off, preampDb: 3),
+      );
+      expect(
+        engine.calls.where((e) => e.startsWith('profile')).length,
+        before + 1,
+      );
     });
 
     test('repeat is forwarded to the engine', () async {

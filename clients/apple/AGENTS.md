@@ -16,10 +16,14 @@ tools/bindings/build-xcframework.sh
 # Swift-пакет
 cd clients/apple/AlphaPlayerKit && swift build && swift test
 
-# tvOS-приложение (после TV-001)
-xcodebuild test -project clients/apple/TVApp/TVApp.xcodeproj -scheme TVApp \
-  -destination 'platform=tvOS Simulator,name=Apple TV 4K (3rd generation)'
+# tvOS-приложение (TV-001): проект генерирует XcodeGen из project.yml (ADR-NNNN)
+just apple tv-core       # tools/bindings/build-xcframework.sh tvos tvos-sim
+just apple tv-test       # xcodegen generate + xcodebuild test (unit + UI)
 ```
+
+- `TVApp.xcodeproj` не коммитим: правки проекта — только в `TVApp/project.yml`.
+- В CI tvOS-приложение собирает и тестирует job `tvapp` в `.github/workflows/apple-core.yml` (macos-15); скриншот Home из симулятора — артефакт `tvos-home-screenshot`. Ручной запуск: `gh workflow run apple-core.yml --ref <ветка>`.
+- Иконки — `PaIcon` и `PaIcons.xcassets` из `design/icons/generated/apple` (DSN-004); цвета — `TVApp/Sources/Theme.swift` (копия токенов до `Tokens.swift` из DSN-003).
 
 ## Правила области
 
