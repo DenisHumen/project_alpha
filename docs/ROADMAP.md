@@ -1322,10 +1322,11 @@ project_alpha/
   - Что: Inter Variable (OFL) для не-Apple платформ, проверка кириллицы (запасные варианты — Manrope или Golos UI); на Apple — системный SF; лицензии в `LICENSES.md`; табличные цифры.
   - deps: DSN-001 · size: S · parallel: yes · веха: M1 · ref: 01 §4.4
   - done when: образец типографики ru и en утверждён; шрифты подключены во Flutter.
-- [ ] **DSN-006** Бренд, иконки приложения, плейсхолдеры
+- [x] **DSN-006** Бренд, иконки приложения, плейсхолдеры
   - Что: логотип; мастер иконки 1024+; layered image для tvOS (2–5 слоёв) и Liquid Glass (Icon Composer); Android adaptive (foreground, background, monochrome) и баннер TV 320×180; Windows ICO и ассеты MSIX; Linux hicolor, `.desktop` и AppStream; собственные плейсхолдеры постеров и обложек; иллюстрации пустых состояний.
   - deps: DSN-001, DEC-004 · size: L · parallel: yes · веха: M5 · ref: 01 §5.2 п.3
   - done when: все платформенные ассеты генерируются из мастер-файлов скриптом.
+  - Итог: знак, словесный знак, акцент `color.lune`, Android (adaptive, themed, TV-баннер), Linux, Windows ICO, веб и плейсхолдеры — `design/brand/`; Apple-слои, MSIX, AppStream и пустые состояния перенесены в DSN-016.
 - [ ] **DSN-007** Иконки источников и сервисов
   - Что: нейтральные иконки протоколов; Plex, Jellyfin, Emby, Twitch и TMDB — только официальные ассеты и строго по их brand guidelines (проверка в LEGAL-009).
   - deps: DSN-004, LEGAL-009 · size: S · parallel: yes · веха: M4 · ref: 01 §4.8, 06 §1.5
