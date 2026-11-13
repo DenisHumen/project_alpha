@@ -62,9 +62,9 @@ jobs:
           TITLE: ${{ github.event.pull_request.title }}
         run: |
           # Workstream scopes from CONTRIBUTING.md plus `deps` for Dependabot.
-          scopes='core|net|lib|meta|play|play-and|play-apl|play-dsk|ui|tv|sync|srv|mus|twi|dist|dsn|pkg|qa|docs|legal|site|comm|repo|ci|roadmap|deps'
+          scopes='core|net|lib|meta|play|play-and|play-apl|play-dsk|ui|tv|sync|srv|mus|twi|dist|dsn|pkg|qa|docs|legal|site|comm|repo|ci|roadmap|deps|app|release'
           types='feat|fix|docs|ci|build|chore|test|refactor|perf|style|revert'
-          id='\[[A-Z]+(-[A-Z]+)*-[0-9]{3}\]'
+          id='\[([A-Z]+(-[A-Z]+)*-[0-9]{3}|R[0-9]{2}-[A-Z]+)\]'
           re="^($types)(\\(($scopes)(,($scopes))*\\))?!?: [^ ].*[^ ]$"
           fail() {
             echo "::error title=PR title::$1"
