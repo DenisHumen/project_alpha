@@ -141,3 +141,14 @@ path = ["design/brand/export/**", "design/brand/preview.png", "design/placeholde
 precedence = "closest"
 SPDX-FileCopyrightText = "project_alpha contributors"
 SPDX-License-Identifier = "MPL-2.0"
+
+# Flutter-generated platform scaffolding of package example apps
+# (`flutter create`; same terms as the spikes above).
+[[annotations]]
+path = [
+  "clients/flutter/packages/*/example/android/**",
+  "clients/flutter/packages/*/example/linux/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
