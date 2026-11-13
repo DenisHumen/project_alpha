@@ -309,7 +309,7 @@ project_alpha/
   - Что: cargo-ndk → jniLibs (arm64-v8a, armeabi-v7a, x86_64), Gradle-модуль с UniFFI Kotlin.
   - deps: CORE-001 · size: S · parallel: yes · веха: M0 · ref: 02 §1.4
   - done when: instrumented-тест на эмуляторе вызывает ядро.
-- [ ] **CORE-005** `pa-model`: доменные типы
+- [x] **CORE-005** `pa-model`: доменные типы
   - Что: MediaItem, Work, Season, Episode, MediaFile, Track, Album, Artist, Streamer, Video; `MediaKey` (`file:<fp>`, `tmdb:…`, `twitch:vod:<id>`, `twitch:rec:<id>`, `twitch:clip:<slug>`); `PlaybackItem` (source_type, position, duration, updated_at, device_id); serde и версия схемы.
   - deps: REPO-001 · size: M · parallel: no · веха: M0 · ref: 04 §1.8, 06 §5.2, 01 §2.7
   - done when: round-trip-тесты serde; `MediaKey` парсится и печатается без потерь.
