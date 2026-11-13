@@ -5,6 +5,7 @@
 /// media_kit / libmpv. Call [ensurePaPlayerInitialized] in `main()`.
 library;
 
+export 'src/engine/audio_profile.dart';
 export 'src/engine/media_kit_engine.dart'
     show MediaKitEngine, ensurePaPlayerInitialized;
 export 'src/engine/player_engine.dart';
