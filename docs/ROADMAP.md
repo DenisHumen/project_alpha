@@ -982,7 +982,7 @@ project_alpha/
 
 ### 3.14. SRV — медиасервер (режим B)
 
-- [ ] **SRV-001** Каркас сервера
+- [x] **SRV-001** Каркас сервера
   - Что: `server/` на axum и tokio, конфиг, SQLite WAL через pa-library (тот же код, что в клиенте), `/health`, graceful shutdown, структурные логи.
   - deps: LIB-001, CORE-006 · size: M · parallel: no · веха: M4 · ref: 04 §1.5
   - done when: сервер стартует с пустой БД; интеграционный тест `/health`.
