@@ -10,6 +10,8 @@
 
 uniffi::setup_scaffolding!();
 
+mod runtime;
 mod version;
 
+pub use runtime::*;
 pub use version::core_version;

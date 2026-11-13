@@ -85,8 +85,9 @@ TrackInfo trackInfoFromPath(String path, {String? root}) {
   String? album;
   final dir = p.dirname(path);
   bool usable(String d) {
-    if (root != null && (p.equals(d, root) || !p.isWithin(root, d)))
+    if (root != null && (p.equals(d, root) || !p.isWithin(root, d))) {
       return false;
+    }
     final n = p.basename(d).toLowerCase();
     return n.isNotEmpty &&
         !genericFolderNames.contains(n) &&
@@ -160,8 +161,9 @@ String? findLocalImage(
   for (final e in entries) {
     if (e is! File) continue;
     final ext = p.extension(e.path).toLowerCase();
-    if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.webp')
+    if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.webp') {
       continue;
+    }
     byName[p.basenameWithoutExtension(e.path).toLowerCase()] = e.path;
   }
   if (byName.isEmpty) return null;
