@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
-//! Bridge to the progress API of pa-library (LIB-011).
+//! Bridge to the progress API of pa-library (LIB-011) and to its Twitch
+//! favourites (TWI-007, [`FollowSink`], `twitch_follow.set`).
 //!
 //! [`Replica`] is a [`ProgressSink`]: `pa_library::progress` calls it inside
 //! the transaction that writes `progress`, and every [`ProgressChange`]
@@ -38,6 +39,7 @@
 
 use pa_library::progress::{self, ProgressChange, ProgressSink, SinkError};
 use pa_library::rusqlite::Connection;
+use pa_library::twitch::{self, FollowChange, FollowSink};
 
 use crate::op::{Op, OpBody};
 use crate::{Error, Replica};
@@ -85,6 +87,43 @@ pub fn progress_change(body: &OpBody) -> Option<ProgressChange> {
     })
 }
 
+/// The sync op for a local Twitch favourite change (`twitch_follow.set`).
+pub fn follow_op_body(change: FollowChange) -> OpBody {
+    OpBody::TwitchFollow {
+        profile: change.profile,
+        channel_id: change.user_id,
+        followed: change.followed,
+    }
+}
+
+/// The favourite change a `twitch_follow.set` op carries.
+pub fn follow_change(body: &OpBody) -> Option<FollowChange> {
+    match body {
+        OpBody::TwitchFollow {
+            profile,
+            channel_id,
+            followed,
+        } => Some(FollowChange {
+            profile: profile.clone(),
+            user_id: channel_id.clone(),
+            followed: *followed,
+        }),
+        _ => None,
+    }
+}
+
+impl FollowSink for Replica {
+    fn record_follow(
+        &mut self,
+        conn: &Connection,
+        change: FollowChange,
+        now_ms: i64,
+    ) -> Result<(), SinkError> {
+        self.record(conn, follow_op_body(change), now_ms)?;
+        Ok(())
+    }
+}
+
 impl ProgressSink for Replica {
     fn device_id(&self) -> &str {
         Replica::device_id(self)
@@ -102,14 +141,20 @@ impl ProgressSink for Replica {
 }
 
 impl Replica {
-    /// [`Replica::receive`], then, if the op changed the merged state and is
-    /// a progress op, writes it into the `progress` table of `conn`
-    /// ([`progress::apply_remote`]). Returns whether the state changed.
+    /// [`Replica::receive`], then, if the op changed the merged state, writes
+    /// it into the library of `conn`: progress ops into `progress`
+    /// ([`progress::apply_remote`]), `twitch_follow.set` into
+    /// `twitch_favorites` ([`twitch::apply_remote_follow`]). Returns whether
+    /// the state changed.
     pub fn receive_into(&mut self, conn: &Connection, op: &Op, now_ms: i64) -> Result<bool, Error> {
         let changed = self.receive(op, now_ms)?;
-        if changed && let Some(change) = progress_change(&op.body) {
+        if changed {
             let at_ms = i64::try_from(op.hlc.wall_ms).map_err(|_| Error::Invalid("hlc"))?;
-            progress::apply_remote(conn, &change, at_ms, &op.hlc.device)?;
+            if let Some(change) = progress_change(&op.body) {
+                progress::apply_remote(conn, &change, at_ms, &op.hlc.device)?;
+            } else if let Some(change) = follow_change(&op.body) {
+                twitch::apply_remote_follow(conn, &change, at_ms)?;
+            }
         }
         Ok(changed)
     }

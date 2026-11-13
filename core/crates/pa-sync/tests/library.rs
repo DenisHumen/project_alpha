@@ -124,3 +124,46 @@ fn a_late_unwatch_from_another_device_clears_watched() {
     assert_eq!(item.position_ms, 0);
     assert_eq!(item.device_id, "tv");
 }
+
+#[test]
+fn twitch_favorites_sync_as_follow_ops() {
+    use pa_library::twitch::{self, FavoriteSource};
+
+    const CHANNEL: &str = "141981764";
+    let mut phone_db = pa_library::open_in_memory().unwrap();
+    let tv_db = pa_library::open_in_memory().unwrap();
+    let mut phone = Replica::new("phone").unwrap();
+    let mut tv = Replica::new("tv").unwrap();
+    let mut follow = |db: &mut pa_library::rusqlite::Connection, on: bool, at: i64| {
+        twitch::set_favorite(db, &mut phone, 1, CHANNEL, FavoriteSource::Local, on, at).unwrap()
+    };
+
+    // A local favourite, no Twitch login: one `twitch_follow.set` op; the
+    // same state again syncs nothing.
+    assert!(follow(&mut phone_db, true, T0));
+    assert!(!follow(&mut phone_db, true, T0 + 1));
+    assert_eq!(
+        queued_ops(&phone_db),
+        [OpBody::TwitchFollow {
+            profile: "default".into(),
+            channel_id: CHANNEL.into(),
+            followed: true,
+        }]
+    );
+    for p in outbox::due(&phone_db, i64::MAX, 100).unwrap() {
+        assert!(tv.receive_into(&tv_db, &p.op, T0 + 10).unwrap());
+        outbox::ack(&phone_db, p.op.op_id).unwrap();
+    }
+    let favs = twitch::favorites(&tv_db, 1).unwrap();
+    assert_eq!(favs.len(), 1);
+    assert_eq!(favs[0].user_id, CHANNEL);
+    assert_eq!(favs[0].source, FavoriteSource::Local);
+
+    // Unfollow on the phone removes it on the TV.
+    assert!(follow(&mut phone_db, false, T0 + 20));
+    for p in outbox::due(&phone_db, i64::MAX, 100).unwrap() {
+        assert!(tv.receive_into(&tv_db, &p.op, T0 + 30).unwrap());
+    }
+    assert!(twitch::favorites(&tv_db, 1).unwrap().is_empty());
+    assert_eq!(outbox::len(&tv_db).unwrap(), 0);
+}

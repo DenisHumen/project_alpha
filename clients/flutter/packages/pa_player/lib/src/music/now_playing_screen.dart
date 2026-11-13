@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../engine/player_engine.dart';
+import '../l10n/pa_player_strings.dart';
 import '../ui/focus_button.dart';
 import '../ui/scrubber.dart';
 import '../ui/tokens.dart';
@@ -172,14 +173,14 @@ class _TopBar extends StatelessWidget {
         children: [
           FocusIconButton(
             icon: Icons.keyboard_arrow_down_rounded,
-            tooltip: 'Close',
+            tooltip: PaPlayerStrings.of(context).close,
             onPressed: () => Navigator.of(context).maybePop(),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Now Playing',
+              PaPlayerStrings.of(context).nowPlaying,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: PaTokens.textSecondary,
                 fontSize: 13,
                 letterSpacing: 1.2,
@@ -234,7 +235,7 @@ class _Info extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          t?.title ?? 'Nothing playing',
+          t?.title ?? PaPlayerStrings.of(context).nothingPlaying,
           key: const ValueKey('np-title'),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -268,6 +269,7 @@ class _Transport extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = PaPlayerStrings.of(context);
     final repeatIcon = controller.repeat == QueueRepeat.one
         ? Icons.repeat_one_rounded
         : Icons.repeat_rounded;
@@ -278,14 +280,14 @@ class _Transport extends StatelessWidget {
           FocusIconButton(
             key: const ValueKey('np-shuffle'),
             icon: Icons.shuffle_rounded,
-            tooltip: controller.shuffle ? 'Shuffle on' : 'Shuffle off',
+            tooltip: controller.shuffle ? l.shuffleOn : l.shuffleOff,
             active: controller.shuffle,
             onPressed: controller.toggleShuffle,
           ),
           FocusIconButton(
             key: const ValueKey('np-prev'),
             icon: Icons.skip_previous_rounded,
-            tooltip: 'Previous',
+            tooltip: l.previous,
             size: 56,
             onPressed: controller.previous,
           ),
@@ -294,7 +296,7 @@ class _Transport extends StatelessWidget {
             icon: controller.playing
                 ? Icons.pause_rounded
                 : Icons.play_arrow_rounded,
-            tooltip: controller.playing ? 'Pause' : 'Play',
+            tooltip: controller.playing ? l.pause : l.play,
             size: 72,
             filled: true,
             autofocus: true,
@@ -303,7 +305,7 @@ class _Transport extends StatelessWidget {
           FocusIconButton(
             key: const ValueKey('np-next'),
             icon: Icons.skip_next_rounded,
-            tooltip: 'Next',
+            tooltip: l.next,
             size: 56,
             onPressed: controller.queue.nextPosition() == null
                 ? null
@@ -313,9 +315,9 @@ class _Transport extends StatelessWidget {
             key: const ValueKey('np-repeat'),
             icon: repeatIcon,
             tooltip: switch (controller.repeat) {
-              QueueRepeat.off => 'Repeat off',
-              QueueRepeat.all => 'Repeat all',
-              QueueRepeat.one => 'Repeat one',
+              QueueRepeat.off => l.repeatOff,
+              QueueRepeat.all => l.repeatAll,
+              QueueRepeat.one => l.repeatOne,
             },
             active: controller.repeat != QueueRepeat.off,
             onPressed: controller.cycleRepeat,
@@ -335,15 +337,16 @@ class _Queue extends StatelessWidget {
     final q = controller.queue;
     final ordered = q.ordered;
     final pos = q.position;
+    final l = PaPlayerStrings.of(context);
     return FocusTraversalGroup(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(14, 0, 14, 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
             child: Text(
-              'Up next',
-              style: TextStyle(
+              l.upNext,
+              style: const TextStyle(
                 color: PaTokens.text,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -352,11 +355,11 @@ class _Queue extends StatelessWidget {
           ),
           Expanded(
             child: ordered.length <= pos + 1
-                ? const Padding(
-                    padding: EdgeInsets.all(14),
+                ? Padding(
+                    padding: const EdgeInsets.all(14),
                     child: Text(
-                      'End of queue',
-                      style: TextStyle(color: PaTokens.textSecondary),
+                      l.endOfQueue,
+                      style: const TextStyle(color: PaTokens.textSecondary),
                     ),
                   )
                 : ListView.builder(

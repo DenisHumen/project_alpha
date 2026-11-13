@@ -138,10 +138,15 @@ class _ScrubberState extends State<Scrubber> {
               Row(
                 children: [
                   Text(formatDuration(shown), style: _timeStyle),
-                  const Spacer(),
-                  Text(
-                    widget.endLabel ?? '-${formatDuration(remaining)}',
-                    style: _timeStyle,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.endLabel ?? '-${formatDuration(remaining)}',
+                      textAlign: TextAlign.end,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: _timeStyle,
+                    ),
                   ),
                 ],
               ),
