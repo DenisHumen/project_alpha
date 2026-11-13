@@ -36,15 +36,6 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
         var pendingSeekMs: UInt64?
     }
 
-    private struct TrackSnapshot {
-        var audio: [Track] = []
-        var subtitles: [Track] = []
-        var videoWidth: UInt32?
-        var videoHeight: UInt32?
-        var videoCodec: String?
-        var audioCodec: String?
-    }
-
     private static let maxVolume = 300.0
     private static let maxRate = 100.0
     /// A loaded file normally starts within a frame; this only guards
@@ -215,8 +206,8 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
             guard let endFile = event.endFile, endFile.reason == MPV_END_FILE_REASON_ERROR else { return }
             failed(entryID: endFile.playlist_entry_id, code: endFile.error)
         case MPV_EVENT_PROPERTY_CHANGE:
-            guard let (name, value) = event.propertyFlag, let value else { return }
-            switch name {
+            guard let property = event.propertyFlag, let value = property.value else { return }
+            switch property.name {
             case "eof-reached" where value:
                 reachedEnd()
             case "paused-for-cache":
@@ -264,7 +255,7 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
         let durationMs = Self.milliseconds(mpv.double("duration") ?? 0)
         let tracks = readTracks()
         emit(.loaded(durationMs: durationMs, videoWidth: tracks.videoWidth, videoHeight: tracks.videoHeight))
-        emit(.tracksChanged(audio: tracks.audio, subtitles: tracks.subtitles))
+        emit(.tracksChanged(audio: tracks.audio.map(\.track), subtitles: tracks.subtitles.map(\.track)))
         emit(.trackSelected(kind: .audio, id: tracks.audio.first(where: \.selected)?.track.id))
         emit(.trackSelected(kind: .subtitle, id: tracks.subtitles.first(where: \.selected)?.track.id))
         sendPosition()
