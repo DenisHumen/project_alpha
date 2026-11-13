@@ -322,7 +322,11 @@ impl TmdbClient {
         let mut langs = vec![lang, "en", "null"];
         langs.dedup();
         let q = vec![("include_image_language".into(), langs.join(","))];
-        self.get_json(&format!("/{}/{id}/images", kind.as_str()), q, TtlClass::Stable)
+        self.get_json(
+            &format!("/{}/{id}/images", kind.as_str()),
+            q,
+            TtlClass::Stable,
+        )
     }
 
     /// `/collection/{id}`.
@@ -355,7 +359,11 @@ impl TmdbClient {
     }
 
     /// `/find/{id}`: TMDB entries for an IMDb / TVDB / Wikidata id.
-    pub fn find(&self, external_id: &str, source: ExternalSource) -> Result<FindResults, TmdbError> {
+    pub fn find(
+        &self,
+        external_id: &str,
+        source: ExternalSource,
+    ) -> Result<FindResults, TmdbError> {
         if external_id.is_empty() || !external_id.chars().all(|c| c.is_ascii_alphanumeric()) {
             return Err(TmdbError::NotFound(format!("external id {external_id:?}")));
         }
@@ -377,7 +385,10 @@ impl TmdbClient {
     fn search_params(&self, query: &str) -> Vec<(String, String)> {
         let mut q = self.lang();
         q.push(("query".into(), query.trim().to_owned()));
-        q.push(("include_adult".into(), self.config.include_adult.to_string()));
+        q.push((
+            "include_adult".into(),
+            self.config.include_adult.to_string(),
+        ));
         q
     }
 
@@ -423,9 +434,10 @@ impl TmdbClient {
             }
         };
         if secret.is_bearer_token() {
-            request
-                .headers
-                .push(("authorization".into(), format!("Bearer {}", secret.expose())));
+            request.headers.push((
+                "authorization".into(),
+                format!("Bearer {}", secret.expose()),
+            ));
         } else {
             request
                 .query

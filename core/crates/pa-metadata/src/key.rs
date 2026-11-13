@@ -124,7 +124,12 @@ mod tests {
         assert!(ApiKey::new("").is_none());
         assert!(ApiKey::new("  ").is_none());
         assert!(ApiKey::new("changeme").is_none());
-        assert!(Keys::none().with_user_key(Some("changeme")).active().is_none());
+        assert!(
+            Keys::none()
+                .with_user_key(Some("changeme"))
+                .active()
+                .is_none()
+        );
     }
 
     #[test]
@@ -138,8 +143,6 @@ mod tests {
     fn bearer_detection() {
         // Shapes only; real tokens are much longer.
         assert!(ApiKey::new("eyJx.eyJy.z").unwrap().is_bearer_token());
-        assert!(!ApiKey::new("0123abcd")
-            .unwrap()
-            .is_bearer_token());
+        assert!(!ApiKey::new("0123abcd").unwrap().is_bearer_token());
     }
 }

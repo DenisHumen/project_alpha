@@ -198,7 +198,10 @@ mod tests {
     #[test]
     fn retry_after_seconds_only() {
         assert_eq!(parse_retry_after(Some(" 3 ")), Some(Duration::from_secs(3)));
-        assert_eq!(parse_retry_after(Some("Wed, 21 Oct 2015 07:28:00 GMT")), None);
+        assert_eq!(
+            parse_retry_after(Some("Wed, 21 Oct 2015 07:28:00 GMT")),
+            None
+        );
         assert_eq!(parse_retry_after(None), None);
     }
 }

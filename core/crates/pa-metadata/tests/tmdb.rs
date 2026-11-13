@@ -106,7 +106,10 @@ fn search_tv_and_multi() {
     let f = fixture();
     let tv = f.client.search_tv("Kitsune Relay", Some(2021)).unwrap();
     assert_eq!(tv.results[0].kind(), Some(MediaKind::Tv));
-    assert_eq!(tv.results[0].original_title.as_deref(), Some("Kitsune Relay"));
+    assert_eq!(
+        tv.results[0].original_title.as_deref(),
+        Some("Kitsune Relay")
+    );
     assert_eq!(tv.results[0].year(), Some(2021));
 
     let multi = f.client.search_multi("Lunar Harbor").unwrap();
@@ -136,10 +139,17 @@ fn movie_details_translations_titles_ids_images_collection() {
     let tr = f.client.translations(MediaKind::Movie, 900001).unwrap();
     let ru = tr.find("ru-RU").unwrap();
     assert_eq!(ru.data.title.as_deref(), Some("Лунная гавань"));
-    assert_eq!(tr.find("en").unwrap().data.title, None, "empty = untranslated");
+    assert_eq!(
+        tr.find("en").unwrap().data.title,
+        None,
+        "empty = untranslated"
+    );
     assert!(tr.find("de-DE").is_none());
 
-    let alt = f.client.alternative_titles(MediaKind::Movie, 900001).unwrap();
+    let alt = f
+        .client
+        .alternative_titles(MediaKind::Movie, 900001)
+        .unwrap();
     assert_eq!(alt.titles.len(), 2);
     assert_eq!(alt.titles[1].kind.as_deref(), Some("katakana"));
     assert_eq!(alt.titles[0].kind, None);
@@ -190,7 +200,10 @@ fn tv_details_seasons_groups_and_find() {
     let eps = &group.groups[0].episodes;
     assert_eq!(eps.len(), 24);
     let e13 = &eps[12];
-    assert_eq!((e13.order, e13.season_number, e13.episode_number), (12, 2, 1));
+    assert_eq!(
+        (e13.order, e13.season_number, e13.episode_number),
+        (12, 2, 1)
+    );
     assert_eq!(groups.results[1].group_type, EpisodeGroupType::StoryArc);
 
     let season = f.client.season(800002, 1).unwrap();
@@ -249,7 +262,14 @@ fn user_key_overrides_project_key_at_runtime() {
         .transport
         .requests()
         .iter()
-        .map(|r| r.query.iter().find(|(k, _)| k == "api_key").unwrap().1.clone())
+        .map(|r| {
+            r.query
+                .iter()
+                .find(|(k, _)| k == "api_key")
+                .unwrap()
+                .1
+                .clone()
+        })
         .collect();
     assert_eq!(used, vec![PROJECT_KEY, USER_KEY]);
 }
@@ -407,10 +427,7 @@ fn cache_hit_refresh_stale_fallback_and_hard_limit() {
         f.cache.clone(),
         f.clock.clone(),
     );
-    assert_eq!(
-        client.details(MediaKind::Movie, 900001).unwrap().id,
-        900001
-    );
+    assert_eq!(client.details(MediaKind::Movie, 900001).unwrap().id, 900001);
 
     // Past six months nothing is served, and purge removes it.
     f.clock.advance(MAX_CACHE_AGE);
@@ -430,7 +447,12 @@ fn ongoing_series_refresh_daily_ended_ones_biweekly() {
     f.clock.advance(Duration::from_secs(DAY + 1));
     f.client.details(MediaKind::Tv, 800002).unwrap();
     f.client.details(MediaKind::Tv, 800001).unwrap();
-    let paths: Vec<String> = f.transport.requests().iter().map(|r| r.path.clone()).collect();
+    let paths: Vec<String> = f
+        .transport
+        .requests()
+        .iter()
+        .map(|r| r.path.clone())
+        .collect();
     assert_eq!(paths, vec!["/tv/800002", "/tv/800001", "/tv/800002"]);
 }
 
@@ -445,7 +467,11 @@ fn purge_all_drops_every_tmdb_entry() {
 
 // --- Provider (neutral requests) ---------------------------------------------
 
-fn call(client: &mut TmdbClient, endpoint: &str, params: &[(&str, &str)]) -> Result<Value, ProviderError> {
+fn call(
+    client: &mut TmdbClient,
+    endpoint: &str,
+    params: &[(&str, &str)],
+) -> Result<Value, ProviderError> {
     let mut req = ProviderRequest::new("tmdb", endpoint);
     for (k, v) in params {
         req = req.param(k, *v);
@@ -456,7 +482,12 @@ fn call(client: &mut TmdbClient, endpoint: &str, params: &[(&str, &str)]) -> Res
 #[test]
 fn neutral_search_matches_eval_tape_shape() {
     let mut f = fixture();
-    let v = call(&mut f.client, "search", &[("query", "Lunar Harbor"), ("year", "2019")]).unwrap();
+    let v = call(
+        &mut f.client,
+        "search",
+        &[("query", "Lunar Harbor"), ("year", "2019")],
+    )
+    .unwrap();
     // Multi-search filtered by year: only the 2019 movie.
     assert_eq!(
         v,
@@ -467,7 +498,12 @@ fn neutral_search_matches_eval_tape_shape() {
         }]})
     );
 
-    let v = call(&mut f.client, "search", &[("query", "Kitsune Relay"), ("kind", "show")]).unwrap();
+    let v = call(
+        &mut f.client,
+        "search",
+        &[("query", "Kitsune Relay"), ("kind", "show")],
+    )
+    .unwrap();
     assert_eq!(v["results"][0]["kind"], "show");
     assert_eq!(v["results"][0]["ids"]["tmdb"], "tv:800002");
 }
@@ -475,15 +511,40 @@ fn neutral_search_matches_eval_tape_shape() {
 #[test]
 fn neutral_raw_endpoints() {
     let mut f = fixture();
-    let d = call(&mut f.client, "details", &[("kind", "tv"), ("id", "800002")]).unwrap();
+    let d = call(
+        &mut f.client,
+        "details",
+        &[("kind", "tv"), ("id", "800002")],
+    )
+    .unwrap();
     assert_eq!(d["status"], "Returning Series");
-    let ids = call(&mut f.client, "external_ids", &[("kind", "tv"), ("id", "800002")]).unwrap();
+    let ids = call(
+        &mut f.client,
+        "external_ids",
+        &[("kind", "tv"), ("id", "800002")],
+    )
+    .unwrap();
     assert_eq!(ids["tvdb_id"], 390001);
-    let s = call(&mut f.client, "season", &[("id", "800002"), ("season", "1")]).unwrap();
+    let s = call(
+        &mut f.client,
+        "season",
+        &[("id", "800002"), ("season", "1")],
+    )
+    .unwrap();
     assert_eq!(s["episodes"].as_array().unwrap().len(), 12);
-    let g = call(&mut f.client, "episode_group", &[("group", "5f00000000000000000a0001")]).unwrap();
+    let g = call(
+        &mut f.client,
+        "episode_group",
+        &[("group", "5f00000000000000000a0001")],
+    )
+    .unwrap();
     assert_eq!(g["type"], 2);
-    let found = call(&mut f.client, "find", &[("external_id", "tt9000001"), ("source", "imdb")]).unwrap();
+    let found = call(
+        &mut f.client,
+        "find",
+        &[("external_id", "tt9000001"), ("source", "imdb")],
+    )
+    .unwrap();
     assert_eq!(found["movie_results"][0]["id"], 900001);
     let c = call(&mut f.client, "collection", &[("id", "910001")]).unwrap();
     assert_eq!(c["parts"].as_array().unwrap().len(), 2);
@@ -501,12 +562,19 @@ fn neutral_errors() {
         Err(ProviderError::BadRequest(_))
     ));
     assert!(matches!(
-        call(&mut f.client, "details", &[("kind", "movie"), ("id", "999999")]),
+        call(
+            &mut f.client,
+            "details",
+            &[("kind", "movie"), ("id", "999999")]
+        ),
         Err(ProviderError::NotFound(_))
     ));
     let mut other = ProviderRequest::new("anilist", "search");
     other = other.param("query", "x");
-    assert!(matches!(f.client.call(&other), Err(ProviderError::BadRequest(_))));
+    assert!(matches!(
+        f.client.call(&other),
+        Err(ProviderError::BadRequest(_))
+    ));
 
     let mut keyless = fixture_with(Keys::none());
     assert!(matches!(

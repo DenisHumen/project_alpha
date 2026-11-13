@@ -23,9 +23,7 @@
 use pa_recognition::provider::{Provider, ProviderError, ProviderRequest};
 use serde_json::{Value, json};
 
-use super::{
-    ExternalSource, MediaKind, PROVIDER, SearchResult, TmdbClient, TmdbError, TtlClass,
-};
+use super::{ExternalSource, MediaKind, PROVIDER, SearchResult, TmdbClient, TmdbError, TtlClass};
 
 impl From<TmdbError> for ProviderError {
     fn from(e: TmdbError) -> Self {
@@ -65,7 +63,11 @@ impl TmdbClient {
                     MediaKind::Movie => TtlClass::Stable,
                     MediaKind::Tv => TtlClass::TvDetails,
                 };
-                self.raw(&format!("/{}/{}", p.kind()?.as_str(), p.id()?), self.lang(), class)
+                self.raw(
+                    &format!("/{}/{}", p.kind()?.as_str(), p.id()?),
+                    self.lang(),
+                    class,
+                )
             }
             sub @ ("translations" | "alternative_titles" | "external_ids") => self.raw(
                 &format!("/{}/{}/{sub}", p.kind()?.as_str(), p.id()?),
@@ -97,8 +99,10 @@ impl TmdbClient {
             "find" => {
                 let source = ExternalSource::parse(p.get("source")?)
                     .ok_or_else(|| ProviderError::BadRequest("unknown find source".into()))?;
-                Ok(serde_json::to_value(self.find(p.get("external_id")?, source)?)
-                    .map_err(|e| ProviderError::Failed(e.to_string()))?)
+                Ok(
+                    serde_json::to_value(self.find(p.get("external_id")?, source)?)
+                        .map_err(|e| ProviderError::Failed(e.to_string()))?,
+                )
             }
             other => Err(ProviderError::BadRequest(format!(
                 "unknown tmdb endpoint {other:?}"
@@ -169,8 +173,9 @@ impl Params<'_> {
     fn opt_number<T: std::str::FromStr>(&self, key: &str) -> Result<Option<T>, ProviderError> {
         self.opt(key)
             .map(|v| {
-                v.parse()
-                    .map_err(|_| ProviderError::BadRequest(format!("param {key:?} is not a number")))
+                v.parse().map_err(|_| {
+                    ProviderError::BadRequest(format!("param {key:?} is not a number"))
+                })
             })
             .transpose()
     }

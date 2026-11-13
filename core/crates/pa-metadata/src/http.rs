@@ -156,14 +156,14 @@ mod live {
             }
             // ureq errors can quote the URL, which may hold a v3 `api_key`;
             // report only the error kind, never the URL.
-            let mut response = builder
-                .call()
-                .map_err(|e| TransportError(describe(&e)))?;
+            let mut response = builder.call().map_err(|e| TransportError(describe(&e)))?;
             let status = response.status().as_u16();
             let headers = response
                 .headers()
                 .iter()
-                .filter_map(|(k, v)| Some((k.as_str().to_ascii_lowercase(), v.to_str().ok()?.to_owned())))
+                .filter_map(|(k, v)| {
+                    Some((k.as_str().to_ascii_lowercase(), v.to_str().ok()?.to_owned()))
+                })
                 .collect();
             let body = response
                 .body_mut()

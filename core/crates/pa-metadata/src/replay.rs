@@ -229,7 +229,10 @@ mod tests {
         let t = ReplayTransport::from_jsonl(cassette).unwrap();
         let r = request("/a", &[("api_key", "k"), ("q", "x y")]);
         let first = t.get(&r).unwrap();
-        assert_eq!((first.status, first.header("retry-after")), (429, Some("2")));
+        assert_eq!(
+            (first.status, first.header("retry-after")),
+            (429, Some("2"))
+        );
         assert_eq!(t.get(&r).unwrap().body, r#"{"ok":true}"#);
         assert_eq!(t.get(&r).unwrap().status, 200);
         assert!(t.get(&request("/b", &[])).is_err());
