@@ -341,7 +341,7 @@ impl Connection {
                     }
                     self.socket.send(WsMessage::Ping(Default::default())).await?;
                 }
-                _ = shutdown.wait_for(|stop| *stop) => {
+                () = async { let _ = shutdown.wait_for(|stop| *stop).await; } => {
                     let _ = self.socket.send(WsMessage::Close(None)).await;
                     return Ok(());
                 }
