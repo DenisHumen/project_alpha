@@ -18,7 +18,7 @@ cargo run -p pa-eval -- compare --baseline baselines/main.json --current report.
     --max-silent-regression-pp 0.2 --md diff.md
 ```
 
-Опции `run`: `--recognizer naive|abstain` (по умолчанию `naive`), `--tape FILE`, `--misses FILE` (записать запросы, которых нет на кассете, — по ним строится кассета), `--threshold X` (порог авто, по умолчанию 0.9), `--no-validate` (не проверять корпус валидатором META-001). Код выхода: 0 — ок, 1 — регресс (`compare`), 2 — ошибка аргументов, ввода-вывода или невалидный корпус.
+Опции `run`: `--recognizer naive|parser|abstain` (по умолчанию `naive`; `parser` — разбор имён парсером `pa-recognition` без поиска работы), `--tape FILE`, `--misses FILE` (записать запросы, которых нет на кассете, — по ним строится кассета), `--threshold X` (порог авто, по умолчанию 0.9), `--no-validate` (не проверять корпус валидатором META-001). Код выхода: 0 — ок, 1 — регресс (`compare`), 2 — ошибка аргументов, ввода-вывода или невалидный корпус.
 
 ## Как подключить распознаватель
 

@@ -112,6 +112,55 @@ impl Recognizer for Naive {
     }
 }
 
+/// Product filename parser (`pa-recognition`, META-005/META-006) only.
+///
+/// Fills `parse` from the best hypothesis and abstains on the work: there is
+/// no candidate search or title index yet (META-007, META-010), so this
+/// recognizer measures parser accuracy, not identification.
+#[derive(Debug, Default)]
+pub struct Parser;
+
+impl Recognizer for Parser {
+    fn name(&self) -> &str {
+        "parser"
+    }
+
+    fn recognize(
+        &mut self,
+        case: &CaseInput,
+        _provider: &mut dyn Provider,
+    ) -> Vec<FilePrediction> {
+        case.files
+            .iter()
+            .map(|file| FilePrediction {
+                path: file.path.clone(),
+                parse: Some(from_product_parse(
+                    &pa_recognition::parse::parse(&file.path).best().parsed,
+                )),
+                ..Default::default()
+            })
+            .collect()
+    }
+}
+
+/// Maps the product parser output onto the corpus `parse` fields.
+pub fn from_product_parse(p: &pa_recognition::parse::ParsedName) -> ParsedName {
+    let numbers = |v: &[pa_recognition::parse::EpisodeNumber]| {
+        (!v.is_empty()).then(|| v.iter().map(|n| n.as_f64()).collect())
+    };
+    ParsedName {
+        title: p.title.clone(),
+        year: p.year.map(u32::from),
+        season: p.season,
+        episodes: numbers(&p.episodes),
+        absolute: numbers(&p.absolute),
+        part: p.part,
+        release_group: p.release_group.clone(),
+        crc32: p.crc32.clone(),
+        version: p.version,
+    }
+}
+
 fn top_result(response: &Value, title: &str, year: Option<u32>) -> Option<(WorkGuess, f64)> {
     let top = response.get("results")?.as_array()?.first()?;
     let ids: Ids = serde_json::from_value(top.get("ids")?.clone()).ok()?;

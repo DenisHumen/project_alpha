@@ -213,6 +213,29 @@ impl Report {
             );
         }
 
+        let _ = writeln!(o, "\n## Парсинг имён по категориям\n");
+        let fields: Vec<&String> = self.overall.parse.keys().collect();
+        let mut head = String::from("| Категория | все поля |");
+        let mut rule = String::from("|---|---:|");
+        for f in &fields {
+            head.push_str(&format!(" {f} |"));
+            rule.push_str("---:|");
+        }
+        let _ = writeln!(o, "{head}\n{rule}");
+        let mut cats: Vec<_> = self.per_category.iter().collect();
+        cats.sort_by_key(|(k, _)| category_key(k));
+        for (cat, m) in cats {
+            let (n, ok) = m
+                .parse
+                .values()
+                .fold((0, 0), |(n, ok), c| (n + c.labelled, ok + c.correct));
+            let mut row = format!("| {cat} | {} |", pct(crate::metrics::ratio(ok, n)));
+            for f in &fields {
+                row.push_str(&format!(" {} |", pct(m.parse.get(*f).and_then(|c| c.accuracy))));
+            }
+            let _ = writeln!(o, "{row}");
+        }
+
         let _ = writeln!(o, "\n## Калибровка (reliability)\n");
         let _ = writeln!(o, "ECE: {}\n", num(self.overall.ece));
         let _ = writeln!(
