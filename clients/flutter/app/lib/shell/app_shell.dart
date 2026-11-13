@@ -395,6 +395,43 @@ class _PhoneLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final idx = _tabs.indexOf(shell.section);
+    // Settings has no tab (it sits behind the gear on Home). NavigationBar
+    // always marks some index as selected, so with no matching tab every
+    // destination is drawn in the unselected style (UI-023).
+    final none = idx < 0;
+    final scheme = Theme.of(context).colorScheme;
+    final navTheme = NavigationBarTheme.of(context);
+    Widget bar = NavigationBar(
+      selectedIndex: none ? 0 : idx,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      onDestinationSelected: (i) => shell.select(_tabs[i]),
+      destinations: [
+        for (final s in _tabs)
+          NavigationDestination(
+            icon: Icon(s.icon),
+            selectedIcon: Icon(none ? s.icon : s.selectedIcon),
+            label: s == Section.shows
+                ? context.l10n.navShowsShort
+                : s.label(context.l10n),
+          ),
+      ],
+    );
+    if (none) {
+      bar = NavigationBarTheme(
+        data: navTheme.copyWith(
+          indicatorColor: Colors.transparent,
+          iconTheme: WidgetStatePropertyAll(
+            IconThemeData(color: scheme.onSurfaceVariant, size: 24),
+          ),
+          labelTextStyle: WidgetStatePropertyAll(
+            (navTheme.labelTextStyle?.resolve(const {}) ??
+                    Theme.of(context).textTheme.labelMedium)
+                ?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+        ),
+        child: bar,
+      );
+    }
     return Scaffold(
       body: Stack(
         children: [
@@ -413,21 +450,7 @@ class _PhoneLayout extends StatelessWidget {
           const Positioned(left: 8, right: 8, bottom: 8, child: _MiniPlayer()),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: idx < 0 ? 0 : idx,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (i) => shell.select(_tabs[i]),
-        destinations: [
-          for (final s in _tabs)
-            NavigationDestination(
-              icon: Icon(s.icon),
-              selectedIcon: Icon(s.selectedIcon),
-              label: s == Section.shows
-                  ? context.l10n.navShowsShort
-                  : s.label(context.l10n),
-            ),
-        ],
-      ),
+      bottomNavigationBar: bar,
     );
   }
 }
