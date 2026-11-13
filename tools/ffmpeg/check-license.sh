@@ -66,8 +66,9 @@ run_check() {
     tmp="$(mktemp -d)"
     # shellcheck disable=SC2064
     trap "rm -rf '$tmp'" RETURN
-    ${CC:-cc} "$PA_FF_ROOT/check_license.c" -o "$tmp/check_license" \
-        -I"$out/include" -L"$out/lib" -Wl,-rpath,"$out/lib" \
+    # shellcheck disable=SC2086 # CFLAGS/LDFLAGS are word lists
+    ${CC:-cc} ${CFLAGS:-} "$PA_FF_ROOT/check_license.c" -o "$tmp/check_license" \
+        -I"$out/include" ${LDFLAGS:-} -L"$out/lib" -Wl,-rpath,"$out/lib" \
         -lavformat -lavcodec -lavfilter -lavdevice -lswresample -lswscale -lavutil \
         || die "failed to compile check_license.c"
     if "$tmp/check_license"; then ok "avutil_license() and friends report \"$EXPECTED\""

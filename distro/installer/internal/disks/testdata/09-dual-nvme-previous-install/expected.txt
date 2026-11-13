@@ -1,0 +1,14 @@
+! Samsung 990 PRO 2TB    2.0 TB  NVMe  /dev/nvme0n1  S/N …2222
+      GPT partition table, 5 partition(s)
+      EFI system partition /dev/nvme0n1p1 (an OS is likely installed)
+      ext4 "boot" on /dev/nvme0n1p2
+      btrfs "root" on /dev/nvme0n1p3
+      swap on /dev/nvme0n1p4
+      btrfs "media" on /dev/nvme0n1p5
+  Crucial CT1000P3PSSD8  1.0 TB  NVMe  /dev/nvme1n1  S/N …B1C2
+- SanDisk Extreme         64 GB  USB   /dev/sda      S/N …7354
+      excluded: boot-media
+      DOS partition table, 2 partition(s)
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sda
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sda1
+      EFI system partition /dev/sda2 (an OS is likely installed)

@@ -1,0 +1,1 @@
+BOOT_IMAGE=/images/pxeboot/vmlinuz root=live:CDLABEL=ALPHA-OS-INSTALL rd.live.image quiet rd.live.ram=1

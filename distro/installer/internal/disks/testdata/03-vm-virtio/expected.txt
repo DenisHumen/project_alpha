@@ -1,0 +1,22 @@
+  Virtual disk 69 GB   69 GB  virtio   /dev/vda
+! Virtual disk 34 GB   34 GB  virtio   /dev/vdb
+      GPT partition table, 1 partition(s)
+      xfs "scratch" on /dev/vdb1
+- QEMU DVD-ROM        2.1 GB  optical  /dev/sr0
+      excluded: optical
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sr0
+      /dev/sr0 is mounted at /run/initramfs/live
+- loop device         1.9 GB  virtual  /dev/loop0
+      excluded: virtual-device
+      squashfs on /dev/loop0
+- loop device         8.6 GB  virtual  /dev/loop1
+      excluded: virtual-device
+      ext4 "Anaconda" on /dev/loop1
+      ext4 "Anaconda" on /dev/live-rw
+      /dev/live-rw is mounted at /
+- loop device          34 MB  virtual  /dev/loop2
+      excluded: virtual-device
+- zram device         8.6 GB  virtual  /dev/zram0
+      excluded: virtual-device
+      swap on /dev/zram0
+      /dev/zram0 is in use as swap

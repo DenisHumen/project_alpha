@@ -581,7 +581,7 @@ project_alpha/
 
 ### 3.7. PLAY — общий плеерный слой
 
-- [ ] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов (Linux и Windows готовы; Android и Apple ждут CI на macOS/NDK)
+- [x] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
@@ -1203,7 +1203,7 @@ project_alpha/
   - Что: имя по DEC-004, `os-release` (`ID_LIKE=fedora`), `dnf swap fedora-logos generic-logos`, grub, plymouth и motd без Fedora; формулировка «основано на Fedora Linux».
   - deps: DIST-001, DEC-004 · size: S · parallel: yes · веха: M8 · ref: 05 §7
   - done when: `grep -ri fedora` по брендинговым местам образа чист (кроме допустимой фактической ссылки).
-- [ ] **DIST-004** Установщик: обнаружение дисков (Go)
+- [x] **DIST-004** Установщик: обнаружение дисков (Go)
   - Что: `lsblk -J` + udev + `/sys/class/nvme/*/model`; имена вида «Samsung 990 PRO 1TB — /dev/nvme0n1»; десятичные размеры; фильтр loop, zram, sr и загрузочной флешки; признаки существующих данных (PTTYPE, blkid, mdraid); SMART.
   - deps: DIST-001 · size: M · parallel: yes · веха: M8 · ref: 05 §2.4 (чтение дисков)
   - done when: `go test` на записанных выводах lsblk и udev с 10 конфигурациями железа.

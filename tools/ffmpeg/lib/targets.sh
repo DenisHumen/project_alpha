@@ -3,14 +3,15 @@
 #   T_OS        linux | windows | android | darwin        (meson host_machine.system)
 #   T_CPU_FAMILY, T_CPU                                   (meson cpu_family / cpu)
 #   T_CROSS     1 if cross-compiling
+#   T_RUNNABLE  1 if the artifact can be executed on this host (runtime licence check)
 #   CC CXX AR NM STRIP RANLIB [WINDRES]
 #   T_CFLAGS T_LDFLAGS                                    (applied to deps and FFmpeg)
 #   FF_TARGET_FLAGS   FFmpeg configure flags specific to the target (arch, os, hwaccel)
 #   ASS_FONT_FLAGS    libass meson flags for the platform font provider
 #
-# linux-x86_64 (built + run) and windows-x86_64 (cross-built) are verified in the
-# Docker image; the rest are written against the
-# documented toolchains and must be verified in CI (see README.md).
+# All targets are built in CI (.github/workflows/ffmpeg.yml): linux-x86_64 and
+# windows-x86_64 in the Docker image, android-* with the NDK on Linux, Apple
+# targets on a macOS runner with Xcode (see README.md).
 
 PA_FF_TARGETS="linux-x86_64 windows-x86_64 \
 android-arm64-v8a android-armeabi-v7a android-x86_64 \
@@ -22,13 +23,13 @@ macos-arm64 macos-x86_64 ios-arm64 ios-sim-arm64 tvos-arm64 tvos-sim-arm64"
 : "${PA_FF_TVOS_MIN:=15.0}"
 
 _reset_target() {
-    T_OS="" T_CPU_FAMILY="" T_CPU="" T_CROSS=0
+    T_OS="" T_CPU_FAMILY="" T_CPU="" T_CROSS=0 T_RUNNABLE=0
     T_CFLAGS="-O2" T_LDFLAGS="" FF_TARGET_FLAGS="" ASS_FONT_FLAGS=""
     WINDRES=""
 }
 
 _setup_linux_native() {
-    T_OS=linux T_CPU_FAMILY=x86_64 T_CPU=x86_64
+    T_OS=linux T_CPU_FAMILY=x86_64 T_CPU=x86_64 T_RUNNABLE=1
     CC="${CC:-gcc}" CXX="${CXX:-g++}" AR="${AR:-ar}" NM="${NM:-nm}"
     STRIP="${STRIP:-strip}" RANLIB="${RANLIB:-ranlib}"
     # vaapi + libdrm are linked dynamically against the system libva/libdrm (MIT).
@@ -92,6 +93,8 @@ _setup_apple() {
     local sysroot
     sysroot="$(xcrun --sdk "$sdk" --show-sdk-path)"
     T_OS=darwin T_CROSS=1
+    # A macOS slice matching the build host can be loaded for the runtime check.
+    [ "$kind" = macos ] && [ "$(uname -m)" = "$arch" ] && T_RUNNABLE=1
     case "$arch" in
         arm64)  T_CPU_FAMILY=aarch64 T_CPU=arm64 ;;
         x86_64) T_CPU_FAMILY=x86_64  T_CPU=x86_64 ;;

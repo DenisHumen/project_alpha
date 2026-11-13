@@ -1,0 +1,12 @@
+{
+  "smartctl": {
+    "exit_status": 0
+  },
+  "device": {
+    "name": "/dev/sda",
+    "type": "sat"
+  },
+  "smart_status": {
+    "passed": true
+  }
+}
