@@ -1082,7 +1082,7 @@ project_alpha/
   - Что: Artist, ReleaseGroup, Release, Recording, Track (MBID), AudioFile, жанры, композиторы, вид «папки»; чтение тегов (ID3v2, Vorbis, MP4, APE через lofty), встроенные обложки и `folder.jpg`, мультидиск.
   - deps: LIB-001, LIB-003 · size: M · parallel: yes · веха: M6 · ref: 03 §5 (музыка), 01 §4.11
   - done when: коллекция из 5 000 треков индексируется; сборники разбираются правильно.
-- [ ] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
+- [x] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
   - Что: `gapless-audio`, `prefetch-playlist`, `replaygain=track|album` на десктопе и Android; на Apple — MPVKit audio.
   - deps: PLAY-002, MUS-001 · size: M · parallel: no · веха: M6 · ref: 02 §5.2 (вариант A)
   - done when: тестовый gapless-альбом без пауз на стыках (проверка по сэмплам).
