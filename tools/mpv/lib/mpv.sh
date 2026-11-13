@@ -130,11 +130,25 @@ build_libplacebo() {
     # and D3D11 need shaderc/glslang and come with the native HDR output
     # (PLAY-DSK-003). Dolby Vision RPU reshaping uses libplacebo's built-in
     # implementation (-Ddovi); libdovi (Rust) is not linked yet.
+    # MinGW: libplacebo builds a UCRT math import library with dlltool, which
+    # meson looks up by its generic name unless the cross file names it.
+    if [ "$T_OS" = windows ]; then
+        MPV_MACHINE_EXTRA="$BUILD_DIR/libplacebo-tools.ini"
+        printf "[binaries]\ndlltool = '%s'\n" "${WINDRES%windres}dlltool" >"$MPV_MACHINE_EXTRA"
+    fi
     _mpv_meson libplacebo "$src" static "$DEPS_PREFIX" \
         -Dvulkan=disabled -Dopengl=enabled -Dgl-proc-addr=enabled -Dd3d11=disabled \
         -Dglslang=disabled -Dshaderc=disabled -Dlcms=disabled \
         -Ddovi=enabled -Dlibdovi=disabled -Dunwind=disabled -Dxxhash=disabled \
         -Ddemos=false -Dtests=false -Dbench=false -Dfuzz=false
+    MPV_MACHINE_EXTRA=""
+}
+
+build_libdisplay_info() {
+    [ "$T_OS" = linux ] || return 0
+    local src
+    src="$(mpv_unpack libdisplay_info "$SRC_DIR")"
+    _mpv_meson libdisplay_info "$src" static "$DEPS_PREFIX"
 }
 
 build_mpv() {

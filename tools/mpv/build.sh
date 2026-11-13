@@ -67,6 +67,10 @@ install_licenses() {
     cp "$SRC_DIR/fribidi/COPYING" "$dst/fribidi-COPYING"
     cp "$SRC_DIR/harfbuzz/COPYING" "$dst/harfbuzz-COPYING"
     cp "$SRC_DIR/freetype/docs/FTL.TXT" "$dst/freetype-FTL.TXT"
+    if [ "$T_OS" = linux ]; then
+        cp "$SRC_DIR/libdisplay_info/LICENSE" "$dst/libdisplay-info-LICENSE"
+        cp /usr/share/hwdata/LICENSE "$dst/hwdata-pnp.ids-LICENSE"
+    fi
     if [ "$T_OS" = windows ]; then cp "$SRC_DIR/zlib/LICENSE" "$dst/zlib-LICENSE"; fi
     if [ "$T_OS" = android ]; then
         cp "$SRC_DIR/mediakit_helper/LICENSE" "$dst/media-kit-android-helper-LICENSE"
@@ -155,6 +159,7 @@ build_target() {
     build_deps
     build_ffmpeg            # installs into OUT_DIR (wipes it first)
     build_libplacebo
+    build_libdisplay_info
     flatten_static_pc
     build_mpv
     build_android_helper

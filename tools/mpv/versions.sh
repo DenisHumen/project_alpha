@@ -51,6 +51,16 @@ VULKAN_HEADERS_URL="https://github.com/KhronosGroup/Vulkan-Headers/archive/${VUL
 VULKAN_HEADERS_SHA256=75967a8288ff16044a86d1af462b96d2e75c435937efb75f2bb4102ab0382f29
 VULKAN_HEADERS_LICENSE="Apache-2.0 OR MIT"
 
+# libdisplay-info (Linux only): mpv's DRM code (needed for vaapi-drm, i.e.
+# VA-API without an X11/Wayland display) requires it. Linked statically: the
+# distros ship incompatible sonames (.so.1 / .so.2). Its generated PNP ID table
+# comes from hwdata's pnp.ids, used under the XFree86-1.0 option of hwdata's
+# "GPL-2.0-or-later OR XFree86-1.0" licence.
+LIBDISPLAY_INFO_VERSION=0.3.0
+LIBDISPLAY_INFO_URL="https://gitlab.freedesktop.org/emersion/libdisplay-info/-/releases/${LIBDISPLAY_INFO_VERSION}/downloads/libdisplay-info-${LIBDISPLAY_INFO_VERSION}.tar.xz"
+LIBDISPLAY_INFO_SHA256=6ae77cd937f9cf7d1321d35c116062c4911e8447010a6a713ac4286f7a9d5987
+LIBDISPLAY_INFO_LICENSE="MIT (PNP ID data: XFree86-1.0)"
+
 # media_kit's JNI helper (libmediakitandroidhelper.so), loaded by media_kit on
 # Android next to libmpv.so. Built from source here so that the whole Android
 # .so set comes from this recipe and media_kit's prebuilt libmpv is not needed.
@@ -60,4 +70,4 @@ MEDIAKIT_HELPER_SHA256=53ea71476d1cbc9a5d63d4898c6b027af4ccb6525800c7b42e267e612
 MEDIAKIT_HELPER_LICENSE="MIT"
 
 # Packages added by this build (FFmpeg and its deps come from tools/ffmpeg).
-PA_MPV_PACKAGES="glad jinja markupsafe fast_float vulkan_headers libplacebo mpv mediakit_helper"
+PA_MPV_PACKAGES="glad jinja markupsafe fast_float vulkan_headers libplacebo libdisplay_info mpv mediakit_helper"

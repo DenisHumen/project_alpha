@@ -21,7 +21,7 @@ FROM ${BASE_IMAGE}
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         bash ca-certificates curl xz-utils bzip2 unzip patch file binutils \
         build-essential pkgconf meson ninja-build nasm python3 \
-        zlib1g-dev libva-dev libdrm-dev libegl-dev libpulse-dev libasound2-dev \
+        zlib1g-dev libva-dev libdrm-dev libegl-dev libpulse-dev libasound2-dev hwdata \
         gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 mingw-w64-x86-64-dev \
     && rm -rf /var/lib/apt/lists/*
 
