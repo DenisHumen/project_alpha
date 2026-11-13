@@ -11,13 +11,17 @@
 
 ```mermaid
 flowchart LR
-  subgraph g0["tools — инструменты"]
+  subgraph g0["core/crates — ядро"]
+    pa_model["pa-model"]
+  end
+  subgraph g1["tools — инструменты"]
     pa_recognition_eval["pa-recognition-eval"]
   end
 ```
 
 | Крейт | Каталог | Внешних зависимостей | Описание |
 |---|---|---|---|
+| `pa-model` | `core/crates/pa-model` | 1 | Domain types of the project_alpha core: media entities, sync keys, playback state |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 
 <!-- END GENERATED: crate-graph -->
