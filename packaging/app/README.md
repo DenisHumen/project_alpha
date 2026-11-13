@@ -11,7 +11,7 @@
 | `android/sign.sh` | Переподпись APK ключом из секретов (apksigner, v1+v2+v3) или оставляет debug-подпись |
 | `android/check-native-licences.sh` | Лицензионный гейт: FFmpeg в APK — только «LGPL 2.1/3 or later» без `--enable-gpl`/`--enable-nonfree`, libmpv — `-Dgpl=false`; иначе релиз падает |
 | `android/lgpl-sources.sh` | Архив исходников LGPL-компонентов libmpv.so (см. ниже) |
-| `THIRD-PARTY-NOTICES.md`, `licenses/` | Уведомления и тексты лицензий; кладутся в tar.gz, AppImage и в `kinolune-<v>-licenses.tar.gz` |
+| `THIRD-PARTY-NOTICES.md`, `fetch-licences.sh` | Уведомления и тексты лицензий (скачиваются из SPDX license-list-data по закреплённому тегу с проверкой SHA-256); кладутся в tar.gz, AppImage и в `kinolune-<v>-licenses.tar.gz` |
 
 Версия Flutter закреплена в `env.FLUTTER_VERSION` обоих workflow (сейчас 3.50.0) — менять вместе.
 
@@ -27,7 +27,7 @@
 - **Linux.** media_kit на Linux линкуется с системным libmpv; в tar.gz и AppImage libmpv/FFmpeg **не входят** (пользователь ставит `libmpv2` / `mpv-libs` / `mpv`). Обязательств по LGPL-исходникам у Linux-артефактов нет. Встраивание собственной LGPL-сборки (tools/ffmpeg, PLAY-001) — задача PKG-002.
 - **Android.** `media_kit_libs_android_video` кладёт в APK готовый `libmpv.so` из [libmpv-android-video-build](https://github.com/media-kit/libmpv-android-video-build) (mpv `-Dgpl=false` + FFmpeg `--disable-gpl --disable-nonfree --enable-version3` и зависимости статически). Проверено для 1.3.8 → сборка `v1.1.7`: **FFmpeg там LGPL-3.0-or-later** (из-за mbedTLS), а не 2.1, как в нашей `tools/ffmpeg`. Гейт это допускает (LGPL), GPL/nonfree — нет.
   `lgpl-sources.sh` находит тег сборки по `build.gradle` разрешённой версии пакета, скачивает репозиторий сборки на этом теге (скрипты, патчи, пины версий) и исходники mpv, FFmpeg и FriBidi на закреплённых версиях, и прикладывает архив к тому же релизу (LGPL-2.1 §6 / LGPL-3.0 §4: равный доступ к исходникам «из того же места»). Тот же подход, что `tools/ffmpeg/build.sh sources`.
-- Тексты лицензий в `licenses/` взяты из SPDX license-list-data. Флаттеровский `NOTICES` (движок и все Dart-пакеты) кладётся в Linux-архивы как `licenses/FLUTTER-NOTICES.txt`; в Android он доступен на экране лицензий приложения (`showLicensePage`). Приложению (R01-APP) стоит добавить в `LicenseRegistry` запись про libmpv/FFmpeg со ссылкой на релиз — это экран «О программе».
+- Тексты лицензий скачивает `fetch-licences.sh` (SPDX license-list-data, тег и SHA-256 закреплены) — в репозитории копий чужих лицензий нет. Флаттеровский `NOTICES` (движок и все Dart-пакеты) кладётся в Linux-архивы как `licenses/FLUTTER-NOTICES.txt`; в Android он доступен на экране лицензий приложения (`showLicensePage`). Приложению (R01-APP) стоит добавить в `LicenseRegistry` запись про libmpv/FFmpeg со ссылкой на релиз — это экран «О программе».
 
 ## Шаги владельца
 

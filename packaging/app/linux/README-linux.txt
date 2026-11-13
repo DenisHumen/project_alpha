@@ -1,3 +1,5 @@
+SPDX-License-Identifier: MPL-2.0
+
 Kinolune for Linux (x86_64)
 ===========================
 

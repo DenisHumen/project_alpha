@@ -59,9 +59,11 @@ jobs:
           projects=$(find clients/flutter -name pubspec.yaml \
               -not -path '*/.*' -not -path '*/build/*' -not -path '*/example/*' \
               -printf '%h\n' | sort | jq -R . | jq -cs .)
-          echo "projects=$projects" >> "$GITHUB_OUTPUT"
-          echo "has_projects=$([ "$projects" != "[]" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          echo "has_app=$([ -f "$APP_DIR/pubspec.yaml" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          {
+            echo "projects=$projects"
+            echo "has_projects=$([ "$projects" != "[]" ] && echo true || echo false)"
+            echo "has_app=$([ -f "$APP_DIR/pubspec.yaml" ] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
           echo "Flutter projects: $projects"
 
   check:

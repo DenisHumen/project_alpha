@@ -155,7 +155,7 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
         run: |
           if [ -f pubspec.lock ]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
-          common=(--release --target-platform android-arm,android-arm64,android-x64
+          common=(--release --target-platform "android-arm,android-arm64,android-x64"
                   --build-name "$VERSION" --build-number "$BUILD_NUMBER")
           out="$GITHUB_WORKSPACE/dist"
           mkdir -p "$out"
@@ -226,7 +226,7 @@ jobs:
           lic="kinolune-$VERSION-licenses"
           mkdir -p "$RUNNER_TEMP/$lic/licenses"
           cp LICENSE packaging/app/THIRD-PARTY-NOTICES.md "$RUNNER_TEMP/$lic/"
-          cp packaging/app/licenses/*.txt "$RUNNER_TEMP/$lic/licenses/"
+          packaging/app/fetch-licences.sh "$RUNNER_TEMP/$lic/licenses"
           if [ -f artifacts/android/notes/android-lgpl.md ]; then
             cp artifacts/android/notes/android-lgpl.md "$RUNNER_TEMP/$lic/ANDROID-LGPL-COMPONENTS.md"
           fi

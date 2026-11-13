@@ -62,7 +62,7 @@ add_docs() { # dest-dir
     local d="$1"
     mkdir -p "$d/licenses"
     cp "$repo_root/LICENSE" "$d/LICENSE"
-    cp "$app_pkg/licenses/"*.txt "$d/licenses/"
+    "$app_pkg/fetch-licences.sh" "$d/licenses"
     cp "$app_pkg/THIRD-PARTY-NOTICES.md" "$d/THIRD-PARTY-NOTICES.md"
     # Flutter collects the licences of the engine and every Dart package here.
     if [ -f "$bundle/data/flutter_assets/NOTICES.Z" ]; then
