@@ -129,7 +129,8 @@ impl EncryptedFileStore {
     }
 
     fn persist(&self, map: &SecretMap) -> Result<()> {
-        let plain: BTreeMap<&str, &str> = map.iter().map(|(k, v)| (k.as_str(), v.expose())).collect();
+        let plain: BTreeMap<&str, &str> =
+            map.iter().map(|(k, v)| (k.as_str(), v.expose())).collect();
         let plain = Zeroizing::new(
             serde_json::to_vec(&plain).map_err(|e| SecretError::Backend(e.to_string()))?,
         );
@@ -393,7 +394,10 @@ mod tests {
         let store = EncryptedFileStore::open(tmp.path()).unwrap();
         store.set(&key("a"), &"x".into()).unwrap();
         for name in [SECRETS_FILE, KEY_FILE] {
-            let mode = fs::metadata(tmp.path().join(name)).unwrap().permissions().mode();
+            let mode = fs::metadata(tmp.path().join(name))
+                .unwrap()
+                .permissions()
+                .mode();
             assert_eq!(mode & 0o777, 0o600, "{name}");
         }
     }

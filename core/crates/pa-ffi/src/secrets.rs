@@ -188,7 +188,11 @@ fn open_store(
 }
 
 fn store() -> Result<Arc<dyn pa_secrets::SecretStore>, SecretStoreError> {
-    if let Some(opened) = STORE.read().unwrap_or_else(PoisonError::into_inner).as_ref() {
+    if let Some(opened) = STORE
+        .read()
+        .unwrap_or_else(PoisonError::into_inner)
+        .as_ref()
+    {
         return Ok(opened.store.clone());
     }
     let mut slot = STORE.write().unwrap_or_else(PoisonError::into_inner);

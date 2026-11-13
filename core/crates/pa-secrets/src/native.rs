@@ -132,10 +132,9 @@ fn map_err(err: KeyringError) -> SecretError {
         KeyringError::TooLong(attr, max) => {
             SecretError::Backend(format!("{attr} is longer than the keychain limit {max}"))
         }
-        KeyringError::Ambiguous(entries) => SecretError::Backend(format!(
-            "{} keychain items match one key",
-            entries.len()
-        )),
+        KeyringError::Ambiguous(entries) => {
+            SecretError::Backend(format!("{} keychain items match one key", entries.len()))
+        }
         KeyringError::NoEntry => SecretError::Backend("no entry".into()),
         other => SecretError::Backend(other.to_string()),
     }

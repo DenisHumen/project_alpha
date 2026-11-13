@@ -46,7 +46,12 @@ fn platform_callback_is_preferred() {
     let key = SecretKey::source_password("nas-1").unwrap();
     opened.store.set(&key, &"Pl@tformPass".into()).unwrap();
     assert_eq!(
-        keystore.0.lock().unwrap().get("source.password:nas-1").unwrap(),
+        keystore
+            .0
+            .lock()
+            .unwrap()
+            .get("source.password:nas-1")
+            .unwrap(),
         "Pl@tformPass"
     );
     assert_eq!(
@@ -113,8 +118,14 @@ fn fallback_secrets_move_to_secure_backend() {
     let opened = open(no_native(tmp.path()).with_platform(keystore.clone())).unwrap();
     assert_eq!(opened.backend(), Backend::Platform);
     assert_eq!(opened.migrated, 1);
-    assert_eq!(opened.store.get(&a).unwrap().unwrap().expose(), "from-file-a");
-    assert_eq!(opened.store.get(&b).unwrap().unwrap().expose(), "already-there");
+    assert_eq!(
+        opened.store.get(&a).unwrap().unwrap().expose(),
+        "from-file-a"
+    );
+    assert_eq!(
+        opened.store.get(&b).unwrap().unwrap().expose(),
+        "already-there"
+    );
     assert!(!EncryptedFileStore::exists(tmp.path()));
     assert!(!tmp.path().join(pa_secrets::KEY_FILE).exists());
 }

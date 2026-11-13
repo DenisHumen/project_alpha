@@ -183,7 +183,10 @@ fn url_passwords(bytes: &[u8], ranges: &mut Vec<(usize, usize)>) {
         let auth_start = from + found + 3;
         let mut i = auth_start;
         let mut colon = None;
-        while i < bytes.len() && !matches!(bytes[i], b'/' | b'@' | b'?' | b'#') && !ends_value(bytes[i]) {
+        while i < bytes.len()
+            && !matches!(bytes[i], b'/' | b'@' | b'?' | b'#')
+            && !ends_value(bytes[i])
+        {
             if bytes[i] == b':' && colon.is_none() {
                 colon = Some(i);
             }
@@ -210,13 +213,25 @@ mod tests {
     #[test]
     fn masks_fields() {
         let cases = [
-            ("login user=bob password=hunter2 ok", "login user=bob password=*** ok"),
-            ("?client_id=abc&access_token=xyz123&x=1", "?client_id=abc&access_token=***&x=1"),
-            (r#"{"refresh_token": "r-1", "expires_in": 3600}"#, r#"{"refresh_token": "***", "expires_in": 3600}"#),
+            (
+                "login user=bob password=hunter2 ok",
+                "login user=bob password=*** ok",
+            ),
+            (
+                "?client_id=abc&access_token=xyz123&x=1",
+                "?client_id=abc&access_token=***&x=1",
+            ),
+            (
+                r#"{"refresh_token": "r-1", "expires_in": 3600}"#,
+                r#"{"refresh_token": "***", "expires_in": 3600}"#,
+            ),
             ("Password: s3cr3t", "Password: ***"),
             ("api_key=K&apikey=L", "api_key=***&apikey=***"),
             ("pass=1", "pass=***"),
-            ("passport=123 bypass=1 tokens=2", "passport=123 bypass=1 tokens=2"),
+            (
+                "passport=123 bypass=1 tokens=2",
+                "passport=123 bypass=1 tokens=2",
+            ),
             ("password=", "password="),
             ("no secrets here", "no secrets here"),
         ];

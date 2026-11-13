@@ -24,9 +24,9 @@ impl SecretKey {
         let key = key.into();
         let valid = !key.is_empty()
             && key.len() <= MAX_KEY_LEN
-            && key
-                .bytes()
-                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b':' | b'@' | b'-'));
+            && key.bytes().all(|b| {
+                b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b':' | b'@' | b'-')
+            });
         if valid {
             Ok(Self(key))
         } else {
