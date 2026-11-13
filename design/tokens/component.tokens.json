@@ -1,0 +1,9 @@
+{
+  "$description": "Component tokens. Skeleton from DSN-001; the full set is DSN-002.",
+  "poster": {
+    "radius": { "$type": "dimension", "$value": "{radius.md}" },
+    "focus": {
+      "scale": { "$type": "number", "$value": "{focus.scale}" }
+    }
+  }
+}

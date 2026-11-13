@@ -1298,7 +1298,7 @@ project_alpha/
 
 ### 3.18. DSN — дизайн-система и ассеты
 
-- [ ] **DSN-001** Инструмент и структура `design/`
+- [x] **DSN-001** Инструмент и структура `design/`
   - Что: выбор Figma или Penpot (для open source рекомендуется Penpot; источник правды — JSON в git, а не файл макетов); каталоги tokens, icons/svg, brand, illustrations, motion, placeholders; `LICENSES.md` для шрифтов и иконок; Git LFS.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: 01 §5.1–5.2
   - done when: ADR о дизайн-инструменте; структура создана.
