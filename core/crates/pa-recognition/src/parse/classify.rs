@@ -730,7 +730,8 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                             version: n.version,
                         })
                 }
-                "part" | "pt" | "cd" | "disc" | "disk" | "часть" | "серия-" => {
+                "vol" | "volume" | "том" => small(&next_num, 99).map(|_| Tag::Other),
+                "part" | "pt" | "cd" | "disc" | "disk" | "часть" => {
                     small(&next_num, 20).filter(|&p| p >= 1).map(Tag::Part)
                 }
                 "ova" | "oad" | "ona" | "sp" | "special" | "ncop" | "nced" => small(&next_num, 999)

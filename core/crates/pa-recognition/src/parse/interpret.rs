@@ -148,7 +148,8 @@ pub(crate) fn analyze(
     if group.is_none() {
         // A trailing bracket of free words after release info: `[YTS]`.
         if let Some((bi, b)) = brackets.iter().enumerate().next_back()
-            && bi > 0
+            && Some(bi) != group_bracket
+            && b.tokens.start > 0
             && !b.tokens.is_empty()
             && b.tokens.len() <= 2
             && toks[..b.tokens.start].iter().any(|t| {

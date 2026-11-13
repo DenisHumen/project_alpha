@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+#![allow(dead_code)] // each test binary uses a subset
 //! Helpers shared by the table-driven parser tests.
 
 use pa_recognition::parse::{ParseResult, parse};
