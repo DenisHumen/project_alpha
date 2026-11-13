@@ -20,6 +20,7 @@
 | [0012](0012-release-0-1-player-media-kit.md) | media_kit как плеер релиза 0.1 | Принят | R01-PLAYER |
 | [0013](0013-pa-vfs-blocking-positional-reads.md) | `pa-vfs`: синхронные объектно-безопасные трейты и позиционное чтение | Принят | NET-001 |
 | [0014](0014-core-runtime-settings-rusqlite.md) | Процессный runtime ядра, настройки в SQLite через rusqlite | Принят | CORE-006 |
+| [0015](0015-frb-native-assets-committed-bindings.md) | pa_core через Native Assets, привязки FRB в git | Принят | CORE-002 |
 | [0016](0016-library-sqlite-schema-refinery.md) | Медиатека в SQLite: одна схема, миграции refinery | Принят | LIB-001 |
 
 ## Запланированные ADR

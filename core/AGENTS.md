@@ -25,6 +25,6 @@ cargo nextest run -p pa-model          # один крейт
 - В каждом `.rs` первой строкой `// SPDX-License-Identifier: MPL-2.0`.
 - `pa-ffi/src/lib.rs` — горячий файл: каждый домен экспортируется своим модулем `src/<domain>.rs`, в `lib.rs` добавляется одна строка `mod`.
 - Миграции `pa-library/migrations/`: имя `YYYYMMDDHHMM_<ID>_<slug>.sql`, только expand→contract.
-- Сгенерированные биндинги (UniFFI, FRB) не коммитятся, кроме того, что требует Xcode.
+- Сгенерированные биндинги UniFFI не коммитятся, кроме того, что требует Xcode. Привязки FRB (`pa-frb/src/frb_generated.rs`, `pa_core/lib/src/rust/`) коммитятся и проверяются CI — ADR-0013; регенерация `just core frb`.
 - Зависимости проходят `cargo deny` (CI-003): GPL, AGPL и SSPL в графе клиентских крейтов запрещены.
 - Публичный API документируется rustdoc.

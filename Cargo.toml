@@ -27,6 +27,7 @@ publish = false
 # One line per dependency, sorted alphabetically. Crates use `dep.workspace = true`.
 [workspace.dependencies]
 dirs = "7.0"
+flutter_rust_bridge = "=2.13.0"
 quick-xml = "0.42"
 refinery = { version = "0.10", default-features = false, features = ["rusqlite", "int8-versions"] }
 rusqlite = { version = "0.42", features = ["bundled"] }
