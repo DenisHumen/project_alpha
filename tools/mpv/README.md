@@ -157,13 +157,14 @@ Linux; `libmpv.so` на Android; `libmpv-2.dll` на Windows; `Mpv.framework/Mpv
 media_kit на Android вызывает `av_jni_set_java_vm` из `libavcodec.so` — с отдельным FFmpeg патч
 media_kit `mpv_lavc_set_java_vm` не нужен.
 
-Замена: `tools/mpv/bundle.sh android <модуль>/src/main/jniLibs <libmpv-android-arm64-v8a> …` и
-отказ от jar-файлов `media_kit_libs_android_video`. Java-часть этого пакета (регистрация плагина и
-`MediaKitAndroidHelper`) нужна, поэтому проще всего — локальная копия пакета через
-`dependency_overrides` в `pubspec.yaml` приложения, у которой вместо задачи `downloadDependencies`
-в `src/main/jniLibs` лежит наш набор. Это делает R01-PLAYER/R01-REL; гейт
-`packaging/app/android/check-native-licences.sh` затем видит в APK `libmpv.so` с `-Dgpl=false` и
-FFmpeg `LGPL version 2.1 or later`.
+Замена (PLAY-013): приложение подключает локальную копию пакета
+[`clients/flutter/packages/media_kit_libs_android_video`](../../clients/flutter/packages/media_kit_libs_android_video/README.md)
+через `dependency_overrides` — Java-часть (регистрация плагина и `MediaKitAndroidHelper`) та же, задачи
+`downloadDependencies` нет, а `src/main/jniLibs` наполняет
+`tools/mpv/bundle.sh android <пакет>/android/src/main/jniLibs <libmpv-android-arm64-v8a> …`.
+Релиз (`release-app.yml`) делает это сам; гейт `packaging/app/android/check-native-licences.sh`
+пропускает APK, только если в каждом ABI лежит этот набор, `libmpv.so` собран с `-Dgpl=false` без
+вшитого FFmpeg, а FFmpeg — `LGPL version 2.1 or later`.
 
 ### Windows и macOS
 

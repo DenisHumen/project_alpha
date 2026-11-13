@@ -1,0 +1,112 @@
+// SPDX-License-Identifier: MPL-2.0
+//
+// media_kit_libs_android_video with our own libmpv (PLAY-013).
+//
+// Upstream 1.3.8 downloads prebuilt jars (libmpv.so with FFmpeg LGPL-3.0
+// linked in) from media-kit/libmpv-android-video-build. Here nothing is
+// downloaded: src/main/jniLibs/<abi>/ holds the LGPL-2.1 set from tools/mpv
+// (libmpv.so, libav*.so, libsw*.so, libmediakitandroidhelper.so), put there by
+//
+//   tools/mpv/bundle.sh android \
+//     clients/flutter/packages/media_kit_libs_android_video/android/src/main/jniLibs \
+//     <libmpv-android-arm64-v8a> <libmpv-android-armeabi-v7a> <libmpv-android-x86_64>
+//
+// A release build fails when the set is missing or incomplete (an APK without
+// libmpv cannot play anything); a debug build only warns. Override with
+// -Pkinolune.allowMissingLibmpv=true (e.g. a UI-only release build).
+
+group 'com.alexmercerind.media_kit_libs_android_video'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.13.0'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.alexmercerind.media_kit_libs_android_video'
+
+    compileSdkVersion 36
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        // tools/mpv builds the libraries for API 24 (PA_FF_ANDROID_API).
+        minSdkVersion 24
+    }
+}
+
+// Must match tools/mpv/bundle.sh check-android and the release licence gate
+// (packaging/app/android/check-native-licences.sh).
+def kinoluneLibmpvSet = [
+    'libmpv.so', 'libavcodec.so', 'libavfilter.so', 'libavformat.so', 'libavutil.so',
+    'libswresample.so', 'libswscale.so', 'libmediakitandroidhelper.so',
+]
+
+def kinoluneLibmpvProblems = {
+    def jni = file('src/main/jniLibs')
+    def abis = jni.isDirectory() ? jni.listFiles().findAll { it.isDirectory() } : []
+    if (abis.isEmpty()) {
+        return ["no ABI directories in ${jni}".toString()]
+    }
+    def problems = []
+    abis.each { abi ->
+        def missing = kinoluneLibmpvSet.findAll { !new File(abi, it).isFile() }
+        if (!missing.isEmpty()) {
+            problems << "${abi.name}: missing ${missing.join(', ')}".toString()
+        }
+    }
+    return problems
+}
+
+def kinoluneLibmpvHelp = 'Fill it with tools/mpv/bundle.sh android <jniLibs> <libmpv-android-*>... ' +
+    '(see clients/flutter/packages/media_kit_libs_android_video/README.md).'
+
+tasks.register('checkKinoluneLibmpv') {
+    description = 'Fails when jniLibs lacks the libmpv set from tools/mpv (PLAY-013).'
+    doLast {
+        def problems = kinoluneLibmpvProblems()
+        if (problems.isEmpty()) {
+            return
+        }
+        def msg = "Kinolune libmpv set incomplete: ${problems.join('; ')}. ${kinoluneLibmpvHelp}"
+        if (project.findProperty('kinolune.allowMissingLibmpv') == 'true') {
+            logger.warn("WARNING: ${msg} Building without it (kinolune.allowMissingLibmpv=true).")
+        } else {
+            throw new GradleException(msg)
+        }
+    }
+}
+
+tasks.register('warnKinoluneLibmpv') {
+    doLast {
+        def problems = kinoluneLibmpvProblems()
+        if (!problems.isEmpty()) {
+            logger.warn("WARNING: Kinolune libmpv set incomplete (${problems.join('; ')}): " +
+                "video playback will not work in this build. ${kinoluneLibmpvHelp}")
+        }
+    }
+}
+
+android.libraryVariants.all { variant ->
+    def check = variant.buildType.name == 'release' ? 'checkKinoluneLibmpv' : 'warnKinoluneLibmpv'
+    variant.preBuildProvider.configure { dependsOn check }
+}

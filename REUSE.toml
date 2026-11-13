@@ -173,3 +173,15 @@ path = ["tools/ffmpeg/patches/**/*.patch", "tools/mpv/patches/**/*.patch"]
 precedence = "override"
 SPDX-FileCopyrightText = "project_alpha contributors"
 SPDX-License-Identifier = "LGPL-2.1-or-later"
+
+# Java glue, manifest and settings copied unchanged from media_kit_libs_android_video
+# 1.3.8 (MIT, LICENSE next to them) for our local override package (PLAY-013).
+# Its build.gradle is ours and carries its own MPL-2.0 header.
+[[annotations]]
+path = [
+  "clients/flutter/packages/media_kit_libs_android_video/android/settings.gradle",
+  "clients/flutter/packages/media_kit_libs_android_video/android/src/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2021 Hitesh Kumar Saini"
+SPDX-License-Identifier = "MIT"
