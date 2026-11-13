@@ -1,6 +1,163 @@
 {
-  "$description": "Density profile 'phone'. Overrides scale only, never colours. Skeleton from DSN-001; real factors are DSN-002 (01 §4.4).",
-  "density": {
-    "scale": { "$type": "number", "$value": 1, "$description": "Placeholder multiplier for spacing and type." }
+  "$description": "Density profile 'phone' (DSN-002): Phone (iOS, Android; compact width < 600). Touch: press scale instead of focus. Overrides scale-dependent roles only, never colours. Every density file defines the same set of tokens.",
+  "type": {
+    "$type": "typography",
+    "display": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 34, "unit": "px" },
+        "fontWeight": "{font.weight.bold}",
+        "letterSpacing": { "value": -0.5, "unit": "px" },
+        "lineHeight": 1.206
+      },
+      "$description": "34/41"
+    },
+    "title1": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 28, "unit": "px" },
+        "fontWeight": "{font.weight.bold}",
+        "letterSpacing": { "value": -0.25, "unit": "px" },
+        "lineHeight": 1.214
+      },
+      "$description": "28/34"
+    },
+    "title2": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 22, "unit": "px" },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.273
+      },
+      "$description": "22/28"
+    },
+    "headline": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 17, "unit": "px" },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.294
+      },
+      "$description": "17/22"
+    },
+    "subtitle": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 17, "unit": "px" },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.294
+      },
+      "$description": "17/22"
+    },
+    "body": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 17, "unit": "px" },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.294
+      },
+      "$description": "17/22"
+    },
+    "callout": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 16, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.313
+      },
+      "$description": "16/21"
+    },
+    "caption": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 13, "unit": "px" },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.385
+      },
+      "$description": "13/18"
+    },
+    "caption2": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 11, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.182
+      },
+      "$description": "11/13",
+      "$extensions": {
+        "org.project-alpha": { "fontFeatures": ["tnum"] }
+      }
+    },
+    "timecode": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 13, "unit": "px" },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.385
+      },
+      "$description": "13/18, tabular figures (font-feature tnum) — timecodes, bitrates.",
+      "$extensions": {
+        "org.project-alpha": { "fontFeatures": ["tnum"] }
+      }
+    }
+  },
+  "layout": {
+    "$type": "dimension",
+    "margin": { "$value": { "value": 16, "unit": "px" }, "$description": "Horizontal screen margin." },
+    "safe-top": {
+      "$value": { "value": 0, "unit": "px" },
+      "$description": "Overscan-safe inset (TV: 60 pt top/bottom, 80 pt sides per HIG); 0 = use the OS safe area."
+    },
+    "safe-bottom": { "$value": { "value": 0, "unit": "px" }, "$description": "See safe-top." },
+    "safe-side": { "$value": { "value": 0, "unit": "px" }, "$description": "See safe-top." },
+    "gutter": {
+      "$value": { "value": 12, "unit": "px" },
+      "$description": "Gap between items in a row/grid (TV 40 pt per HIG)."
+    },
+    "row-gap": {
+      "$value": { "value": 24, "unit": "px" },
+      "$description": "Vertical gap between shelves (TV ≥ 100 pt between rows without titles)."
+    },
+    "section-gap": { "$value": { "value": 24, "unit": "px" }, "$description": "Gap between sections with titles." },
+    "poster-width": {
+      "$value": { "value": 100, "unit": "px" },
+      "$description": "Unfocused poster width (TV: 6 columns = 260 pt); on other densities the MIN width for computed columns."
+    },
+    "card-width": {
+      "$value": { "value": 280, "unit": "px" },
+      "$description": "Unfocused 16:9 card width (TV: 4 columns = 410 pt); MIN width elsewhere."
+    },
+    "columns": {
+      "$type": "number",
+      "$description": "Fixed column counts; 0 = computed from the min width (poster-width / card-width) and the window width.",
+      "poster": { "$value": 3 },
+      "card": { "$value": 0 }
+    }
+  },
+  "shape": {
+    "$type": "dimension",
+    "card": { "$value": "{radius.md}", "$description": "Cards and posters (12 pt, TV 16 pt; 01 §4.3)." },
+    "panel": { "$value": "{radius.xl}", "$description": "Panels and dialogs (24–32 pt, concentric)." },
+    "control": { "$value": "{radius.full}", "$description": "Buttons are capsules." }
+  },
+  "icon-size": {
+    "$type": "dimension",
+    "sm": { "$value": { "value": 20, "unit": "px" } },
+    "md": { "$value": { "value": 24, "unit": "px" } },
+    "lg": { "$value": { "value": 28, "unit": "px" } }
+  },
+  "control": {
+    "$type": "dimension",
+    "height-sm": { "$value": { "value": 32, "unit": "px" } },
+    "height-md": { "$value": { "value": 44, "unit": "px" } },
+    "height-lg": { "$value": { "value": 56, "unit": "px" } }
   }
 }
