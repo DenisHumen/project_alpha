@@ -15,4 +15,5 @@ rusqlite.workspace = true
 
 [dev-dependencies]
 pa-model = { path = "../pa-model" }
+serde.workspace = true
 serde_json.workspace = true

@@ -363,6 +363,7 @@ CREATE TABLE favorites (
 CREATE UNIQUE INDEX favorites_media ON favorites (profile_id, media_key) WHERE media_key IS NOT NULL;
 CREATE UNIQUE INDEX favorites_work ON favorites (profile_id, work_id) WHERE work_id IS NOT NULL;
 CREATE INDEX favorites_work_ref ON favorites (work_id) WHERE work_id IS NOT NULL;
+CREATE INDEX favorites_profile ON favorites (profile_id, created_at_ms DESC);
 
 -- Collections: manual, smart (saved filter) or imported (TMDB collection).
 CREATE TABLE collections (

@@ -41,13 +41,19 @@ pub enum Error {
     Migration(refinery::Error),
     /// The file has tables but no migration history: it is not ours (for
     /// example a pa_library v0 database). Nothing was changed.
-    ForeignDatabase { legacy_v0: bool },
+    ForeignDatabase {
+        legacy_v0: bool,
+    },
     /// The database has an applied migration this build does not know, older
     /// than the newest one it knows: histories diverged.
-    UnknownMigration { version: i64 },
+    UnknownMigration {
+        version: i64,
+    },
     /// A migration of this build is older than the newest applied one but was
     /// never applied (merged out of order). Rename it to a newer timestamp.
-    OutOfOrder { version: i64 },
+    OutOfOrder {
+        version: i64,
+    },
 }
 
 impl fmt::Display for Error {

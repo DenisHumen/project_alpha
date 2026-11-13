@@ -878,6 +878,7 @@ dependencies = [
  "pa-model",
  "refinery",
  "rusqlite",
+ "serde",
  "serde_json",
 ]
 
