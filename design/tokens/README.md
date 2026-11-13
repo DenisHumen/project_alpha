@@ -10,7 +10,7 @@
 
 | Файл | Слой | Что внутри |
 |---|---|---|
-| `primitive.tokens.json` | primitive | Палитра (gray, white/black-alpha, blue — временный акцент, red — LIVE, green, amber), отступы 0–100 (база 4 pt), радиусы, размеры, blur, шрифт, веса, длительности, кривые, коэффициенты. **Из кода платформ не используются.** |
+| `primitive.tokens.json` | primitive | Палитра (gray, white/black-alpha, lune — бренд-акцент Kinolune (DSN-006), red — LIVE, green, amber), отступы 0–100 (база 4 pt), радиусы, размеры, blur, шрифт, веса, длительности, кривые, коэффициенты. **Из кода платформ не используются.** |
 | `semantic.tokens.json` | semantic, тёмная тема | `bg/*`, `text/*`, `icon/*`, `border/*`, `accent/default|pressed|subtle|live`, `status/*`, `state/*`, `focus/*` (fill, label, ring, scale.poster/card/button/hover/press, shadow, specular, tilt, parallax, idle-dim), `badge/*`, `scrim/*`, `glass/thin|regular|thick` (tint, blur, saturation, highlight, fallback), `motion/*` |
 | `themes/light.tokens.json` | переопределение | Светлая тема (телефон, планшет, десктоп; TV всегда тёмный). Переопределяет **только существующие** semantic-токены |
 | `density/{tv,desktop,tablet,phone}.tokens.json` | плотность | `type/*` (display, title1, title2, headline, subtitle, body, callout, caption, caption2, timecode), `layout/*` (поля, safe area TV 60/80, отступы, ширины постеров и карточек, колонки), `shape/*` (радиусы карточек/панелей/кнопок), `icon-size/*`, `control/*`. **Без цветов**; набор токенов во всех профилях одинаковый |
@@ -60,6 +60,6 @@ just design contrast   # таблица контраста всех пар
 
 ## Открытые вопросы
 
-- Акцент `color.blue.*` — временный; финальный цвет бренда Kinolune — DSN-006. Замена рампы перекрашивает всё; контраст проверит CI.
+- Акцент `color.lune.*` («лунный бирюзовый», DSN-006) — цвет бренда Kinolune, см. [`../brand/README.md`](../brand/README.md). Замена рампы перекрашивает всё; контраст проверит CI.
 - Коэффициенты фокуса, тени и idle-dim — наше предложение (Apple их не публикует), подбираются на реальном TV.
 - Поддержка формата 2025.10 (объектные цвета/размеры) в выбранной версии Style Dictionary — проверить в DSN-003.

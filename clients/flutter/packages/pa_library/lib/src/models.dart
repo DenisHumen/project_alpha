@@ -27,14 +27,18 @@ class MediaSource {
     this.username,
   });
 
-  MediaSource copyWith({String? id, String? name, String? path, String? username}) =>
-      MediaSource(
-        id: id ?? this.id,
-        kind: kind,
-        name: name ?? this.name,
-        path: path ?? this.path,
-        username: username ?? this.username,
-      );
+  MediaSource copyWith({
+    String? id,
+    String? name,
+    String? path,
+    String? username,
+  }) => MediaSource(
+    id: id ?? this.id,
+    kind: kind,
+    name: name ?? this.name,
+    path: path ?? this.path,
+    username: username ?? this.username,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -138,8 +142,19 @@ class LibraryItem {
       other.tmdbId == tmdbId;
 
   @override
-  int get hashCode => Object.hash(id, kind, title, year, posterUrl, showId,
-      season, episode, filePath, tmdbId, matchConfidence);
+  int get hashCode => Object.hash(
+    id,
+    kind,
+    title,
+    year,
+    posterUrl,
+    showId,
+    season,
+    episode,
+    filePath,
+    tmdbId,
+    matchConfidence,
+  );
 
   @override
   String toString() {

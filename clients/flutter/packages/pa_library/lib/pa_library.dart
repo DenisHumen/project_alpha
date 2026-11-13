@@ -16,4 +16,9 @@ export 'src/scanner.dart'
 export 'src/smb.dart'
     show SmbUrl, SmbResolver, SmbUnsupportedException, SmbMountException;
 export 'src/tmdb.dart'
-    show tmdbAttribution, tmdbImageUrl, TmdbClient, TmdbException, TmdbSearchResult;
+    show
+        tmdbAttribution,
+        tmdbImageUrl,
+        TmdbClient,
+        TmdbException,
+        TmdbSearchResult;

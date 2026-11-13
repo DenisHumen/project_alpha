@@ -20,6 +20,16 @@ design/**/*.riv filter=lfs diff=lfs merge=lfs -text
 design/**/*.lottie filter=lfs diff=lfs merge=lfs -text
 design/**/*.penpot filter=lfs diff=lfs merge=lfs -text
 design/**/*.fig filter=lfs diff=lfs merge=lfs -text
+
+# Generated brand exports stay in plain git (DSN-006): small (< 0.7 MiB total),
+# byte-reproducible by `just design brand`, checked by CI and consumed by app
+# builds without `git lfs pull`. Masters are SVG anyway.
+design/brand/export/** -filter -diff -merge binary
+design/brand/preview.png -filter -diff -merge binary
+design/placeholders/export/** -filter -diff -merge binary
+design/brand/export/**/*.svg -binary text diff
+design/brand/export/**/*.xml -binary text diff
+design/brand/export/**/*.desktop -binary text diff
 design/**/*.ttf filter=lfs diff=lfs merge=lfs -text
 design/**/*.otf filter=lfs diff=lfs merge=lfs -text
 design/**/*.woff2 filter=lfs diff=lfs merge=lfs -text
