@@ -323,7 +323,10 @@ fn watch(weak: &Weak<Shared>, events: &std::sync::mpsc::Receiver<DiscoveryEvent>
                     shared.peer_up(&txt.id, txt.device_class, SocketAddr::new(ip, s.port));
                 }
             }
-            DiscoveryEvent::Lost { kind, instance } if kind == ServiceKind::SyncPeer => {
+            DiscoveryEvent::Lost {
+                kind: ServiceKind::SyncPeer,
+                instance,
+            } => {
                 if let Some(id) = ids.remove(&instance.to_lowercase()) {
                     shared.peer_down(&id);
                 }
