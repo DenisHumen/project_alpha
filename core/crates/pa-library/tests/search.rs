@@ -345,6 +345,19 @@ fn index_follows_catalogue_changes() {
         .unwrap();
     assert!(find(&conn, "brat").is_empty());
 
+    // An UPSERT overrides `OR IGNORE` inside triggers; the queue must not
+    // fail on an entity that is already queued.
+    let conn = db();
+    for _ in 0..2 {
+        conn.execute(
+            "INSERT INTO files (source_id, path, size_bytes, added_at_ms) VALUES (1, 'Brat.mkv', 1, 0)
+             ON CONFLICT (source_id, path) DO UPDATE SET missing_since_ms = NULL",
+            [],
+        )
+        .unwrap();
+    }
+    assert_eq!(find(&conn, "brat").len(), 1);
+
     // Rebuild from scratch gives the same index.
     let conn = db();
     work(&conn, 1, "show", "The Witcher", None);

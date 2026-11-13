@@ -9,6 +9,10 @@
 -- `pa_library::search::sync` (also called by `search::search`) rebuilds the
 -- documents of queued entities. Any connection may write the catalogue
 -- without knowing about search: the index catches up on the next sync.
+--
+-- Triggers use `WHERE NOT EXISTS`, not `INSERT OR IGNORE`: the conflict
+-- policy of an outer statement (an UPSERT) overrides the one inside a
+-- trigger.
 
 -- One row per searchable string (a title, an alias, a file name) of an
 -- entity. `entity` + `ref_id` point at the source row (polymorphic, so no
@@ -54,128 +58,194 @@ CREATE TABLE search_queue (
 -- Works and their titles ------------------------------------------------------
 
 CREATE TRIGGER search_works_ins AFTER INSERT ON works BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('work', new.id);
+    INSERT INTO search_queue SELECT 'work', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_works_upd AFTER UPDATE OF id, kind, title, original_title ON works BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('work', old.id), ('work', new.id);
+    INSERT INTO search_queue SELECT 'work', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'work', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_works_del AFTER DELETE ON works BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('work', old.id);
+    INSERT INTO search_queue SELECT 'work', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = old.id);
 END;
 
 CREATE TRIGGER search_titles_ins AFTER INSERT ON titles BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('work', new.work_id);
+    INSERT INTO search_queue SELECT 'work', new.work_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = new.work_id);
 END;
 CREATE TRIGGER search_titles_upd AFTER UPDATE ON titles BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('work', old.work_id), ('work', new.work_id);
+    INSERT INTO search_queue SELECT 'work', old.work_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = old.work_id);
+    INSERT INTO search_queue SELECT 'work', new.work_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = new.work_id);
 END;
 CREATE TRIGGER search_titles_del AFTER DELETE ON titles BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('work', old.work_id);
+    INSERT INTO search_queue SELECT 'work', old.work_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'work' AND ref_id = old.work_id);
 END;
 
 -- Episodes ----------------------------------------------------------------------
 
 CREATE TRIGGER search_episodes_ins AFTER INSERT ON episodes BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('episode', new.id);
+    INSERT INTO search_queue SELECT 'episode', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'episode' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_episodes_upd AFTER UPDATE OF id, title ON episodes BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('episode', old.id), ('episode', new.id);
+    INSERT INTO search_queue SELECT 'episode', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'episode' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'episode', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'episode' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_episodes_del AFTER DELETE ON episodes BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('episode', old.id);
+    INSERT INTO search_queue SELECT 'episode', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'episode' AND ref_id = old.id);
 END;
 
 -- Unrecognised video files: indexed while they have no live match and no
 -- music track. ------------------------------------------------------------------
 
 CREATE TRIGGER search_files_ins AFTER INSERT ON files BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('file', new.id);
+    INSERT INTO search_queue SELECT 'file', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_files_upd AFTER UPDATE OF id, path, missing_since_ms ON files BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('file', old.id), ('file', new.id);
+    INSERT INTO search_queue SELECT 'file', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'file', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_files_del AFTER DELETE ON files BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('file', old.id);
+    INSERT INTO search_queue SELECT 'file', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = old.id);
 END;
 
 CREATE TRIGGER search_matches_ins AFTER INSERT ON matches BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('file', new.file_id);
+    INSERT INTO search_queue SELECT 'file', new.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = new.file_id);
 END;
 CREATE TRIGGER search_matches_upd AFTER UPDATE OF file_id, state ON matches BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('file', old.file_id), ('file', new.file_id);
+    INSERT INTO search_queue SELECT 'file', old.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = old.file_id);
+    INSERT INTO search_queue SELECT 'file', new.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = new.file_id);
 END;
 CREATE TRIGGER search_matches_del AFTER DELETE ON matches BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('file', old.file_id);
+    INSERT INTO search_queue SELECT 'file', old.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = old.file_id);
 END;
 
 -- Music ---------------------------------------------------------------------------
 
 CREATE TRIGGER search_artists_ins AFTER INSERT ON music_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('artist', new.id);
+    INSERT INTO search_queue SELECT 'artist', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'artist' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_artists_upd AFTER UPDATE OF id, name, sort_name ON music_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('artist', old.id), ('artist', new.id);
+    INSERT INTO search_queue SELECT 'artist', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'artist' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'artist', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'artist' AND ref_id = new.id);
     -- Album and track documents include the artist name.
-    INSERT OR IGNORE INTO search_queue
-        SELECT 'album', album_id FROM music_album_artists WHERE artist_id = new.id;
-    INSERT OR IGNORE INTO search_queue
-        SELECT 'track', track_id FROM music_track_artists WHERE artist_id = new.id;
+    INSERT INTO search_queue
+        SELECT DISTINCT 'album', aa.album_id FROM music_album_artists aa
+        WHERE aa.artist_id = new.id
+          AND NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = aa.album_id);
+    INSERT INTO search_queue
+        SELECT DISTINCT 'track', ta.track_id FROM music_track_artists ta
+        WHERE ta.artist_id = new.id
+          AND NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = ta.track_id);
 END;
 CREATE TRIGGER search_artists_del AFTER DELETE ON music_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('artist', old.id);
+    INSERT INTO search_queue SELECT 'artist', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'artist' AND ref_id = old.id);
 END;
 
 CREATE TRIGGER search_albums_ins AFTER INSERT ON music_albums BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('album', new.id);
+    INSERT INTO search_queue SELECT 'album', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_albums_upd AFTER UPDATE OF id, title ON music_albums BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('album', old.id), ('album', new.id);
+    INSERT INTO search_queue SELECT 'album', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'album', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_albums_del AFTER DELETE ON music_albums BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('album', old.id);
+    INSERT INTO search_queue SELECT 'album', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = old.id);
 END;
 
 CREATE TRIGGER search_album_artists_ins AFTER INSERT ON music_album_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('album', new.album_id);
+    INSERT INTO search_queue SELECT 'album', new.album_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = new.album_id);
 END;
 CREATE TRIGGER search_album_artists_upd AFTER UPDATE ON music_album_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('album', old.album_id), ('album', new.album_id);
+    INSERT INTO search_queue SELECT 'album', old.album_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = old.album_id);
+    INSERT INTO search_queue SELECT 'album', new.album_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = new.album_id);
 END;
 CREATE TRIGGER search_album_artists_del AFTER DELETE ON music_album_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('album', old.album_id);
+    INSERT INTO search_queue SELECT 'album', old.album_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'album' AND ref_id = old.album_id);
 END;
 
 CREATE TRIGGER search_tracks_ins AFTER INSERT ON music_tracks BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('track', new.id), ('file', new.file_id);
+    INSERT INTO search_queue SELECT 'track', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = new.id);
+    INSERT INTO search_queue SELECT 'file', new.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = new.file_id);
 END;
 CREATE TRIGGER search_tracks_upd AFTER UPDATE OF id, file_id, title ON music_tracks BEGIN
-    INSERT OR IGNORE INTO search_queue
-        VALUES ('track', old.id), ('track', new.id), ('file', old.file_id), ('file', new.file_id);
+    INSERT INTO search_queue SELECT 'track', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'track', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = new.id);
+    INSERT INTO search_queue SELECT 'file', old.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = old.file_id);
+    INSERT INTO search_queue SELECT 'file', new.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = new.file_id);
 END;
 CREATE TRIGGER search_tracks_del AFTER DELETE ON music_tracks BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('track', old.id), ('file', old.file_id);
+    INSERT INTO search_queue SELECT 'track', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'file', old.file_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'file' AND ref_id = old.file_id);
 END;
 
 CREATE TRIGGER search_track_artists_ins AFTER INSERT ON music_track_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('track', new.track_id);
+    INSERT INTO search_queue SELECT 'track', new.track_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = new.track_id);
 END;
 CREATE TRIGGER search_track_artists_upd AFTER UPDATE ON music_track_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('track', old.track_id), ('track', new.track_id);
+    INSERT INTO search_queue SELECT 'track', old.track_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = old.track_id);
+    INSERT INTO search_queue SELECT 'track', new.track_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = new.track_id);
 END;
 CREATE TRIGGER search_track_artists_del AFTER DELETE ON music_track_artists BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('track', old.track_id);
+    INSERT INTO search_queue SELECT 'track', old.track_id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'track' AND ref_id = old.track_id);
 END;
 
 -- Collections ---------------------------------------------------------------------
 
 CREATE TRIGGER search_collections_ins AFTER INSERT ON collections BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('collection', new.id);
+    INSERT INTO search_queue SELECT 'collection', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'collection' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_collections_upd AFTER UPDATE OF id, name ON collections BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('collection', old.id), ('collection', new.id);
+    INSERT INTO search_queue SELECT 'collection', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'collection' AND ref_id = old.id);
+    INSERT INTO search_queue SELECT 'collection', new.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'collection' AND ref_id = new.id);
 END;
 CREATE TRIGGER search_collections_del AFTER DELETE ON collections BEGIN
-    INSERT OR IGNORE INTO search_queue VALUES ('collection', old.id);
+    INSERT INTO search_queue SELECT 'collection', old.id
+        WHERE NOT EXISTS (SELECT 1 FROM search_queue WHERE entity = 'collection' AND ref_id = old.id);
 END;
 
 -- Existing rows: index them on the first sync.
