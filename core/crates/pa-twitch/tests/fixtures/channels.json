@@ -1,0 +1,28 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "broadcaster_id": "1001",
+        "broadcaster_login": "pixel_fox",
+        "broadcaster_name": "Pixel_Fox",
+        "broadcaster_language": "en",
+        "game_id": "1229",
+        "game_name": "Super Mario 64",
+        "title": "120 star any% - PB attempts",
+        "delay": 0,
+        "tags": [
+          "English",
+          "Speedrun"
+        ],
+        "content_classification_labels": [],
+        "is_branded_content": false
+      }
+    ]
+  }
+}

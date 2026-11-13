@@ -1120,7 +1120,7 @@ project_alpha/
 
 ### 3.16. TWI — Twitch
 
-- [ ] **TWI-001** `pa-twitch`: клиент Helix
+- [x] **TWI-001** `pa-twitch`: клиент Helix
   - Что: users, channels/followed, streams/followed, streams, channels, videos, clips, games и games/top, search, schedule, chat emotes, badges, color, settings; token bucket по заголовкам `Ratelimit-*`; курсорная пагинация с дедупликацией.
   - deps: CORE-006 · size: M · parallel: yes · веха: M7 · ref: 06 §1.1, §1.4
   - done when: тесты на записанных ответах; 429 обрабатывается корректно.

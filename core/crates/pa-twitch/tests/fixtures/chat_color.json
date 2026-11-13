@@ -1,0 +1,24 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "user_id": "1001",
+        "user_login": "pixel_fox",
+        "user_name": "Pixel_Fox",
+        "color": "#9146FF"
+      },
+      {
+        "user_id": "1002",
+        "user_login": "quiet_owl",
+        "user_name": "Quiet_Owl",
+        "color": ""
+      }
+    ]
+  }
+}
