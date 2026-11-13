@@ -28,7 +28,7 @@ design/
 ├── fonts/                 # Inter Variable (DSN-005): fonts.lock.json с SHA-256, образец specimen.html
 ├── flutter/pa_design/     # Flutter-пакет: токены (Dart), иконки, шрифт Inter — генерируется отсюда
 ├── scripts/               # валидатор токенов, импорт/линтер/генератор иконок, загрузка шрифтов, тесты
-├── brand/                 # логотип, мастер иконки приложения 1024+, слои tvOS/Liquid Glass (DSN-006)
+├── brand/                 # бренд Kinolune: знак, словесный знак, иконки всех платформ (DSN-006, brand/README.md)
 ├── illustrations/         # пустые состояния, онбординг (SVG, при необходимости PNG)
 ├── motion/                # .riv (Rive) и .json (Lottie)
 ├── placeholders/          # собственные плейсхолдеры постеров и обложек (не TMDB-арт!)
@@ -51,7 +51,7 @@ just design fonts     # скачать Inter (SHA-256) — нужно перед
 | `tokens/` | `*.tokens.json` (DTCG) | нет — нужны диффы и чтение в CI | DSN-002, DSN-003 |
 | `icons/svg/` | `*.svg` | нет — текст, ревью построчно | DSN-004 |
 | `fonts/` | `*.ttf`, `*.woff2` — **не коммитятся**, скачиваются `just design fonts` с проверкой SHA-256 | не нужен | DSN-005 |
-| `brand/`, `illustrations/`, `placeholders/` | `*.svg` — без LFS; `*.png`, `*.psd`, `*.kra`, `*.blend`, `*.icon` — LFS | частично | DSN-006 |
+| `brand/`, `illustrations/`, `placeholders/` | `*.svg` — без LFS; `*.png`, `*.psd`, `*.kra`, `*.blend`, `*.icon` — LFS, кроме сгенерированных `brand/export/`, `brand/preview.png`, `placeholders/export/` (обычный git, см. `.gitattributes`) | частично | DSN-006 |
 | `motion/` | `*.riv`, `*.lottie` — LFS; `*.json` (Lottie) — без LFS | частично | — |
 | `sources/` | `*.penpot`, `*.fig` — LFS | да | DSN-008 |
 

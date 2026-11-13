@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- SPDX-License-Identifier: MPL-2.0 -->
+  <!-- Kinolune mark (DSN-006): crescent moon "lune" holding a play triangle "kino".
+       Master for every app icon, favicon and lockup; scripts/brand-build.mjs reads the
+       two paths by id. Grid 1024, optical centre 512/512; keep the ids and the colours
+       in sync with design/brand/README.md. -->
+  <path id="moon" fill="#f3efe4" d="M531.74 192.15A320 320 0 1 0 817.76 634.17A264 264 0 1 1 531.74 192.15Z"/>
+  <path id="play" fill="#49d1d8" stroke="#49d1d8" stroke-width="52" stroke-linejoin="round" d="M598 322V538L782 430Z"/>
+</svg>

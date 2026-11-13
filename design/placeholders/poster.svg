@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" width="400" height="600">
+  <!-- SPDX-License-Identifier: MPL-2.0 -->
+  <!-- Placeholder: movie/series poster 2:3 without artwork (DSN-006). Own art only, no TMDB. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1e1e25"/>
+      <stop offset="1" stop-color="#121217"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="600" fill="url(#bg)"/>
+  <g transform="translate(140 240) scale(0.117)" fill="#ffffff" fill-opacity="0.14">
+    <path d="M531.74 192.15A320 320 0 1 0 817.76 634.17A264 264 0 1 1 531.74 192.15Z"/>
+    <path stroke="#ffffff" stroke-opacity="0.14" stroke-width="52" stroke-linejoin="round" d="M598 322V538L782 430Z"/>
+  </g>
+</svg>

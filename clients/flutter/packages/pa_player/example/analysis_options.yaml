@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MPL-2.0
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # See ../analysis_options.yaml (package:flutter/material.dart deprecation).
+    deprecated_member_use: ignore
+  exclude:
+    - build/**
+    - android/**
+    - linux/**

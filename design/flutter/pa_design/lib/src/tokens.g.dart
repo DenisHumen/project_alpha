@@ -25,13 +25,13 @@ abstract final class PaTokens {
   /// `text.on-scrim`
   static const Color textOnScrim = Color(0xFFFFFFFF);
   /// `accent.default`
-  static const Color accentDefault = Color(0xFF1E66D6);
+  static const Color accentDefault = Color(0xFF00777D);
   /// `accent.pressed`
-  static const Color accentPressed = Color(0xFF1650AB);
+  static const Color accentPressed = Color(0xFF005F64);
   /// `accent.live`
   static const Color accentLive = Color(0xFFC8202E);
   /// `state.watched`
-  static const Color stateWatched = Color(0xFF1E66D6);
+  static const Color stateWatched = Color(0xFF00777D);
   /// `focus.ring-width`
   static const double focusRingWidth = 3.0;
   /// `focus.scale.poster`
@@ -65,7 +65,7 @@ abstract final class PaTokens {
   /// `badge.fill`
   static const Color badgeFill = Color(0xA3000000);
   /// `badge.new`
-  static const Color badgeNew = Color(0xFF1E66D6);
+  static const Color badgeNew = Color(0xFF00777D);
   /// `scrim.bottom`
   static const LinearGradient scrimBottom = LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color(0xD9000000), Color(0x00000000)], stops: [0.0, 1.0]);
   /// `scrim.bottom-strong`
@@ -119,7 +119,7 @@ abstract final class PaTokens {
   /// `poster.press.scale`
   static const double posterPressScale = 0.97;
   /// `poster.progress.fill`
-  static const Color posterProgressFill = Color(0xFF1E66D6);
+  static const Color posterProgressFill = Color(0xFF00777D);
   /// `poster.progress.height`
   static const double posterProgressHeight = 4.0;
   /// `card.aspect-ratio`
@@ -131,7 +131,7 @@ abstract final class PaTokens {
   /// `button.radius`
   static const double buttonRadius = 9999.0;
   /// `button.primary.bg`
-  static const Color buttonPrimaryBg = Color(0xFF1E66D6);
+  static const Color buttonPrimaryBg = Color(0xFF00777D);
   /// `button.primary.label`
   static const Color buttonPrimaryLabel = Color(0xFFFFFFFF);
   /// `button.focus.scale`
@@ -209,20 +209,20 @@ final class PaColorScheme {
     textPrimary: Color(0xFFFFFFFF),
     textSecondary: Color(0xA3FFFFFF),
     textTertiary: Color(0x61FFFFFF),
-    textLink: Color(0xFF5A9EFF),
+    textLink: Color(0xFF49D1D8),
     iconPrimary: Color(0xFFFFFFFF),
     iconSecondary: Color(0xA3FFFFFF),
     iconDisabled: Color(0x61FFFFFF),
     borderSubtle: Color(0x1FFFFFFF),
     borderStrong: Color(0x3DFFFFFF),
-    accentSubtle: Color(0xFF123E84),
+    accentSubtle: Color(0xFF003E41),
     statusSuccess: Color(0xFF45CF78),
     statusWarning: Color(0xFFFFBE45),
     statusDanger: Color(0xFFFF5C64),
     stateProgressTrack: Color(0x3DFFFFFF),
     focusFill: Color(0xFFFFFFFF),
     focusLabel: Color(0xFF000000),
-    focusRing: Color(0xFF5A9EFF),
+    focusRing: Color(0xFF49D1D8),
     glassThinTint: Color(0x14FFFFFF),
     glassThinHighlight: Color(0x1FFFFFFF),
     glassThinFallback: Color(0xD916161C),
@@ -251,20 +251,20 @@ final class PaColorScheme {
     textPrimary: Color(0xE6000000),
     textSecondary: Color(0xA3000000),
     textTertiary: Color(0x73000000),
-    textLink: Color(0xFF1E66D6),
+    textLink: Color(0xFF00777D),
     iconPrimary: Color(0xE6000000),
     iconSecondary: Color(0xA3000000),
     iconDisabled: Color(0x73000000),
     borderSubtle: Color(0x14000000),
     borderStrong: Color(0x29000000),
-    accentSubtle: Color(0xFFDCEBFF),
+    accentSubtle: Color(0xFFD4F6F8),
     statusSuccess: Color(0xFF106B36),
     statusWarning: Color(0xFF8F5B00),
     statusDanger: Color(0xFFC8202E),
     stateProgressTrack: Color(0x29000000),
     focusFill: Color(0xFF16161C),
     focusLabel: Color(0xFFFFFFFF),
-    focusRing: Color(0xFF1E66D6),
+    focusRing: Color(0xFF00777D),
     glassThinTint: Color(0x8CFFFFFF),
     glassThinHighlight: Color(0xA3FFFFFF),
     glassThinFallback: Color(0xD9FFFFFF),

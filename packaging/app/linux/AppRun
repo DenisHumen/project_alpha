@@ -1,0 +1,10 @@
+#!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# AppImage entry point for Kinolune. @EXEC@ is replaced by package.sh.
+HERE="$(dirname "$(readlink -f "$0")")"
+if command -v ldconfig >/dev/null 2>&1 || [ -x /sbin/ldconfig ]; then
+    if ! { ldconfig -p 2>/dev/null || /sbin/ldconfig -p 2>/dev/null; } | grep -q 'libmpv\.so\.2'; then
+        echo "Kinolune needs the system libmpv (Ubuntu/Debian: libmpv2, Fedora: mpv-libs, Arch: mpv)." >&2
+    fi
+fi
+exec "$HERE/usr/lib/kinolune/@EXEC@" "$@"

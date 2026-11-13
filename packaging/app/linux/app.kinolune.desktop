@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MPL-2.0
+[Desktop Entry]
+Type=Application
+Name=Kinolune
+Comment=Media player for your local and network library
+Exec=kinolune %U
+Icon=app.kinolune
+Terminal=false
+Categories=AudioVideo;Video;Audio;Player;
+MimeType=video/mp4;video/x-matroska;video/webm;video/x-msvideo;audio/mpeg;audio/flac;audio/ogg;
