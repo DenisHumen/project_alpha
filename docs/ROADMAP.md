@@ -1138,6 +1138,10 @@ project_alpha/
   - Что: синхронизация очереди и позиции (по аналогии со Spotify Connect, через SYNC); Last.fm и ListenBrainz с ключом пользователя [P2]; эквалайзер [P2].
   - deps: MUS-003, SYNC-003 · size: M · parallel: yes · веха: M6 · ref: 01 §4.11, §1.5
   - done when: очередь продолжается на втором устройстве с той же позиции.
+- [ ] **MUS-016** Аудиорежим MPVKit на Apple (`AudioKit`)
+  - Что: часть MUS-002 для Apple: `clients/apple/AudioKit` на MPVKit (LGPL) с тем же профилем, что `AudioProfile` в `pa_player` (gapless, prefetch, ReplayGain track/album/auto, pre-amp, защита от клиппинга); проверка стыков по сэмплам, как в `gapless_libmpv_test.dart`.
+  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-NNNN (music-audio-mode-libmpv)
+  - done when: XCTest на macOS проигрывает тестовый альбом через MPVKit без пауз на стыках (проверка по сэмплам).
 
 ### 3.16. TWI — Twitch
 
