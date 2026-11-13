@@ -358,3 +358,87 @@ async fn devices_find_each_other_over_mdns() {
         Some(keys.family("pc").identity().public().fingerprint())
     );
 }
+
+/// A TCP relay that can go silent without closing anything: what a hub that
+/// lost power or Wi-Fi looks like to its peers.
+async fn freezable_relay(target: SocketAddr) -> (SocketAddr, Arc<AtomicBool>) {
+    let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    let frozen = Arc::new(AtomicBool::new(false));
+    let flag = Arc::clone(&frozen);
+    tokio::spawn(async move {
+        while let Ok((inbound, _)) = listener.accept().await {
+            let Ok(outbound) = tokio::net::TcpStream::connect(target).await else {
+                continue;
+            };
+            let (ri, wi) = inbound.into_split();
+            let (ro, wo) = outbound.into_split();
+            tokio::spawn(pipe(ri, wo, Arc::clone(&flag)));
+            tokio::spawn(pipe(ro, wi, Arc::clone(&flag)));
+        }
+    });
+    (addr, frozen)
+}
+
+async fn pipe(
+    mut from: tokio::net::tcp::OwnedReadHalf,
+    mut to: tokio::net::tcp::OwnedWriteHalf,
+    frozen: Arc<AtomicBool>,
+) {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let mut buf = vec![0u8; 16 * 1024];
+    loop {
+        if frozen.load(Ordering::SeqCst) {
+            // Hold both sockets open and never forward again.
+            tokio::time::sleep(Duration::from_secs(3600)).await;
+        }
+        let n = match tokio::time::timeout(Duration::from_millis(50), from.read(&mut buf)).await {
+            Err(_) => continue,
+            Ok(Ok(0) | Err(_)) => return,
+            Ok(Ok(n)) => n,
+        };
+        if !frozen.load(Ordering::SeqCst) && to.write_all(&buf[..n]).await.is_err() {
+            return;
+        }
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn silent_hub_is_replaced_within_10_s() {
+    let keys = Keys::new(&[
+        ("pc", DeviceClass::Desktop),
+        ("tv", DeviceClass::Tv),
+        ("phone", DeviceClass::Mobile),
+    ]);
+    let mut pc = Dev::start(&keys, "pc").await;
+    let mut tv = Dev::start(&keys, "tv").await;
+    let mut phone = Dev::start(&keys, "phone").await;
+    // The others reach the desktop only through the relay.
+    let (relay, frozen) = freezable_relay(pc.node.local_addr()).await;
+    for d in [&tv, &phone] {
+        d.node.peer_up("pc", DeviceClass::Desktop, relay);
+    }
+    tv.sees(&phone, DeviceClass::Mobile);
+    phone.sees(&tv, DeviceClass::Tv);
+    wait_until(&mut [&mut pc, &mut tv, &mut phone], "hub = pc", |d| {
+        d[1].node.hub().as_deref() == Some("pc") && d[2].node.hub().as_deref() == Some("pc")
+    })
+    .await;
+
+    // No FIN, no RST: the links just go quiet.
+    let lost = Instant::now();
+    frozen.store(true, Ordering::SeqCst);
+    wait_until(&mut [&mut tv, &mut phone], "hub = tv", |d| {
+        d[0].node.hub().is_none() && d[1].node.hub().as_deref() == Some("tv")
+    })
+    .await;
+    let failover = lost.elapsed();
+    assert!(failover < Duration::from_secs(10), "failover took {failover:?}");
+    eprintln!("silent hub replaced in {failover:?}");
+
+    phone.record(progress(5, 5_000));
+    wait_until(&mut [&mut tv, &mut phone], "converge after failover", |d| {
+        same_state(d, 1)
+    })
+    .await;
+}
