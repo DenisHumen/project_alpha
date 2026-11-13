@@ -12,7 +12,7 @@
 ```mermaid
 flowchart LR
   subgraph g0["core/crates — ядро"]
-    pa_ffi["pa-ffi"]
+    pa_anime_mappings["pa-anime-mappings"]
     pa_model["pa-model"]
   end
   subgraph g1["tools — инструменты"]
@@ -24,8 +24,8 @@ flowchart LR
 
 | Крейт | Каталог | Внешних зависимостей | Описание |
 |---|---|---|---|
+| `pa-anime-mappings` | `core/crates/pa-anime-mappings` | 4 | Anime cross-ID and episode mappings: bundled ODbL data plus runtime-downloaded upstream lists (META-008) |
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
-| `pa-ffi` | `core/crates/pa-ffi` | 1 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
 | `pa-model` | `core/crates/pa-model` | 1 | Domain types of the project_alpha core: media entities, sync keys, playback state |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 

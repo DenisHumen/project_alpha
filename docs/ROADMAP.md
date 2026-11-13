@@ -518,10 +518,10 @@ project_alpha/
   - Что: NFKC, casefold, варианты ромадзи (`ou`/`ō`/`o`), транслит кириллицы в обе стороны (ГОСТ и бытовой), удаление артиклей; индекс n-gram + BM25 + fuzzy (tantivy или свой) по названиям AniDB titles dump, anime-offline-database, Shikimori и горячему кэшу TMDB.
   - deps: META-005 · size: L · parallel: yes · веха: M2 · ref: 03 §4.2 [4]
   - done when: на корпусе ≥ 90 % верных кандидатов попадают в топ-10 без внешних запросов.
-- [ ] **META-008** Встроенные маппинги аниме
-  - Что: снапшот Anime-Lists XML и Fribb `anime-list-full.json` в бандле приложения; обновление с GitHub (ETag, проверка целостности); резервный форк в нашей организации.
+- [x] **META-008** Встроенные маппинги аниме
+  - Что: по `docs/legal/anime-mappings.md` — в бандле только производная база из anime-offline-database (ODbL, с атрибуцией, сама под ODbL, воспроизводимая сборка `data/anime-mappings/build.sh`); Anime-Lists XML и Fribb `anime-list-full.json` (без лицензии) не встраиваются и не зеркалятся — приложение скачивает их с upstream прямо на устройство (зашитые URL, ETag, не чаще раза в сутки, проверка целостности и SHA-256, локальный кэш, атомарная замена); слияние слоёв только в памяти устройства; резервный форк — только для anime-offline-database.
   - deps: REPO-001, LEGAL-003 · size: M · parallel: yes · веха: M2 · ref: S §3, 03 §3.2, §9 п.3
-  - done when: офлайн-тест маппинга AniDB ↔ TVDB ↔ TMDB; обновление применяется атомарно.
+  - done when: офлайн-тест маппинга AniDB ↔ TVDB ↔ TMDB на рукописных фикстурах (без копий Anime-Lists/Fribb); обновление применяется атомарно; в репозитории и бандле нет данных без лицензии.
 - [ ] **META-009** Трейт Provider и клиент TMDB
   - Что: сетевой слой вне sans-IO ядра; TMDB: поиск, детали, переводы ru-RU, альтернативные названия, episode groups, external ids, изображения, коллекции; rate limit, ProviderCache с TTL; ключ проекта по умолчанию (по DEC-008) и поле «свой ключ».
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 03 §3.1, §4.7, S §3
@@ -581,7 +581,7 @@ project_alpha/
 
 ### 3.7. PLAY — общий плеерный слой
 
-- [ ] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов (Linux и Windows готовы; Android и Apple ждут CI на macOS/NDK)
+- [x] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
@@ -1203,7 +1203,7 @@ project_alpha/
   - Что: имя по DEC-004, `os-release` (`ID_LIKE=fedora`), `dnf swap fedora-logos generic-logos`, grub, plymouth и motd без Fedora; формулировка «основано на Fedora Linux».
   - deps: DIST-001, DEC-004 · size: S · parallel: yes · веха: M8 · ref: 05 §7
   - done when: `grep -ri fedora` по брендинговым местам образа чист (кроме допустимой фактической ссылки).
-- [ ] **DIST-004** Установщик: обнаружение дисков (Go)
+- [x] **DIST-004** Установщик: обнаружение дисков (Go)
   - Что: `lsblk -J` + udev + `/sys/class/nvme/*/model`; имена вида «Samsung 990 PRO 1TB — /dev/nvme0n1»; десятичные размеры; фильтр loop, zram, sr и загрузочной флешки; признаки существующих данных (PTTYPE, blkid, mdraid); SMART.
   - deps: DIST-001 · size: M · parallel: yes · веха: M8 · ref: 05 §2.4 (чтение дисков)
   - done when: `go test` на записанных выводах lsblk и udev с 10 конфигурациями железа.

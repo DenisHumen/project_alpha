@@ -105,12 +105,22 @@ XCFramework делается в задачах PLAY-APL.
 
 ## Статус проверки
 
-- `linux-x86_64` — собирается в Docker-образе и проходит все проверки, включая запуск `check_license`.
-- `windows-x86_64` — кросс-сборка mingw-w64 в Docker-образе проходит, статическая лицензионная
-  проверка DLL проходит; DLL зависят только от системных библиотек Windows (`objdump -p`).
-  На реальной Windows не запускалась.
-- Android (NDK), macOS, iOS и tvOS написаны по документации тулчейнов и **ещё не проверены**; их сборку в CI
-  с кэшированием по хэшу рецепта делает задача CI-008.
+Все таргеты собираются в CI — [`.github/workflows/ffmpeg.yml`](../../.github/workflows/ffmpeg.yml)
+(на PR и push в `main`, только при изменениях в `tools/ffmpeg/`, плюс ручной запуск):
+
+| Job | Где | Проверки |
+|---|---|---|
+| `linux-x86_64`, `windows-x86_64` | `ubuntu-24.04`, Docker-образ | статическая; для Linux ещё запуск `check_license` |
+| `android-arm64-v8a`, `android-armeabi-v7a`, `android-x86_64` | `ubuntu-24.04`, NDK r28c через `sdkmanager` | статическая |
+| `macos-arm64`, `macos-x86_64`, `ios-arm64`, `ios-sim-arm64`, `tvos-arm64`, `tvos-sim-arm64` | `macos-15`, Xcode раннера | статическая; для `macos-arm64` ещё запуск `check_license` |
+| `Sources and GPL canary` | `ubuntu-24.04` | `--enable-gpl`, `--enable-nonfree`, `--enable-version3`, `--enable-libx264` роняют сборку; GPL-`config.h` не проходит `--config` |
+
+- Исходники кэшируются по хэшу `versions.sh`, результаты — по хэшу рецепта (`*.sh`, `*.c`, `lib/`,
+  `patches/`, `docker/`) и тулчейна (версия NDK или Xcode). При попадании в кэш сборка пропускается,
+  а лицензионная проверка всё равно выполняется.
+- Артефакты `ffmpeg-<target>` хранятся 7 дней. Раздачу готового FFmpeg другим workflow делает CI-008.
+- Windows DLL на реальной Windows не запускались, библиотеки для Android, iOS и tvOS — на устройствах;
+  это делают задачи интеграции плеера (PLAY-AND, PLAY-APL).
 
 ## Обновление версий
 

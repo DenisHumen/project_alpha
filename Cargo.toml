@@ -26,6 +26,8 @@ publish = false
 
 # One line per dependency, sorted alphabetically. Crates use `dep.workspace = true`.
 [workspace.dependencies]
+quick-xml = "0.42"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
+sha2 = "0.11"
 uniffi = { version = "0.32.2", default-features = false }

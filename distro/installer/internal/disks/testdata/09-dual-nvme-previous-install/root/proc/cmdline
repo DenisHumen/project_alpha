@@ -1,0 +1,1 @@
+BOOT_IMAGE=/images/pxeboot/vmlinuz root=live:/dev/sda1 rd.live.image

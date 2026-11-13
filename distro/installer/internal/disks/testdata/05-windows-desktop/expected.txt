@@ -1,0 +1,26 @@
+! Samsung MZVL21T0HCLR-00B00  1.0 TB  NVMe      /dev/nvme0n1  S/N …9999
+      GPT partition table, 4 partition(s)
+      EFI system partition /dev/nvme0n1p1 (an OS is likely installed)
+      Windows installation (Microsoft reserved partition /dev/nvme0n1p2)
+      ntfs "Windows" on /dev/nvme0n1p3
+      ntfs "Recovery" on /dev/nvme0n1p4
+! Crucial CT1000MX500SSD1     1.0 TB  SATA SSD  /dev/sda      S/N …3456
+      GPT partition table, 1 partition(s)
+      ntfs "Games" on /dev/sda1
+- SanDisk Ultra                31 GB  USB       /dev/sdb      S/N …7354
+      excluded: boot-media
+      DOS partition table, 2 partition(s)
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sdb
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sdb1
+      /dev/sdb1 is mounted at /run/initramfs/live
+      EFI system partition /dev/sdb2 (an OS is likely installed)
+- loop device                 1.9 GB  virtual   /dev/loop0
+      excluded: virtual-device
+      squashfs on /dev/loop0
+- loop device                 8.6 GB  virtual   /dev/loop1
+      excluded: virtual-device
+      ext4 "Anaconda" on /dev/loop1
+      ext4 "Anaconda" on /dev/live-rw
+      /dev/live-rw is mounted at /
+- loop device                  34 MB  virtual   /dev/loop2
+      excluded: virtual-device
