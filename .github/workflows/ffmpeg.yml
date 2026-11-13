@@ -9,11 +9,9 @@ name: FFmpeg (LGPL)
 
 on:
   pull_request:
-    paths:
-      - "tools/ffmpeg/**"
-      - ".github/workflows/ffmpeg.yml"
-  push:
-    branches: [main]
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
     paths:
       - "tools/ffmpeg/**"
       - ".github/workflows/ffmpeg.yml"

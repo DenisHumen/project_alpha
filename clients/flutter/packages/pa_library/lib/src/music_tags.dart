@@ -60,7 +60,9 @@ String? _clean(String? s) {
   return (t == null || t.isEmpty) ? null : t;
 }
 
-final RegExp _trackPrefix = RegExp(r'^(?:(\d{1,2})[-.])?(\d{1,3})[\s._-]+(?:-\s*)?');
+final RegExp _trackPrefix = RegExp(
+  r'^(?:(\d{1,2})[-.])?(\d{1,3})[\s._-]+(?:-\s*)?',
+);
 
 /// Track info from the path: `Artist/Album/NN - Title.ext`,
 /// `Artist - Album/NN. Title.ext`, `Artist - Title.ext`.
@@ -83,13 +85,20 @@ TrackInfo trackInfoFromPath(String path, {String? root}) {
   String? album;
   final dir = p.dirname(path);
   bool usable(String d) {
-    if (root != null && (p.equals(d, root) || !p.isWithin(root, d))) return false;
+    if (root != null && (p.equals(d, root) || !p.isWithin(root, d))) {
+      return false;
+    }
     final n = p.basename(d).toLowerCase();
-    return n.isNotEmpty && !genericFolderNames.contains(n) && !RegExp(r'^(cd|disc|disk)\s*\d+$').hasMatch(n);
+    return n.isNotEmpty &&
+        !genericFolderNames.contains(n) &&
+        !RegExp(r'^(cd|disc|disk)\s*\d+$').hasMatch(n);
   }
 
   var albumDir = dir;
-  if (RegExp(r'^(cd|disc|disk)\s*\d+$', caseSensitive: false).hasMatch(p.basename(dir))) {
+  if (RegExp(
+    r'^(cd|disc|disk)\s*\d+$',
+    caseSensitive: false,
+  ).hasMatch(p.basename(dir))) {
     albumDir = p.dirname(dir);
   }
   if (usable(albumDir)) {
@@ -107,7 +116,12 @@ TrackInfo trackInfoFromPath(String path, {String? root}) {
       if (artist == null && usable(artistDir)) artist = p.basename(artistDir);
     }
   }
-  return TrackInfo(title: title, artist: artist, album: album, trackNumber: number);
+  return TrackInfo(
+    title: title,
+    artist: artist,
+    album: album,
+    trackNumber: number,
+  );
 }
 
 /// Merges tag info with the path fallback.
@@ -125,16 +139,17 @@ TrackInfo trackInfo(String path, {String? root}) {
   );
 }
 
-const _coverNames = [
-  'cover', 'folder', 'front', 'album', 'albumart', 'poster',
-];
+const _coverNames = ['cover', 'folder', 'front', 'album', 'albumart', 'poster'];
 
 /// Looks for a local cover / poster image next to [mediaPath].
 /// For videos also `<name>-poster.jpg` / `<name>.jpg`.
 /// Generic names (`poster.jpg`, `folder.jpg`) are only used for videos when
 /// [allowGeneric] is true (the folder holds a single movie).
-String? findLocalImage(String mediaPath,
-    {bool video = false, bool allowGeneric = true}) {
+String? findLocalImage(
+  String mediaPath, {
+  bool video = false,
+  bool allowGeneric = true,
+}) {
   final dir = Directory(p.dirname(mediaPath));
   List<FileSystemEntity> entries;
   try {
@@ -146,13 +161,19 @@ String? findLocalImage(String mediaPath,
   for (final e in entries) {
     if (e is! File) continue;
     final ext = p.extension(e.path).toLowerCase();
-    if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.webp') continue;
+    if (ext != '.jpg' && ext != '.jpeg' && ext != '.png' && ext != '.webp') {
+      continue;
+    }
     byName[p.basenameWithoutExtension(e.path).toLowerCase()] = e.path;
   }
   if (byName.isEmpty) return null;
   final stem = p.basenameWithoutExtension(mediaPath).toLowerCase();
   final candidates = video
-      ? ['$stem-poster', stem, if (allowGeneric) ...['poster', 'folder', 'cover']]
+      ? [
+          '$stem-poster',
+          stem,
+          if (allowGeneric) ...['poster', 'folder', 'cover'],
+        ]
       : _coverNames;
   for (final c in candidates) {
     final f = byName[c];

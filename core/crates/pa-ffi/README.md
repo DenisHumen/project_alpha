@@ -3,7 +3,8 @@
 Фасад ядра для Kotlin и Swift на [UniFFI](https://mozilla.github.io/uniffi-rs/) (proc-macro, ADR-0001).
 
 - Каждый домен экспортируется своим модулем `src/<domain>.rs`; в `src/lib.rs` добавляется одна строка `mod`.
-- Сейчас экспортирована одна функция: `core_version()` → версия крейта (`coreVersion()` в Kotlin и Swift).
+- `core_version()` → версия крейта (`coreVersion()` в Kotlin и Swift).
+- Жизненный цикл и настройки (`src/runtime.rs`, CORE-006, ADR-0014): `core_init(config, callbacks)`, `core_enter_foreground()`, `core_enter_background()`, `core_shutdown()`, `core_lifecycle()`, `core_dirs()`; колбэк-интерфейс `CoreCallbacks`; `settings_get/set/remove/keys/export/import` (значения — JSON-текст). На Android в `CoreConfig.dirs` передаются `filesDir` и `cacheDir`; на iOS и tvOS по умолчанию — `Library/Application Support` и `Library/Caches`.
 - Kotlin: пакет `dev.projectalpha.core`, библиотека `pa_ffi`. Swift: модуль `PACore`, C-модуль `PACoreFFI` (`uniffi.toml`).
 
 ## Команды

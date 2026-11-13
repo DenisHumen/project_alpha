@@ -13,7 +13,8 @@ void main() {
   test('every density defines the type scale', () {
     expect(PaDensity.tv.typeBody.fontSize, 29);
     expect(PaDensity.phone.typeBody.fontSize, 17);
-    expect(PaDensity.values.keys, containsAll(<String>['tv', 'desktop', 'tablet', 'phone']));
+    expect(PaDensity.values.keys,
+        containsAll(<String>['tv', 'desktop', 'tablet', 'phone']));
   });
 
   test('focus scale and motion', () {
