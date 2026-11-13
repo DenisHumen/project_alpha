@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Toolchain for building pa-frb from the Dart package pa_core (Native Assets,
+# native_toolchain_rust). The build hook requires this file next to the crate
+# with an exact channel and the list of targets it may build.
+#
+# `channel` must equal the root rust-toolchain.toml (CI checks it). Targets:
+# Linux and Android for release 0.1; Windows and Apple join with CORE-010.
+[toolchain]
+channel = "1.99.0"
+profile = "minimal"
+components = ["clippy", "rustfmt"]
+targets = [
+  "aarch64-linux-android",
+  "aarch64-unknown-linux-gnu",
+  "armv7-linux-androideabi",
+  "x86_64-linux-android",
+  "x86_64-unknown-linux-gnu",
+]

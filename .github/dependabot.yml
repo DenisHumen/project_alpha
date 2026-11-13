@@ -1,0 +1,123 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Dependabot version updates (REPO-013). Weekly, one grouped PR per ecosystem
+# (security updates come separately as soon as an advisory is published).
+# A 7-day cooldown keeps freshly published (possibly compromised) releases out.
+#
+# PR titles pass the PR-title lint in dco.yml: `build(deps): …` for packages,
+# `ci(deps): …` for GitHub Actions. Dependabot commits are exempt from the DCO
+# check only in PRs opened by Dependabot itself.
+#
+# New manifests: add their directory below (e.g. `/clients/flutter` for pub
+# once UI-001 lands, `/server/web` for npm, Swift packages for swift).
+
+version: 2
+
+updates:
+  # Workflows pin actions to full SHAs; Dependabot bumps the SHA and the
+  # `# vX.Y.Z` comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+      include: scope
+    labels: ["ws:ci", "dependencies"]
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      include: scope
+    labels: ["ws:core", "dependencies"]
+    groups:
+      cargo-minor-patch:
+        update-types: ["minor", "patch"]
+      # Major bumps (e.g. uniffi, jsonschema 0.x → 0.y) stay separate PRs.
+
+  - package-ecosystem: pub
+    directories:
+      - /spikes/android-player
+      - /spikes/desktop-player
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build
+      include: scope
+    labels: ["dependencies"]
+    groups:
+      pub:
+        patterns: ["*"]
+
+  - package-ecosystem: gradle
+    directories:
+      - /spikes/android-player/android
+      - /core/crates/pa-ffi/jvm-smoke
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build
+      include: scope
+    labels: ["dependencies"]
+    groups:
+      gradle:
+        patterns: ["*"]
+
+  - package-ecosystem: gomod
+    directory: /distro/installer
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build
+      include: scope
+    labels: ["ws:dist", "dependencies"]
+    groups:
+      gomod:
+        patterns: ["*"]
+
+  # Base images of the FFmpeg build container, the distro Containerfile and
+  # the desktop-player spike.
+  - package-ecosystem: docker
+    directories:
+      - /distro
+      - /tools/ffmpeg/docker
+      - /spikes/desktop-player/docker
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: build
+      include: scope
+    labels: ["dependencies"]
+    groups:
+      docker:
+        patterns: ["*"]

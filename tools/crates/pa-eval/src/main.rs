@@ -3,21 +3,43 @@
 //!
 //! ```text
 //! pa-eval run [--recognizer naive|abstain] [--tape TAPE.jsonl] [--threshold X]
-//!             [--no-validate] [--json OUT.json] [--md OUT.md] CORPUS.jsonl...
+//!             [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
+//!             CORPUS.jsonl...
 //! pa-eval compare --baseline BASE.json --current CUR.json
 //!             [--max-silent-regression-pp 0.2] [--md OUT.md]
 //! ```
 //! Exit code: 0 ok, 1 regression (compare), 2 usage, I/O or invalid input.
 
+use std::collections::BTreeSet;
 use std::process::ExitCode;
 use std::time::Instant;
 
+use pa_eval::provider::{Provider, ProviderError, ProviderRequest};
 use pa_eval::recognizer::{Abstain, Naive};
 use pa_eval::{Corpus, DEFAULT_THRESHOLD, Recognizer, ReplayProvider, Report, Tape};
+use serde_json::Value;
+
+/// Replays a tape and remembers the requests it could not answer, so a tape
+/// can be filled for exactly the queries a recognizer makes (`--misses`).
+struct MissLog {
+    inner: ReplayProvider,
+    missed: BTreeSet<String>,
+}
+
+impl Provider for MissLog {
+    fn call(&mut self, request: &ProviderRequest) -> Result<Value, ProviderError> {
+        let result = self.inner.call(request);
+        if matches!(result, Err(ProviderError::TapeMiss(_))) {
+            self.missed.insert(request.key());
+        }
+        result
+    }
+}
 
 const USAGE: &str = "usage:
   pa-eval run [--recognizer naive|abstain] [--tape TAPE.jsonl] [--threshold X]
-              [--no-validate] [--json OUT.json] [--md OUT.md] CORPUS.jsonl...
+              [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
+              CORPUS.jsonl...
   pa-eval compare --baseline BASE.json --current CUR.json
               [--max-silent-regression-pp 0.2] [--md OUT.md]";
 
@@ -86,7 +108,14 @@ fn write(path: &str, text: &str) -> Result<(), String> {
 fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
     let (opts, files) = parse(
         args,
-        &["--recognizer", "--tape", "--threshold", "--json", "--md"],
+        &[
+            "--recognizer",
+            "--tape",
+            "--threshold",
+            "--json",
+            "--md",
+            "--misses",
+        ],
         &["--no-validate"],
     )?;
     if files.is_empty() {
@@ -116,8 +145,19 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
     let corpus = Corpus::load(&docs, opt(&opts, "--no-validate").is_none())?;
 
     let started = Instant::now();
-    let mut provider = ReplayProvider::new(tape);
+    let mut provider = MissLog {
+        inner: ReplayProvider::new(tape),
+        missed: BTreeSet::new(),
+    };
     let report = pa_eval::run(&corpus, recognizer.as_mut(), &mut provider, threshold);
+    if let Some(path) = opt(&opts, "--misses") {
+        let mut text = String::new();
+        for key in &provider.missed {
+            text.push_str(key);
+            text.push('\n');
+        }
+        write(path, &text)?;
+    }
     eprintln!(
         "pa-eval: {} cases, {} files in {:.3} s (wall time is not part of the report)",
         report.corpus.cases,

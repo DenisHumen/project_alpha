@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-vfs"
+version = "0.1.0"
+description = "Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# std only: the trait crate stays dependency-free so every backend
+# (libsmb2, libnfs, reqwest, russh) can build on it without pulling a runtime.
+[dependencies]

@@ -1,0 +1,854 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Hand-curated title list for recognition corpus v0 (META-002).
+#
+# This file is written by hand. It names real, publicly known works only; it
+# contains no filenames from other projects' test suites and nothing scraped
+# from trackers. External ids are NOT typed in here for movies and shows: they
+# are resolved and cross-checked by `resolve.py` (Wikidata, CC0; TVmaze;
+# anime-offline-database, ODbL) into `facts.json`. Anime entries are pinned by
+# AniDB id (looked up in anime-offline-database) because AniDB is canonical.
+#
+# Keys:
+#   t      title used to look the work up (English or original)
+#   y      premiere year (used to disambiguate and to cross-check)
+#   tags   generator hints: digits (A14), ru (Russian/Soviet work),
+#          old (DVD/XviD era: cd1/cd2, VIDEO_TS), remake:<key> (A8 group)
+#   wd     Wikidata QID override when the search picks the wrong item
+#   ru     Russian title override (otherwise the Wikidata ru label)
+
+movies:
+  # --- popular western films ---
+  - {t: "Inception", y: 2010}
+  - {t: "The Matrix", y: 1999, tags: [old]}
+  - {t: "Interstellar", y: 2014}
+  - {t: "The Dark Knight", y: 2008}
+  - {t: "Pulp Fiction", y: 1994, tags: [old]}
+  - {t: "Fight Club", y: 1999, tags: [old]}
+  - {t: "Forrest Gump", y: 1994, tags: [old]}
+  - {t: "The Shawshank Redemption", y: 1994, tags: [old]}
+  - {t: "Gladiator", y: 2000, tags: [old]}
+  - {t: "Titanic", y: 1997, tags: [old]}
+  - {t: "Avatar", y: 2009}
+  - {t: "Parasite", y: 2019}
+  - {t: "Joker", y: 2019}
+  - {t: "Whiplash", y: 2014}
+  - {t: "Mad Max: Fury Road", y: 2015}
+  - {t: "Arrival", y: 2016}
+  - {t: "Heat", y: 1995, tags: [old]}
+  - {t: "Drive", y: 2011}
+  - {t: "Up", y: 2009}
+  - {t: "Her", y: 2013}
+  - {t: "Us", y: 2019}
+  - {t: "Nope", y: 2022}
+  - {t: "Tenet", y: 2020}
+  - {t: "Memento", y: 2000, tags: [old]}
+  - {t: "The Prestige", y: 2006}
+  - {t: "Dunkirk", y: 2017}
+  - {t: "Oppenheimer", y: 2023}
+  - {t: "Barbie", y: 2023, wd: Q55436290}
+  - {t: "Gravity", y: 2013}
+  - {t: "The Revenant", y: 2015}
+  - {t: "Birdman", y: 2014}
+  - {t: "La La Land", y: 2016}
+  - {t: "Moonlight", y: 2016}
+  - {t: "Coco", y: 2017}
+  - {t: "Toy Story", y: 1995, tags: [old]}
+  - {t: "Alien", y: 1979, tags: [old]}
+  - {t: "Aliens", y: 1986, tags: [old]}
+  - {t: "Amélie", y: 2001, tags: [old]}
+  - {t: "Léon: The Professional", y: 1994, tags: [old]}
+  - {t: "The Lord of the Rings: The Fellowship of the Ring", y: 2001, tags: [old]}
+  - {t: "The Lord of the Rings: The Two Towers", y: 2002, tags: [old]}
+  - {t: "The Lord of the Rings: The Return of the King", y: 2003, tags: [old]}
+  - {t: "Kill Bill: Volume 1", y: 2003, tags: [old, digits]}
+  - {t: "Kill Bill: Volume 2", y: 2004, tags: [old, digits]}
+  - {t: "Back to the Future", y: 1985, tags: [old]}
+  - {t: "Back to the Future Part II", y: 1989, tags: [old]}
+  - {t: "Back to the Future Part III", y: 1990, tags: [old]}
+  - {t: "Terminator 2: Judgment Day", y: 1991, tags: [old, digits]}
+  - {t: "The Godfather", y: 1972, tags: [old]}
+  - {t: "The Godfather Part II", y: 1974, tags: [old]}
+  - {t: "Jurassic Park", y: 1993, tags: [old], wd: Q167726}
+  - {t: "The Silence of the Lambs", y: 1991, tags: [old]}
+  - {t: "No Country for Old Men", y: 2007}
+  - {t: "There Will Be Blood", y: 2007}
+  - {t: "Get Out", y: 2017}
+  - {t: "Everything Everywhere All at Once", y: 2022}
+  - {t: "Spider-Man: Into the Spider-Verse", y: 2018}
+  - {t: "Dune: Part Two", y: 2024}
+  - {t: "Blade Runner", y: 1982, tags: [old, remake:blade-runner]}
+  - {t: "Blade Runner 2049", y: 2017, tags: [digits, remake:blade-runner]}
+
+  # --- remakes and homonyms (A8) ---
+  - {t: "Dune", y: 1984, tags: [old, remake:dune]}
+  - {t: "Dune", y: 2021, tags: [remake:dune]}
+  - {t: "The Thing", y: 1982, tags: [old, remake:the-thing]}
+  - {t: "The Thing", y: 2011, tags: [remake:the-thing]}
+  - {t: "Total Recall", y: 1990, tags: [old, remake:total-recall]}
+  - {t: "Total Recall", y: 2012, tags: [remake:total-recall]}
+  - {t: "RoboCop", y: 1987, tags: [old, remake:robocop]}
+  - {t: "RoboCop", y: 2014, tags: [remake:robocop]}
+  - {t: "Solaris", y: 2002, tags: [remake:solaris]}
+  - {t: "Point Break", y: 1991, tags: [old, remake:point-break]}
+  - {t: "Point Break", y: 2015, tags: [remake:point-break]}
+  - {t: "The Mummy", y: 1999, tags: [old, remake:the-mummy]}
+  - {t: "The Mummy", y: 2017, tags: [remake:the-mummy]}
+  - {t: "Ghostbusters", y: 1984, tags: [old, remake:ghostbusters]}
+  - {t: "Ghostbusters", y: 2016, tags: [remake:ghostbusters]}
+  - {t: "Suspiria", y: 1977, tags: [old, remake:suspiria]}
+  - {t: "Suspiria", y: 2018, tags: [remake:suspiria]}
+  - {t: "Oldboy", y: 2003, tags: [old, remake:oldboy]}
+  - {t: "Oldboy", y: 2013, tags: [remake:oldboy]}
+  - {t: "Psycho", y: 1960, tags: [old, remake:psycho]}
+  - {t: "Psycho", y: 1998, tags: [old, remake:psycho]}
+  - {t: "King Kong", y: 1933, tags: [old, remake:king-kong]}
+  - {t: "King Kong", y: 1976, tags: [old, remake:king-kong]}
+  - {t: "King Kong", y: 2005, tags: [remake:king-kong]}
+  - {t: "Planet of the Apes", y: 1968, tags: [old, remake:planet-of-the-apes]}
+  - {t: "Planet of the Apes", y: 2001, tags: [old, remake:planet-of-the-apes]}
+  - {t: "Ocean's Eleven", y: 1960, tags: [old, remake:oceans-eleven]}
+  - {t: "Ocean's Eleven", y: 2001, tags: [old, remake:oceans-eleven]}
+  - {t: "Halloween", y: 1978, tags: [old, remake:halloween]}
+  - {t: "Halloween", y: 2007, tags: [remake:halloween]}
+  - {t: "Halloween", y: 2018, tags: [remake:halloween], wd: Q20666646}
+  - {t: "A Star Is Born", y: 1954, tags: [old, remake:a-star-is-born]}
+  - {t: "A Star Is Born", y: 1976, tags: [old, remake:a-star-is-born]}
+  - {t: "A Star Is Born", y: 2018, tags: [remake:a-star-is-born]}
+  - {t: "Little Women", y: 1994, tags: [old, remake:little-women]}
+  - {t: "Little Women", y: 2019, tags: [remake:little-women]}
+  - {t: "West Side Story", y: 1961, tags: [old, remake:west-side-story]}
+  - {t: "West Side Story", y: 2021, tags: [remake:west-side-story]}
+  - {t: "The Lion King", y: 1994, tags: [old, remake:the-lion-king]}
+  - {t: "The Lion King", y: 2019, tags: [remake:the-lion-king]}
+  - {t: "Beauty and the Beast", y: 1991, tags: [old, remake:beauty-and-the-beast]}
+  - {t: "Beauty and the Beast", y: 2017, tags: [remake:beauty-and-the-beast]}
+  - {t: "Aladdin", y: 1992, tags: [old, remake:aladdin], wd: Q215518}
+  - {t: "Aladdin", y: 2019, tags: [remake:aladdin]}
+  - {t: "Godzilla", y: 1954, tags: [old, remake:godzilla]}
+  - {t: "Godzilla", y: 1998, tags: [old, remake:godzilla]}
+  - {t: "Godzilla", y: 2014, tags: [remake:godzilla]}
+  - {t: "Carrie", y: 1976, tags: [old, remake:carrie]}
+  - {t: "Carrie", y: 2013, tags: [remake:carrie]}
+  - {t: "Dawn of the Dead", y: 1978, tags: [old, remake:dawn-of-the-dead]}
+  - {t: "Dawn of the Dead", y: 2004, tags: [old, remake:dawn-of-the-dead]}
+  - {t: "The Italian Job", y: 1969, tags: [old, remake:the-italian-job]}
+  - {t: "The Italian Job", y: 2003, tags: [old, remake:the-italian-job]}
+  - {t: "True Grit", y: 1969, tags: [old, remake:true-grit]}
+  - {t: "True Grit", y: 2010, tags: [remake:true-grit]}
+  - {t: "The Magnificent Seven", y: 1960, tags: [old, remake:the-magnificent-seven]}
+  - {t: "The Magnificent Seven", y: 2016, tags: [remake:the-magnificent-seven]}
+  - {t: "Crash", y: 1996, tags: [old, remake:crash]}
+  - {t: "Crash", y: 2004, tags: [old, remake:crash]}
+  - {t: "Cinderella", y: 1950, tags: [old, remake:cinderella]}
+  - {t: "Cinderella", y: 2015, tags: [remake:cinderella], wd: Q15046091}
+  - {t: "The Fly", y: 1958, tags: [old, remake:the-fly]}
+  - {t: "The Fly", y: 1986, tags: [old, remake:the-fly]}
+  - {t: "Scarface", y: 1932, tags: [old, remake:scarface]}
+  - {t: "Scarface", y: 1983, tags: [old, remake:scarface]}
+  - {t: "Evil Dead", y: 2013, tags: [remake:evil-dead]}
+  - {t: "The Evil Dead", y: 1981, tags: [old, remake:evil-dead]}
+  - {t: "Hellboy", y: 2004, tags: [old, remake:hellboy]}
+  - {t: "Hellboy", y: 2019, tags: [remake:hellboy]}
+  - {t: "Fantastic Four", y: 2005, tags: [remake:fantastic-four]}
+  - {t: "Fantastic Four", y: 2015, tags: [remake:fantastic-four]}
+
+  # --- digits in the title (A14) ---
+  - {t: "1917", y: 2019, tags: [digits]}
+  - {t: "2012", y: 2009, tags: [digits], wd: Q184605}
+  - {t: "300", y: 2006, tags: [digits]}
+  - {t: "21", y: 2008, tags: [digits]}
+  - {t: "9", y: 2009, tags: [digits], wd: Q685785}
+  - {t: "10 Cloverfield Lane", y: 2016, tags: [digits]}
+  - {t: "2001: A Space Odyssey", y: 1968, tags: [old, digits]}
+  - {t: "12 Angry Men", y: 1957, tags: [old, digits]}
+  - {t: "12 Years a Slave", y: 2013, tags: [digits]}
+  - {t: "127 Hours", y: 2010, tags: [digits]}
+  - {t: "28 Days Later", y: 2002, tags: [old, digits]}
+  - {t: "28 Weeks Later", y: 2007, tags: [digits]}
+  - {t: "13 Going on 30", y: 2004, tags: [old, digits]}
+  - {t: "50 First Dates", y: 2004, tags: [old, digits]}
+  - {t: "(500) Days of Summer", y: 2009, tags: [digits]}
+  - {t: "Apollo 13", y: 1995, tags: [old, digits]}
+  - {t: "District 9", y: 2009, tags: [digits]}
+  - {t: "Se7en", y: 1995, tags: [old, digits]}
+  - {t: "Ocean's 8", y: 2018, tags: [digits]}
+  - {t: "2 Fast 2 Furious", y: 2003, tags: [old, digits]}
+  - {t: "21 Jump Street", y: 2012, tags: [digits]}
+  - {t: "22 Jump Street", y: 2014, tags: [digits]}
+  - {t: "8 Mile", y: 2002, tags: [old, digits]}
+  - {t: "1408", y: 2007, tags: [digits]}
+  - {t: "Nineteen Eighty-Four", y: 1984, tags: [old]}
+  - {t: "Toy Story 2", y: 1999, tags: [old, digits]}
+  - {t: "Toy Story 3", y: 2010, tags: [digits]}
+  - {t: "Toy Story 4", y: 2019, tags: [digits]}
+  - {t: "10 Things I Hate About You", y: 1999, tags: [old, digits]}
+  - {t: "2046", y: 2004, tags: [old, digits]}
+  - {t: "Super 8", y: 2011, tags: [digits]}
+  - {t: "47 Ronin", y: 2013, tags: [digits]}
+  - {t: "6 Underground", y: 2019, tags: [digits]}
+  - {t: "3 Idiots", y: 2009, tags: [digits]}
+  - {t: "300: Rise of an Empire", y: 2014, tags: [digits]}
+  - {t: "9 to 5", y: 1980, tags: [old, digits]}
+  - {t: "101 Dalmatians", y: 1996, tags: [old, digits, remake:101-dalmatians]}
+  - {t: "One Hundred and One Dalmatians", y: 1961, tags: [old, remake:101-dalmatians]}
+  - {t: "Mission: Impossible 2", y: 2000, tags: [old, digits]}
+  - {t: "The Hangover Part II", y: 2011}
+  - {t: "Iron Man 2", y: 2010, tags: [digits]}
+  - {t: "Iron Man 3", y: 2013, tags: [digits]}
+  - {t: "Deadpool 2", y: 2018, tags: [digits]}
+  - {t: "John Wick: Chapter 4", y: 2023, tags: [digits]}
+  - {t: "Thirteen Days", y: 2000, tags: [old]}
+  - {t: "Fantastic 4: Rise of the Silver Surfer", y: 2007, tags: [digits], wd: Q390063}
+  - {t: "The Intouchables", y: 2011, ru: "1+1"}
+
+  # --- Soviet and Russian films (A7) ---
+  - {t: "The Irony of Fate", y: 1975, tags: [old, ru]}
+  - {t: "Moscow Does Not Believe in Tears", y: 1979, tags: [old, ru]}
+  - {t: "Brother", y: 1997, tags: [old, ru]}
+  - {t: "Brother 2", y: 2000, tags: [old, ru, digits]}
+  - {t: "Stalker", y: 1979, tags: [old, ru]}
+  - {t: "Solaris", y: 1972, tags: [old, ru, remake:solaris]}
+  - {t: "Ivan Vasilievich: Back to the Future", y: 1973, tags: [old, ru]}
+  - {t: "The Diamond Arm", y: 1968, tags: [old, ru]}
+  - {t: "Kidnapping, Caucasian Style", y: 1967, tags: [old, ru]}
+  - {t: "Operation Y and Shurik's Other Adventures", y: 1965, tags: [old, ru], wd: Q2513681}
+  - {t: "Gentlemen of Fortune", y: 1971, tags: [old, ru]}
+  - {t: "Office Romance", y: 1977, tags: [old, ru]}
+  - {t: "White Sun of the Desert", y: 1970, tags: [old, ru]}
+  - {t: "Heart of a Dog", y: 1988, tags: [old, ru]}
+  - {t: "The Master and Margarita", y: 2024, tags: [ru]}
+  - {t: "Leviathan", y: 2014, tags: [ru]}
+  - {t: "Loveless", y: 2017, tags: [ru]}
+  - {t: "The Return", y: 2003, tags: [old, ru], wd: Q385494}
+  - {t: "Night Watch", y: 2004, tags: [old, ru]}
+  - {t: "Day Watch", y: 2006, tags: [ru]}
+  - {t: "Stalingrad", y: 2013, tags: [ru]}
+  - {t: "Legend No. 17", y: 2013, tags: [ru, digits]}
+  - {t: "Air Crew", y: 1979, tags: [old, ru, remake:ekipazh]}
+  - {t: "Flight Crew", y: 2016, tags: [ru, remake:ekipazh]}
+  - {t: "The Irony of Fate 2", y: 2007, tags: [ru, digits]}
+  - {t: "Going Vertical", y: 2017, tags: [ru]}
+  - {t: "T-34", y: 2018, tags: [ru, digits]}
+  - {t: "Serf", y: 2019, tags: [ru]}
+  - {t: "Bimmer", y: 2003, tags: [old, ru], wd: Q1004801}
+  - {t: "The 9th Company", y: 2005, tags: [old, ru, digits]}
+  - {t: "Peculiarities of the National Hunt", y: 1995, tags: [old, ru]}
+  - {t: "Come and See", y: 1985, tags: [old, ru]}
+  - {t: "Andrei Rublev", y: 1966, tags: [old, ru]}
+  - {t: "Mirror", y: 1975, tags: [old, ru], wd: Q838149}
+  - {t: "The Cranes Are Flying", y: 1957, tags: [old, ru]}
+  - {t: "Jack Frost", y: 1964, tags: [old, ru]}
+  - {t: "Kin-dza-dza!", y: 1986, tags: [old, ru]}
+  - {t: "Afonya", y: 1975, tags: [old, ru]}
+  - {t: "The Twelve Chairs", y: 1971, tags: [old, ru]}
+  - {t: "We Are from the Future", y: 2008, tags: [ru]}
+  - {t: "The Fool", y: 2014, tags: [ru]}
+  - {t: "Arrhythmia", y: 2017, tags: [ru]}
+  - {t: "Ice", y: 2018, tags: [ru], wd: Q28855345}
+  - {t: "Attraction", y: 2017, tags: [ru]}
+  - {t: "Major Grom: Plague Doctor", y: 2021, tags: [ru]}
+  - {t: "Viy", y: 1967, tags: [old, ru, remake:viy]}
+  - {t: "Forbidden Empire", y: 2014, tags: [ru, remake:viy]}
+  - {t: "8 First Dates", y: 2012, tags: [ru, digits]}
+  - {t: "1612", y: 2007, tags: [ru, digits]}
+  - {t: "Yolki", y: 2010, tags: [ru]}
+  - {t: "Cheburashka", y: 2023, tags: [ru]}
+
+shows:
+  - {t: "Breaking Bad", y: 2008}
+  - {t: "Game of Thrones", y: 2011}
+  - {t: "The Office", y: 2005, tags: [remake:the-office]}
+  - {t: "The Office", y: 2001, tags: [remake:the-office]}
+  - {t: "Friends", y: 1994}
+  - {t: "Seinfeld", y: 1989}
+  - {t: "Stranger Things", y: 2016}
+  - {t: "The Wire", y: 2002}
+  - {t: "Sherlock", y: 2010}
+  - {t: "Battlestar Galactica", y: 2004, tags: [remake:battlestar-galactica]}
+  - {t: "Battlestar Galactica", y: 1978, tags: [remake:battlestar-galactica]}
+  - {t: "House of Cards", y: 2013, tags: [remake:house-of-cards]}
+  - {t: "House of Cards", y: 1990, tags: [remake:house-of-cards]}
+  - {t: "Shameless", y: 2011, tags: [remake:shameless]}
+  - {t: "Shameless", y: 2004, tags: [remake:shameless]}
+  - {t: "True Detective", y: 2014}
+  - {t: "Chernobyl", y: 2019}
+  - {t: "Dark", y: 2017}
+  - {t: "Lost", y: 2004}
+  - {t: "The Mandalorian", y: 2019}
+  - {t: "Better Call Saul", y: 2015}
+  - {t: "Fargo", y: 2014}
+  - {t: "Westworld", y: 2016}
+  - {t: "Black Mirror", y: 2011}
+  - {t: "The Crown", y: 2016}
+  - {t: "Twin Peaks", y: 1990}
+  - {t: "Mr. Robot", y: 2015}
+  - {t: "Succession", y: 2018}
+  - {t: "The Boys", y: 2019}
+  - {t: "Severance", y: 2022}
+  - {t: "Ted Lasso", y: 2020}
+  - {t: "House", y: 2004}
+  - {t: "Dexter", y: 2006}
+  - {t: "The Sopranos", y: 1999}
+  - {t: "The Simpsons", y: 1989}
+  - {t: "24", y: 2001, tags: [digits]}
+  - {t: "30 Rock", y: 2006, tags: [digits]}
+  - {t: "9-1-1", y: 2018, tags: [digits]}
+  - {t: "1883", y: 2021, tags: [digits]}
+  - {t: "1923", y: 2022, tags: [digits]}
+  - {t: "13 Reasons Why", y: 2017, tags: [digits]}
+  - {t: "The 100", y: 2014, tags: [digits]}
+  - {t: "12 Monkeys", y: 2015, tags: [digits]}
+  - {t: "3 Body Problem", y: 2024, tags: [digits]}
+  - {t: "2 Broke Girls", y: 2011, tags: [digits]}
+  - {t: "8 Simple Rules", y: 2002, tags: [digits]}
+  - {t: "Station 19", y: 2018, tags: [digits]}
+  - {t: "Brooklyn Nine-Nine", y: 2013}
+  # Russian series (A7)
+  - {t: "The Method", y: 2015, tags: [ru]}
+  - {t: "Kitchen", y: 2012, tags: [ru]}
+  - {t: "Interns", y: 2010, tags: [ru]}
+  - {t: "Univer", y: 2008, tags: [ru]}
+  - {t: "Olga", y: 2016, tags: [ru]}
+  - {t: "Brigada", y: 2002, tags: [ru]}
+  - {t: "Liquidation", y: 2007, tags: [ru]}
+  - {t: "The Master and Margarita", y: 2005, tags: [ru]}
+  - {t: "Fizruk", y: 2014, tags: [ru]}
+  - {t: "Chiki", y: 2020, tags: [ru]}
+  - {t: "Psycho", y: 2020, tags: [ru]}
+  - {t: "An Ordinary Woman", y: 2018, tags: [ru]}
+  - {t: "The Sniffer", y: 2013, tags: [ru]}
+  - {t: "Guest from the Future", y: 1985, tags: [ru]}
+  - {t: "Seventeen Moments of Spring", y: 1973, tags: [ru]}
+
+daily:
+  - {t: "The Daily Show", y: 1996}
+  - {t: "The Tonight Show Starring Jimmy Fallon", y: 2014}
+  - {t: "Jimmy Kimmel Live!", y: 2003}
+  - {t: "Late Night with Seth Meyers", y: 2014}
+  - {t: "The Late Show with Stephen Colbert", y: 2015}
+  - {t: "Conan", y: 2010}
+  - {t: "Last Week Tonight with John Oliver", y: 2014}
+  - {t: "Jeopardy!", y: 1984}
+  - {t: "WWE Raw", y: 1993}
+  - {t: "The View", y: 1997}
+  - {t: "Real Time with Bill Maher", y: 2003}
+  - {t: "The Late Late Show with James Corden", y: 2015}
+  - {t: "Late Night with Conan O'Brien", y: 1993}
+  - {t: "The Tonight Show with Jay Leno", y: 1992}
+
+# Anime TV/OVA/ONA franchises. Each franchise is a list of AniDB entries in
+# broadcast order. Optional per entry:
+#   tmdb_season   TMDB season that holds the entry (maintainer knowledge,
+#                 marked as such in record notes; records stay draft)
+#   tmdb_offset   episodes of that TMDB season that precede this entry
+# Per franchise:
+#   abs           tvdb_absolute = regular episodes of previous entries + n
+#   tmdb_shared   every entry belongs to the TMDB series of the first entry
+#                 (maintainer knowledge, used when Wikidata has no id for it)
+#   names         filename titles: romaji, en, ru (as written by releasers)
+anime:
+  - key: one-piece
+    names: {romaji: "One Piece", ru: "Ван-Пис"}
+    abs: true
+    long: true
+    entries: [{aid: 69}]
+  - key: naruto
+    names: {romaji: "Naruto", ru: "Наруто"}
+    abs: true
+    long: true
+    entries: [{aid: 239}]
+  - key: naruto-shippuuden
+    names: {romaji: "Naruto Shippuuden", en: "Naruto Shippuden", ru: "Наруто: Ураганные хроники"}
+    abs: true
+    long: true
+    entries: [{aid: 4880}]
+  - key: bleach
+    names: {romaji: "Bleach", ru: "Блич"}
+    long: true
+    abs: true
+    entries:
+      - {aid: 2369}
+      - {aid: 15449, names: {romaji: "Bleach - Sennen Kessen-hen", en: "Bleach - Thousand-Year Blood War"}}
+      - {aid: 17765, names: {romaji: "Bleach - Sennen Kessen-hen - Ketsubetsu-tan", en: "Bleach - Thousand-Year Blood War - The Separation"}}
+      - {aid: 18220, names: {romaji: "Bleach - Sennen Kessen-hen - Soukoku-tan", en: "Bleach - Thousand-Year Blood War - The Conflict"}}
+  - key: gintama
+    tmdb_shared: true
+    names: {romaji: "Gintama", ru: "Гинтама"}
+    abs: true
+    long: true
+    entries:
+      - {aid: 3468}
+      - {aid: 8126, names: {romaji: "Gintama'"}}
+      - {aid: 9427, names: {romaji: "Gintama' Enchousen"}}
+      - {aid: 10993, names: {romaji: "Gintama°"}}
+      - {aid: 12419, names: {romaji: "Gintama."}}
+      - {aid: 13263, names: {romaji: "Gintama. (2017)"}}
+      - {aid: 13917, names: {romaji: "Gintama. Shirogane no Tamashii-hen - Kouhan-sen"}}
+  - key: detective-conan
+    names: {romaji: "Meitantei Conan", en: "Detective Conan", ru: "Детектив Конан"}
+    long: true
+    entries: [{aid: 266}]
+  - key: fairy-tail
+    tmdb_shared: true
+    names: {romaji: "Fairy Tail", ru: "Хвост Феи"}
+    abs: true
+    long: true
+    entries:
+      - {aid: 6662}
+      - {aid: 9980, names: {romaji: "Fairy Tail (2014)"}}
+      - {aid: 13295, names: {romaji: "Fairy Tail Final Series"}}
+  - key: hxh-2011
+    names: {romaji: "Hunter x Hunter (2011)", en: "Hunter x Hunter", ru: "Охотник х Охотник"}
+    abs: true
+    long: true
+    homonym: hxh
+    entries: [{aid: 8550}]
+  - key: hxh-1999
+    names: {romaji: "Hunter x Hunter", ru: "Охотник х Охотник"}
+    abs: true
+    homonym: hxh
+    entries: [{aid: 132}]
+  - key: dbz
+    names: {romaji: "Dragon Ball Z", ru: "Драконий жемчуг Зет"}
+    abs: true
+    long: true
+    entries: [{aid: 1530}]
+  - key: dbs
+    names: {romaji: "Dragon Ball Super", ru: "Драконий жемчуг Супер"}
+    abs: true
+    long: true
+    entries: [{aid: 11210}]
+  - key: black-clover
+    names: {romaji: "Black Clover", ru: "Чёрный клевер"}
+    abs: true
+    long: true
+    entries: [{aid: 12665}]
+  - key: boruto
+    names: {romaji: "Boruto - Naruto Next Generations", ru: "Боруто"}
+    abs: true
+    long: true
+    entries: [{aid: 12661}]
+  - key: fmab
+    names: {romaji: "Hagane no Renkinjutsushi - Fullmetal Alchemist", en: "Fullmetal Alchemist Brotherhood", ru: "Стальной алхимик: Братство"}
+    abs: true
+    homonym: fma
+    entries: [{aid: 6107, tmdb_season: 1}]
+  - key: fma-2003
+    names: {romaji: "Hagane no Renkinjutsushi", en: "Fullmetal Alchemist", ru: "Стальной алхимик"}
+    abs: true
+    homonym: fma
+    entries: [{aid: 979, tmdb_season: 1}]
+  - key: yyh
+    names: {romaji: "Yuu Yuu Hakusho", ru: "Отчёт о буйстве духов"}
+    abs: true
+    long: true
+    entries: [{aid: 312}]
+  - key: inuyasha
+    names: {romaji: "InuYasha", ru: "Инуяся"}
+    abs: true
+    long: true
+    entries: [{aid: 144}]
+  - key: jjk
+    names: {romaji: "Jujutsu Kaisen", ru: "Магическая битва"}
+    abs: true
+    entries:
+      - {aid: 15275, tmdb_season: 1}
+      - {aid: 17196, tmdb_season: 2, names: {romaji: "Jujutsu Kaisen 2nd Season", en: "Jujutsu Kaisen Season 2"}}
+  - key: aot
+    names: {romaji: "Shingeki no Kyojin", en: "Attack on Titan", ru: "Атака титанов"}
+    abs: true
+    entries:
+      - {aid: 9541, tmdb_season: 1}
+      - {aid: 10944, tmdb_season: 2, names: {romaji: "Shingeki no Kyojin Season 2", en: "Attack on Titan Season 2"}}
+      - {aid: 13241, tmdb_season: 3, names: {romaji: "Shingeki no Kyojin Season 3", en: "Attack on Titan Season 3"}}
+      - {aid: 14444, tmdb_season: 3, tmdb_offset: 12, names: {romaji: "Shingeki no Kyojin Season 3 Part 2", en: "Attack on Titan Season 3 Part 2"}}
+  - key: mha
+    names: {romaji: "Boku no Hero Academia", en: "My Hero Academia", ru: "Моя геройская академия"}
+    abs: true
+    entries:
+      - {aid: 11739, tmdb_season: 1}
+      - {aid: 12233, tmdb_season: 2, names: {romaji: "Boku no Hero Academia 2nd Season", en: "My Hero Academia Season 2"}}
+      - {aid: 13485, tmdb_season: 3, names: {romaji: "Boku no Hero Academia 3rd Season", en: "My Hero Academia Season 3"}}
+      - {aid: 14416, tmdb_season: 4, names: {romaji: "Boku no Hero Academia 4th Season", en: "My Hero Academia Season 4"}}
+      - {aid: 15484, tmdb_season: 5, names: {romaji: "Boku no Hero Academia 5th Season", en: "My Hero Academia Season 5"}}
+      - {aid: 16793, tmdb_season: 6, names: {romaji: "Boku no Hero Academia 6th Season", en: "My Hero Academia Season 6"}}
+  - key: haikyuu
+    names: {romaji: "Haikyuu!!", en: "Haikyu!!", ru: "Волейбол!!"}
+    abs: true
+    entries:
+      - {aid: 10145, tmdb_season: 1}
+      - {aid: 10981, tmdb_season: 2, names: {romaji: "Haikyuu!! Second Season", en: "Haikyu!! Season 2"}}
+      - {aid: 11991, tmdb_season: 3, names: {romaji: "Haikyuu!! Karasuno Koukou vs. Shiratorizawa Gakuen Koukou", en: "Haikyu!! Season 3"}}
+      - {aid: 14552, tmdb_season: 4, names: {romaji: "Haikyuu!! To the Top", en: "Haikyu!! To the Top"}}
+      - {aid: 15283, tmdb_season: 4, tmdb_offset: 13, names: {romaji: "Haikyuu!! To the Top Part 2", en: "Haikyu!! To the Top Part 2"}}
+  - key: kimetsu
+    names: {romaji: "Kimetsu no Yaiba", en: "Demon Slayer", ru: "Клинок, рассекающий демонов"}
+    entries:
+      - {aid: 14107, tmdb_season: 1}
+      - {aid: 16803, tmdb_season: 2, names: {romaji: "Kimetsu no Yaiba - Mugen Ressha-hen", en: "Demon Slayer - Mugen Train Arc"}}
+      - {aid: 16054, tmdb_season: 2, tmdb_offset: 7, names: {romaji: "Kimetsu no Yaiba - Yuukaku-hen", en: "Demon Slayer - Entertainment District Arc"}}
+      - {aid: 17198, tmdb_season: 3, names: {romaji: "Kimetsu no Yaiba - Katanakaji no Sato-hen", en: "Demon Slayer - Swordsmith Village Arc"}}
+      - {aid: 18067, tmdb_season: 4, names: {romaji: "Kimetsu no Yaiba - Hashira Geiko-hen", en: "Demon Slayer - Hashira Training Arc"}}
+  - key: mob
+    names: {romaji: "Mob Psycho 100", ru: "Моб Психо 100"}
+    abs: true
+    digits: true
+    entries:
+      - {aid: 11803, tmdb_season: 1}
+      - {aid: 13939, tmdb_season: 2, names: {romaji: "Mob Psycho 100 II"}}
+      - {aid: 16915, tmdb_season: 3, names: {romaji: "Mob Psycho 100 III"}}
+  - key: opm
+    names: {romaji: "One Punch Man", ru: "Ванпанчмен"}
+    abs: true
+    entries:
+      - {aid: 11123, tmdb_season: 1}
+      - {aid: 12430, tmdb_season: 2, names: {romaji: "One Punch Man 2nd Season", en: "One Punch Man Season 2"}}
+  - key: spy-family
+    names: {romaji: "Spy x Family", ru: "Семья шпиона"}
+    abs: true
+    entries:
+      - {aid: 16947, tmdb_season: 1}
+      - {aid: 17061, tmdb_season: 1, tmdb_offset: 12, names: {romaji: "Spy x Family Part 2", en: "Spy x Family Cour 2"}}
+      - {aid: 17784, tmdb_season: 2, names: {romaji: "Spy x Family Season 2"}}
+  - key: vinland
+    names: {romaji: "Vinland Saga", ru: "Сага о Винланде"}
+    abs: true
+    entries:
+      - {aid: 13945, tmdb_season: 1}
+      - {aid: 16426, tmdb_season: 2, names: {romaji: "Vinland Saga Season 2"}}
+  - key: rezero
+    names: {romaji: "Re Zero kara Hajimeru Isekai Seikatsu", en: "Re ZERO -Starting Life in Another World-", ru: "Re:Zero. Жизнь с нуля в альтернативном мире"}
+    entries:
+      - {aid: 11370, tmdb_season: 1}
+      - {aid: 14792, tmdb_season: 2, names: {romaji: "Re Zero kara Hajimeru Isekai Seikatsu 2nd Season"}}
+      - {aid: 15593, tmdb_season: 2, tmdb_offset: 13, names: {romaji: "Re Zero kara Hajimeru Isekai Seikatsu 2nd Season Part 2"}}
+  - key: kaguya
+    names: {romaji: "Kaguya-sama wa Kokurasetai", en: "Kaguya-sama - Love is War", ru: "Госпожа Кагуя: в любви как на войне"}
+    abs: true
+    entries:
+      - {aid: 14111, tmdb_season: 1}
+      - {aid: 15207, tmdb_season: 2, names: {romaji: "Kaguya-sama wa Kokurasetai S2", en: "Kaguya-sama - Love is War Season 2"}}
+      - {aid: 15806, tmdb_season: 3, names: {romaji: "Kaguya-sama wa Kokurasetai - Ultra Romantic", en: "Kaguya-sama - Love is War - Ultra Romantic"}}
+  - key: code-geass
+    names: {romaji: "Code Geass - Hangyaku no Lelouch", en: "Code Geass - Lelouch of the Rebellion", ru: "Код Гиас: Восставший Лелуш"}
+    abs: true
+    entries:
+      - {aid: 4521, tmdb_season: 1}
+      - {aid: 5373, tmdb_season: 2, names: {romaji: "Code Geass - Hangyaku no Lelouch R2", en: "Code Geass - Lelouch of the Rebellion R2"}}
+  - key: dr-stone
+    names: {romaji: "Dr. Stone", ru: "Доктор Стоун"}
+    abs: true
+    entries:
+      - {aid: 14491, tmdb_season: 1}
+      - {aid: 15305, tmdb_season: 2, names: {romaji: "Dr. Stone - Stone Wars"}}
+  - key: psycho-pass
+    names: {romaji: "Psycho-Pass", ru: "Психопаспорт"}
+    abs: true
+    entries:
+      - {aid: 9127, tmdb_season: 1}
+      - {aid: 10065, tmdb_season: 2, names: {romaji: "Psycho-Pass 2"}}
+  - key: clannad
+    names: {romaji: "Clannad", ru: "Кланнад"}
+    entries:
+      - {aid: 5101}
+      - {aid: 5841, names: {romaji: "Clannad - After Story"}}
+  - key: darker-than-black
+    names: {romaji: "Darker than Black - Kuro no Keiyakusha", en: "Darker than Black", ru: "Темнее чёрного"}
+    entries:
+      - {aid: 4906, tmdb_season: 1}
+  - key: three-gatsu
+    names: {romaji: "3-gatsu no Lion", en: "March Comes in Like a Lion", ru: "Мартовский лев"}
+    digits: true
+    entries:
+      - {aid: 11606, tmdb_season: 1}
+      - {aid: 12994, tmdb_season: 2, names: {romaji: "3-gatsu no Lion 2nd Season"}}
+  - key: frieren
+    names: {romaji: "Sousou no Frieren", en: "Frieren - Beyond Journey's End", ru: "Провожающая в последний путь Фрирен"}
+    abs: true
+    entries: [{aid: 17617, tmdb_season: 1}]
+  # single-season works: TMDB season 1 == the AniDB entry
+  - key: cowboy-bebop
+    names: {romaji: "Cowboy Bebop", ru: "Ковбой Бибоп"}
+    abs: true
+    entries: [{aid: 23, tmdb_season: 1}]
+  - key: champloo
+    names: {romaji: "Samurai Champloo", ru: "Самурай Чамплу"}
+    abs: true
+    entries: [{aid: 1543, tmdb_season: 1}]
+  - key: death-note
+    names: {romaji: "Death Note", ru: "Тетрадь смерти"}
+    abs: true
+    entries: [{aid: 4563, tmdb_season: 1}]
+  - key: steins-gate
+    names: {romaji: "Steins;Gate", ru: "Врата Штейна"}
+    abs: true
+    entries: [{aid: 7729, tmdb_season: 1}]
+  - key: steins-gate-0
+    names: {romaji: "Steins;Gate 0", ru: "Врата Штейна 0"}
+    digits: true
+    abs: true
+    entries: [{aid: 11167, tmdb_season: 1}]
+  - key: eva
+    names: {romaji: "Shinseiki Evangelion", en: "Neon Genesis Evangelion", ru: "Евангелион"}
+    abs: true
+    entries: [{aid: 22, tmdb_season: 1}]
+  - key: chainsaw-man
+    names: {romaji: "Chainsaw Man", ru: "Человек-бензопила"}
+    abs: true
+    entries: [{aid: 15914, tmdb_season: 1}]
+  - key: made-in-abyss
+    names: {romaji: "Made in Abyss", ru: "Созданный в Бездне"}
+    abs: true
+    entries: [{aid: 12681, tmdb_season: 1}]
+  - key: toradora
+    names: {romaji: "Toradora!", ru: "Торадора!"}
+    abs: true
+    entries: [{aid: 5909, tmdb_season: 1}]
+  - key: madoka
+    names: {romaji: "Mahou Shoujo Madoka Magica", en: "Puella Magi Madoka Magica", ru: "Девочка-волшебница Мадока"}
+    abs: true
+    entries: [{aid: 8069, tmdb_season: 1}]
+  - key: kimiuso
+    names: {romaji: "Shigatsu wa Kimi no Uso", en: "Your Lie in April", ru: "Твоя апрельская ложь"}
+    abs: true
+    entries: [{aid: 10539, tmdb_season: 1}]
+  - key: erased
+    names: {romaji: "Boku dake ga Inai Machi", en: "Erased", ru: "Город, в котором меня нет"}
+    abs: true
+    entries: [{aid: 11292, tmdb_season: 1}]
+  - key: bocchi
+    names: {romaji: "Bocchi the Rock!", ru: "Одинокий рокер!"}
+    abs: true
+    entries: [{aid: 16063, tmdb_season: 1}]
+  - key: eighty-six
+    names: {romaji: "86", en: "86 Eighty-Six", ru: "86: Восемьдесят шесть"}
+    digits: true
+    entries: [{aid: 15441, tmdb_season: 1}]
+  - key: ninety-one-days
+    names: {romaji: "91 Days", ru: "91 день"}
+    digits: true
+    abs: true
+    entries: [{aid: 12014}]
+  - key: monster
+    names: {romaji: "Monster", ru: "Монстр"}
+    abs: true
+    entries: [{aid: 1539, tmdb_season: 1}]
+  - key: akudama
+    names: {romaji: "Akudama Drive", ru: "Акудама Драйв"}
+    abs: true
+    entries: [{aid: 15437, tmdb_season: 1}]
+  - key: dorohedoro
+    names: {romaji: "Dorohedoro", ru: "Дорохедоро"}
+    abs: true
+    entries: [{aid: 14483, tmdb_season: 1}]
+  - key: lain
+    names: {romaji: "Serial Experiments Lain", ru: "Эксперименты Лэйн"}
+    abs: true
+    entries: [{aid: 99, tmdb_season: 1}]
+  - key: paranoia-agent
+    names: {romaji: "Mousou Dairinin", en: "Paranoia Agent", ru: "Агент паранойи"}
+    abs: true
+    entries: [{aid: 1265, tmdb_season: 1}]
+  - key: ping-pong
+    names: {romaji: "Ping Pong the Animation", ru: "Пинг-понг"}
+    abs: true
+    entries: [{aid: 10400, tmdb_season: 1}]
+  - key: gurren-lagann
+    names: {romaji: "Tengen Toppa Gurren Lagann", ru: "Гуррен-Лаганн"}
+    abs: true
+    entries: [{aid: 4575, tmdb_season: 1}]
+  - key: kill-la-kill
+    names: {romaji: "Kill la Kill", ru: "Убить или быть убитым"}
+    abs: true
+    entries: [{aid: 9875, tmdb_season: 1}]
+  - key: planetes
+    names: {romaji: "Planetes", ru: "Странники"}
+    abs: true
+    entries: [{aid: 895, tmdb_season: 1}]
+  - key: ergo-proxy
+    names: {romaji: "Ergo Proxy", ru: "Эрго Прокси"}
+    abs: true
+    entries: [{aid: 3302, tmdb_season: 1}]
+  - key: haibane
+    names: {romaji: "Haibane Renmei", ru: "Союз Серокрылых"}
+    abs: true
+    entries: [{aid: 271, tmdb_season: 1}]
+  - key: odd-taxi
+    names: {romaji: "Odd Taxi", ru: "Странное такси"}
+    abs: true
+    entries: [{aid: 15989, tmdb_season: 1}]
+  - key: anohana
+    names: {romaji: "Ano Hi Mita Hana no Namae wo Bokutachi wa Mada Shiranai", en: "Anohana", ru: "Невиданный цветок"}
+    abs: true
+    entries: [{aid: 8181, tmdb_season: 1}]
+  - key: violet
+    names: {romaji: "Violet Evergarden", ru: "Вайолет Эвергарден"}
+    abs: true
+    entries: [{aid: 12138, tmdb_season: 1}]
+  - key: sao
+    names: {romaji: "Sword Art Online", ru: "Мастера меча онлайн"}
+    abs: true
+    entries: [{aid: 8692, tmdb_season: 1}]
+  - key: nogenola
+    names: {romaji: "No Game No Life", ru: "Нет игры — нет жизни"}
+    abs: true
+    entries: [{aid: 9998, tmdb_season: 1}]
+  - key: trigun-1998
+    names: {romaji: "Trigun", ru: "Триган"}
+    abs: true
+    homonym: trigun
+    entries: [{aid: 53, tmdb_season: 1}]
+  - key: trigun-stampede
+    names: {romaji: "Trigun Stampede", ru: "Триган: Ураган"}
+    homonym: trigun
+    entries: [{aid: 17464, tmdb_season: 1}]
+  - key: fruits-basket-2001
+    names: {romaji: "Fruits Basket", ru: "Корзинка фруктов"}
+    abs: true
+    homonym: fruits-basket
+    entries: [{aid: 34, tmdb_season: 1}]
+  - key: fruits-basket-2019
+    names: {romaji: "Fruits Basket", ru: "Корзинка фруктов"}
+    homonym: fruits-basket
+    entries:
+      - {aid: 14490, tmdb_season: 1}
+      - {aid: 14988, tmdb_season: 2, names: {romaji: "Fruits Basket 2nd Season"}}
+      - {aid: 15738, tmdb_season: 3, names: {romaji: "Fruits Basket - The Final"}}
+  - key: dororo-2019
+    names: {romaji: "Dororo", ru: "Дороро"}
+    abs: true
+    homonym: dororo
+    entries: [{aid: 13946, tmdb_season: 1}]
+  - key: dororo-1969
+    names: {romaji: "Dororo", ru: "Дороро"}
+    homonym: dororo
+    entries: [{aid: 1119}]
+  - key: kino-2003
+    names: {romaji: "Kino no Tabi", en: "Kino's Journey", ru: "Путешествие Кино"}
+    homonym: kino
+    entries: [{aid: 575}]
+  - key: kino-2017
+    names: {romaji: "Kino no Tabi", en: "Kino's Journey", ru: "Путешествие Кино"}
+    homonym: kino
+    entries: [{aid: 12959}]
+  - key: hellsing-tv
+    names: {romaji: "Hellsing", ru: "Хеллсинг"}
+    homonym: hellsing
+    entries: [{aid: 32, tmdb_season: 1}]
+  # OVA / ONA / special works (A4)
+  - key: hellsing-ultimate
+    names: {romaji: "Hellsing Ultimate", ru: "Хеллсинг: Война с нечистью"}
+    homonym: hellsing
+    entries: [{aid: 3296}]
+  - key: logh
+    names: {romaji: "Ginga Eiyuu Densetsu", en: "Legend of the Galactic Heroes", ru: "Легенда о героях Галактики"}
+    long: true
+    entries: [{aid: 584}]
+  - key: flcl
+    names: {romaji: "FLCL", en: "Fooly Cooly", ru: "Фури-кури"}
+    entries: [{aid: 117}]
+  - key: gundam-08
+    names: {romaji: "Kidou Senshi Gundam - Dai 08 MS Shoutai", en: "Mobile Suit Gundam - The 08th MS Team"}
+    digits: true
+    entries: [{aid: 217}]
+  - key: gundam-0080
+    names: {romaji: "Kidou Senshi Gundam 0080 - Pocket no Naka no Sensou", en: "Mobile Suit Gundam 0080 - War in the Pocket"}
+    digits: true
+    entries: [{aid: 716}]
+  - key: aot-ova
+    names: {romaji: "Shingeki no Kyojin OVA", en: "Attack on Titan OVA"}
+    entries: [{aid: 9826}]
+  - key: rezero-ova
+    names: {romaji: "Re Zero kara Hajimeru Isekai Seikatsu OVA"}
+    entries: [{aid: 13430}]
+  - key: hxh-greed-island
+    names: {romaji: "Hunter x Hunter - Greed Island"}
+    entries: [{aid: 545}]
+  - key: hxh-ova
+    names: {romaji: "Hunter x Hunter OVA"}
+    entries: [{aid: 173}]
+  - key: edgerunners
+    names: {romaji: "Cyberpunk - Edgerunners", ru: "Киберпанк: Бегущие по краю"}
+    entries: [{aid: 15610, tmdb_season: 1}]
+  - key: devilman
+    names: {romaji: "Devilman Crybaby", ru: "Человек-дьявол: Плакса"}
+    entries: [{aid: 12986, tmdb_season: 1}]
+  - key: gintama-semi-final
+    names: {romaji: "Gintama - The Semi-Final"}
+    entries: [{aid: 15902}]
+  - key: gurren-parallel
+    names: {romaji: "Tengen Toppa Gurren Lagann - Parallel Works"}
+    entries: [{aid: 6082}]
+  - key: fairy-tail-ova
+    names: {romaji: "Fairy Tail OVA"}
+    entries: [{aid: 8132}]
+  - key: haikyuu-riku-vs-kuu
+    names: {romaji: "Haikyuu!! Riku vs Kuu"}
+    entries: [{aid: 15045}]
+
+anime_movies:
+  - {aid: 28, names: {romaji: "Akira", ru: "Акира"}}
+  - {aid: 61, names: {romaji: "Koukaku Kidoutai", en: "Ghost in the Shell", ru: "Призрак в доспехах"}, homonym: gits}
+  - {aid: 6122, names: {romaji: "Koukaku Kidoutai 2.0", en: "Ghost in the Shell 2.0"}, homonym: gits, digits: true}
+  - {aid: 890, names: {romaji: "Innocence", en: "Ghost in the Shell 2 - Innocence", ru: "Призрак в доспехах 2: Невинность"}, digits: true}
+  - {aid: 112, names: {romaji: "Sen to Chihiro no Kamikakushi", en: "Spirited Away", ru: "Унесённые призраками"}}
+  - {aid: 303, names: {romaji: "Tonari no Totoro", en: "My Neighbor Totoro", ru: "Мой сосед Тоторо"}}
+  - {aid: 7, names: {romaji: "Mononoke Hime", en: "Princess Mononoke", ru: "Принцесса Мононоке"}}
+  - {aid: 1218, names: {romaji: "Howl no Ugoku Shiro", en: "Howl's Moving Castle", ru: "Ходячий замок"}}
+  - {aid: 275, names: {romaji: "Kaze no Tani no Nausicaa", en: "Nausicaa of the Valley of the Wind", ru: "Навсикая из Долины ветров"}}
+  - {aid: 331, names: {romaji: "Tenkuu no Shiro Laputa", en: "Castle in the Sky", ru: "Небесный замок Лапута"}}
+  - {aid: 286, names: {romaji: "Majo no Takkyuubin", en: "Kiki's Delivery Service", ru: "Ведьмина служба доставки"}}
+  - {aid: 306, names: {romaji: "Kurenai no Buta", en: "Porco Rosso", ru: "Порко Россо"}}
+  - {aid: 5107, names: {romaji: "Gake no Ue no Ponyo", en: "Ponyo", ru: "Рыбка Поньо на утёсе"}}
+  - {aid: 9514, names: {romaji: "Kaze Tachinu", en: "The Wind Rises", ru: "Ветер крепчает"}}
+  - {aid: 13545, names: {romaji: "Kimitachi wa Dou Ikiru ka", en: "The Boy and the Heron", ru: "Мальчик и птица"}}
+  - {aid: 332, names: {romaji: "Hotaru no Haka", en: "Grave of the Fireflies", ru: "Могила светлячков"}}
+  - {aid: 11829, names: {romaji: "Kimi no Na wa", en: "Your Name", ru: "Твоё имя"}}
+  - {aid: 14534, names: {romaji: "Tenki no Ko", en: "Weathering with You", ru: "Дитя погоды"}}
+  - {aid: 17041, names: {romaji: "Suzume no Tojimari", en: "Suzume", ru: "Судзумэ, закрывающая двери"}}
+  - {aid: 10937, names: {romaji: "Koe no Katachi", en: "A Silent Voice", ru: "Форма голоса"}}
+  - {aid: 154, names: {romaji: "Perfect Blue", ru: "Истинная грусть"}}
+  - {aid: 4191, names: {romaji: "Paprika", ru: "Паприка"}}
+  - {aid: 1217, names: {romaji: "Tokyo Godfathers", ru: "Однажды в Токио"}}
+  - {aid: 570, names: {romaji: "Sennen Joyuu", en: "Millennium Actress", ru: "Актриса тысячелетия"}}
+  - {aid: 4151, names: {romaji: "Toki wo Kakeru Shoujo", en: "The Girl Who Leapt Through Time", ru: "Девочка, покорившая время"}}
+  - {aid: 8832, names: {romaji: "Ookami Kodomo no Ame to Yuki", en: "Wolf Children", ru: "Волчьи дети Амэ и Юки"}}
+  - {aid: 6249, names: {romaji: "Summer Wars", ru: "Летние войны"}}
+  - {aid: 13174, names: {romaji: "Mirai no Mirai", en: "Mirai", ru: "Мирай из будущего"}}
+  - {aid: 15924, names: {romaji: "Ryuu to Sobakasu no Hime", en: "Belle", ru: "Красавица и дракон"}}
+  - {aid: 15113, names: {romaji: "Kimetsu no Yaiba - Mugen Ressha-hen", en: "Demon Slayer - Mugen Train", ru: "Клинок, рассекающий демонов: Бесконечный поезд"}, franchise: kimetsu}
+  - {aid: 16169, names: {romaji: "Jujutsu Kaisen 0", ru: "Магическая битва 0"}, franchise: jjk, digits: true}
+  - {aid: 4847, names: {romaji: "Evangelion 1.0 You Are (Not) Alone", ru: "Евангелион 1.11: Ты (не) один"}, franchise: eva, digits: true}
+  - {aid: 6171, names: {romaji: "Evangelion 2.0 You Can (Not) Advance", ru: "Евангелион 2.22: Ты (не) пройдёшь"}, franchise: eva, digits: true}
+  - {aid: 7565, names: {romaji: "Evangelion 3.0 You Can (Not) Redo", ru: "Евангелион 3.33: Ты (не) исправишь"}, franchise: eva, digits: true}
+  - {aid: 8895, names: {romaji: "Evangelion 3.0+1.0 Thrice Upon a Time", ru: "Евангелион 3.0+1.0"}, franchise: eva, digits: true}
+  - {aid: 202, names: {romaji: "The End of Evangelion", ru: "Конец Евангелиона"}, franchise: eva}
+  - {aid: 8655, names: {romaji: "Steins;Gate - Fuka Ryouiki no Deja vu", en: "Steins;Gate The Movie - Load Region of Deja Vu"}, franchise: steins-gate}
+  - {aid: 14013, names: {romaji: "Violet Evergarden Movie", en: "Violet Evergarden The Movie", ru: "Вайолет Эвергарден. Фильм"}, franchise: violet}
+  - {aid: 15287, names: {romaji: "Josee to Tora to Sakana-tachi", en: "Josee, the Tiger and the Fish", ru: "Джозе, тигр и рыба"}}
+  - {aid: 16983, names: {romaji: "One Piece Film Red", ru: "Ван-Пис: Красный"}, franchise: one-piece}
+  - {aid: 15974, names: {romaji: "The First Slam Dunk", ru: "Первый слэм-данк"}}
+  - {aid: 6529, names: {romaji: "Redline", ru: "Красная линия"}}
+  - {aid: 395, names: {romaji: "Kidou Keisatsu Patlabor 2 the Movie", en: "Patlabor 2 The Movie"}, digits: true}
+  - {aid: 9515, names: {romaji: "Kaguya-hime no Monogatari", en: "The Tale of the Princess Kaguya", ru: "Сказание о принцессе Кагуя"}}
+  - {aid: 333, names: {romaji: "Omoide Poroporo", en: "Only Yesterday", ru: "Ещё вчера"}}
+  - {aid: 336, names: {romaji: "Mimi wo Sumaseba", en: "Whisper of the Heart", ru: "Шёпот сердца"}}
+  - {aid: 10313, names: {romaji: "Omoide no Marnie", en: "When Marnie Was There", ru: "Воспоминания о Марни"}}
+  - {aid: 7258, names: {romaji: "Karigurashi no Arrietty", en: "Arrietty", ru: "Ариэтти из страны лилипутов"}}
+  - {aid: 18493, names: {romaji: "Look Back", ru: "Оглянись"}}
+  - {aid: 11681, names: {romaji: "Sword Art Online - Ordinal Scale", ru: "Мастера меча онлайн: Порядковый ранг"}, franchise: sao}
+  - {aid: 720, names: {romaji: "Kidou Senshi Gundam - Gyakushuu no Char", en: "Mobile Suit Gundam - Char's Counterattack"}}
+  - {aid: 78, names: {romaji: "Metropolis", ru: "Метрополис"}}
+  - {aid: 277, names: {romaji: "Juubee Ninpuuchou", en: "Ninja Scroll", ru: "Манускрипт ниндзя"}}
+  - {aid: 204, names: {romaji: "Vampire Hunter D", ru: "Охотник на вампиров Ди"}, homonym: vhd}
+  - {aid: 66, names: {romaji: "Vampire Hunter D - Bloodlust", ru: "Охотник на вампиров Ди: Жажда крови"}, homonym: vhd}
+  - {aid: 1456, names: {romaji: "Naruto the Movie - Ninja Clash in the Land of Snow"}, franchise: naruto}
+  - {aid: 4515, names: {romaji: "Bleach - Memories of Nobody"}, franchise: bleach}
+  - {aid: 13657, names: {romaji: "Dragon Ball Super - Broly", ru: "Драконий жемчуг Супер: Броли"}, franchise: dbs}
+  - {aid: 14626, names: {romaji: "Dragon Ball Super - Super Hero"}, franchise: dbs}
+  - {aid: 9314, names: {romaji: "Dragon Ball Z - Battle of Gods"}, franchise: dbz}
+  - {aid: 13633, names: {romaji: "Boku no Hero Academia - Futari no Hero", en: "My Hero Academia - Two Heroes"}, franchise: mha}
+  - {aid: 17785, names: {romaji: "Spy x Family Code White"}, franchise: spy-family}
+  - {aid: 14719, names: {romaji: "Gintama - The Final"}, franchise: gintama}
+  - {aid: 4568, names: {romaji: "Byousoku 5 Centimeter", en: "5 Centimeters per Second", ru: "5 сантиметров в секунду"}, digits: true}

@@ -16,6 +16,9 @@ name: Flutter
 
 on:
   pull_request:
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
     paths:
       - "clients/flutter/**"
       - "design/flutter/**"
@@ -99,7 +102,7 @@ jobs:
       - name: Fetch design fonts (pinned SHA-256)
         run: |
           # pa_design ships Inter outside git; the app and package need it to build.
-          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
+          if [ -f "$GITHUB_WORKSPACE/design/scripts/fonts-fetch.mjs" ]; then (cd "$GITHUB_WORKSPACE" && node design/scripts/fonts-fetch.mjs); fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
@@ -139,14 +142,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libmpv-dev
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libmpv-dev libsecret-1-dev
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - name: Fetch design fonts (pinned SHA-256)
         run: |
           # pa_design ships Inter outside git; the app and package need it to build.
-          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
+          if [ -f "$GITHUB_WORKSPACE/design/scripts/fonts-fetch.mjs" ]; then (cd "$GITHUB_WORKSPACE" && node design/scripts/fonts-fetch.mjs); fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
@@ -180,7 +183,7 @@ jobs:
       - name: Fetch design fonts (pinned SHA-256)
         run: |
           # pa_design ships Inter outside git; the app and package need it to build.
-          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
+          if [ -f "$GITHUB_WORKSPACE/design/scripts/fonts-fetch.mjs" ]; then (cd "$GITHUB_WORKSPACE" && node design/scripts/fonts-fetch.mjs); fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable

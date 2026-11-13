@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-library"
+version = "0.1.0"
+description = "Media library storage: SQLite schema v1, embedded migrations, connection setup (LIB-001)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+rusqlite.workspace = true
+
+[dev-dependencies]
+pa-model = { path = "../pa-model" }
+serde.workspace = true
+serde_json.workspace = true
