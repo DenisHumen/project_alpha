@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MPL-2.0
+# UniFFI bindgen configuration for pa-ffi.
+# https://mozilla.github.io/uniffi-rs/latest/bindings.html
+
+[bindings.kotlin]
+package_name = "dev.projectalpha.core"
+cdylib_name = "pa_ffi"
+
+[bindings.swift]
+module_name = "PACore"
+ffi_module_name = "PACoreFFI"
+ffi_module_filename = "PACoreFFI"
+generate_module_map = true

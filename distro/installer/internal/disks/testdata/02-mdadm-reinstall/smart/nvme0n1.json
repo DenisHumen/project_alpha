@@ -1,0 +1,15 @@
+{
+  "smartctl": {
+    "exit_status": 0
+  },
+  "device": {
+    "name": "/dev/nvme0n1",
+    "type": "nvme"
+  },
+  "smart_status": {
+    "passed": true,
+    "nvme": {
+      "value": 0
+    }
+  }
+}

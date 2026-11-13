@@ -14,6 +14,7 @@
 | `scripts/build-image.sh` | сборка образа (`podman`, если есть, иначе `docker`) |
 | `scripts/make-disk.sh` | загрузочный raw-диск через `bootc install to-disk --via-loopback` в привилегированном контейнере |
 | `scripts/run-vm.sh` | запуск диска в QEMU/KVM (2 vCPU, 3 GiB, SSH на `127.0.0.1:22522`, `VM_UEFI=1` для OVMF) |
+| `installer/` | `alpha-installer` (Go): пока только обнаружение дисков (DIST-004), см. [installer/README.md](installer/README.md) |
 | `tests/vm-switch-rollback.sh` | сценарий фазы 0: switch → rollback → upgrade → rollback → digest-пин и возврат на тег |
 | `.work/` | локальные артефакты (диски, ключи SSH, логи); в git не попадает |
 

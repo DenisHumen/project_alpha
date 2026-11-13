@@ -1,0 +1,5 @@
+ID_BUS=usb
+ID_MODEL=Ultra
+ID_PATH=pci-0000:00:14.0-usb-0:3:1.0-scsi-0:0:0:0
+ID_USB_DRIVER=usb-storage
+ID_VENDOR=SanDisk

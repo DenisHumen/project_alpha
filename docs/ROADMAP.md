@@ -191,11 +191,11 @@ project_alpha/
   - Что: каталоги по §0.4; корневой `Cargo.toml` (workspace, `members` по глобу, `[workspace.dependencies]`), `rust-toolchain.toml`, `.editorconfig`, `.gitignore`, `.gitattributes` (LFS для `design/**`, `tests/media/**`), корневой `justfile` только с `mod`-строками, `.env.example`.
   - deps: — · size: S · parallel: no · веха: M0 · ref: S §7, 04 §4.1
   - done when: `just --list` показывает модули; `cargo metadata` проходит на пустом workspace; `git lfs track` настроен.
-- [ ] **REPO-002** LICENSE, SPDX-заголовки и REUSE
+- [x] **REPO-002** LICENSE, SPDX-заголовки и REUSE
   - Что: `LICENSE` (MPL-2.0 или по DEC-002), `LICENSES/`, `REUSE.toml` для сгенерированных и сторонних файлов, `reuse lint` в CI.
   - deps: DEC-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §5
   - done when: `reuse lint` зелёный и обязателен в CI.
-- [ ] **REPO-003** CONTRIBUTING, CODE_OF_CONDUCT, SECURITY
+- [x] **REPO-003** CONTRIBUTING, CODE_OF_CONDUCT, SECURITY
   - Что: CONTRIBUTING (DCO, Conventional Commits, worktree-процесс, ссылка на §0.3); Contributor Covenant 2.1; SECURITY.md с GitHub Private Vulnerability Reporting и сроками ответа.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: файлы есть, GitHub показывает их во вкладке Community Standards.
@@ -207,11 +207,11 @@ project_alpha/
   - Что: CODEOWNERS по таблице §0.4; ruleset для `main` (только PR, squash, обязательные проверки, запрет force-push, linear history); окружения `release` и `store` с required reviewer.
   - deps: REPO-004, CI-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.5
   - done when: прямой push в `main` отклоняется; релизный job ждёт подтверждения.
-- [ ] **REPO-006** Шаблоны issue и PR, метки как код
+- [x] **REPO-006** Шаблоны issue и PR, метки как код
   - Что: issue-формы (bug, feature, playback-issue с полем для stats-отчёта, recognition-miss с анонимизированным путём); PR-шаблон (ID, тесты, платформы, чекбокс в ROADMAP, DCO); `.github/labels.yml` (`ws:*`, `M0..M10`, `size:*`, `flavor:store|full`, `good first issue`, `help wanted`) с синхронизацией через action.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §3 п.11
   - done when: метки созданы автоматически; новое issue открывается по форме.
-- [ ] **REPO-007** AGENTS.md и CLAUDE.md для агентов
+- [x] **REPO-007** AGENTS.md и CLAUDE.md для агентов
   - Что: корневой AGENTS.md (как брать задачу, команды проверки, запреты из §0.3 п.10) плюс короткие AGENTS.md в `core/`, `clients/flutter/`, `clients/apple/`, `server/`, `distro/` с командами сборки и тестов области.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.1
   - done when: агент по одному AGENTS.md собирает и тестирует свою область на чистой машине.
@@ -219,7 +219,7 @@ project_alpha/
   - Что: `mise.toml` (Flutter/Dart, JDK 17, Go, Node, cargo-ndk), `.xcode-version`, `just bootstrap` для Linux, macOS и Windows; `.devcontainer/` для Linux-части (Rust, Android SDK/NDK, Flutter Linux, Go, podman).
   - deps: REPO-001 · size: M · parallel: yes · веха: M0 · ref: 04 §4.3
   - done when: `just bootstrap && just test` проходит на чистых Ubuntu 24.04, macOS 15 и Windows 11, а также в devcontainer.
-- [ ] **REPO-009** Политика секретов
+- [x] **REPO-009** Политика секретов
   - Что: gitleaks (pre-commit и CI), GitHub secret scanning и push protection, `.env.example` со всеми переменными, документ «какие секреты где живут» (CI, окружения, OIDC).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: 04 §4.5, CLAUDE.md
   - done when: коммит с тестовым ключом блокируется локально и в CI.
@@ -293,7 +293,7 @@ project_alpha/
 
 ### 3.3. CORE — ядро на Rust, FFI, общие сервисы
 
-- [ ] **CORE-001** `pa-ffi`: каркас UniFFI
+- [x] **CORE-001** `pa-ffi`: каркас UniFFI
   - Что: крейт `pa-ffi` с UniFFI proc-macro, функция `core_version()`, генерация Kotlin и Swift через `just bindings` (сгенерированное не коммитится, кроме требований Xcode).
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 02 §1.4, 04 §1.3
   - done when: unit-тест FFI, биндинги Kotlin и Swift генерируются в CI.
@@ -518,10 +518,10 @@ project_alpha/
   - Что: NFKC, casefold, варианты ромадзи (`ou`/`ō`/`o`), транслит кириллицы в обе стороны (ГОСТ и бытовой), удаление артиклей; индекс n-gram + BM25 + fuzzy (tantivy или свой) по названиям AniDB titles dump, anime-offline-database, Shikimori и горячему кэшу TMDB.
   - deps: META-005 · size: L · parallel: yes · веха: M2 · ref: 03 §4.2 [4]
   - done when: на корпусе ≥ 90 % верных кандидатов попадают в топ-10 без внешних запросов.
-- [ ] **META-008** Встроенные маппинги аниме
-  - Что: снапшот Anime-Lists XML и Fribb `anime-list-full.json` в бандле приложения; обновление с GitHub (ETag, проверка целостности); резервный форк в нашей организации.
+- [x] **META-008** Встроенные маппинги аниме
+  - Что: по `docs/legal/anime-mappings.md` — в бандле только производная база из anime-offline-database (ODbL, с атрибуцией, сама под ODbL, воспроизводимая сборка `data/anime-mappings/build.sh`); Anime-Lists XML и Fribb `anime-list-full.json` (без лицензии) не встраиваются и не зеркалятся — приложение скачивает их с upstream прямо на устройство (зашитые URL, ETag, не чаще раза в сутки, проверка целостности и SHA-256, локальный кэш, атомарная замена); слияние слоёв только в памяти устройства; резервный форк — только для anime-offline-database.
   - deps: REPO-001, LEGAL-003 · size: M · parallel: yes · веха: M2 · ref: S §3, 03 §3.2, §9 п.3
-  - done when: офлайн-тест маппинга AniDB ↔ TVDB ↔ TMDB; обновление применяется атомарно.
+  - done when: офлайн-тест маппинга AniDB ↔ TVDB ↔ TMDB на рукописных фикстурах (без копий Anime-Lists/Fribb); обновление применяется атомарно; в репозитории и бандле нет данных без лицензии.
 - [ ] **META-009** Трейт Provider и клиент TMDB
   - Что: сетевой слой вне sans-IO ядра; TMDB: поиск, детали, переводы ru-RU, альтернативные названия, episode groups, external ids, изображения, коллекции; rate limit, ProviderCache с TTL; ключ проекта по умолчанию (по DEC-008) и поле «свой ключ».
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 03 §3.1, §4.7, S §3
@@ -581,7 +581,7 @@ project_alpha/
 
 ### 3.7. PLAY — общий плеерный слой
 
-- [ ] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов (Linux и Windows готовы; Android и Apple ждут CI на macOS/NDK)
+- [x] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
@@ -1203,7 +1203,7 @@ project_alpha/
   - Что: имя по DEC-004, `os-release` (`ID_LIKE=fedora`), `dnf swap fedora-logos generic-logos`, grub, plymouth и motd без Fedora; формулировка «основано на Fedora Linux».
   - deps: DIST-001, DEC-004 · size: S · parallel: yes · веха: M8 · ref: 05 §7
   - done when: `grep -ri fedora` по брендинговым местам образа чист (кроме допустимой фактической ссылки).
-- [ ] **DIST-004** Установщик: обнаружение дисков (Go)
+- [x] **DIST-004** Установщик: обнаружение дисков (Go)
   - Что: `lsblk -J` + udev + `/sys/class/nvme/*/model`; имена вида «Samsung 990 PRO 1TB — /dev/nvme0n1»; десятичные размеры; фильтр loop, zram, sr и загрузочной флешки; признаки существующих данных (PTTYPE, blkid, mdraid); SMART.
   - deps: DIST-001 · size: M · parallel: yes · веха: M8 · ref: 05 §2.4 (чтение дисков)
   - done when: `go test` на записанных выводах lsblk и udev с 10 конфигурациями железа.
@@ -1604,7 +1604,7 @@ project_alpha/
   - Что: категории (Q&A, Ideas с голосованием, Show and tell, Announcements, «Ошибки распознавания»); процесс «идея → голосование → статус → задача в ROADMAP».
   - deps: DEC-001 · size: S · parallel: yes · веха: M0 · ref: 01 §3 п.11
   - done when: шаблоны обсуждений созданы; процесс описан в CONTRIBUTING.
-- [ ] **COMM-003** README на русском и английском
+- [x] **COMM-003** README на русском и английском
   - Что: что это, статус, скриншоты (без чужого арта), ссылки на ROADMAP, скачивание, донаты, документацию; бейджи CI.
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: S §1
   - done when: README отражает M0; ссылки проверяются в CI.
