@@ -1,0 +1,233 @@
+{
+   "blockdevices": [
+      {
+         "name": "loop0",
+         "kname": "loop0",
+         "path": "/dev/loop0",
+         "type": "loop",
+         "model": null,
+         "vendor": null,
+         "serial": null,
+         "wwn": null,
+         "size": 1873870848,
+         "tran": null,
+         "rota": false,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": "squashfs",
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ]
+      },
+      {
+         "name": "loop1",
+         "kname": "loop1",
+         "path": "/dev/loop1",
+         "type": "loop",
+         "model": null,
+         "vendor": null,
+         "serial": null,
+         "wwn": null,
+         "size": 8589934592,
+         "tran": null,
+         "rota": false,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": "ext4",
+         "label": "Anaconda",
+         "uuid": null,
+         "mountpoints": [
+            null
+         ],
+         "children": [
+            {
+               "name": "live-rw",
+               "kname": "dm-0",
+               "path": "/dev/live-rw",
+               "type": "dm",
+               "model": null,
+               "vendor": null,
+               "serial": null,
+               "wwn": null,
+               "size": 8589934592,
+               "tran": null,
+               "rota": false,
+               "rm": false,
+               "hotplug": false,
+               "ro": false,
+               "pttype": null,
+               "parttype": null,
+               "partlabel": null,
+               "fstype": "ext4",
+               "label": "Anaconda",
+               "uuid": null,
+               "mountpoints": [
+                  "/"
+               ]
+            }
+         ]
+      },
+      {
+         "name": "loop2",
+         "kname": "loop2",
+         "path": "/dev/loop2",
+         "type": "loop",
+         "model": null,
+         "vendor": null,
+         "serial": null,
+         "wwn": null,
+         "size": 33554432,
+         "tran": null,
+         "rota": false,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ]
+      },
+      {
+         "name": "sr0",
+         "kname": "sr0",
+         "path": "/dev/sr0",
+         "type": "rom",
+         "model": "QEMU DVD-ROM",
+         "vendor": "QEMU    ",
+         "serial": null,
+         "wwn": null,
+         "size": 2147483648,
+         "tran": "sata",
+         "rota": false,
+         "rm": true,
+         "hotplug": false,
+         "ro": true,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": "iso9660",
+         "label": "ALPHA-OS-INSTALL",
+         "uuid": "2026-11-01-12-00-00-00",
+         "mountpoints": [
+            "/run/initramfs/live"
+         ]
+      },
+      {
+         "name": "zram0",
+         "kname": "zram0",
+         "path": "/dev/zram0",
+         "type": "disk",
+         "model": null,
+         "vendor": null,
+         "serial": null,
+         "wwn": null,
+         "size": 8589934592,
+         "tran": null,
+         "rota": false,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": "swap",
+         "label": "zram0",
+         "uuid": null,
+         "mountpoints": [
+            "[SWAP]"
+         ]
+      },
+      {
+         "name": "vda",
+         "kname": "vda",
+         "path": "/dev/vda",
+         "type": "disk",
+         "model": null,
+         "vendor": "0x1af4",
+         "serial": null,
+         "wwn": null,
+         "size": 68719476736,
+         "tran": null,
+         "rota": true,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ]
+      },
+      {
+         "name": "vdb",
+         "kname": "vdb",
+         "path": "/dev/vdb",
+         "type": "disk",
+         "model": null,
+         "vendor": "0x1af4",
+         "serial": null,
+         "wwn": null,
+         "size": 34359738368,
+         "tran": null,
+         "rota": true,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": "gpt",
+         "parttype": null,
+         "partlabel": null,
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ],
+         "children": [
+            {
+               "name": "vdb1",
+               "kname": "vdb1",
+               "path": "/dev/vdb1",
+               "type": "part",
+               "model": null,
+               "vendor": null,
+               "serial": null,
+               "wwn": null,
+               "size": 34358672896,
+               "tran": null,
+               "rota": true,
+               "rm": false,
+               "hotplug": false,
+               "ro": false,
+               "pttype": "gpt",
+               "parttype": "0fc63daf-8483-4772-8e79-3d69d8477de4",
+               "partlabel": null,
+               "fstype": "xfs",
+               "label": "scratch",
+               "uuid": "2d3c4b5a-6978-4f8e-9d0c-1b2a39485766",
+               "mountpoints": [
+                  null
+               ]
+            }
+         ]
+      }
+   ]
+}

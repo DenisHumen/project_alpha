@@ -1,0 +1,17 @@
+  Samsung 980 500GB         500 GB  NVMe  /dev/nvme0n1  S/N …1111
+! WD Elements 2621          4.0 TB  USB   /dev/sdb      S/N …3637
+      GPT partition table, 1 partition(s)
+      exfat "Backup" on /dev/sdb1
+  JMicron USB drive 500 GB  500 GB  USB   /dev/sde
+- Verbatim STORE N GO        32 GB  USB   /dev/sda      S/N …7354
+      excluded: boot-media
+      DOS partition table, 2 partition(s)
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sda
+      iso9660 "ALPHA-OS-INSTALL" on /dev/sda1
+      EFI system partition /dev/sda2 (an OS is likely installed)
+- SD/MMC                       0 B  USB   /dev/sdc
+      excluded: no-media
+- SanDisk Cruzer Blade       16 GB  USB   /dev/sdd
+      excluded: too-small
+      DOS partition table, 1 partition(s)
+      vfat "MUSIC" on /dev/sdd1
