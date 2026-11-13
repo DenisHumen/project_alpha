@@ -171,7 +171,6 @@ final RegExp _junkRegexes = RegExp(
   r')$',
   caseSensitive: false,
 );
-final RegExp _crcRe = RegExp(r'^[0-9a-f]{8}$', caseSensitive: false);
 final RegExp _yearRe = RegExp(r'^(?:19\d\d|20\d\d)$');
 
 /// SxxEyy with optional extra episodes: S01E01, S01E01E02, S01E01-E02,
