@@ -931,7 +931,7 @@ project_alpha/
 
 ### 3.13. SYNC — синхронизация без облака
 
-- [ ] **SYNC-001** `pa-sync`: модель, HLC, LWW и outbox
+- [x] **SYNC-001** `pa-sync`: модель, HLC, LWW и outbox
   - Что: гибридные логические часы, `op_id` (UUIDv7), операции (progress.upsert, watched/unwatch, favorite, rating, плейлисты, folder_rule, настройки без секретов, избранное Twitch); LWW по полю, «просмотрено» монотонно; outbox в SQLite с идемпотентностью и ретраями.
   - deps: CORE-005, LIB-001 · size: M · parallel: no · веха: M3 · ref: 04 §1.8
   - done when: property-тест (proptest): применение операций в любом порядке даёт одно состояние.
