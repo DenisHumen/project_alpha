@@ -7,7 +7,10 @@ use std::path::PathBuf;
 
 use pa_library::rusqlite::{Connection, params};
 use pa_library::{Error, HISTORY_TABLE, MIGRATIONS, latest_version, migrate, open, open_in_memory};
-use pa_model::{AnimeType, EpisodeType, MediaKey, MediaKind, NumberingScheme, WorkKind};
+use pa_model::{
+    AnimeType, BroadcasterType, EpisodeType, MediaKey, MediaKind, NumberingScheme,
+    VideoAvailability, VideoType, WorkKind,
+};
 
 const TABLES: &[&str] = &[
     "anime_entries",
@@ -43,8 +46,22 @@ const TABLES: &[&str] = &[
     "sources",
     "sync_outbox",
     "titles",
+    "twitch_assets",
+    "twitch_categories",
+    "twitch_category_segments",
+    "twitch_chat_logs",
+    "twitch_clips",
+    "twitch_favorites",
+    "twitch_live_sessions",
+    "twitch_record_rules",
+    "twitch_search",
+    "twitch_streamers",
+    "twitch_videos",
     "works",
 ];
+
+/// Shadow tables SQLite keeps for an FTS5 table; they belong to it.
+const FTS5_SHADOWS: [&str; 5] = ["config", "content", "data", "docsize", "idx"];
 
 fn tables(conn: &Connection) -> Vec<String> {
     let mut stmt = conn
@@ -53,10 +70,29 @@ fn tables(conn: &Connection) -> Vec<String> {
              AND name NOT LIKE 'sqlite\\_%' ESCAPE '\\' AND name <> ?1 ORDER BY name",
         )
         .unwrap();
-    stmt.query_map([HISTORY_TABLE], |r| r.get(0))
+    let all: Vec<String> = stmt
+        .query_map([HISTORY_TABLE], |r| r.get(0))
         .unwrap()
         .collect::<Result<_, _>>()
+        .unwrap();
+    let virtual_tables: Vec<String> = conn
+        .prepare(
+            "SELECT name FROM sqlite_schema WHERE type = 'table' AND sql LIKE 'CREATE VIRTUAL%'",
+        )
         .unwrap()
+        .query_map([], |r| r.get(0))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap();
+    all.into_iter()
+        .filter(|t| {
+            !virtual_tables.iter().any(|v| {
+                FTS5_SHADOWS
+                    .iter()
+                    .any(|suffix| *t == format!("{v}_{suffix}"))
+            })
+        })
+        .collect()
 }
 
 fn count(conn: &Connection, table: &str) -> i64 {
@@ -395,6 +431,31 @@ fn build_graph(conn: &Connection) -> Graph {
         INSERT INTO music_track_artists (track_id, artist_id, role, position) VALUES (112, 110, 'artist', 0);
         INSERT INTO music_genres (id, name, name_key) VALUES (113, 'Rock', 'rock');
         INSERT INTO music_track_genres (track_id, genre_id, position) VALUES (112, 113, 0);
+
+        INSERT INTO twitch_streamers (id, user_id, login, display_name, fetched_at_ms, updated_at_ms)
+            VALUES (120, '141981764', 'twitchdev', 'TwitchDev', {now}, {now});
+        INSERT INTO twitch_categories (id, game_id, name, fetched_at_ms) VALUES (121, '509658', 'Just Chatting', {now});
+        INSERT INTO twitch_favorites (profile_id, user_id, added_at_ms) VALUES (2, '141981764', {now});
+        INSERT INTO twitch_live_sessions (id, stream_id, user_id, started_at_ms, title_last, fetched_at_ms)
+            VALUES (122, '40000000001', '141981764', {now}, 'Live', {now});
+        INSERT INTO twitch_videos (id, video_id, user_id, stream_id, video_type, title, published_at_ms,
+                                   duration_ms, fetched_at_ms)
+            VALUES (123, '2000000001', '141981764', '40000000001', 'archive', 'VOD', {now}, 3600000, {now});
+        INSERT INTO twitch_category_segments (video_id, game_id, start_ms, end_ms, source)
+            VALUES ('2000000001', '509658', 0, 600000, 'eventsub');
+        INSERT INTO twitch_category_segments (stream_id, game_id, start_ms, source)
+            VALUES ('40000000001', '509658', 0, 'eventsub');
+        INSERT INTO twitch_clips (id, slug, broadcaster_id, video_id, game_id, title, created_at_ms,
+                                  duration_ms, fetched_at_ms)
+            VALUES (124, 'Funny-Clip_1', '141981764', '2000000001', '509658', 'Clip', {now}, 30000, {now});
+        INSERT INTO files (id, source_id, path, size_bytes, added_at_ms)
+            VALUES (103, 10, 'Twitch/twitchdev/2000000001.mkv', 1000, {now});
+        INSERT INTO twitch_assets (id, file_id, kind, user_id, video_id, title, origin, created_at_ms)
+            VALUES (125, 103, 'vod', '141981764', '2000000001', 'VOD', 'server', {now});
+        INSERT INTO twitch_chat_logs (asset_id, path, created_at_ms)
+            VALUES (125, 'Twitch/twitchdev/2000000001.chat.json.gz', {now});
+        INSERT INTO twitch_record_rules (profile_id, user_id, categories_filter_json, created_at_ms, updated_at_ms)
+            VALUES (2, '141981764', '[\"509658\"]', {now}, {now});
         "
     ))
     .unwrap();
@@ -503,7 +564,7 @@ fn deleting_a_work_cascades_through_the_catalog() {
         .unwrap();
     assert_eq!(favorites_of_work, 0);
     // Files stay, now unmatched; the anime entry loses its relation.
-    assert_eq!(count(&conn, "files"), 3);
+    assert_eq!(count(&conn, "files"), 4);
     let prev: Option<i64> = conn
         .query_row(
             "SELECT relation_prev FROM anime_entries WHERE work_id = ?1",
@@ -632,6 +693,42 @@ fn work_and_episode_enums_match_pa_model() {
 }
 
 #[test]
+fn twitch_enums_match_pa_model() {
+    let conn = open_in_memory().unwrap();
+    for (i, t) in [
+        BroadcasterType::Partner,
+        BroadcasterType::Affiliate,
+        BroadcasterType::Normal,
+    ]
+    .iter()
+    .enumerate()
+    {
+        conn.execute(
+            "INSERT INTO twitch_streamers (user_id, login, display_name, broadcaster_type, \
+             fetched_at_ms, updated_at_ms) VALUES (?1, 'l', 'D', ?2, 0, 0)",
+            params![(i + 1).to_string(), serde_name(t)],
+        )
+        .unwrap();
+    }
+    let mut n = 0;
+    for t in [VideoType::Archive, VideoType::Highlight, VideoType::Upload] {
+        for a in [
+            VideoAvailability::Online,
+            VideoAvailability::Deleted,
+            VideoAvailability::Unknown,
+        ] {
+            n += 1;
+            conn.execute(
+                "INSERT INTO twitch_videos (video_id, user_id, video_type, title, published_at_ms, \
+                 duration_ms, availability, fetched_at_ms) VALUES (?1, '1', ?2, 't', 0, 0, ?3, 0)",
+                params![n.to_string(), serde_name(&t), serde_name(&a)],
+            )
+            .unwrap();
+        }
+    }
+}
+
+#[test]
 fn progress_accepts_every_media_kind_and_key() {
     let conn = open_in_memory().unwrap();
     let keys = [
@@ -710,6 +807,22 @@ fn checks_reject_bad_values() {
         "INSERT INTO music_albums (album_key, title, art_kind, created_at_ms, updated_at_ms) VALUES ('k', 't', 'folder', 0, 0)",
         "INSERT INTO music_albums (album_key, title, art_kind, art_path, created_at_ms, updated_at_ms) VALUES ('k', 't', 'web', 'x', 0, 0)",
         "INSERT INTO music_genres (name, name_key) VALUES ('', '')",
+        "INSERT INTO twitch_streamers (user_id, login, display_name, fetched_at_ms, updated_at_ms) \
+         VALUES ('0123', 'a', 'A', 0, 0)",
+        "INSERT INTO twitch_streamers (user_id, login, display_name, broadcaster_type, fetched_at_ms, updated_at_ms) \
+         VALUES ('1', 'a', 'A', 'staff', 0, 0)",
+        "INSERT INTO twitch_videos (video_id, user_id, video_type, title, published_at_ms, duration_ms, fetched_at_ms) \
+         VALUES ('1', '1', 'premiere', 't', 0, 0, 0)",
+        "INSERT INTO twitch_videos (video_id, user_id, video_type, title, published_at_ms, duration_ms, \
+         availability, fetched_at_ms) VALUES ('1', '1', 'archive', 't', 0, 0, 'gone', 0)",
+        "INSERT INTO twitch_favorites (profile_id, user_id, source, added_at_ms) VALUES (1, '1', 'twitch', 0)",
+        "INSERT INTO twitch_category_segments (game_id, start_ms, source) VALUES ('1', 0, 'eventsub')",
+        "INSERT INTO twitch_clips (slug, broadcaster_id, title, created_at_ms, duration_ms, fetched_at_ms) \
+         VALUES ('bad slug', '1', 't', 0, 0, 0)",
+        "INSERT INTO twitch_assets (file_id, kind, user_id, title, origin, created_at_ms) \
+         VALUES (1, 'vod', '1', 't', 'server', 0)",
+        "INSERT INTO twitch_record_rules (profile_id, user_id, categories_filter_json, created_at_ms, updated_at_ms) \
+         VALUES (1, '1', '{}', 0, 0)",
     ];
     for sql in bad {
         let err = conn.execute(sql, []).unwrap_err();

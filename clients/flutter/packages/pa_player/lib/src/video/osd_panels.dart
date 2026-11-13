@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../engine/player_engine.dart';
+import '../l10n/pa_player_strings.dart';
 import '../play_request.dart';
 import '../ui/focus_button.dart';
 import '../ui/tokens.dart';
@@ -50,17 +51,21 @@ class OsdSidePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = PaPlayerStrings.of(context);
     final title = switch (panel) {
-      OsdPanel.audio => 'Audio',
-      OsdPanel.subtitles => 'Subtitles',
-      OsdPanel.subtitleFile => 'Subtitle file',
-      OsdPanel.speed => 'Playback speed',
-      OsdPanel.info => 'Info',
+      OsdPanel.audio => l.audio,
+      OsdPanel.subtitles => l.subtitles,
+      OsdPanel.subtitleFile => l.subtitleFile,
+      OsdPanel.speed => l.playbackSpeed,
+      OsdPanel.info => l.info,
       OsdPanel.none => '',
     };
     return Container(
       key: ValueKey('panel-${panel.name}'),
-      width: 380,
+      // Fits a phone in portrait (360 px wide) next to the margins.
+      width: MediaQuery.sizeOf(context).width < 428
+          ? MediaQuery.sizeOf(context).width - 48
+          : 380,
       margin: const EdgeInsets.all(24),
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
       decoration: BoxDecoration(
@@ -89,7 +94,7 @@ class OsdSidePanel extends StatelessWidget {
                 ),
                 FocusIconButton(
                   icon: Icons.close_rounded,
-                  tooltip: 'Close',
+                  tooltip: l.close,
                   size: 40,
                   onPressed: onClose,
                 ),
@@ -101,10 +106,10 @@ class OsdSidePanel extends StatelessWidget {
                 valueListenable: engine.state,
                 builder: (context, s, _) => ListView(
                   children: switch (panel) {
-                    OsdPanel.audio => _audio(s),
-                    OsdPanel.subtitles => _subtitles(s),
-                    OsdPanel.speed => _speed(s),
-                    OsdPanel.info => _info(s),
+                    OsdPanel.audio => _audio(s, l),
+                    OsdPanel.subtitles => _subtitles(s, l),
+                    OsdPanel.speed => _speed(s, l),
+                    OsdPanel.info => _info(s, l),
                     OsdPanel.subtitleFile => [
                       SubtitleFileBrowser(
                         startDir: _dirOf(request.uri),
@@ -125,15 +130,15 @@ class OsdSidePanel extends StatelessWidget {
     );
   }
 
-  List<Widget> _audio(EngineState s) {
+  List<Widget> _audio(EngineState s, PaPlayerStrings l) {
     if (s.audioTracks.isEmpty) {
-      return [const _Empty('No audio tracks')];
+      return [_Empty(l.noAudioTracks)];
     }
     return [
       for (final t in s.audioTracks)
         FocusListRow(
           key: ValueKey('audio-${t.id}'),
-          title: t.label,
+          title: l.trackLabel(t),
           selected: t == s.audioTrack,
           autofocus: t == s.audioTrack,
           onPressed: () {
@@ -144,12 +149,12 @@ class OsdSidePanel extends StatelessWidget {
     ];
   }
 
-  List<Widget> _subtitles(EngineState s) {
+  List<Widget> _subtitles(EngineState s, PaPlayerStrings l) {
     final off = s.subtitleTrack == null || s.subtitleTrack!.isOff;
     return [
       FocusListRow(
         key: const ValueKey('sub-off'),
-        title: 'Off',
+        title: l.off,
         selected: off,
         autofocus: off,
         onPressed: () {
@@ -160,8 +165,8 @@ class OsdSidePanel extends StatelessWidget {
       for (final t in s.subtitleTracks)
         FocusListRow(
           key: ValueKey('sub-${t.id}'),
-          title: t.label,
-          subtitle: t.external ? 'External file' : null,
+          title: l.trackLabel(t),
+          subtitle: t.external ? l.externalFile : null,
           selected: t == s.subtitleTrack,
           autofocus: t == s.subtitleTrack,
           onPressed: () {
@@ -171,18 +176,18 @@ class OsdSidePanel extends StatelessWidget {
         ),
       FocusListRow(
         key: const ValueKey('sub-file'),
-        title: 'Load from file…',
+        title: l.loadFromFile,
         leading: const Icon(Icons.folder_open_rounded),
         onPressed: () => osd.openPanel(OsdPanel.subtitleFile),
       ),
     ];
   }
 
-  List<Widget> _speed(EngineState s) => [
+  List<Widget> _speed(EngineState s, PaPlayerStrings l) => [
     for (final r in kPlaybackSpeeds)
       FocusListRow(
         key: ValueKey('speed-$r'),
-        title: r == 1.0 ? 'Normal' : formatRate(r),
+        title: r == 1.0 ? l.normalSpeed : formatRate(r),
         selected: (s.rate - r).abs() < 0.001,
         autofocus: (s.rate - r).abs() < 0.001,
         onPressed: () {
@@ -192,14 +197,14 @@ class OsdSidePanel extends StatelessWidget {
       ),
   ];
 
-  List<Widget> _info(EngineState s) {
+  List<Widget> _info(EngineState s, PaPlayerStrings l) {
     final rows = <String, String>{
-      'Title': request.title,
-      'Position': '${_fmt(s.position)} / ${_fmt(s.duration)}',
-      'Speed': formatRate(s.rate),
-      if (s.audioTrack != null) 'Audio': s.audioTrack!.label,
-      if (s.subtitleTrack != null) 'Subtitles': s.subtitleTrack!.label,
-      ...s.info,
+      l.infoTitle: request.title,
+      l.infoPosition: '${_fmt(s.position)} / ${_fmt(s.duration)}',
+      l.speed: formatRate(s.rate),
+      if (s.audioTrack != null) l.audio: l.trackLabel(s.audioTrack!),
+      if (s.subtitleTrack != null) l.subtitles: l.trackLabel(s.subtitleTrack!),
+      for (final e in s.info.entries) l.engineInfoKey(e.key): e.value,
     };
     return [
       for (final e in rows.entries)
@@ -273,7 +278,7 @@ class SubtitleFileBrowser extends StatefulWidget {
 class _SubtitleFileBrowserState extends State<SubtitleFileBrowser> {
   late Directory _dir;
   List<FileSystemEntity> _entries = const [];
-  String? _error;
+  bool _failed = false;
 
   @override
   void initState() {
@@ -298,10 +303,10 @@ class _SubtitleFileBrowserState extends State<SubtitleFileBrowser> {
           return dot > 0 && kSubtitleExtensions.contains(n.substring(dot));
         }),
       ];
-      _error = null;
+      _failed = false;
     } catch (e) {
       _entries = const [];
-      _error = 'Cannot open folder';
+      _failed = true;
     }
   }
 
@@ -316,6 +321,7 @@ class _SubtitleFileBrowserState extends State<SubtitleFileBrowser> {
   @override
   Widget build(BuildContext context) {
     final parent = _dir.parent;
+    final l = PaPlayerStrings.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -335,9 +341,8 @@ class _SubtitleFileBrowserState extends State<SubtitleFileBrowser> {
             autofocus: _entries.isEmpty,
             onPressed: () => _open(parent),
           ),
-        if (_error != null) _Empty(_error!),
-        if (_error == null && _entries.isEmpty)
-          const _Empty('No subtitle files here'),
+        if (_failed) _Empty(l.cannotOpenFolder),
+        if (!_failed && _entries.isEmpty) _Empty(l.noSubtitleFiles),
         for (var i = 0; i < _entries.length; i++)
           FocusListRow(
             key: ValueKey(_entries[i].path),
