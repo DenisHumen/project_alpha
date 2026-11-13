@@ -388,10 +388,10 @@ project_alpha/
   - Что: FFmpeg `AVIOContext` (read/seek) и mpv `stream_cb` (C ABI) поверх ByteSource.
   - deps: NET-001, PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §4
   - done when: тест: libavformat открывает MKV с WebDAV через адаптер; mpv играет `pa://<id>`.
-- [ ] **NET-009** mDNS/DNS-SD обнаружение
+- [x] **NET-009** mDNS/DNS-SD обнаружение
   - Что: `mdns-sd` для `_smb._tcp`, `_webdav._tcp`, `_nfs._tcp`, `_projectalpha._tcp`; на iOS и tvOS — NWBrowser через колбэк; Info.plist (`NSLocalNetworkUsageDescription`, `NSBonjourServices`); Android MulticastLock.
-  - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 02 §4, 04 §1.6
-  - done when: тестовый Samba с Avahi находится на Linux, Android и iOS-симуляторе.
+  - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 02 §4, 04 §1.6, ADR-0019
+  - done when: тестовый Samba с Avahi находится на Linux, Android и iOS-симуляторе. Сделано в ядре (`pa-discovery`, колбэки `PlatformBrowser` и `MulticastLock`), проверено на Linux; обвязка и проверка на Android и iOS — NET-020.
 - [ ] **NET-010** WS-Discovery, NetBIOS, Plex GDM, Jellyfin UDP
   - Что: обнаружение Windows-шар (WS-Discovery, NetBIOS NS), Plex (UDP 32414), Jellyfin (UDP 7359); multicast на Apple — только после выдачи entitlement (PKG-012).
   - deps: NET-009 · size: M · parallel: yes · веха: M4 · ref: 02 §4, 04 §1.6
@@ -432,6 +432,11 @@ project_alpha/
   - Что: копирование файла через pa-jobs с докачкой по offset; на iOS для SMB/NFS — только в foreground или `BGProcessingTask`; Android — WorkManager + foreground service `dataSync`; на tvOS загрузок нет.
   - deps: NET-001, CORE-011 · size: M · parallel: yes · веха: M4 · ref: 04 §1.9, 02 §4
   - done when: загрузка 4 ГБ с SMB докачивается после обрыва сети; прогресс приходит в UI.
+
+- [ ] **NET-020** Обвязка обнаружения в LAN на Android и Apple
+  - Что: Android — `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`) как реализация `pa_discovery::MulticastLock`; iOS и tvOS — `NWBrowser` как `PlatformBrowser`, `Info.plist` (`NSLocalNetworkUsageDescription`, `NSBonjourServices` из `bonjour_services()`); экспорт через FFI.
+  - deps: NET-009, CORE-002 · size: S · parallel: yes · веха: M1 · ref: ADR-0019, 02 §4
+  - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе.
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
@@ -956,7 +961,7 @@ project_alpha/
   - deps: SYNC-001, CORE-007 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: отозванное устройство больше не может подключиться (тест).
 - [ ] **SYNC-006** P2P-транспорт в LAN и выбор хаба
-  - Что: mDNS `_projectalpha-sync._tcp`, WebSocket между устройствами, шифрование (Noise или TLS с ключами из pairing); хабом становится любое включённое устройство (приоритет: сервер, десктоп, ТВ, телефон).
+  - Что: mDNS `_alpha-sync._tcp` (ADR-0019; `_projectalpha-sync` длиннее 15 символов RFC 6763), WebSocket между устройствами, шифрование (Noise или TLS с ключами из pairing); хабом становится любое включённое устройство (приоритет: сервер, десктоп, ТВ, телефон).
   - deps: SYNC-002, SYNC-005, NET-009 · size: L · parallel: yes · веха: M3 · ref: S §2
   - done when: три устройства в LAN сходятся; при выключении хаба выбирается новый меньше чем за 10 с.
 - [ ] **SYNC-007** Синхронизация через хранилище
@@ -1737,7 +1742,7 @@ project_alpha/
 | REPO | 13 | SRV | 18 |
 | CI | 12 | MUS | 15 |
 | CORE | 15 | TWI | 22 |
-| NET | 19 | DIST | 27 |
+| NET | 20 | DIST | 27 |
 | LIB | 15 | DSN | 15 |
 | META | 25 | PKG | 17 |
 | PLAY | 12 | QA | 11 |

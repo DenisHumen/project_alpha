@@ -34,6 +34,7 @@ flutter_rust_bridge = "=2.13.0"
 getrandom = "0.4"
 hkdf = "0.13"
 keyring-core = { version = "1.0.1", default-features = false }
+mdns-sd = { version = "0.21.7", default-features = false }
 proptest = "1.12"
 quick-xml = "0.42"
 reqwest = { version = "0.13", default-features = false }
