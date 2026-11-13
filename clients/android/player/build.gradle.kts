@@ -34,6 +34,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // JUnit runs on the JVM: android.jar stubs return defaults (PlaybackException reads SystemClock).
+    testOptions.unitTests.isReturnDefaultValues = true
+
     sourceSets {
         getByName("main") {
             kotlin.srcDir(genDir.resolve("kotlin"))
