@@ -24,6 +24,8 @@ trap 'rm -f "$misses"' EXIT
 python3 "$here/tape.py" "$misses" > "$out/tmdb-search.tape.jsonl"
 
 "$bin/pa-eval" run --recognizer abstain --json "$out/abstain.json" --md "$out/abstain.md" "$corpus"/*.jsonl
+# Product filename parser (META-005/META-006): parse metrics only, no work matching.
+"$bin/pa-eval" run --recognizer parser --json "$out/parser.json" --md "$out/parser.md" "$corpus"/*.jsonl
 "$bin/pa-eval" run --recognizer naive --tape "$out/tmdb-search.tape.jsonl" \
     --json "$out/naive.json" --md "$out/naive.md" "$corpus"/*.jsonl
 "$bin/pa-eval" run --recognizer naive --tape "$out/tmdb-search.tape.jsonl" --threshold 0.8 \

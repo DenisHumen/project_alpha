@@ -301,11 +301,11 @@ project_alpha/
   - Что: `clients/flutter/packages/pa_core` с FRB codegen, async-функции и Stream; загрузка нативной библиотеки на 5 Flutter-платформах.
   - deps: CORE-001 · size: M · parallel: no · веха: M0 · ref: 02 §1.4
   - done when: Dart-тест вызывает `core_version()` и подписывается на тестовый Stream.
-- [ ] **CORE-003** Apple: xcframework и SwiftPM `PACore`
+- [x] **CORE-003** Apple: xcframework и SwiftPM `PACore`
   - Что: `tools/bindings/build-xcframework.sh` (ios, ios-sim, tvos, tvos-sim, macos universal), binary target и Swift-обёртка UniFFI.
   - deps: CORE-001 · size: M · parallel: yes · веха: M0 · ref: 02 §1.4, 04 §4.4
   - done when: XCTest на симуляторах iOS и tvOS вызывает `core_version()`.
-- [ ] **CORE-004** Android: AAR `pa-core-android`
+- [x] **CORE-004** Android: AAR `pa-core-android`
   - Что: cargo-ndk → jniLibs (arm64-v8a, armeabi-v7a, x86_64), Gradle-модуль с UniFFI Kotlin.
   - deps: CORE-001 · size: S · parallel: yes · веха: M0 · ref: 02 §1.4
   - done when: instrumented-тест на эмуляторе вызывает ядро.
@@ -527,7 +527,7 @@ project_alpha/
   - Что: форк или вендоринг hunch (MIT) в `pa-recognition/parse`; токенизатор (скобки `[] () {} 【】`, разделители) → классификаторы токенов → `ParsedName` с весами; без кода под LGPL и GPL.
   - deps: REPO-001 · size: L · parallel: yes · веха: M1 · ref: 03 §2.2, §4.2 [3]
   - done when: ≥ 85 % на тест-кейсах guessit (как eval); защита от ReDoS — только линейные регулярки.
-- [ ] **META-006** Правила для аниме и русских релизов
+- [x] **META-006** Правила для аниме и русских релизов
   - Что: правила в духе anitomy, написанные заново (группа релиза, CRC32, `v2`, батчи, абсолютные номера, `.5`, NCOP/NCED); словари русских студий озвучки и трекеров; двойные названия «Рус / Orig (год)»; «Сезон N, серии 1–8 из 10».
   - deps: META-005 · size: M · parallel: yes · веха: M2 · ref: 03 §1.2 (A1, A4, A6, A7), §3.3
   - done when: поля категорий A1, A4, A6 и A7 корпуса разбираются с точностью ≥ 95 %.
@@ -614,8 +614,8 @@ project_alpha/
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
-- [ ] **PLAY-002** LGPL-сборка libmpv
-  - Что: mpv с `-Dgpl=false`, libplacebo, libass, libdovi (MIT); для Linux, Windows и macOS, а также Android (fallback-движок).
+- [x] **PLAY-002** LGPL-сборка libmpv
+  - Что: mpv с `-Dgpl=false`, libplacebo, libass (libdovi — PLAY-014; подключение в Android-APK — PLAY-013); для Linux, Windows и macOS, а также Android (fallback-движок).
   - deps: PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §2.2, §3.1
   - done when: `mpv_client_api_version` доступен; в выводе конфигурации нет GPL.
 - [x] **PLAY-003** Контракт `PlayerEngine` и выбор движка
@@ -658,6 +658,14 @@ project_alpha/
   - Что: Cast sender на Android и iOS (только в флейворах без ограничений F-Droid — Cast SDK проприетарный); AirPlay нативно на Apple; на Cast отдаётся HLS от сервера или файл через прокси.
   - deps: PLAY-003 · size: M · parallel: yes · веха: M5 · ref: 01 §1.5
   - done when: воспроизведение на Chromecast и Apple TV по AirPlay с синхронизацией прогресса.
+- [ ] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
+  - Что: локальная копия `media_kit_libs_android_video` через `dependency_overrides`: Java-обвязка остаётся, скачивание готовых jar убирается; `jniLibs` наполняются `tools/mpv/bundle.sh android` из артефактов `libmpv-android-*` (PLAY-002); `check-native-licences.sh` проверяет APK.
+  - deps: PLAY-002 · size: S · parallel: yes · веха: M1 · ref: tools/mpv/README.md
+  - done when: release-APK содержит только наши LGPL `libmpv.so`/FFmpeg, видео воспроизводится на устройстве, проверка лицензий зелёная.
+- [ ] **PLAY-014** libdovi в сборке libmpv
+  - Что: libdovi (MIT, Rust, cargo-c) для всех таргетов `tools/mpv`, libplacebo с `-Dlibdovi=enabled`; сейчас DV-reshaping идёт встроенным кодом libplacebo.
+  - deps: PLAY-002 · size: M · parallel: yes · веха: M2 · ref: 02 §2.2
+  - done when: `BUILDINFO.txt` показывает libdovi на всех таргетах, гейт лицензий зелёный.
 
 ### 3.8. PLAY-AND — плеер Android и Android TV
 
@@ -968,7 +976,7 @@ project_alpha/
   - Что: `.project_alpha/state/<device_id>.jsonl` в папке SMB или WebDAV — append-only журнал на каждое устройство, слияние по HLC, компакция в снапшоты, блокировки не нужны (каждое устройство пишет свой файл).
   - deps: SYNC-001, NET-003, NET-004 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: тест с тремя устройствами, работающими офлайн и онлайн в произвольном порядке, сходится.
-- [ ] **SYNC-008** Хаб синхронизации на сервере
+- [x] **SYNC-008** Хаб синхронизации на сервере
   - Что: WebSocket-эндпоинт в SRV; сервер авторитетен для своей библиотеки; fan-out не дольше 200 мс; журнал `server_seq`; клиенты одновременно держат сервер и P2P, дубликаты гасятся по op_id и HLC.
   - deps: SYNC-002, SRV-001 · size: M · parallel: yes · веха: M4 · ref: 04 §1.8.1
   - done when: нагрузочный тест: 50 устройств, 10 сообщений в секунду, задержка p95 меньше 200 мс.
@@ -1133,7 +1141,7 @@ project_alpha/
   - Что: users, channels/followed, streams/followed, streams, channels, videos, clips, games и games/top, search, schedule, chat emotes, badges, color, settings; token bucket по заголовкам `Ratelimit-*`; курсорная пагинация с дедупликацией.
   - deps: CORE-006 · size: M · parallel: yes · веха: M7 · ref: 06 §1.1, §1.4
   - done when: тесты на записанных ответах; 429 обрабатывается корректно.
-- [ ] **TWI-002** Вход через Device Code Flow
+- [x] **TWI-002** Вход через Device Code Flow
   - Что: публичный client_id без секрета; QR и `user_code`; опрос токена; refresh заранее (меньше 10 мин до истечения) и строго по одному; повторный вход после 30 дней неактивности; отдельный токен на каждое устройство в SecretStore; минимальные scope.
   - deps: TWI-001, CORE-007 · size: M · parallel: yes · веха: M7 · ref: 06 §1.3, 04 §5.1.1
   - done when: тест гонки refresh; токены не появляются в логах и sync-журнале.
