@@ -47,15 +47,15 @@ class Media3PlaybackTest(private val file: String, private val codec: String) {
             under.advance(1_000)
             assertNear(8_000uL, engine.state().positionMs, "playing after seek")
 
-            // Tracks as in the file: two audio (eng default, rus), one subtitle (eng, off).
+            // Tracks as in the file: two audio (en default, ru), one subtitle (en, off); Media3 normalises languages to BCP 47.
             s = engine.state()
-            assertEquals(listOf("eng", "rus"), s.audioTracks.map { it.language })
-            assertEquals(listOf("eng"), s.subtitleTracks.map { it.language })
+            assertEquals(listOf("en", "ru"), s.audioTracks.map { it.language })
+            assertEquals(listOf("en"), s.subtitleTracks.map { it.language })
             assertEquals(s.audioTracks.first { it.default }.id, s.audioTrack)
             assertNull(s.subtitleTrack)
 
             // Switch audio to Russian and turn subtitles on, then off.
-            val rus = s.audioTracks.first { it.language == "rus" }.id
+            val rus = s.audioTracks.first { it.language == "ru" }.id
             val sub = s.subtitleTracks.first().id
             engine.setAudioTrack(rus)
             engine.setSubtitleTrack(sub)

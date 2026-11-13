@@ -54,7 +54,7 @@ class Media3MappingTest {
         val t = Media3Mapping.track(f, Media3Mapping.trackId(f, C.TRACK_TYPE_AUDIO, 1, 0))
         assertEquals("2", t.id)
         assertEquals("Russian", t.title)
-        assertEquals("rus", t.language)
+        assertEquals("ru", t.language) // Media3 normalises to BCP 47
         assertEquals("aac", t.codec)
         assertEquals(6u, t.channels)
         assertTrue(t.default)
