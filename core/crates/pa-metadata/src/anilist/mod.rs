@@ -235,7 +235,10 @@ impl AniListClient {
     pub fn search(&self, query: &str) -> Result<Vec<Media>, FetchError> {
         let mut vars = Map::new();
         vars.insert("search".into(), json!(query.trim()));
-        vars.insert("perPage".into(), json!(self.config.search_limit.clamp(1, 50)));
+        vars.insert(
+            "perPage".into(),
+            json!(self.config.search_limit.clamp(1, 50)),
+        );
         if !self.config.include_adult {
             vars.insert("isAdult".into(), json!(false));
         }
@@ -288,8 +291,8 @@ impl AniListClient {
         class: TtlClass,
     ) -> Result<T, FetchError> {
         let body = self.query_body(query, variables, class)?;
-        let response: GraphqlResponse<T> = serde_json::from_str(&body)
-            .map_err(|e| FetchError::Decode(format!("AniList: {e}")))?;
+        let response: GraphqlResponse<T> =
+            serde_json::from_str(&body).map_err(|e| FetchError::Decode(format!("AniList: {e}")))?;
         response
             .data
             .ok_or_else(|| FetchError::Decode("AniList: no data".into()))
@@ -366,8 +369,8 @@ impl Hooks for AniListHooks<'_> {
     }
 
     fn check_ok(&self, body: &str) -> Result<(), FetchError> {
-        let parsed: GraphqlResponse<Value> = serde_json::from_str(body)
-            .map_err(|e| FetchError::Decode(format!("AniList: {e}")))?;
+        let parsed: GraphqlResponse<Value> =
+            serde_json::from_str(body).map_err(|e| FetchError::Decode(format!("AniList: {e}")))?;
         match parsed.errors.into_iter().next() {
             None => Ok(()),
             Some(e) if e.status == Some(404) => Err(FetchError::NotFound {

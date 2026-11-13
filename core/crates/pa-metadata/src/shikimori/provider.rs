@@ -84,9 +84,9 @@ fn to_value<T: serde::Serialize>(v: &T) -> Result<Value, ProviderError> {
 fn id(p: &Params<'_>) -> Result<u64, ProviderError> {
     match p.opt_number::<u64>("id")? {
         Some(id) => Ok(id),
-        None => p.opt_number::<u64>("mal_id")?.ok_or_else(|| {
-            ProviderError::BadRequest("missing param \"id\" or \"mal_id\"".into())
-        }),
+        None => p
+            .opt_number::<u64>("mal_id")?
+            .ok_or_else(|| ProviderError::BadRequest("missing param \"id\" or \"mal_id\"".into())),
     }
 }
 

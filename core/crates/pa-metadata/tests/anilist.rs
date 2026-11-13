@@ -107,7 +107,13 @@ fn media_by_id_and_mal_id_with_relations() {
     let edges = &m.relations.as_ref().unwrap().edges;
     let rel: Vec<_> = edges
         .iter()
-        .map(|e| (e.relation_type.as_deref().unwrap(), e.node.id, e.node.is_anime()))
+        .map(|e| {
+            (
+                e.relation_type.as_deref().unwrap(),
+                e.node.id,
+                e.node.is_anime(),
+            )
+        })
         .collect();
     assert_eq!(
         rel,
@@ -153,7 +159,13 @@ fn adult_and_missing_media_are_not_found() {
     );
     assert!(adult_ok.media(700009).unwrap().adult());
     assert_eq!(
-        adult_ok.media(700001).unwrap().relations.unwrap().edges.len(),
+        adult_ok
+            .media(700001)
+            .unwrap()
+            .relations
+            .unwrap()
+            .edges
+            .len(),
         4
     );
 }
@@ -256,7 +268,10 @@ fn server_errors_are_retried_and_graphql_errors_reported() {
     match f.client.search("Partial Error").unwrap_err() {
         FetchError::Http {
             status, message, ..
-        } => assert_eq!((status, message.as_str()), (500, "Internal error in a resolver")),
+        } => assert_eq!(
+            (status, message.as_str()),
+            (500, "Internal error in a resolver")
+        ),
         other => panic!("{other:?}"),
     }
     assert_eq!(f.requests(), n + 1, "a 200 with errors is not retried");
@@ -272,7 +287,9 @@ fn transport_without_post_is_unavailable() {
         Arc::new(MemoryCache::default()),
         Arc::new(ManualClock::at_unix(T0)),
     );
-    let err = client.answer(&req("search", &[("query", "x")])).unwrap_err();
+    let err = client
+        .answer(&req("search", &[("query", "x")]))
+        .unwrap_err();
     assert!(
         matches!(&err, ProviderError::Unavailable(m) if m.contains("POST is not supported")),
         "{err:?}"
@@ -341,7 +358,10 @@ fn load_adapts_to_90_per_minute_and_is_capped() {
     assert_eq!(client.rate_per_minute(), 90);
     let peak = max_in_window(&transport.times(), MINUTE);
     assert!((85..=90).contains(&peak), "{peak}");
-    assert!(clock.monotonic() < Duration::from_secs(300), "faster than 30/min");
+    assert!(
+        clock.monotonic() < Duration::from_secs(300),
+        "faster than 30/min"
+    );
 
     // AniList announcing more than the configured ceiling changes nothing.
     let (client, transport, _) = load_client(Some("120"), AniListConfig::default());
@@ -414,13 +434,19 @@ fn neutral_search_normalizes_and_filters() {
 
     let movies = f
         .client
-        .call(&req("search", &[("query", "Kitsune Relay"), ("kind", "movie")]))
+        .call(&req(
+            "search",
+            &[("query", "Kitsune Relay"), ("kind", "movie")],
+        ))
         .unwrap();
     assert_eq!(movies["results"][0]["ids"]["anilist"], "700003");
     assert_eq!(movies["results"].as_array().unwrap().len(), 1);
     let y2023 = f
         .client
-        .call(&req("search", &[("query", "Kitsune Relay"), ("year", "2023")]))
+        .call(&req(
+            "search",
+            &[("query", "Kitsune Relay"), ("year", "2023")],
+        ))
         .unwrap();
     assert_eq!(y2023["results"][0]["ids"]["mal"], "600002");
     assert_eq!(f.requests(), 1, "filters reuse one cached search");
@@ -429,12 +455,18 @@ fn neutral_search_normalizes_and_filters() {
 #[test]
 fn neutral_details_and_relations() {
     let f = fixture();
-    let d = f.client.answer(&req("details", &[("mal_id", "600001")])).unwrap();
+    let d = f
+        .client
+        .answer(&req("details", &[("mal_id", "600001")]))
+        .unwrap();
     assert_eq!(d["id"], 700001);
     assert_eq!(d["title"]["english"], "Fox Relay");
     assert_eq!(d["startDate"]["year"], 2021);
 
-    let r = f.client.answer(&req("relations", &[("id", "700001")])).unwrap();
+    let r = f
+        .client
+        .answer(&req("relations", &[("id", "700001")]))
+        .unwrap();
     assert_eq!(
         r["relations"],
         json!([
@@ -454,7 +486,9 @@ fn neutral_details_and_relations() {
 fn neutral_errors() {
     let f = fixture();
     let bad = |r: ProviderRequest| matches!(f.client.answer(&r), Err(ProviderError::BadRequest(_)));
-    assert!(bad(ProviderRequest::new("tmdb", "search").param("query", "x")));
+    assert!(bad(
+        ProviderRequest::new("tmdb", "search").param("query", "x")
+    ));
     assert!(bad(req("episodes", &[("id", "1")])));
     assert!(bad(req("details", &[])));
     assert!(bad(req("details", &[("id", "abc")])));

@@ -9,12 +9,18 @@ use std::time::Duration;
 use pa_metadata::clock::{Clock, ManualClock};
 use pa_metadata::http::{HttpRequest, HttpResponse, HttpTransport, TransportError};
 
+/// Generates a response for a request and its optional JSON body.
+type Responder = Box<dyn Fn(&HttpRequest, Option<&str>) -> HttpResponse + Send + Sync>;
+
+/// One recorded call: manual time, request, body.
+pub type Call = (Duration, HttpRequest, Option<String>);
+
 /// Answers every request with a generated response and records the
 /// (manual) time of each call: the load-test transport.
 pub struct ClockedTransport {
     clock: Arc<ManualClock>,
-    respond: Box<dyn Fn(&HttpRequest, Option<&str>) -> HttpResponse + Send + Sync>,
-    pub calls: Mutex<Vec<(Duration, HttpRequest, Option<String>)>>,
+    respond: Responder,
+    pub calls: Mutex<Vec<Call>>,
 }
 
 impl ClockedTransport {

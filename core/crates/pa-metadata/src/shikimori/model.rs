@@ -63,7 +63,10 @@ impl AnimeShort {
 
     /// The Russian title, if Shikimori has a non-empty one.
     pub fn russian_title(&self) -> Option<&str> {
-        self.russian.as_deref().map(str::trim).filter(|s| !s.is_empty())
+        self.russian
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
     }
 }
 

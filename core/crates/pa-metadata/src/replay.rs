@@ -348,7 +348,8 @@ mod tests {
         let cassette = r#"{"request":{"path":"/","graphql":{"operation":"Media","variables":{"id":7}}},"response":{"status":200,"body":{"data":{"Media":{"id":7}}}}}"#;
         let t = ReplayTransport::from_jsonl(cassette).unwrap();
         let r = request("/", &[]);
-        let body = r#"{"query":"query Media($id: Int) { Media(id: $id) { id } }","variables":{"id":7}}"#;
+        let body =
+            r#"{"query":"query Media($id: Int) { Media(id: $id) { id } }","variables":{"id":7}}"#;
         assert_eq!(
             t.post_json(&r, body).unwrap().body,
             r#"{"data":{"Media":{"id":7}}}"#
@@ -362,8 +363,14 @@ mod tests {
         let rec = RecordingTransport::new(t);
         rec.post_json(&r, body).unwrap();
         let jsonl = rec.to_jsonl();
-        assert!(jsonl.contains(r#""graphql":{"operation":"Media","variables":{"id":7}}"#), "{jsonl}");
-        assert!(!jsonl.contains("query Media"), "query text is not recorded: {jsonl}");
+        assert!(
+            jsonl.contains(r#""graphql":{"operation":"Media","variables":{"id":7}}"#),
+            "{jsonl}"
+        );
+        assert!(
+            !jsonl.contains("query Media"),
+            "query text is not recorded: {jsonl}"
+        );
         let replay = ReplayTransport::from_jsonl(&jsonl).unwrap();
         assert!(replay.post_json(&r, body).is_ok());
 
@@ -371,7 +378,13 @@ mod tests {
             r#"{"request":{"path":"/p","body":{"b":1,"a":[1]}},"response":{"status":201}}"#,
         )
         .unwrap();
-        assert_eq!(plain.post_json(&r_path("/p"), r#"{"a":[1],"b":1}"#).unwrap().status, 201);
+        assert_eq!(
+            plain
+                .post_json(&r_path("/p"), r#"{"a":[1],"b":1}"#)
+                .unwrap()
+                .status,
+            201
+        );
     }
 
     fn r_path(path: &str) -> HttpRequest {

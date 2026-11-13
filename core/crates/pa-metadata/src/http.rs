@@ -253,12 +253,16 @@ mod live {
         }
     }
 
-    fn read(mut response: ureq::http::Response<ureq::Body>) -> Result<HttpResponse, TransportError> {
+    fn read(
+        mut response: ureq::http::Response<ureq::Body>,
+    ) -> Result<HttpResponse, TransportError> {
         let status = response.status().as_u16();
         let headers = response
             .headers()
             .iter()
-            .filter_map(|(k, v)| Some((k.as_str().to_ascii_lowercase(), v.to_str().ok()?.to_owned())))
+            .filter_map(|(k, v)| {
+                Some((k.as_str().to_ascii_lowercase(), v.to_str().ok()?.to_owned()))
+            })
             .collect();
         let body = response
             .body_mut()
@@ -335,6 +339,9 @@ mod tests {
             r.canonical_post(r#"{"query":"{ Viewer { id } }"}"#),
             "/search/movie graphql:anonymous{}"
         );
-        assert_eq!(r.canonical_post(r#"{"b":1,"a":2}"#), r#"/search/movie {"a":2,"b":1}"#);
+        assert_eq!(
+            r.canonical_post(r#"{"b":1,"a":2}"#),
+            r#"/search/movie {"a":2,"b":1}"#
+        );
     }
 }

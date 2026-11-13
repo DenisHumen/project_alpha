@@ -283,7 +283,8 @@ impl ShikimoriClient {
                 class,
             },
         )?;
-        serde_json::from_str(&body).map_err(|e| FetchError::Decode(format!("Shikimori {path}: {e}")))
+        serde_json::from_str(&body)
+            .map_err(|e| FetchError::Decode(format!("Shikimori {path}: {e}")))
     }
 }
 

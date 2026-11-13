@@ -223,7 +223,10 @@ fn load_stays_within_5_per_second_and_90_per_minute() {
     let per_minute = max_in_window(&times, Duration::from_secs(60));
     assert!(per_second <= 5, "{per_second} requests in one second");
     assert!(per_minute <= 90, "{per_minute} requests in one minute");
-    assert!(per_minute >= 85, "limiter is not needlessly slow: {per_minute}");
+    assert!(
+        per_minute >= 85,
+        "limiter is not needlessly slow: {per_minute}"
+    );
 }
 
 #[test]
@@ -231,7 +234,10 @@ fn neutral_requests() {
     let mut f = fixture();
     let found = f
         .client
-        .call(&req("search", &[("query", "Kitsune Relay"), ("kind", "movie")]))
+        .call(&req(
+            "search",
+            &[("query", "Kitsune Relay"), ("kind", "movie")],
+        ))
         .unwrap();
     assert_eq!(
         found["results"],
@@ -247,20 +253,34 @@ fn neutral_requests() {
     );
     let y = f
         .client
-        .call(&req("search", &[("query", "Kitsune Relay"), ("year", "2023")]))
+        .call(&req(
+            "search",
+            &[("query", "Kitsune Relay"), ("year", "2023")],
+        ))
         .unwrap();
     assert_eq!(
         y["results"][0]["title"], "Kitsune Relay 2nd Season",
         "falls back to the romanised title"
     );
 
-    let ru = f.client.call(&req("russian", &[("mal_id", "600001")])).unwrap();
+    let ru = f
+        .client
+        .call(&req("russian", &[("mal_id", "600001")]))
+        .unwrap();
     assert_eq!(ru["title"], "Эстафета кицунэ");
     assert_eq!(ru["license_name"], "Лисья эстафета");
     assert_eq!(ru["ids"]["mal"], "600001");
-    assert!(ru["description"].as_str().unwrap().starts_with("Мика бежит"));
+    assert!(
+        ru["description"]
+            .as_str()
+            .unwrap()
+            .starts_with("Мика бежит")
+    );
 
-    let d = f.client.call(&req("details", &[("mal_id", "600001")])).unwrap();
+    let d = f
+        .client
+        .call(&req("details", &[("mal_id", "600001")]))
+        .unwrap();
     assert_eq!(d["russian"], "Эстафета кицунэ");
     assert_eq!(d["myanimelist_id"], 600001);
     let rel = f.client.call(&req("related", &[("id", "600001")])).unwrap();
