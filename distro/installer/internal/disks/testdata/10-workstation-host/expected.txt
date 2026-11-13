@@ -1,0 +1,19 @@
+! WD WD10EZEX-08WN4A0         1.0 TB  SATA HDD  /dev/sda
+      GPT partition table, 1 partition(s)
+      vfat "SHARED" on /dev/sda1
+      /dev/sda1 is mounted at /run/media/user/SHARED
+- Samsung 970 EVO Plus 250GB  250 GB  NVMe      /dev/nvme0n1
+      excluded: boot-media
+      GPT partition table, 2 partition(s)
+      EFI system partition /dev/nvme0n1p1 (an OS is likely installed)
+      /dev/nvme0n1p1 is mounted at /boot/efi
+      ext4 on /dev/nvme0n1p2
+      /dev/nvme0n1p2 is mounted at /
+- loop device                 4.1 kB  virtual   /dev/loop0
+      excluded: virtual-device
+      squashfs on /dev/loop0
+      /dev/loop0 is mounted at /snap/bare/5
+- loop device                 110 MB  virtual   /dev/loop1
+      excluded: virtual-device
+      squashfs on /dev/loop1
+      /dev/loop1 is mounted at /snap/core/17284

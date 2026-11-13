@@ -1,0 +1,129 @@
+{
+   "blockdevices": [
+      {
+         "name": "sda",
+         "kname": "sda",
+         "path": "/dev/sda",
+         "type": "disk",
+         "model": "QEMU HARDDISK",
+         "vendor": "ATA     ",
+         "serial": "QM00001",
+         "wwn": null,
+         "size": 34359738368,
+         "tran": "sata",
+         "rota": true,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ]
+      },
+      {
+         "name": "sdb",
+         "kname": "sdb",
+         "path": "/dev/sdb",
+         "type": "disk",
+         "model": "QEMU HARDDISK",
+         "vendor": "ATA     ",
+         "serial": "QM00002",
+         "wwn": null,
+         "size": 34359738368,
+         "tran": "sata",
+         "rota": true,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ]
+      },
+      {
+         "name": "sdc",
+         "kname": "sdc",
+         "path": "/dev/sdc",
+         "type": "disk",
+         "model": "QEMU HARDDISK",
+         "vendor": "ATA     ",
+         "serial": "QM00003",
+         "wwn": null,
+         "size": 34359738368,
+         "tran": "sata",
+         "rota": true,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ]
+      },
+      {
+         "name": "sr0",
+         "kname": "sr0",
+         "path": "/dev/sr0",
+         "type": "rom",
+         "model": "QEMU DVD-ROM",
+         "vendor": "QEMU    ",
+         "serial": null,
+         "wwn": null,
+         "size": 2147483648,
+         "tran": "sata",
+         "rota": false,
+         "rm": true,
+         "hotplug": false,
+         "ro": true,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": "iso9660",
+         "label": "ALPHA-OS-INSTALL",
+         "uuid": null,
+         "mountpoints": [
+            "/run/initramfs/live"
+         ]
+      },
+      {
+         "name": "nvme0n1",
+         "kname": "nvme0n1",
+         "path": "/dev/nvme0n1",
+         "type": "disk",
+         "model": "QEMU NVMe Ctrl",
+         "vendor": null,
+         "serial": "alpha-sys",
+         "wwn": null,
+         "size": 21474836480,
+         "tran": "nvme",
+         "rota": false,
+         "rm": false,
+         "hotplug": false,
+         "ro": false,
+         "pttype": null,
+         "parttype": null,
+         "partlabel": null,
+         "fstype": null,
+         "label": null,
+         "uuid": null,
+         "mountpoints": [
+            null
+         ]
+      }
+   ]
+}

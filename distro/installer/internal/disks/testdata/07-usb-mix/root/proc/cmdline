@@ -1,0 +1,1 @@
+BOOT_IMAGE=/images/pxeboot/vmlinuz root=live:UUID=2026-11-01-12-00-00-00 rd.live.image rd.live.ram=1
