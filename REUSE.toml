@@ -41,6 +41,7 @@ path = [
   "Cargo.lock",
   "**/pubspec.lock",
   "**/.metadata",
+  ".xcode-version",
 ]
 precedence = "closest"
 SPDX-FileCopyrightText = "project_alpha contributors"

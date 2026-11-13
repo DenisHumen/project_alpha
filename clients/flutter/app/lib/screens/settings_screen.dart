@@ -175,10 +175,7 @@ class _NavTile extends StatelessWidget {
             ),
             trailing ??
                 (onTap != null
-                    ? const Icon(
-                        Icons.chevron_right,
-                        color: KColors.textTertiary,
-                      )
+                    ? Icon(Icons.chevron_right, color: KColors.textTertiary)
                     : const SizedBox.shrink()),
           ],
         ),

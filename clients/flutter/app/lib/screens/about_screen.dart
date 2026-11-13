@@ -81,6 +81,16 @@ class AboutScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             const TmdbAttribution(),
+            const SizedBox(height: 16),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Text(
+                'Playback uses libmpv and FFmpeg, shared libraries under the '
+                'GNU LGPL v2.1+ (source: mpv.io, ffmpeg.org). Typeface: Inter, '
+                'SIL Open Font License 1.1. Full texts are in “Open-source licences”.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
           ],
         ),
       ),

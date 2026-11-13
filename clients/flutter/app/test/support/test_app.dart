@@ -21,6 +21,15 @@ bool _fontsLoaded = false;
 Future<void> loadAppFonts() async {
   if (_fontsLoaded) return;
   _fontsLoaded = true;
+  // Inter from pa_design (fetched by `node design/scripts/fonts-fetch.mjs`).
+  final inter = File(
+    '../../../design/flutter/pa_design/fonts/InterVariable.ttf',
+  );
+  if (inter.existsSync()) {
+    final loader = FontLoader('packages/pa_design/Inter')
+      ..addFont(Future.value(ByteData.sublistView(inter.readAsBytesSync())));
+    await loader.load();
+  }
   final dir = _materialFontsDir();
   if (dir == null) return;
   Future<void> load(String family, List<String> files) async {

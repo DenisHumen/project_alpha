@@ -1,50 +1,53 @@
 // SPDX-License-Identifier: MPL-2.0
 //
-// The whole visual language of the app lives in this one file so it can be
-// swapped for generated values from `design/tokens` (DSN-002) without touching
-// screens. Values mirror docs/research/01-product-ux-design.md §4.3–4.7
-// (dark tvOS-like style) and the token skeleton in design/tokens.
+// The whole visual language of the app lives in this one file. Values come
+// from the generated design tokens in `design/flutter/pa_design` (DSN-002:
+// PaColorScheme, PaTokens, PaDensity, Inter font); this file only adapts them
+// to Flutter's ThemeData and to the form factors of the app.
 
 import 'package:material_ui/material_ui.dart';
+import 'package:pa_design/pa_design.dart';
 
 import '../platform/form_factor.dart';
 
-/// Colour tokens (01 §4.5, dark theme).
-abstract final class KColors {
-  static const bgBase = Color(0xFF0B0B0F);
-  static const bgElevated = Color(0xFF16161C);
-  static const bgElevated2 = Color(0xFF1F1F27);
-  static const stroke = Color(0x1FFFFFFF);
-  static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0x99FFFFFF); // 60 %
-  static const textTertiary = Color(0x59FFFFFF); // 35 %
+const _c = PaColorScheme.dark;
 
-  /// Placeholder brand accent (design/tokens `color.brand.500`), DSN-006.
-  static const accent = Color(0xFF3B82F6);
-  static const accentSoft = Color(0xFF93B7FA);
-  static const live = Color(0xFFEF4444);
+/// Colour roles used by the screens (dark theme, 01 §4.5).
+abstract final class KColors {
+  static final bgBase = _c.bgBase;
+  static final bgElevated = _c.bgElevated;
+  static final bgElevated2 = _c.bgElevated2;
+  static final stroke = _c.borderSubtle;
+  static final textPrimary = _c.textPrimary;
+  static final textSecondary = _c.textSecondary;
+  static final textTertiary = _c.textTertiary;
+
+  static const accent = PaTokens.accentDefault;
+  static final accentSoft = _c.textLink;
+  static const live = PaTokens.accentLive;
 
   /// TV focused button: white fill, dark label (01 §4.5 focus/*).
-  static const focusFill = Color(0xFFFFFFFF);
-  static const focusLabel = Color(0xFF000000);
-  static const focusGlow = Color(0x663B82F6);
+  static final focusFill = _c.focusFill;
+  static final focusLabel = _c.focusLabel;
+  static final focusGlow = _c.focusRing.withValues(alpha: .45);
 
-  static const scrimStrong = Color(0xD9000000); // 85 %
+  static const scrimStrong = PaTokens.scrimBottomStrong;
 }
 
 /// Motion tokens (01 §4.7).
 abstract final class KMotion {
-  static const focus = Duration(milliseconds: 180);
-  static const focusOut = Duration(milliseconds: 140);
-  static const press = Duration(milliseconds: 100);
-  static const page = Duration(milliseconds: 380);
-  static const crossfadeArt = Duration(milliseconds: 650);
+  static const focus = PaTokens.motionFocusOutDuration;
+  static const focusOut = Duration(milliseconds: 150);
+  static final press = PaTokens.motionPress.duration;
+  static final page = PaTokens.motionPage.duration;
+  static final crossfadeArt = PaTokens.motionCrossfadeArt.duration;
   static const focusCurve = Curves.easeOutBack;
-  static const pageCurve = Cubic(.2, .8, .2, 1);
+  static final pageCurve = PaTokens.motionPage.curve;
 }
 
-/// Size/density tokens per form factor (01 §4.3; TV values are the tvOS
-/// points divided by 2 because Android TV reports ~960x540 logical pixels).
+/// Size/density per form factor from `PaDensity`. Android TV reports about
+/// 960x540 logical pixels, while TV tokens are in 1920x1080 points, so TV
+/// values are scaled by 1/2.
 @immutable
 class KDensity {
   const KDensity({
@@ -62,6 +65,45 @@ class KDensity {
     required this.focusScaleButton,
     required this.type,
   });
+
+  factory KDensity._from(FormFactor f, PaDensity p, double k) {
+    double s(TextStyle t) => t.fontSize! * k;
+    final tv = f == FormFactor.tv;
+    final touch = f == FormFactor.phone;
+    return KDensity(
+      formFactor: f,
+      pageInsets: EdgeInsets.fromLTRB(
+        p.layoutMargin * k,
+        tv ? 16 : (touch ? 12 : 24),
+        p.layoutMargin * k,
+        tv ? p.layoutSafeBottom * k : 24,
+      ),
+      gap: p.layoutGutter * k,
+      rowGap: p.layoutSectionGap * k,
+      posterWidth: touch ? 112 : p.layoutPosterWidth * k,
+      landscapeWidth: p.layoutCardWidth * k,
+      albumWidth: (p.layoutPosterWidth * k * 1.05).roundToDouble(),
+      cardRadius: p.cardRadius * k,
+      panelRadius: p.shapePanel * k,
+      focusScalePoster: touch
+          ? 1
+          : (tv ? PaTokens.posterFocusScale : PaTokens.posterHoverScale),
+      focusScaleCard: touch
+          ? 1
+          : (tv ? PaTokens.cardFocusScale : PaTokens.focusScaleHover),
+      focusScaleButton: touch ? 1 : PaTokens.buttonFocusScale,
+      type: KType(
+        display: s(p.typeDisplay),
+        title1: s(p.typeTitle1),
+        title2: s(p.typeTitle2),
+        headline: s(p.typeHeadline),
+        body: s(p.typeBody),
+        callout: s(p.typeCallout),
+        caption: s(p.typeCaption),
+        caption2: s(p.typeCaption2),
+      ),
+    );
+  }
 
   final FormFactor formFactor;
   final EdgeInsets pageInsets;
@@ -90,81 +132,13 @@ class KDensity {
     FormFactor.desktop => desktop,
   };
 
-  static const desktop = KDensity(
-    formFactor: FormFactor.desktop,
-    pageInsets: EdgeInsets.fromLTRB(32, 24, 32, 24),
-    gap: 18,
-    rowGap: 28,
-    posterWidth: 150,
-    landscapeWidth: 300,
-    albumWidth: 168,
-    cardRadius: 12,
-    panelRadius: 24,
-    focusScalePoster: 1.05,
-    focusScaleCard: 1.04,
-    focusScaleButton: 1.03,
-    type: KType(
-      display: 40,
-      title1: 28,
-      title2: 22,
-      headline: 17,
-      body: 14,
-      callout: 14,
-      caption: 12,
-      caption2: 11,
-    ),
+  static final desktop = KDensity._from(
+    FormFactor.desktop,
+    PaDensity.desktop,
+    1,
   );
-
-  static const phone = KDensity(
-    formFactor: FormFactor.phone,
-    pageInsets: EdgeInsets.fromLTRB(16, 12, 16, 16),
-    gap: 12,
-    rowGap: 22,
-    posterWidth: 112,
-    landscapeWidth: 260,
-    albumWidth: 140,
-    cardRadius: 10,
-    panelRadius: 20,
-    focusScalePoster: 1.0,
-    focusScaleCard: 1.0,
-    focusScaleButton: 1.0,
-    type: KType(
-      display: 32,
-      title1: 28,
-      title2: 22,
-      headline: 17,
-      body: 15,
-      callout: 15,
-      caption: 13,
-      caption2: 11,
-    ),
-  );
-
-  static const tv = KDensity(
-    formFactor: FormFactor.tv,
-    // Safe area 60/80 pt at 1920x1080 (HIG) → 30/40 logical px.
-    pageInsets: EdgeInsets.fromLTRB(44, 16, 44, 30),
-    gap: 20,
-    rowGap: 26,
-    posterWidth: 118,
-    landscapeWidth: 220,
-    albumWidth: 130,
-    cardRadius: 8,
-    panelRadius: 16,
-    focusScalePoster: 1.10,
-    focusScaleCard: 1.08,
-    focusScaleButton: 1.06,
-    type: KType(
-      display: 36,
-      title1: 26,
-      title2: 22,
-      headline: 17,
-      body: 13,
-      callout: 14,
-      caption: 12,
-      caption2: 11,
-    ),
-  );
+  static final phone = KDensity._from(FormFactor.phone, PaDensity.phone, 1);
+  static final tv = KDensity._from(FormFactor.tv, PaDensity.tv, .5);
 }
 
 @immutable
@@ -189,12 +163,10 @@ class KType {
       caption2;
 }
 
-/// Font family. Roboto is Apache-2.0 and is the platform font on Android; on
-/// Linux fontconfig falls back to the desktop sans font. Inter (DSN-005)
-/// replaces it once the font files land in design/.
-const kFontFamily = 'Roboto';
+/// Inter Variable (OFL-1.1) bundled by `pa_design`; system fonts as fallback.
+const kFontFamily = 'packages/pa_design/Inter';
 const kFontFallback = <String>[
-  'Inter',
+  'Roboto',
   'Noto Sans',
   'Cantarell',
   'DejaVu Sans',
@@ -203,7 +175,7 @@ const kFontFallback = <String>[
 ThemeData buildKinoluneTheme(FormFactor formFactor) {
   final d = KDensity.forFactor(formFactor);
   final t = d.type;
-  const scheme = ColorScheme.dark(
+  final scheme = ColorScheme.dark(
     primary: KColors.accent,
     onPrimary: Colors.white,
     secondary: KColors.accentSoft,
@@ -219,18 +191,14 @@ ThemeData buildKinoluneTheme(FormFactor formFactor) {
     outlineVariant: KColors.stroke,
     error: KColors.live,
   );
-  TextStyle s(
-    double size,
-    FontWeight w, {
-    double? height,
-    Color color = KColors.textPrimary,
-  }) => TextStyle(
-    fontSize: size,
-    fontWeight: w,
-    height: height,
-    color: color,
-    letterSpacing: 0,
-  );
+  TextStyle s(double size, FontWeight w, {double? height, Color? color}) =>
+      TextStyle(
+        fontSize: size,
+        fontWeight: w,
+        height: height,
+        color: color ?? KColors.textPrimary,
+        letterSpacing: 0,
+      );
   final textTheme = TextTheme(
     displayLarge: s(t.display, FontWeight.w700, height: 1.15),
     displayMedium: s(t.display * .85, FontWeight.w700, height: 1.15),
@@ -268,7 +236,7 @@ ThemeData buildKinoluneTheme(FormFactor formFactor) {
         : InkSparkle.splashFactory,
     focusColor: Colors.white.withValues(alpha: .12),
     hoverColor: Colors.white.withValues(alpha: .06),
-    dividerTheme: const DividerThemeData(
+    dividerTheme: DividerThemeData(
       color: KColors.stroke,
       thickness: 1,
       space: 1,

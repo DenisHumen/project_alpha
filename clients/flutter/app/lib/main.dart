@@ -23,6 +23,21 @@ Future<void> main() async {
       'Source code: $kRepoUrl',
     );
     yield const LicenseEntryWithLineBreaks(['TMDB'], kTmdbNotice);
+    yield const LicenseEntryWithLineBreaks(
+      ['Inter'],
+      'Inter Variable font. Copyright (c) 2016 The Inter Project Authors '
+      '(https://github.com/rsms/inter). Licensed under the SIL Open Font '
+      'License, Version 1.1 (https://openfontlicense.org).',
+    );
+    yield const LicenseEntryWithLineBreaks(
+      ['libmpv', 'FFmpeg'],
+      '$kAppName plays media with libmpv (https://mpv.io) and FFmpeg '
+      '(https://ffmpeg.org), used as separate shared libraries under the GNU '
+      'Lesser General Public License v2.1 or later. Only LGPL builds are used. '
+      'You may replace these libraries with your own builds. Source code: '
+      'https://github.com/mpv-player/mpv and https://git.ffmpeg.org/ffmpeg.git; '
+      'build scripts: $kRepoUrl.',
+    );
   });
 
   final formFactor = await detectFormFactor();

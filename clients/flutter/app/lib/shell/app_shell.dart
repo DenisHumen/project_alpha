@@ -248,7 +248,7 @@ class _SidebarLayout extends StatelessWidget {
         children: [
           Container(
             width: 232,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               color: KColors.bgElevated,
               border: Border(right: BorderSide(color: KColors.stroke)),
             ),

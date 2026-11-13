@@ -13,6 +13,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  pa_design:
+    path: ../../../design/flutter/pa_design
   file_picker: ^13.3.3
   flutter_secure_storage: ^11.2.0
   material_ui: ^1.1.0

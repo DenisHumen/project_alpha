@@ -237,7 +237,7 @@ class _Hero extends StatelessWidget {
               ),
             ),
           ),
-          const DecoratedBox(
+          DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
