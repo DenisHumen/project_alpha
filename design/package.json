@@ -23,7 +23,9 @@
     "test": "node --test scripts/test/*.test.mjs"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
     "lucide-static": "1.72.0",
+    "opentype.js": "2.0.0",
     "svgo": "4.1.0"
   }
 }

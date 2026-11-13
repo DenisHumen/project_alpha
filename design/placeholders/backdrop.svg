@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <!-- SPDX-License-Identifier: MPL-2.0 -->
+  <!-- Placeholder: backdrop / episode still 16:9 without artwork (DSN-006). Own art only, no TMDB.
+       Dark enough for white text and the scrim tokens on top. -->
+  <defs>
+    <radialGradient id="glow" cx="0.7" cy="0.25" r="0.75">
+      <stop offset="0" stop-color="#1b2a3c"/>
+      <stop offset="1" stop-color="#101015"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+  <g transform="translate(560 280) scale(0.156)" fill="#ffffff" fill-opacity="0.10">
+    <path d="M531.74 192.15A320 320 0 1 0 817.76 634.17A264 264 0 1 1 531.74 192.15Z"/>
+    <path stroke="#ffffff" stroke-opacity="0.10" stroke-width="52" stroke-linejoin="round" d="M598 322V538L782 430Z"/>
+  </g>
+</svg>
