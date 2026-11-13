@@ -1,0 +1,156 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# CORE-002: Dart package pa_core (flutter_rust_bridge, Native Assets).
+# - bindings: committed FRB bindings match a fresh codegen run; the crate's
+#   rust-toolchain.toml uses the same channel as the root one.
+# - dart: format, analyze and `dart test` (tests call into the Rust core).
+# - linux: example app build + integration test under Xvfb.
+# - android: example APK (debug) build for all Android ABIs.
+# Generic Flutter checks of every package live in flutter.yml (R01-REL) once
+# it lands; this workflow keeps the Rust-specific parts.
+#
+# Safe for PRs from forks: `pull_request` only, read-only token, no secrets,
+# every third-party action pinned to a full commit SHA.
+
+name: pa_core
+
+on:
+  pull_request:
+    paths:
+      - "clients/flutter/packages/pa_core/**"
+      - "core/crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - "core/justfile"
+      - ".github/workflows/pa-core.yml"
+  push:
+    branches: [main]
+    paths:
+      - "clients/flutter/packages/pa_core/**"
+      - "core/crates/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.50.0"
+  FRB_VERSION: "2.13.0"
+  PKG: clients/flutter/packages/pa_core
+  CARGO_TERM_COLOR: always
+
+jobs:
+  bindings:
+    name: FRB bindings up to date
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Crate toolchain equals the root toolchain
+        run: |
+          root=$(grep -E '^channel' rust-toolchain.toml)
+          crate=$(grep -E '^channel' core/crates/pa-frb/rust-toolchain.toml)
+          echo "root: $root / pa-frb: $crate"
+          [ "$root" = "$crate" ]
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: rustup toolchain install
+      - uses: taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39 # v2.90.3
+        with:
+          tool: just,flutter_rust_bridge_codegen@${{ env.FRB_VERSION }}
+      - name: Regenerate and diff
+        run: just core frb-check
+
+  dart:
+    name: dart test (calls into Rust)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: ${{ env.PKG }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: dart pub get
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - name: dart test (Native Assets hook builds pa-frb)
+        run: dart test
+
+  linux:
+    name: Linux example + integration test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: ${{ env.PKG }}/example
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config libgtk-3-dev xvfb
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter build linux --debug
+      - name: libpa_frb is bundled next to the app
+        run: test -f build/linux/x64/debug/bundle/lib/libpa_frb.so
+      - name: Integration test (bundled library loaded by name)
+        run: xvfb-run -a flutter test integration_test -d linux
+
+  android:
+    name: Android example APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: ${{ env.PKG }}/example
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: flutter pub get
+      - run: flutter build apk --debug
+      - name: libpa_frb is in the APK for every ABI
+        run: |
+          apk=build/app/outputs/flutter-apk/app-debug.apk
+          unzip -l "$apk" | grep libpa_frb.so
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            unzip -l "$apk" | grep -q "lib/$abi/libpa_frb.so" || { echo "missing $abi"; exit 1; }
+          done
