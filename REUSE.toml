@@ -40,6 +40,8 @@ path = [
   "**/go.sum",
   "Cargo.lock",
   "**/pubspec.lock",
+  ".xcode-version",
+  "mise.toml",
   "**/.metadata",
 ]
 precedence = "closest"
