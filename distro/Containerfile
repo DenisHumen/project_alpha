@@ -24,15 +24,36 @@ RUN set -eux; \
     rm -rf /var/cache/dnf /var/lib/dnf /var/log/dnf* /var/log/hawkey.log
 
 COPY rootfs/ /
+# Public cosign key of the project (distro/keys/alpha-os.pub, committed by the owner).
+COPY keys/ /usr/share/alpha/keys/
 
 # Version of this image; the build scripts pass a unique value so that
 # `bootc upgrade` always sees a new image.
 ARG ALPHA_OS_VERSION=0.0.0-dev
 # (declared after the package layer so a version bump keeps the dnf layer cached)
 
+# Where the signed OS images are published (lower case, no tag).
+ARG ALPHA_IMAGE_REPO=ghcr.io/denishumen/alpha-os
+# Signature policy for `bootc switch|upgrade` (DIST-002, 05 §4.2 p.4):
+#   auto    - enforce if distro/keys/alpha-os.pub exists, otherwise keep the stock policy;
+#   enforce - require the key, fail the build without it (CI once the key is committed);
+#   off     - keep the stock policy (local VM tests with unsigned images).
+ARG ALPHA_SIGNATURE_POLICY=auto
+
 RUN set -eux; \
-    printf 'ALPHA_OS_VERSION=%s\n' "${ALPHA_OS_VERSION}" > /usr/share/alpha/version; \
     chmod 0755 /usr/libexec/alpha/*; \
+    rm -f /usr/share/alpha/keys/.gitkeep; \
+    policy="${ALPHA_SIGNATURE_POLICY}"; \
+    if [ "${policy}" = auto ]; then \
+        if [ -s /usr/share/alpha/keys/alpha-os.pub ]; then policy=enforce; else policy=off; fi; \
+    fi; \
+    case "${policy}" in \
+        enforce) /usr/libexec/alpha/alpha-signature-policy "${ALPHA_IMAGE_REPO}" ;; \
+        off) echo "WARNING: signature policy is off, this image accepts unsigned updates" ;; \
+        *) echo "unknown ALPHA_SIGNATURE_POLICY=${policy}"; exit 1 ;; \
+    esac; \
+    printf 'ALPHA_OS_VERSION=%s\nALPHA_IMAGE_REPO=%s\nALPHA_SIGNATURE_POLICY=%s\n' \
+        "${ALPHA_OS_VERSION}" "${ALPHA_IMAGE_REPO}" "${policy}" > /usr/share/alpha/version; \
     # Updates are driven by our own agent (alpha-updated), never by the stock timer
     # that applies an update and reboots on its own (05 §4.2 p.1).
     systemctl mask bootc-fetch-apply-updates.timer; \

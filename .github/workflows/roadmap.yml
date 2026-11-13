@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: MPL-2.0
+# Lint docs/ROADMAP.md and test the roadmap tool (REPO-012).
+name: Roadmap
+
+on:
+  pull_request:
+    paths:
+      - docs/ROADMAP.md
+      - tools/roadmap/**
+      - .github/workflows/roadmap.yml
+  push:
+    branches: [main]
+    paths:
+      - docs/ROADMAP.md
+      - tools/roadmap/**
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        run: python3 -B -m unittest discover -s tools/roadmap -t tools/roadmap -v
+      - name: roadmap lint
+        run: python3 -B tools/roadmap/roadmap.py lint

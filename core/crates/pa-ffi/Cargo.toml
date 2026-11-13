@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-ffi"
+version = "0.1.0"
+description = "UniFFI facade of the project_alpha core: one API for Kotlin and Swift"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lib]
+name = "pa_ffi"
+# lib: Rust tests and other crates; cdylib: Android, JVM and desktop; staticlib: Apple xcframework.
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+# Builds the `uniffi-bindgen` CLI used by `just core bindings`. Not part of the shipped library.
+cli = ["uniffi/cli", "uniffi/cargo-metadata"]
+
+[dependencies]
+uniffi.workspace = true
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+required-features = ["cli"]
