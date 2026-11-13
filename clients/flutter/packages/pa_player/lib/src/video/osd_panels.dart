@@ -203,8 +203,7 @@ class OsdSidePanel extends StatelessWidget {
       l.infoPosition: '${_fmt(s.position)} / ${_fmt(s.duration)}',
       l.speed: formatRate(s.rate),
       if (s.audioTrack != null) l.audio: l.trackLabel(s.audioTrack!),
-      if (s.subtitleTrack != null)
-        l.subtitles: l.trackLabel(s.subtitleTrack!),
+      if (s.subtitleTrack != null) l.subtitles: l.trackLabel(s.subtitleTrack!),
       for (final e in s.info.entries) l.engineInfoKey(e.key): e.value,
     };
     return [

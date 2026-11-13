@@ -544,7 +544,8 @@ class _BottomBar extends StatelessWidget {
     return ValueListenableBuilder<EngineState>(
       valueListenable: engine.state,
       builder: (context, s, _) {
-        final remaining = s.duration - s.position;
+        final left = s.duration - s.position;
+        final remaining = left.isNegative ? Duration.zero : left;
         final rate = s.rate <= 0 ? 1.0 : s.rate;
         final endsAt = DateTime.now().add(
           Duration(milliseconds: (remaining.inMilliseconds / rate).round()),

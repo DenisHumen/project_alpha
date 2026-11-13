@@ -15,9 +15,9 @@ import 'support/test_app.dart';
 
 const _phone = Size(390, 844);
 
-Color? _indicator(WidgetTester t) => NavigationBarTheme.of(
-  t.element(find.byType(NavigationDestination).first),
-).indicatorColor;
+Color? _indicator(WidgetTester t) =>
+    NavigationBarTheme.of(t.element(find.byType(NavigationDestination).first))
+        .indicatorColor;
 
 void main() {
   setUpAll(loadAppFonts);

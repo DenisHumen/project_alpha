@@ -8,16 +8,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pa_player/pa_player.dart';
 import 'package:pa_player/testing.dart';
 
-Widget _app(Widget home, {Locale? locale, bool delegate = true}) =>
-    MaterialApp(
-      locale: locale,
-      supportedLocales: const [Locale('en'), Locale('ru'), Locale('de')],
-      localizationsDelegates: [
-        if (delegate) PaPlayerStrings.delegate,
-        ...GlobalMaterialLocalizations.delegates,
-      ],
-      home: home,
-    );
+Widget _app(Widget home, {Locale? locale, bool delegate = true}) => MaterialApp(
+  locale: locale,
+  supportedLocales: const [Locale('en'), Locale('ru'), Locale('de')],
+  localizationsDelegates: [
+    if (delegate) PaPlayerStrings.delegate,
+    ...GlobalMaterialLocalizations.delegates,
+  ],
+  home: home,
+);
 
 PlayerScreen _player(FakePlayerEngine engine) => PlayerScreen(
   request: const PlayRequest(
@@ -72,9 +71,14 @@ void main() {
       (en.repeatOne, ru.repeatOne),
       (en.upNext, ru.upNext),
       (en.endOfQueue, ru.endOfQueue),
-      (en.remainingEndsAt('1:00', '21:40'), ru.remainingEndsAt('1:00', '21:40')),
-      (en.trackLabel(const MediaTrack(id: '2')),
-          ru.trackLabel(const MediaTrack(id: '2'))),
+      (
+        en.remainingEndsAt('1:00', '21:40'),
+        ru.remainingEndsAt('1:00', '21:40'),
+      ),
+      (
+        en.trackLabel(const MediaTrack(id: '2')),
+        ru.trackLabel(const MediaTrack(id: '2')),
+      ),
       (en.engineInfoKey('Resolution'), ru.engineInfoKey('Resolution')),
     ];
     for (final (e, r) in pairs) {
@@ -87,10 +91,14 @@ void main() {
   });
 
   test('forLocale picks by language and falls back to English', () {
-    expect(PaPlayerStrings.forLocale(const Locale('ru', 'RU')).languageCode,
-        'ru');
-    expect(PaPlayerStrings.forLocale(const Locale('en', 'XA')).languageCode,
-        'en');
+    expect(
+      PaPlayerStrings.forLocale(const Locale('ru', 'RU')).languageCode,
+      'ru',
+    );
+    expect(
+      PaPlayerStrings.forLocale(const Locale('en', 'XA')).languageCode,
+      'en',
+    );
     expect(PaPlayerStrings.forLocale(const Locale('de')).languageCode, 'en');
     expect(PaPlayerStrings.forLocale(null).languageCode, 'en');
   });
@@ -125,6 +133,7 @@ void main() {
   });
 
   testWidgets('NowPlayingBar and NowPlayingScreen in Russian', (t) async {
+    _surface(t, const Size(1600, 900)); // wide layout: queue on screen
     final engine = FakePlayerEngine();
     final c = MusicPlayerController(
       engineFactory: ({bool video = true}) => engine,
@@ -144,7 +153,8 @@ void main() {
     expect(find.byTooltip('Следующий'), findsOneWidget);
 
     await t.tap(find.byKey(const ValueKey('now-playing-bar')));
-    await t.pump(const Duration(milliseconds: 500));
+    await t.pumpAndSettle();
+    expect(find.byType(NowPlayingScreen), findsOneWidget);
     expect(find.text('Сейчас играет'), findsOneWidget);
     expect(find.text('Далее'), findsOneWidget);
     expect(find.byTooltip('Повтор выключен'), findsOneWidget);
