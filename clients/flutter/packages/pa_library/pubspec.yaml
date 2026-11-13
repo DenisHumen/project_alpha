@@ -1,0 +1,16 @@
+name: pa_library
+description: Kinolune media library (sources, scanner, filename parser v0, TMDB, SQLite storage, progress).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  audio_metadata_reader: ^1.8.1
+  http: ^1.2.0
+  path: ^1.9.0
+  sqlite3: ^3.9.1
+
+dev_dependencies:
+  test: ^1.25.0

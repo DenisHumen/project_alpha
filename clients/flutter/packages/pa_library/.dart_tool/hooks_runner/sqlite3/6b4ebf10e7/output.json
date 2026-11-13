@@ -1,0 +1,17 @@
+{
+  "assets": [
+    {
+      "encoding": {
+        "file": "/home/denishumen/Desktop/code/project_alpha/.claude/worktrees/agent-a7b1c1e682dc2e4f3/clients/flutter/packages/pa_library/.dart_tool/hooks_runner/shared/sqlite3/build/download-0a658527/libsqlite3.so",
+        "id": "package:sqlite3/src/ffi/libsqlite3.g.dart",
+        "link_mode": {
+          "type": "dynamic_loading_bundle"
+        }
+      },
+      "type": "code_assets/code"
+    }
+  ],
+  "assets_for_linking": {},
+  "status": "success",
+  "timestamp": "2026-11-13 19:09:55.000"
+}
