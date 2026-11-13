@@ -43,9 +43,7 @@ pub use model::{
     Admission, Backoff, Conditions, Job, JobEvent, JobId, Limits, Network, NetworkPolicy, NewJob,
     PauseReason, ResourceGate, kinds, priority,
 };
-pub use queue::{
-    Clock, JobContext, JobHandler, JobQueue, QueueConfig, QueueDriver, system_now_ms,
-};
+pub use queue::{Clock, JobContext, JobHandler, JobQueue, QueueConfig, QueueDriver, system_now_ms};
 pub use serde_json;
 pub use state::{JobState, UnknownState};
 pub use store::{JobStore, RunOutcome, Schedule, ScheduleInput};

@@ -39,7 +39,7 @@ fn copy_handler(
             .and_then(|c| c["offset"].as_u64())
             .unwrap_or(0);
         starts.lock().unwrap().push(offset);
-        let run = || -> std::io::Result<RunOutcome> {
+        let mut run = || -> std::io::Result<RunOutcome> {
             let total = fs::metadata(&src)?.len();
             let mut out = OpenOptions::new()
                 .create(true)
@@ -124,15 +124,17 @@ fn job_survives_kill_and_resumes_download() {
     let id = {
         let queue = JobQueue::open(&db, config()).unwrap();
         queue
-            .enqueue(
-                &NewJob::new(KIND, json!({ "src": src, "dst": dst }))
-                    .bytes_total(SIZE as u64),
-            )
+            .enqueue(&NewJob::new(KIND, json!({ "src": src, "dst": dst })).bytes_total(SIZE as u64))
             .unwrap()
     };
 
     let mut child = Command::new(std::env::current_exe().unwrap())
-        .args(["--exact", "kill_child_entry", "--nocapture", "--test-threads=1"])
+        .args([
+            "--exact",
+            "kill_child_entry",
+            "--nocapture",
+            "--test-threads=1",
+        ])
         .env(CHILD_ENV, &db)
         .stdout(Stdio::null())
         .stderr(Stdio::inherit())
@@ -153,7 +155,11 @@ fn job_survives_kill_and_resumes_download() {
         thread::sleep(Duration::from_millis(10));
     };
     assert!(killed_at > 0 && killed_at < SIZE as u64, "{killed_at}");
-    assert_eq!(bytes_done(&db).0, "running", "the dead process left it running");
+    assert_eq!(
+        bytes_done(&db).0,
+        "running",
+        "the dead process left it running"
+    );
     assert!(!dst.exists());
 
     // Restart: the job is queued again with its checkpoint and resumes.

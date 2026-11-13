@@ -326,7 +326,8 @@ impl JobQueue {
 
     pub fn set_priority(&self, id: JobId, priority: i64) -> Result<(), Error> {
         let now = self.inner.now();
-        self.inner.with_store(|s| s.set_priority(id, priority, now))?;
+        self.inner
+            .with_store(|s| s.set_priority(id, priority, now))?;
         self.inner.wake();
         Ok(())
     }
@@ -357,8 +358,16 @@ impl JobQueue {
             return Ok(0);
         }
         let inner = &self.inner;
-        let handlers = inner.handlers.read().unwrap_or_else(|e| e.into_inner()).clone();
-        let limits = inner.limits.read().unwrap_or_else(|e| e.into_inner()).clone();
+        let handlers = inner
+            .handlers
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
+        let limits = inner
+            .limits
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone();
         let gate = inner.gate.read().unwrap_or_else(|e| e.into_inner()).clone();
         let conditions = *lock(&inner.conditions);
         let mut store = lock(&inner.store);
@@ -576,8 +585,8 @@ impl JobContext {
     fn due(&self, force: bool) -> bool {
         let mut last = lock(&self.last_report);
         let now = Instant::now();
-        let due = force
-            || last.is_none_or(|t| now.duration_since(t) >= self.inner.progress_interval);
+        let due =
+            force || last.is_none_or(|t| now.duration_since(t) >= self.inner.progress_interval);
         if due {
             *last = Some(now);
         }

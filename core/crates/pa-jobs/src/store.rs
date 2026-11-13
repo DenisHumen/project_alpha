@@ -5,9 +5,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use pa_library::rusqlite::{
-    self, Connection, OptionalExtension, Row, TransactionBehavior, params,
-};
+use pa_library::rusqlite::{self, Connection, OptionalExtension, Row, TransactionBehavior, params};
 use serde_json::Value;
 
 use crate::{
@@ -58,18 +56,15 @@ const COLUMNS: &str = "id, type, state, priority, params_json, checkpoint_json, 
 
 fn parse_json(text: Option<String>) -> rusqlite::Result<Option<Value>> {
     text.map(|t| {
-        serde_json::from_str(&t)
-            .map_err(|e| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(e)))
+        serde_json::from_str(&t).map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(e))
+        })
     })
     .transpose()
 }
 
 fn bad_text(e: impl std::fmt::Display) -> rusqlite::Error {
-    rusqlite::Error::FromSqlConversionFailure(
-        0,
-        rusqlite::types::Type::Text,
-        e.to_string().into(),
-    )
+    rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, e.to_string().into())
 }
 
 fn to_u64(v: i64) -> u64 {
@@ -339,10 +334,7 @@ impl JobStore {
                     });
                 }
             }
-            conn.execute(
-                "UPDATE jobs SET pause_reason = NULL WHERE id = ?1",
-                [id],
-            )?;
+            conn.execute("UPDATE jobs SET pause_reason = NULL WHERE id = ?1", [id])?;
             job.pause_reason = None;
             Ok(job)
         })
@@ -466,7 +458,10 @@ impl JobStore {
                 if auto && job.blocked_by(&input.conditions).is_none() {
                     let mut job = job.clone();
                     transition(conn, events, &mut job, JobState::Queued, now_ms)?;
-                    conn.execute("UPDATE jobs SET pause_reason = NULL WHERE id = ?1", [job.id])?;
+                    conn.execute(
+                        "UPDATE jobs SET pause_reason = NULL WHERE id = ?1",
+                        [job.id],
+                    )?;
                 }
             }
             // Reload: step 2 may have queued more jobs.
@@ -544,7 +539,9 @@ impl JobStore {
         bytes_total: Option<u64>,
         now_ms: i64,
     ) -> Result<bool, Error> {
-        self.write(|conn, events| progress_update(conn, events, id, progress, bytes_done, bytes_total, now_ms))
+        self.write(|conn, events| {
+            progress_update(conn, events, id, progress, bytes_done, bytes_total, now_ms)
+        })
     }
 
     /// Saves the handler state for resuming, with `bytes_done`. Written
@@ -624,8 +621,8 @@ impl JobStore {
                     JobState::Queued
                 }
                 RunOutcome::Retryable(msg) if job.attempts < job.max_attempts => {
-                    let delay = i64::try_from(backoff.delay(job.attempts).as_millis())
-                        .unwrap_or(i64::MAX);
+                    let delay =
+                        i64::try_from(backoff.delay(job.attempts).as_millis()).unwrap_or(i64::MAX);
                     conn.execute(
                         "UPDATE jobs SET error = ?1, next_run_at_ms = ?2 WHERE id = ?3",
                         params![msg, now_ms.saturating_add(delay), id],
@@ -661,11 +658,23 @@ fn progress_update(
                 .filter(|&t| t > 0)
                 .map(|t| bytes_done as f64 / t as f64)
         })
-        .map(|p| if p.is_finite() { p.clamp(0.0, 1.0) } else { 0.0 });
+        .map(|p| {
+            if p.is_finite() {
+                p.clamp(0.0, 1.0)
+            } else {
+                0.0
+            }
+        });
     let changed = conn.execute(
         "UPDATE jobs SET progress = ?1, bytes_done = ?2, bytes_total = coalesce(?3, bytes_total), \
          updated_at_ms = ?4 WHERE id = ?5 AND state = 'running'",
-        params![progress, to_i64(bytes_done), bytes_total.map(to_i64), now_ms, id],
+        params![
+            progress,
+            to_i64(bytes_done),
+            bytes_total.map(to_i64),
+            now_ms,
+            id
+        ],
     )?;
     if changed == 0 {
         return Ok(false);

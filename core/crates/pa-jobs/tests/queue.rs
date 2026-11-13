@@ -61,9 +61,15 @@ fn runs_by_priority_within_the_limit() {
     q.set_limit("work", 1);
     let order = Arc::new(Mutex::new(Vec::new()));
     let seen = Arc::clone(&order);
-    let low = q.enqueue(&job("work").priority(priority::BACKGROUND)).unwrap();
-    let high = q.enqueue(&job("work").priority(priority::USER_WAITING)).unwrap();
-    let low2 = q.enqueue(&job("work").priority(priority::BACKGROUND)).unwrap();
+    let low = q
+        .enqueue(&job("work").priority(priority::BACKGROUND))
+        .unwrap();
+    let high = q
+        .enqueue(&job("work").priority(priority::USER_WAITING))
+        .unwrap();
+    let low2 = q
+        .enqueue(&job("work").priority(priority::BACKGROUND))
+        .unwrap();
     q.register("work", move |ctx: &JobContext| {
         seen.lock().unwrap().push(ctx.job().id);
         thread::sleep(Duration::from_millis(5));
@@ -173,7 +179,9 @@ fn backoff_delays_the_next_run() {
         ..QueueConfig::default()
     };
     let q = JobQueue::new(JobStore::open_in_memory().unwrap(), config).unwrap();
-    q.register("fetch", |_: &JobContext| RunOutcome::Retryable("down".into()));
+    q.register("fetch", |_: &JobContext| {
+        RunOutcome::Retryable("down".into())
+    });
     let id = q.enqueue(&job("fetch")).unwrap();
     assert!(q.run_until_idle(WAIT).unwrap());
     let job = q.get(id).unwrap();
@@ -191,7 +199,9 @@ fn backoff_delays_the_next_run() {
 #[test]
 fn fatal_error_and_panic_fail_at_once() {
     let q = queue();
-    q.register("gone", |_: &JobContext| RunOutcome::Fatal("VOD deleted".into()));
+    q.register("gone", |_: &JobContext| {
+        RunOutcome::Fatal("VOD deleted".into())
+    });
     q.register("bug", |_: &JobContext| -> RunOutcome { panic!("boom") });
     let gone = q.enqueue(&job("gone")).unwrap();
     let bug = q.enqueue(&job("bug")).unwrap();
