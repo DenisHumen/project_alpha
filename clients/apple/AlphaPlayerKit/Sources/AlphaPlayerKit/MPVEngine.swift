@@ -75,7 +75,8 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
         mpv.observe("paused-for-cache", MPV_FORMAT_FLAG)
         self.mpv = mpv
         let wakeup = WakeupTarget { [weak self] in
-            self?.queue.async { self?.drainEvents() }
+            guard let engine = self else { return }
+            engine.queue.async { [weak engine] in engine?.drainEvents() }
         }
         self.wakeup = wakeup
         mpv.setWakeup(wakeup)
