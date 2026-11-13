@@ -10,6 +10,7 @@ import 'config.dart';
 import 'fakes/fake_library.dart';
 import 'integration/library.dart';
 import 'platform/form_factor.dart';
+import 'platform/libmpv_check.dart';
 import 'services/app_services.dart';
 import 'services/secure_store.dart';
 
@@ -53,5 +54,11 @@ Future<void> main() async {
     secureStore: PlatformSecureStore(),
   );
   await services.init();
-  runApp(KinoluneApp(services: services, formFactor: formFactor));
+  runApp(
+    KinoluneApp(
+      services: services,
+      formFactor: formFactor,
+      startupWarning: checkLibmpv(),
+    ),
+  );
 }

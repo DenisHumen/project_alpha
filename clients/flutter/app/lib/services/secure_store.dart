@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -21,10 +23,40 @@ class PlatformSecureStore implements SecureStore {
   final _storage = const FlutterSecureStorage();
   final _memory = <String, String>{};
   bool _broken = false;
+  Future<bool>? _probe;
+
+  /// libsecret aborts the process (uncatchable C++ exception) when no Secret
+  /// Service is running, so on Linux check D-Bus for one first.
+  Future<bool> _available() => _probe ??= _probeSecretService();
+
+  static Future<bool> _probeSecretService() async {
+    if (kIsWeb || !Platform.isLinux) return true;
+    for (final method in ['ListNames', 'ListActivatableNames']) {
+      try {
+        final r = await Process.run('dbus-send', [
+          '--session',
+          '--print-reply',
+          '--dest=org.freedesktop.DBus',
+          '/org/freedesktop/DBus',
+          'org.freedesktop.DBus.$method',
+        ]).timeout(const Duration(seconds: 2));
+        if (r.exitCode == 0 &&
+            '${r.stdout}'.contains('org.freedesktop.secrets')) {
+          return true;
+        }
+      } catch (_) {
+        // dbus-send missing or no session bus.
+      }
+    }
+    debugPrint(
+      'No Secret Service on D-Bus: secrets are kept for this session only.',
+    );
+    return false;
+  }
 
   @override
   Future<String?> read(String key) async {
-    if (!_broken) {
+    if (!_broken && await _available()) {
       try {
         return await _storage.read(key: key);
       } catch (e) {
@@ -37,7 +69,7 @@ class PlatformSecureStore implements SecureStore {
 
   @override
   Future<void> write(String key, String? value) async {
-    if (!_broken) {
+    if (!_broken && await _available()) {
       try {
         if (value == null) {
           await _storage.delete(key: key);
