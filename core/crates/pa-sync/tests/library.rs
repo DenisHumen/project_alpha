@@ -72,8 +72,14 @@ fn received_ops_update_the_other_library_in_any_order() {
     let mut phone = Replica::new("phone").unwrap();
     let th = Thresholds::default();
     progress::report_position(&mut phone_db, &mut phone, &th, &report(600_000), T0).unwrap();
-    progress::report_position(&mut phone_db, &mut phone, &th, &report(2_900_000), T0 + 10_000)
-        .unwrap();
+    progress::report_position(
+        &mut phone_db,
+        &mut phone,
+        &th,
+        &report(2_900_000),
+        T0 + 10_000,
+    )
+    .unwrap();
     let ops: Vec<_> = outbox::due(&phone_db, i64::MAX, 100)
         .unwrap()
         .into_iter()

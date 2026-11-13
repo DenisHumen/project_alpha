@@ -109,7 +109,13 @@ fn thresholds_are_configurable_and_checked() {
     assert!(!th.is_in_progress(2_500, Some(100_000)));
     assert!(th.is_in_progress(3_000, Some(100_000)));
     assert!(th.is_complete(90_500, Some(100_000)));
-    for (min, max) in [(0.5, 0.5), (0.9, 0.1), (-0.1, 0.9), (0.02, 1.5), (f64::NAN, 0.9)] {
+    for (min, max) in [
+        (0.5, 0.5),
+        (0.9, 0.1),
+        (-0.1, 0.9),
+        (0.02, 1.5),
+        (f64::NAN, 0.9),
+    ] {
         assert!(
             matches!(Thresholds::new(min, max), Err(Error::Invalid(_))),
             "{min} {max}"
@@ -139,13 +145,37 @@ fn row_boundaries_follow_the_thresholds() {
 fn unknown_duration_is_kept_and_reused() {
     let mut conn = pa_library::open_in_memory().unwrap();
     let mut sink = LocalOnly::new("tv");
-    report(&mut conn, &mut sink, "tmdb:movie:1", MediaKind::Movie, 10_000, Some(100_000), T0);
+    report(
+        &mut conn,
+        &mut sink,
+        "tmdb:movie:1",
+        MediaKind::Movie,
+        10_000,
+        Some(100_000),
+        T0,
+    );
     // The player lost the duration: the stored one is kept.
-    let item = report(&mut conn, &mut sink, "tmdb:movie:1", MediaKind::Movie, 96_000, None, T0 + 1);
+    let item = report(
+        &mut conn,
+        &mut sink,
+        "tmdb:movie:1",
+        MediaKind::Movie,
+        96_000,
+        None,
+        T0 + 1,
+    );
     assert_eq!(item.duration_ms, Some(100_000));
     assert!(item.watched);
     // No duration at all: stored, but not in the row.
-    report(&mut conn, &mut sink, "tmdb:movie:2", MediaKind::Movie, 10_000, None, T0 + 2);
+    report(
+        &mut conn,
+        &mut sink,
+        "tmdb:movie:2",
+        MediaKind::Movie,
+        10_000,
+        None,
+        T0 + 2,
+    );
     assert!(keys_of(&conn).is_empty());
 }
 
@@ -156,11 +186,43 @@ fn watched_is_monotonic_and_sent_once() {
     let mut conn = pa_library::open_in_memory().unwrap();
     let mut sink = Recorder::default();
     let k = "tmdb:movie:603";
-    report(&mut conn, &mut sink, k, MediaKind::Movie, 50_000, Some(100_000), T0);
-    report(&mut conn, &mut sink, k, MediaKind::Movie, 97_000, Some(100_000), T0 + 1);
-    report(&mut conn, &mut sink, k, MediaKind::Movie, 99_000, Some(100_000), T0 + 2);
+    report(
+        &mut conn,
+        &mut sink,
+        k,
+        MediaKind::Movie,
+        50_000,
+        Some(100_000),
+        T0,
+    );
+    report(
+        &mut conn,
+        &mut sink,
+        k,
+        MediaKind::Movie,
+        97_000,
+        Some(100_000),
+        T0 + 1,
+    );
+    report(
+        &mut conn,
+        &mut sink,
+        k,
+        MediaKind::Movie,
+        99_000,
+        Some(100_000),
+        T0 + 2,
+    );
     // Rewatching from the start does not clear "watched".
-    let item = report(&mut conn, &mut sink, k, MediaKind::Movie, 10_000, Some(100_000), T0 + 3);
+    let item = report(
+        &mut conn,
+        &mut sink,
+        k,
+        MediaKind::Movie,
+        10_000,
+        Some(100_000),
+        T0 + 3,
+    );
     assert!(item.watched);
     assert_eq!(item.position_ms, 10_000);
     assert_eq!(item.device_id, "phone");
@@ -268,12 +330,42 @@ fn unknown_profile_is_rejected() {
 fn row_merges_domains_latest_first_without_tracks_and_clips() {
     let mut conn = pa_library::open_in_memory().unwrap();
     play(&mut conn, "tmdb:movie:1", MediaKind::Movie, 30, T0);
-    play(&mut conn, "twitch:vod:2000", MediaKind::TwitchVod, 40, T0 + MIN);
-    play(&mut conn, "mb:recording:0f2a9cb8-7d34-4b5d-9f43-8c3d1f0c6a11", MediaKind::Track, 50, T0 + 2 * MIN);
-    play(&mut conn, "twitch:clip:SomeSlug", MediaKind::TwitchClip, 50, T0 + 3 * MIN);
-    play(&mut conn, "tmdb:episode:1399:1:1", MediaKind::Episode, 20, T0 + 4 * MIN);
+    play(
+        &mut conn,
+        "twitch:vod:2000",
+        MediaKind::TwitchVod,
+        40,
+        T0 + MIN,
+    );
+    play(
+        &mut conn,
+        "mb:recording:0f2a9cb8-7d34-4b5d-9f43-8c3d1f0c6a11",
+        MediaKind::Track,
+        50,
+        T0 + 2 * MIN,
+    );
+    play(
+        &mut conn,
+        "twitch:clip:SomeSlug",
+        MediaKind::TwitchClip,
+        50,
+        T0 + 3 * MIN,
+    );
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:1",
+        MediaKind::Episode,
+        20,
+        T0 + 4 * MIN,
+    );
     play(&mut conn, "file:abc123", MediaKind::Video, 20, T0 + 5 * MIN);
-    play(&mut conn, "twitch:rec:777", MediaKind::TwitchRecording, 20, T0 + 6 * MIN);
+    play(
+        &mut conn,
+        "twitch:rec:777",
+        MediaKind::TwitchRecording,
+        20,
+        T0 + 6 * MIN,
+    );
     assert_eq!(
         keys_of(&conn),
         [
@@ -300,7 +392,13 @@ fn row_merges_domains_latest_first_without_tracks_and_clips() {
         [("tmdb:movie:1".to_owned(), ContinueReason::InProgress)]
     );
     // An update moves an item to the front.
-    play(&mut conn, "tmdb:movie:1", MediaKind::Movie, 35, T0 + 7 * MIN);
+    play(
+        &mut conn,
+        "tmdb:movie:1",
+        MediaKind::Movie,
+        35,
+        T0 + 7 * MIN,
+    );
     assert_eq!(keys_of(&conn)[0], "tmdb:movie:1");
     let limited = ContinueQuery {
         limit: 2,
@@ -319,8 +417,9 @@ fn rows_are_per_profile() {
     )
     .unwrap();
     play(&mut conn, "tmdb:movie:1", MediaKind::Movie, 30, T0);
-    let row = progress::continue_watching(&conn, &Thresholds::default(), 2, &ContinueQuery::default())
-        .unwrap();
+    let row =
+        progress::continue_watching(&conn, &Thresholds::default(), 2, &ContinueQuery::default())
+            .unwrap();
     assert!(row.is_empty());
 }
 
@@ -462,9 +561,9 @@ fn next_episode_skips_specials_extras_and_missing_files() {
         &conn,
         Some(1399),
         &[
-            (0, 1, "regular", true),  // S0E1 special
-            (0, 2, "regular", true),  // S0E2 special
-            (0, 3, "trailer", true),  // never next
+            (0, 1, "regular", true), // S0E1 special
+            (0, 2, "regular", true), // S0E2 special
+            (0, 3, "trailer", true), // never next
             (1, 1, "regular", true),
             (1, 2, "credit", true),   // OP/ED in a regular season
             (1, 3, "special", true),  // typed special inside S1
@@ -502,7 +601,13 @@ fn up_next_follows_the_latest_finished_episode() {
             (2, 2, "regular", true),
         ],
     );
-    play(&mut conn, "tmdb:episode:1399:1:1", MediaKind::Episode, 99, T0);
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:1",
+        MediaKind::Episode,
+        99,
+        T0,
+    );
     play(&mut conn, "tmdb:movie:7", MediaKind::Movie, 50, T0 + MIN);
     assert_eq!(
         row_keys(&conn, &ContinueQuery::default()),
@@ -512,9 +617,16 @@ fn up_next_follows_the_latest_finished_episode() {
         ]
     );
     // Finishing the season finale offers the next season.
-    play(&mut conn, "tmdb:episode:1399:1:2", MediaKind::Episode, 99, T0 + 2 * MIN);
-    let row = progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
-        .unwrap();
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:2",
+        MediaKind::Episode,
+        99,
+        T0 + 2 * MIN,
+    );
+    let row =
+        progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
+            .unwrap();
     let up = &row[0];
     assert_eq!(up.reason, ContinueReason::UpNext);
     assert_eq!(up.item.media_key, key("tmdb:episode:1399:2:1"));
@@ -524,20 +636,41 @@ fn up_next_follows_the_latest_finished_episode() {
     assert_eq!(up.anchor_key, key("tmdb:episode:1399:1:2"));
     assert_eq!(up.episode.as_ref().unwrap().episode_id, show.episodes[3]);
     // Watching a special later does not move Up Next.
-    play(&mut conn, "tmdb:episode:1399:0:1", MediaKind::Episode, 99, T0 + 3 * MIN);
+    play(
+        &mut conn,
+        "tmdb:episode:1399:0:1",
+        MediaKind::Episode,
+        99,
+        T0 + 3 * MIN,
+    );
     let ups: Vec<_> = row_keys(&conn, &ContinueQuery::default())
         .into_iter()
         .filter(|(_, r)| *r == ContinueReason::UpNext)
         .collect();
-    assert_eq!(ups, [("tmdb:episode:1399:2:1".to_owned(), ContinueReason::UpNext)]);
+    assert_eq!(
+        ups,
+        [("tmdb:episode:1399:2:1".to_owned(), ContinueReason::UpNext)]
+    );
     // Already watched episodes ahead are skipped.
     let mut sink = LocalOnly::new("tv");
-    progress::mark_watched(&mut conn, &mut sink, 1, &key("tmdb:episode:1399:2:1"), T0 + 4 * MIN)
-        .unwrap();
+    progress::mark_watched(
+        &mut conn,
+        &mut sink,
+        1,
+        &key("tmdb:episode:1399:2:1"),
+        T0 + 4 * MIN,
+    )
+    .unwrap();
     assert_eq!(keys_of(&conn)[0], "tmdb:episode:1399:2:2");
     // The last episode finished: nothing next.
-    progress::mark_watched(&mut conn, &mut sink, 1, &key("tmdb:episode:1399:2:2"), T0 + 5 * MIN)
-        .unwrap();
+    progress::mark_watched(
+        &mut conn,
+        &mut sink,
+        1,
+        &key("tmdb:episode:1399:2:2"),
+        T0 + 5 * MIN,
+    )
+    .unwrap();
     assert_eq!(keys_of(&conn), ["tmdb:movie:7"]);
     // Without Up Next only in-progress items.
     let plain = ContinueQuery {
@@ -559,19 +692,39 @@ fn in_progress_episode_replaces_up_next_of_its_show() {
             (1, 3, "regular", true),
         ],
     );
-    play(&mut conn, "tmdb:episode:1399:1:1", MediaKind::Episode, 99, T0);
-    play(&mut conn, "tmdb:episode:1399:1:2", MediaKind::Episode, 40, T0 + MIN);
-    let row = progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
-        .unwrap();
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:1",
+        MediaKind::Episode,
+        99,
+        T0,
+    );
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:2",
+        MediaKind::Episode,
+        40,
+        T0 + MIN,
+    );
+    let row =
+        progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
+            .unwrap();
     assert_eq!(row.len(), 1);
     assert_eq!(row[0].reason, ContinueReason::InProgress);
     assert_eq!(row[0].item.media_key, key("tmdb:episode:1399:1:2"));
     assert!(row[0].episode.is_some());
     // An episode started below 2 % is not in progress: Up Next shows it with
     // its own position.
-    play(&mut conn, "tmdb:episode:1399:1:2", MediaKind::Episode, 1, T0 + 2 * MIN);
-    let row = progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
-        .unwrap();
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:2",
+        MediaKind::Episode,
+        1,
+        T0 + 2 * MIN,
+    );
+    let row =
+        progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
+            .unwrap();
     assert_eq!(row.len(), 1);
     assert_eq!(row[0].reason, ContinueReason::UpNext);
     assert_eq!(row[0].item.position_ms, 1_000);
@@ -590,12 +743,25 @@ fn removed_up_next_returns_after_the_next_episode_is_finished() {
             (1, 3, "regular", true),
         ],
     );
-    play(&mut conn, "tmdb:episode:1399:1:1", MediaKind::Episode, 99, T0);
-    let row = progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
-        .unwrap();
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:1",
+        MediaKind::Episode,
+        99,
+        T0,
+    );
+    let row =
+        progress::continue_watching(&conn, &Thresholds::default(), 1, &ContinueQuery::default())
+            .unwrap();
     progress::hide_from_continue(&conn, 1, &row[0].anchor_key, T0 + 1).unwrap();
     assert!(keys_of(&conn).is_empty());
-    play(&mut conn, "tmdb:episode:1399:1:2", MediaKind::Episode, 99, T0 + 2);
+    play(
+        &mut conn,
+        "tmdb:episode:1399:1:2",
+        MediaKind::Episode,
+        99,
+        T0 + 2,
+    );
     assert_eq!(keys_of(&conn), ["tmdb:episode:1399:1:3"]);
 }
 
@@ -628,7 +794,11 @@ fn up_next_is_one_per_show() {
     add_show(
         &conn,
         Some(1),
-        &[(1, 1, "regular", true), (1, 2, "regular", true), (1, 3, "regular", true)],
+        &[
+            (1, 1, "regular", true),
+            (1, 2, "regular", true),
+            (1, 3, "regular", true),
+        ],
     );
     add_show(
         &conn,
@@ -636,8 +806,20 @@ fn up_next_is_one_per_show() {
         &[(1, 1, "regular", true), (1, 2, "regular", true)],
     );
     play(&mut conn, "tmdb:episode:1:1:1", MediaKind::Episode, 99, T0);
-    play(&mut conn, "tmdb:episode:2:1:1", MediaKind::Episode, 99, T0 + 1);
-    play(&mut conn, "tmdb:episode:1:1:2", MediaKind::Episode, 99, T0 + 2);
+    play(
+        &mut conn,
+        "tmdb:episode:2:1:1",
+        MediaKind::Episode,
+        99,
+        T0 + 1,
+    );
+    play(
+        &mut conn,
+        "tmdb:episode:1:1:2",
+        MediaKind::Episode,
+        99,
+        T0 + 2,
+    );
     assert_eq!(keys_of(&conn), ["tmdb:episode:1:1:3", "tmdb:episode:2:1:2"]);
 }
 
@@ -665,7 +847,10 @@ fn remote_changes_follow_lww_and_monotonic_watched() {
     assert!(progress::apply_remote(&conn, &pos(30_000), T0 + 10, "tv").unwrap());
     // Older position: ignored.
     assert!(!progress::apply_remote(&conn, &pos(10_000), T0 + 5, "phone").unwrap());
-    assert_eq!(progress::get(&conn, 1, &k).unwrap().unwrap().position_ms, 30_000);
+    assert_eq!(
+        progress::get(&conn, 1, &k).unwrap().unwrap().position_ms,
+        30_000
+    );
     // Watched even if older, once.
     assert!(progress::apply_remote(&conn, &watched, T0 + 1, "phone").unwrap());
     assert!(!progress::apply_remote(&conn, &watched, T0 + 20, "phone").unwrap());
@@ -685,7 +870,9 @@ fn remote_changes_follow_lww_and_monotonic_watched() {
         key: key("twitch:vod:5"),
     };
     assert!(progress::apply_remote(&conn, &other, T0, "tv").unwrap());
-    let item = progress::get(&conn, 1, &key("twitch:vod:5")).unwrap().unwrap();
+    let item = progress::get(&conn, 1, &key("twitch:vod:5"))
+        .unwrap()
+        .unwrap();
     assert_eq!(item.source_type, MediaKind::TwitchVod);
     // Unknown profile: skipped.
     let stranger = ProgressChange::Watched {

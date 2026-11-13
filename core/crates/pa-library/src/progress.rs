@@ -183,7 +183,12 @@ impl ProgressSink for LocalOnly {
         &self.device_id
     }
 
-    fn record_change(&mut self, _: &Connection, _: ProgressChange, _: i64) -> Result<(), SinkError> {
+    fn record_change(
+        &mut self,
+        _: &Connection,
+        _: ProgressChange,
+        _: i64,
+    ) -> Result<(), SinkError> {
         Ok(())
     }
 }
@@ -338,7 +343,9 @@ fn item_from_row(r: &Row<'_>) -> rusqlite::Result<Result<PlaybackItem, Error>> {
     let watched: bool = r.get(6)?;
     Ok((|| {
         Ok(PlaybackItem {
-            media_key: key.parse().map_err(|_| Error::Invalid("stored media key"))?,
+            media_key: key
+                .parse()
+                .map_err(|_| Error::Invalid("stored media key"))?,
             source_type: parse_kind(&kind)?,
             position_ms: u64::try_from(position).unwrap_or(0),
             duration_ms: opt_u64(duration),
@@ -350,7 +357,11 @@ fn item_from_row(r: &Row<'_>) -> rusqlite::Result<Result<PlaybackItem, Error>> {
 }
 
 /// Playback state of `key` on a profile.
-pub fn get(conn: &Connection, profile_id: i64, key: &MediaKey) -> Result<Option<PlaybackItem>, Error> {
+pub fn get(
+    conn: &Connection,
+    profile_id: i64,
+    key: &MediaKey,
+) -> Result<Option<PlaybackItem>, Error> {
     let key = check_key(key)?;
     conn.query_row(
         &format!("SELECT {ITEM_COLUMNS} FROM progress WHERE profile_id = ?1 AND media_key = ?2"),
@@ -415,13 +426,15 @@ pub fn report_position(
         position_ms: report.position_ms,
         duration_ms,
     };
-    sink.record_change(&tx, change, now_ms).map_err(Error::Sync)?;
+    sink.record_change(&tx, change, now_ms)
+        .map_err(Error::Sync)?;
     if watched && !was_watched {
         let change = ProgressChange::Watched {
             profile,
             key: report.key.clone(),
         };
-        sink.record_change(&tx, change, now_ms).map_err(Error::Sync)?;
+        sink.record_change(&tx, change, now_ms)
+            .map_err(Error::Sync)?;
     }
     let item = get(&tx, report.profile_id, &report.key)?.ok_or(Error::Invalid("progress row"))?;
     tx.commit()?;
@@ -461,7 +474,8 @@ pub fn mark_watched(
         profile,
         key: key.clone(),
     };
-    sink.record_change(&tx, change, now_ms).map_err(Error::Sync)?;
+    sink.record_change(&tx, change, now_ms)
+        .map_err(Error::Sync)?;
     tx.commit()?;
     Ok(true)
 }
@@ -503,7 +517,8 @@ pub fn mark_unwatched(
         position_ms: 0,
         duration_ms: before.duration_ms,
     };
-    sink.record_change(&tx, position, now_ms).map_err(Error::Sync)?;
+    sink.record_change(&tx, position, now_ms)
+        .map_err(Error::Sync)?;
     tx.commit()?;
     Ok(true)
 }
@@ -884,10 +899,13 @@ fn episode_ref(conn: &Connection, episode_id: i64) -> Result<Option<EpisodeRef>,
 }
 
 /// True if any key of the episode is watched on the profile.
-pub fn is_episode_watched(conn: &Connection, profile_id: i64, episode_id: i64) -> Result<bool, Error> {
-    let mut stmt = conn.prepare_cached(
-        "SELECT watched FROM progress WHERE profile_id = ?1 AND media_key = ?2",
-    )?;
+pub fn is_episode_watched(
+    conn: &Connection,
+    profile_id: i64,
+    episode_id: i64,
+) -> Result<bool, Error> {
+    let mut stmt = conn
+        .prepare_cached("SELECT watched FROM progress WHERE profile_id = ?1 AND media_key = ?2")?;
     for key in episode_keys(conn, episode_id)? {
         let watched: Option<bool> = stmt
             .query_row(params![profile_id, key.to_string()], |r| r.get(0))
