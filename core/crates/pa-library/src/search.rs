@@ -278,8 +278,7 @@ impl Query {
             return None;
         }
         let raw: Vec<&str> = folded.split(' ').collect();
-        let (plain, loose): (Vec<String>, Vec<String>) =
-            raw.iter().map(|t| token_keys(t)).unzip();
+        let (plain, loose): (Vec<String>, Vec<String>) = raw.iter().map(|t| token_keys(t)).unzip();
         let last_raw = *raw.last()?;
         let mut plain_prefixes = vec![last_raw.to_owned()];
         push_unique(&mut plain_prefixes, plain.last()?.clone());
@@ -362,9 +361,11 @@ fn partial_loose(raw: &str) -> Option<String> {
 
 /// True if some entities wait for [`sync`].
 pub fn pending(conn: &Connection) -> Result<bool, Error> {
-    Ok(conn.query_row("SELECT EXISTS (SELECT 1 FROM search_queue)", [], |r| {
-        r.get(0)
-    })?)
+    Ok(
+        conn.query_row("SELECT EXISTS (SELECT 1 FROM search_queue)", [], |r| {
+            r.get(0)
+        })?,
+    )
 }
 
 /// Rebuilds the documents of queued entities; returns how many entities were
@@ -523,8 +524,10 @@ fn documents(conn: &Connection, entity: &str, id: i64) -> Result<Option<Document
                         )?
                         .query_map([id], |r| r.get(0))?
                         .collect::<Result<_, _>>()?;
-                    let mut v: Vec<(String, f64)> =
-                        artists.iter().map(|a| (format!("{a} {title}"), 0.8)).collect();
+                    let mut v: Vec<(String, f64)> = artists
+                        .iter()
+                        .map(|a| (format!("{a} {title}"), 0.8))
+                        .collect();
                     v.insert(0, (title, 1.0));
                     Some((SearchKind::Album, v, None))
                 }
@@ -573,7 +576,9 @@ fn work_documents(conn: &Connection, id: i64) -> Result<Option<Documents>, Error
     let mut strings = vec![(title, 1.0)];
     strings.extend(original.map(|t| (t, 0.95)));
     let mut stmt = conn.prepare_cached("SELECT text, kind FROM titles WHERE work_id = ?1")?;
-    let titles = stmt.query_map([id], |r| Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?)))?;
+    let titles = stmt.query_map([id], |r| {
+        Ok((r.get::<_, String>(0)?, r.get::<_, String>(1)?))
+    })?;
     for t in titles {
         let (text, tkind) = t?;
         let weight = match tkind.as_str() {
@@ -639,7 +644,11 @@ struct Candidate {
 
 /// Searches the library. Brings the index up to date first ([`sync`]) if
 /// changes are queued. An empty query returns nothing.
-pub fn search(conn: &Connection, query: &str, opts: &SearchOptions) -> Result<Vec<SearchHit>, Error> {
+pub fn search(
+    conn: &Connection,
+    query: &str,
+    opts: &SearchOptions,
+) -> Result<Vec<SearchHit>, Error> {
     if opts.limit == 0 || opts.limit > MAX_LIMIT {
         return Err(Error::Invalid("search limit"));
     }
@@ -787,7 +796,9 @@ fn collect(
 /// the query, 1 — the tokens are somewhere in it.
 fn tier(q: &Query, plain: &[&str], loose: &[&str]) -> u8 {
     let n = q.n();
-    let eq = |doc: &[&str], full: &[String]| doc.len() == full.len() && doc.iter().zip(full).all(|(a, b)| a == b);
+    let eq = |doc: &[&str], full: &[String]| {
+        doc.len() == full.len() && doc.iter().zip(full).all(|(a, b)| a == b)
+    };
     if eq(plain, &q.plain) || eq(loose, &q.loose) || loose.concat() == q.loose.concat() {
         return 3;
     }
@@ -796,16 +807,13 @@ fn tier(q: &Query, plain: &[&str], loose: &[&str]) -> u8 {
             && doc[..n - 1].iter().zip(&full[..n - 1]).all(|(a, b)| a == b)
             && prefixes.iter().any(|p| doc[n - 1].starts_with(p.as_str()))
     };
-    if starts(plain, &q.plain, &q.plain_prefixes)
-        || starts(loose, &q.loose, &q.loose_prefixes)
-        || {
-            let head = q.loose[..n - 1].concat();
-            let doc = loose.concat();
-            q.loose_prefixes
-                .iter()
-                .any(|p| doc.starts_with(&format!("{head}{p}")))
-        }
-    {
+    if starts(plain, &q.plain, &q.plain_prefixes) || starts(loose, &q.loose, &q.loose_prefixes) || {
+        let head = q.loose[..n - 1].concat();
+        let doc = loose.concat();
+        q.loose_prefixes
+            .iter()
+            .any(|p| doc.starts_with(&format!("{head}{p}")))
+    } {
         return 2;
     }
     1
@@ -967,7 +975,10 @@ mod tests {
         let k = DocKeys::new("Spider-Man: No Way Home").unwrap();
         assert_eq!(k.plain, ["spider", "man", "no", "way", "home"]);
         assert!(k.loose_column().ends_with(" spidermannowayhome"));
-        assert_eq!(DocKeys::new("Война и мир").unwrap().loose, ["voyna", "1", "mir"]);
+        assert_eq!(
+            DocKeys::new("Война и мир").unwrap().loose,
+            ["voyna", "1", "mir"]
+        );
         assert!(DocKeys::new("!!!").is_none());
     }
 }

@@ -63,7 +63,11 @@ fn russian_query_finds_transliterated_file_name() {
         10,
         "Movies/Ironiya.sudby.ili.S.legkim.parom.1975.BDRip.1080p.mkv",
     );
-    file(&conn, 11, "Movies/Ironiya.sudby.ili.S.legkim.parom.1975.nfo");
+    file(
+        &conn,
+        11,
+        "Movies/Ironiya.sudby.ili.S.legkim.parom.1975.nfo",
+    );
     file(&conn, 12, "Movies/Brat.1997.mkv");
 
     let hits = find(&conn, "ирония судьбы");
@@ -100,7 +104,13 @@ fn aliases_and_scripts() {
     alias(&conn, 1, "ru", "Ведьмак", "official");
     work(&conn, 2, "movie", "Брат 2", Some(2000));
     work(&conn, 3, "movie", "Amélie", Some(2001));
-    alias(&conn, 3, "fr", "Le Fabuleux Destin d'Amélie Poulain", "official");
+    alias(
+        &conn,
+        3,
+        "fr",
+        "Le Fabuleux Destin d'Amélie Poulain",
+        "official",
+    );
     work(&conn, 4, "anime", "Shingeki no Kyojin", Some(2013));
     alias(&conn, 4, "en", "Attack on Titan", "official");
     alias(&conn, 4, "ru", "Атака титанов", "official");
@@ -156,7 +166,13 @@ fn ranking_prefers_exact_and_starting_titles() {
     let conn = db();
     // Many titles that contain or start with `up`.
     for i in 0..300 {
-        work(&conn, 1000 + i, "movie", &format!("Upgrade Story {i}"), None);
+        work(
+            &conn,
+            1000 + i,
+            "movie",
+            &format!("Upgrade Story {i}"),
+            None,
+        );
         work(&conn, 2000 + i, "show", &format!("Grown Ups {i}"), None);
     }
     work(&conn, 1, "movie", "Up in the Air", Some(2009));
@@ -305,8 +321,11 @@ fn index_follows_catalogue_changes() {
     assert_eq!(find(&conn, "zhmurki").len(), 2);
 
     // Renamed and deleted rows.
-    conn.execute("UPDATE works SET title = 'Dead Man''s Bluff' WHERE id = 7", [])
-        .unwrap();
+    conn.execute(
+        "UPDATE works SET title = 'Dead Man''s Bluff' WHERE id = 7",
+        [],
+    )
+    .unwrap();
     assert_eq!(first(&conn, "bluff"), (SearchKind::Movie, 7));
     assert_eq!(ids(&find(&conn, "жмурки")), [(SearchKind::Video, 1)]);
     conn.execute("UPDATE files SET missing_since_ms = 1 WHERE id = 1", [])
@@ -322,7 +341,8 @@ fn index_follows_catalogue_changes() {
     // Cascades from a deleted source.
     file(&conn, 2, "Brat.1997.mkv");
     assert_eq!(find(&conn, "brat").len(), 1);
-    conn.execute("DELETE FROM sources WHERE id = 1", []).unwrap();
+    conn.execute("DELETE FROM sources WHERE id = 1", [])
+        .unwrap();
     assert!(find(&conn, "brat").is_empty());
 
     // Rebuild from scratch gives the same index.
@@ -345,7 +365,9 @@ fn sync_works_inside_a_transaction_and_bad_input_is_handled() {
     tx.rollback().unwrap();
     assert!(find(&conn, "солярис").is_empty());
 
-    for q in ["", "   ", "?!", "\"", "*", "a\"b", "NOT", "AND OR", "(x", "col:val"] {
+    for q in [
+        "", "   ", "?!", "\"", "*", "a\"b", "NOT", "AND OR", "(x", "col:val",
+    ] {
         search::search(&conn, q, &SearchOptions::default()).unwrap();
     }
     let bad = SearchOptions {
@@ -376,9 +398,34 @@ fn search_over_50_000_items_is_fast() {
         "blood", "fire", "ice", "summer", "winter", "road", "home", "ghost", "island", "storm",
     ];
     const RU: &[&str] = &[
-        "тайна", "ночь", "звезда", "любовь", "война", "король", "город", "игра", "дом", "сон",
-        "время", "река", "девушка", "история", "мир", "кровь", "огонь", "лёд", "лето", "зима",
-        "дорога", "призрак", "остров", "буря", "брат", "судьба", "сердце", "небо",
+        "тайна",
+        "ночь",
+        "звезда",
+        "любовь",
+        "война",
+        "король",
+        "город",
+        "игра",
+        "дом",
+        "сон",
+        "время",
+        "река",
+        "девушка",
+        "история",
+        "мир",
+        "кровь",
+        "огонь",
+        "лёд",
+        "лето",
+        "зима",
+        "дорога",
+        "призрак",
+        "остров",
+        "буря",
+        "брат",
+        "судьба",
+        "сердце",
+        "небо",
     ];
     let mut conn = db();
     let mut rng = Lcg(42);
@@ -390,7 +437,9 @@ fn search_over_50_000_items_is_fast() {
             )
             .unwrap();
         let mut ins_title = tx
-            .prepare("INSERT INTO titles (work_id, lang, text, kind) VALUES (?1, 'ru', ?2, 'official')")
+            .prepare(
+                "INSERT INTO titles (work_id, lang, text, kind) VALUES (?1, 'ru', ?2, 'official')",
+            )
             .unwrap();
         let mut ins_ep = tx
             .prepare(
@@ -435,7 +484,10 @@ fn search_over_50_000_items_is_fast() {
                 pa_recognition::title::translit::Scheme::Common,
             );
             ins_file
-                .execute(params![format!("Films/{}.{i}.1080p.mkv", lat.replace(' ', "."))])
+                .execute(params![format!(
+                    "Films/{}.{i}.1080p.mkv",
+                    lat.replace(' ', ".")
+                )])
                 .unwrap();
         }
     }
