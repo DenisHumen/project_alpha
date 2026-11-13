@@ -39,6 +39,7 @@ path = [
   "**/go.mod",
   "**/go.sum",
   "Cargo.lock",
+  "tools/qa/media/hdrmeta/Cargo.lock",
   "**/pubspec.lock",
   "**/.metadata",
 ]
