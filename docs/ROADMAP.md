@@ -514,7 +514,7 @@ project_alpha/
   - Что: guessit + наивный поиск TMDB, hunch + TMDB, Jellyfin в Docker (только TMDB, затем с AniDB-плагином) на дереве mkv-заглушек (ffmpeg генерирует нужные длительность и языки).
   - deps: META-002, META-003 · size: M · parallel: yes · веха: M2 · ref: 03 §6.3
   - done when: отчёт «где все проваливаются» по категориям лежит в eval-репо.
-- [ ] **META-005** Парсер имён: токенизатор и N-best гипотезы
+- [x] **META-005** Парсер имён: токенизатор и N-best гипотезы
   - Что: форк или вендоринг hunch (MIT) в `pa-recognition/parse`; токенизатор (скобки `[] () {} 【】`, разделители) → классификаторы токенов → `ParsedName` с весами; без кода под LGPL и GPL.
   - deps: REPO-001 · size: L · parallel: yes · веха: M1 · ref: 03 §2.2, §4.2 [3]
   - done when: ≥ 85 % на тест-кейсах guessit (как eval); защита от ReDoS — только линейные регулярки.
@@ -785,7 +785,7 @@ project_alpha/
 
 ### 3.11. UI — Flutter-приложение (телефон, планшет, десктоп, общие экраны)
 
-- [ ] **UI-001** Каркас Flutter-приложения
+- [x] **UI-001** Каркас Flutter-приложения
   - Что: `clients/flutter`: структура по фичам (`lib/features/<f>/`), go_router с файлом `routes.dart` у каждой фичи, state management по ADR (рекомендация — Riverpod), подключение `pa_core`, флейворы store и full (dart-define, Gradle flavors, Xcode schemes), общие состояния (пустое, skeleton, ошибка источника, ретрай).
   - deps: CORE-002 · size: M · parallel: no · веха: M0 · ref: 02 §7, 01 §4.9 п.10
   - done when: приложение собирается на 5 Flutter-платформах в обоих флейворах; widget-тест каркаса.
