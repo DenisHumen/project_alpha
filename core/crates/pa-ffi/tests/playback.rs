@@ -83,7 +83,7 @@ impl PlayerEngine for Platform {
     fn stats(&self) -> Result<PlaybackStats, EngineError> {
         self.mock.stats()
     }
-    fn close(&self) -> Result<(), EngineError> {
+    fn close_engine(&self) -> Result<(), EngineError> {
         self.mock.close()
     }
 }

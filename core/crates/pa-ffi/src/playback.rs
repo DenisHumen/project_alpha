@@ -220,7 +220,9 @@ pub trait PlayerEngine: Send + Sync {
     fn set_subtitle_track(&self, id: Option<String>) -> Result<(), EngineError>;
     fn add_external_subtitle(&self, uri: String, title: Option<String>) -> Result<(), EngineError>;
     fn stats(&self) -> Result<PlaybackStats, EngineError>;
-    fn close(&self) -> Result<(), EngineError>;
+    /// `PlayerEngine::close`. Renamed: generated Kotlin objects are
+    /// `AutoCloseable`, whose `close()` frees the handle.
+    fn close_engine(&self) -> Result<(), EngineError>;
 }
 
 /// Passes events of a platform engine to a core listener.
@@ -284,7 +286,7 @@ impl pa_playback::PlayerEngine for ForeignEngine {
         self.0.stats()
     }
     fn close(&self) -> Result<(), EngineError> {
-        self.0.close()
+        self.0.close_engine()
     }
 }
 
