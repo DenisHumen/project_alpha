@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 //! The device family of Kinolune (SYNC-005, ADR-NNNN in
-//! `docs/adr/NNNN-device-family-pairing.md`): pairing devices without a
+//! `docs/adr/0026-device-family-pairing.md`): pairing devices without a
 //! cloud account.
 //!
 //! - [`DeviceIdentity`]: the keys of this device (Ed25519 to sign, X25519

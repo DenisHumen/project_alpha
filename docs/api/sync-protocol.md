@@ -142,7 +142,7 @@ sequenceDiagram
 
 ## 9. Сопряжение (семья устройств)
 
-> Задача `SYNC-005` · решение: [ADR-NNNN](../adr/NNNN-device-family-pairing.md) · реализация: `core/crates/pa-pairing`, `server/src/pairing.rs` · тесты: `core/crates/pa-pairing`, `server/tests/pairing.rs`.
+> Задача `SYNC-005` · решение: [ADR-NNNN](../adr/0026-device-family-pairing.md) · реализация: `core/crates/pa-pairing`, `server/src/pairing.rs` · тесты: `core/crates/pa-pairing`, `server/tests/pairing.rs`.
 
 - **Ключи.** У каждого устройства — Ed25519 (подписи) и X25519 (доставка ключа семьи) в `SecretStore`. Roster (trust store) — подписанные записи устройств и отзывов; его проверяет и сливает любое устройство, общий центр не нужен. Ключ семьи (эпоха + 256 бит) ротируется при отзыве.
 - **Канал.** Отдельные кадры JSON с полем `t` (`pair.hello`, `pair.intro`, `pair.welcome`, `pair.error`), по одному на текстовый кадр WebSocket. У сервера — `ws://<сервер>:<порт>/api/v1/pair`; сервер — приглашающий.
