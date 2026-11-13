@@ -134,7 +134,7 @@ fn fold_char(c: char, out: &mut String) {
         'đ' | 'ð' => out.push('d'),
         'þ' => out.push_str("th"),
         'ı' => out.push('i'),
-        _ if is_latin_or_greek(c) => {
+        _ if c.is_alphabetic() && is_latin_or_greek(c) => {
             for d in std::iter::once(c).nfd() {
                 if !is_combining_mark(d) {
                     out.push(d);
@@ -303,32 +303,33 @@ fn ordinal(tok: &str) -> Option<u32> {
             return Some(n);
         }
     }
-    const WORDS: &[&str] = &[
-        "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth",
-        "tenth",
-    ];
-    WORDS
+    ORDINAL_WORDS
         .iter()
-        .position(|w| loose_token(w) == tok)
+        .position(|w| *w == tok)
         .map(|i| i as u32 + 1)
 }
 
 fn is_word(tok: &str, words: &[&str]) -> bool {
-    words.iter().any(|w| loose_token(w) == tok)
+    words.contains(&tok)
 }
 
+// Qualifier words, already in their loose form (`loose_token(w) == w` is
+// checked by a test): `staffel` → `stafel`, `cour` → `cor`, `series` →
+// `seres`, `часть` → `chast`, `сезон` → `sezon`.
+const ORDINAL_WORDS: &[&str] = &[
+    "first", "second", "third", "forth", "fifth", "siksth", "seventh", "eighth", "ninth", "tenth",
+];
 const SEASON_WORDS: &[&str] = &[
     "season",
     "seasons",
-    "сезон",
     "sezon",
     "saison",
-    "staffel",
-    "temporada",
+    "stafel",
+    "tenporada",
     "stagione",
-    "series",
+    "seres",
 ];
-const PART_WORDS: &[&str] = &["part", "cour", "часть", "chast", "partie", "teil", "parte"];
+const PART_WORDS: &[&str] = &["part", "cor", "chast", "parte", "teil"];
 
 /// Season number of a CJK token: `第2期`, `2期`, `第二季`.
 fn cjk_season(tok: &str) -> Option<u32> {
@@ -465,6 +466,25 @@ mod tests {
         assert_eq!(loose("Kimi wo Aishiteru"), loose("Kimi o Aishiteru"));
         assert_eq!(loose("Ookami to Koushinryou"), loose("Okami to Koshinryo"));
         assert_eq!(loose("Yuuki Yuuna"), loose("Yuki Yuna"));
+    }
+
+    #[test]
+    fn qualifier_words_are_loose() {
+        for w in ORDINAL_WORDS.iter().chain(SEASON_WORDS).chain(PART_WORDS) {
+            assert_eq!(loose_token(w), *w);
+        }
+        for (raw, word) in [
+            ("staffel", "stafel"),
+            ("cour", "cor"),
+            ("series", "seres"),
+            ("partie", "parte"),
+            ("fourth", "forth"),
+            ("sixth", "siksth"),
+        ] {
+            assert_eq!(loose_token(raw), word);
+        }
+        assert_eq!(TitleKey::new("Сезон").loose, "sezon");
+        assert_eq!(TitleKey::new("Часть").loose, "chast");
     }
 
     #[test]
