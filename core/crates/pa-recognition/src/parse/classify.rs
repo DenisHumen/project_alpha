@@ -154,8 +154,11 @@ pub(crate) fn parse_num(s: &str) -> Option<NumTok> {
         }
         None => (s, None),
     };
-    if let Some(p) = body.find(['-', '~']) {
-        let (a, b) = (&body[..p], &body[p + 1..]);
+    if let Some((p, sep)) = body
+        .char_indices()
+        .find(|&(_, c)| matches!(c, '-' | '~' | '–'))
+    {
+        let (a, b) = (&body[..p], &body[p + sep.len_utf8()..]);
         let (x, y) = (ascii_digits_value(a)?, ascii_digits_value(b)?);
         if y <= x || y - x > MAX_RANGE || a.len() > 4 {
             return None;
@@ -499,7 +502,7 @@ fn tag_from_lex(lex: Lex) -> Tag {
 }
 
 /// Classifies one token on its own. Returns the tag and whether it is weak.
-fn classify_single(text: &str, in_bracket_alone: bool) -> (Tag, bool) {
+fn classify_single(text: &str, in_bracket_alone: bool, in_bracket: bool) -> (Tag, bool) {
     let c = core(text);
     if c.is_empty() {
         return (Tag::Free, false);
@@ -524,6 +527,13 @@ fn classify_single(text: &str, in_bracket_alone: bool) -> (Tag, bool) {
         return (Tag::Year(y), false);
     }
     if let Some(e) = lexicon::lookup(&lower) {
+        // `WWE Raw`: a lower/mixed-case `Raw` outside brackets is a title word.
+        if matches!(lower.as_str(), "raw" | "raws")
+            && !in_bracket
+            && c.chars().any(|ch| ch.is_lowercase())
+        {
+            return (Tag::Free, false);
+        }
         // A dictionary hit wins over patterns (`x264`, `dd5.1` via the next check).
         return (tag_from_lex(e.lex), e.weak);
     }
@@ -610,18 +620,24 @@ fn split_glued(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Token> {
         let split = if whole_known {
             None
         } else {
-            t.text.rfind('-').and_then(|p| {
-                let (l, r) = (&t.text[..p], &t.text[p + 1..]);
-                if l.is_empty() || r.is_empty() {
-                    return None;
-                }
-                let (ll, rl) = (core(l).to_lowercase(), core(r).to_lowercase());
-                let left_tech = is_tech(lexicon::lookup(&ll), &ll)
-                    || parse_sxxexx(&ll).is_some()
-                    || parse_nxnn(&ll).is_some();
-                let right_extra = extra_suffix(&rl).is_some();
-                (left_tech || right_extra).then_some(p)
-            })
+            // `H.264-Erai-raws`: the first hyphen after a release token;
+            // `Inception-trailer`: the last hyphen before an extra suffix.
+            let left_tech = |p: usize| {
+                let l = &t.text[..p];
+                let ll = core(l).to_lowercase();
+                !l.is_empty()
+                    && p + 1 < t.text.len()
+                    && (is_tech(lexicon::lookup(&ll), &ll)
+                        || parse_sxxexx(&ll).is_some()
+                        || parse_nxnn(&ll).is_some())
+            };
+            let right_extra =
+                |p: usize| p > 0 && extra_suffix(&core(&t.text[p + 1..]).to_lowercase()).is_some();
+            t.text
+                .match_indices('-')
+                .map(|(p, _)| p)
+                .find(|&p| left_tech(p))
+                .or_else(|| t.text.rfind('-').filter(|&p| right_extra(p)))
         };
         match split {
             Some(p) => {
@@ -720,17 +736,28 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                 "season" | "saison" | "сезон" | "temporada" | "staffel" => {
                     small(&next_num, 99).map(Tag::Season)
                 }
-                "episode" | "ep" | "e" | "серия" | "серии" | "эпизод" | "session" | "folge" => {
-                    next_num
-                        .as_ref()
-                        .filter(|n| n.year_like.is_none())
-                        .map(|n| Tag::SeasonEp {
-                            season: None,
-                            episodes: n.values.clone(),
-                            version: n.version,
-                        })
+                "episode" | "ep" | "e" | "серия" | "серии" | "эпизод" | "session" | "folge"
+                | "seriya" | "serii" | "seriia" | "serija" => next_num
+                    .as_ref()
+                    .filter(|n| n.year_like.is_none())
+                    .map(|n| Tag::SeasonEp {
+                        season: None,
+                        episodes: n.values.clone(),
+                        version: n.version,
+                    }),
+                // `Kill Bill - Volume 2` is a title; only the short forms are release info.
+                "vol" | "том" => small(&next_num, 99).map(|_| Tag::Other),
+                // `серии 1-8 из 10`, `[11 из 11]`: the total after a number is dropped.
+                "из" | "of"
+                    if out
+                        .iter()
+                        .rev()
+                        .find(|p| p.tag != Tag::Consumed)
+                        .is_some_and(|p| matches!(p.tag, Tag::Num(_) | Tag::SeasonEp { .. }))
+                        && small(&next_num, 9999).is_some() =>
+                {
+                    Some(Tag::Consumed)
                 }
-                "vol" | "volume" | "том" => small(&next_num, 99).map(|_| Tag::Other),
                 "part" | "pt" | "cd" | "disc" | "disk" | "часть" => {
                     small(&next_num, 20).filter(|&p| p >= 1).map(Tag::Part)
                 }
@@ -753,7 +780,7 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                     "season" | "сезон" if !t.text.contains(['-', '.']) => {
                         ordinal(a).or_else(|| small(&prev_num, 99)).map(Tag::Season)
                     }
-                    "серия" | "серии" | "эпизод" => {
+                    "серия" | "серии" | "эпизод" | "seriya" | "serii" | "seriia" | "serija" => {
                         prev_num.as_ref().map(|n| Tag::SeasonEp {
                             season: None,
                             episodes: n.values.clone(),
@@ -780,7 +807,7 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
             Some(tag) => tag,
             None => {
                 let alone = bracket_len(t) == Some(1);
-                let (tag, w) = classify_single(&t.text, alone);
+                let (tag, w) = classify_single(&t.text, alone, t.bracket.is_some());
                 weak[i] = w && !t.glued_hyphen;
                 tag
             }

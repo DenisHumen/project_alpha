@@ -2,7 +2,7 @@
 //! `pa-eval` CLI.
 //!
 //! ```text
-//! pa-eval run [--recognizer naive|abstain] [--tape TAPE.jsonl] [--threshold X]
+//! pa-eval run [--recognizer naive|parser|abstain] [--tape TAPE.jsonl] [--threshold X]
 //!             [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
 //!             CORPUS.jsonl...
 //! pa-eval compare --baseline BASE.json --current CUR.json
@@ -15,7 +15,7 @@ use std::process::ExitCode;
 use std::time::Instant;
 
 use pa_eval::provider::{Provider, ProviderError, ProviderRequest};
-use pa_eval::recognizer::{Abstain, Naive};
+use pa_eval::recognizer::{Abstain, Naive, Parser};
 use pa_eval::{Corpus, DEFAULT_THRESHOLD, Recognizer, ReplayProvider, Report, Tape};
 use serde_json::Value;
 
@@ -37,7 +37,7 @@ impl Provider for MissLog {
 }
 
 const USAGE: &str = "usage:
-  pa-eval run [--recognizer naive|abstain] [--tape TAPE.jsonl] [--threshold X]
+  pa-eval run [--recognizer naive|parser|abstain] [--tape TAPE.jsonl] [--threshold X]
               [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
               CORPUS.jsonl...
   pa-eval compare --baseline BASE.json --current CUR.json
@@ -123,6 +123,7 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
     }
     let mut recognizer: Box<dyn Recognizer> = match opt(&opts, "--recognizer").unwrap_or("naive") {
         "naive" => Box::new(Naive),
+        "parser" => Box::new(Parser),
         "abstain" => Box::new(Abstain),
         other => return Err(format!("unknown recognizer {other}")),
     };

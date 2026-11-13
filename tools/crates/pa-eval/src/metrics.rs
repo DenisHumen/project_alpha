@@ -17,7 +17,8 @@
 //!   episode of the file has it; correct needs a correct auto match and the
 //!   same multiset of positions;
 //! - parser accuracy per labelled `parse` field (title compared after
-//!   [`normalize`](crate::recognizer::normalize)).
+//!   [`normalize`](crate::recognizer::normalize)); `number` is the episode
+//!   number regardless of scheme (`episodes` or `absolute`).
 
 use std::collections::BTreeMap;
 
@@ -212,6 +213,18 @@ fn score_parse(want: &ParsedName, got: Option<&ParsedName>) -> BTreeMap<String, 
         "absolute",
         want.absolute.is_some(),
         same_numbers(&want.absolute, &got.absolute),
+    );
+    // Scheme-agnostic episode number: a bare `- 35` is written the same way
+    // whether it counts within a season or across the franchise, so only the
+    // matcher (with episode counts) can tell `episodes` from `absolute`.
+    // `number` checks the value; `episodes` and `absolute` stay strict.
+    let any_scheme = |w: &Option<Vec<f64>>| {
+        w.is_none() || same_numbers(w, &got.episodes) || same_numbers(w, &got.absolute)
+    };
+    check(
+        "number",
+        want.episodes.is_some() || want.absolute.is_some(),
+        any_scheme(&want.episodes) && any_scheme(&want.absolute),
     );
     check("part", want.part.is_some(), want.part == got.part);
     let group_ok = match (&want.release_group, &got.release_group) {
