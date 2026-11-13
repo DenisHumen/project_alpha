@@ -1756,7 +1756,7 @@ project_alpha/
 |---|---|---|---|
 | DEC | 8 | SYNC | 12 |
 | REPO | 13 | SRV | 18 |
-| CI | 12 | MUS | 15 |
+| CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
 | NET | 20 | DIST | 27 |
 | LIB | 15 | DSN | 15 |
