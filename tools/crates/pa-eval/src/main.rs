@@ -180,6 +180,8 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
                 case_id: &corpus.cases[*seq].id,
                 path: file,
                 confidence: m.confidence,
+                chosen: s.title(m.record),
+                runner_up: s.title(m.signals.runner_up),
                 signals: &m.signals,
             };
             text.push_str(&serde_json::to_string(&line).map_err(|e| e.to_string())?);

@@ -3,7 +3,7 @@
 //! [`Recognizer`] trait: candidates from the local title index, work and
 //! episode decision per file, no provider calls.
 
-use pa_recognition::score::{FileMatch, GroupFile, Signals, score_group};
+use pa_recognition::score::{self, FileMatch, GroupFile, Signals};
 use pa_recognition::title::{TitleIndex, WorkKind};
 
 use crate::candidates::record_ids;
@@ -14,6 +14,7 @@ use crate::recognizer::{FilePrediction, Recognizer, WorkGuess, from_product_pars
 /// Scorer v0 over a prebuilt title index.
 pub struct Scorer {
     index: TitleIndex,
+    scorer: score::Scorer,
     /// `(case sequence number, path, signals)` of every decision, for
     /// `pa-eval run --signals` (feature analysis; not part of the report).
     pub log: Vec<(usize, String, FileMatch)>,
@@ -26,6 +27,7 @@ impl Scorer {
     pub fn new(index: TitleIndex) -> Self {
         Self {
             index,
+            scorer: score::Scorer::new(),
             log: Vec::new(),
             cases: 0,
         }
@@ -96,7 +98,7 @@ impl Recognizer for Scorer {
                 duration_ms: f.duration_ms,
             })
             .collect();
-        let matches = score_group(&self.index, &files);
+        let matches = self.scorer.score_group(&self.index, &files);
         let out = case
             .files
             .iter()
@@ -120,6 +122,19 @@ pub struct SignalLine<'a> {
     pub path: &'a str,
     /// Confidence of the decision.
     pub confidence: f32,
+    /// Main title of the chosen record.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chosen: Option<&'a str>,
+    /// Main title of the runner-up record.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub runner_up: Option<&'a str>,
     /// Signals behind it.
     pub signals: &'a Signals,
+}
+
+impl Scorer {
+    /// Main title of a record.
+    pub fn title(&self, record: Option<usize>) -> Option<&str> {
+        record.map(|r| self.index.record(r).titles[0].as_str())
+    }
 }
