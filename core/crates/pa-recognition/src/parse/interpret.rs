@@ -386,9 +386,18 @@ fn join_title(parts: &[Piece<'_>]) -> String {
 /// - A year in parentheses in the same place: `Hunter x Hunter (2011) - 26`.
 /// - A parenthesized phrase of plain words inside a title run:
 ///   `You Are (Not) Alone`.
-fn title_qualifiers(a: &Analysis, marker: &dyn Fn(usize) -> bool) -> Vec<Option<String>> {
+///
+/// The flag is `true` for qualifiers (the title without them becomes an
+/// alternative title) and `false` for phrases that are just title words.
+fn title_qualifiers(a: &Analysis, marker: &dyn Fn(usize) -> bool) -> Vec<Option<(String, bool)>> {
     let toks = &a.toks;
-    let mut keep: Vec<Option<String>> = vec![None; toks.len()];
+    let mut keep: Vec<Option<(String, bool)>> = vec![None; toks.len()];
+    // `S2` is a release marker, `2nd Season` / `Season 2` are names.
+    let short_season = |t: &Classified| {
+        let l = t.tok.text.to_ascii_lowercase();
+        l.strip_prefix('s')
+            .is_some_and(|d| !d.is_empty() && d.bytes().all(|b| b.is_ascii_digit()))
+    };
     let paren = |k: usize| {
         toks[k]
             .tok
@@ -405,7 +414,8 @@ fn title_qualifiers(a: &Analysis, marker: &dyn Fn(usize) -> bool) -> Vec<Option<
             k -= 1;
             let t = &toks[k];
             let qual = match &t.tag {
-                Tag::Season(_) | Tag::Part(_) | Tag::Kind(_, None) => plain(t),
+                Tag::Season(_) => plain(t) && !short_season(t),
+                Tag::Part(_) | Tag::Kind(_, None) => plain(t),
                 Tag::Year(_) => paren(k).is_some_and(|b| b.tokens.len() == 1),
                 Tag::Consumed => true,
                 _ => false,
@@ -419,10 +429,11 @@ fn title_qualifiers(a: &Analysis, marker: &dyn Fn(usize) -> bool) -> Vec<Option<
         }
         if words && quals.iter().any(|&q| toks[q].tag != Tag::Consumed) {
             for q in quals {
-                keep[q] = Some(match toks[q].tag {
+                let text = match toks[q].tag {
                     Tag::Year(y) => format!("({y})"),
                     _ => toks[q].tok.text.clone(),
-                });
+                };
+                keep[q] = Some((text, true));
             }
         }
     }
@@ -449,7 +460,7 @@ fn title_qualifiers(a: &Analysis, marker: &dyn Fn(usize) -> bool) -> Vec<Option<
                 if k + 1 == e {
                     text.push(')');
                 }
-                *slot = Some(text);
+                *slot = Some((text, false));
             }
         }
     }
@@ -494,16 +505,19 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
     let mut seen_marker_before_title = false;
     let mut after_marker = false;
     let mut in_ep_title = false;
+    // Title without its qualifiers: `Title` for `Title 2nd Season`.
+    let mut base_title: Option<String> = None;
     #[allow(clippy::needless_range_loop)] // `k` also indexes `roles`
     for k in 0..toks.len() {
         let t = &toks[k];
-        if let Some(text) = &keep[k] {
-            // Qualifier kept in the title (`2nd Season`, `(2011)`, `(Not)`).
+        if let Some((text, qualifier)) = &keep[k] {
+            // Kept in the title (`2nd Season`, `(2011)`, `(Not)`).
             if state == 1 {
-                titles
-                    .last_mut()
-                    .expect("title started")
-                    .push((Cow::Owned(text.clone()), t.tok.dash_before));
+                let title = titles.last_mut().expect("title started");
+                if *qualifier && base_title.is_none() {
+                    base_title = Some(join_title(title));
+                }
+                title.push((Cow::Owned(text.clone()), t.tok.dash_before));
             }
             continue;
         }
@@ -576,7 +590,11 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
         .map(|p| join_title(&p))
         .filter(|s| !s.is_empty());
     out.title = titles.next();
-    out.alt_titles = titles.collect();
+    out.alt_titles = base_title
+        .filter(|b| !b.is_empty() && out.title.as_ref() != Some(b))
+        .into_iter()
+        .chain(titles)
+        .collect();
     if !episode_title.is_empty() {
         let s = join_title(&episode_title);
         if !s.is_empty() {
