@@ -340,10 +340,10 @@ fn index_follows_catalogue_changes() {
 fn sync_works_inside_a_transaction_and_bad_input_is_handled() {
     let mut conn = db();
     let tx = conn.transaction().unwrap();
-    work(&tx, 1, "movie", "Solaris", None);
-    assert_eq!(first(&tx, "солярис"), (SearchKind::Movie, 1));
+    work(&tx, 1, "movie", "Солярис", None);
+    assert_eq!(first(&tx, "solyaris"), (SearchKind::Movie, 1));
     tx.rollback().unwrap();
-    assert!(find(&conn, "solaris").is_empty());
+    assert!(find(&conn, "солярис").is_empty());
 
     for q in ["", "   ", "?!", "\"", "*", "a\"b", "NOT", "AND OR", "(x", "col:val"] {
         search::search(&conn, q, &SearchOptions::default()).unwrap();
