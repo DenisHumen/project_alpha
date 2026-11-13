@@ -165,3 +165,11 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
 SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
+
+# Patches to third-party LGPL sources (mpv, FFmpeg and their libraries) are
+# distributed under the licence of the code they modify.
+[[annotations]]
+path = ["tools/ffmpeg/patches/**/*.patch", "tools/mpv/patches/**/*.patch"]
+precedence = "override"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "LGPL-2.1-or-later"
