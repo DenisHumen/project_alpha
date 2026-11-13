@@ -1,6 +1,163 @@
 {
-  "$description": "Density profile 'tv' (10-foot UI). Overrides scale only, never colours. Skeleton from DSN-001; real factors are DSN-002 (01 §4.4).",
-  "density": {
-    "scale": { "$type": "number", "$value": 2, "$description": "Placeholder multiplier for spacing and type." }
+  "$description": "Density profile 'tv' (DSN-002): TV / 10-foot UI (tvOS, Android TV, desktop Big Picture). 1920×1080 pt canvas, 1 pt = 1 px. Type follows tvOS HIG sizes (min 23, default body 29) with Inter; reference platform (01 §4.10 п.6). Overrides scale-dependent roles only, never colours. Every density file defines the same set of tokens.",
+  "type": {
+    "$type": "typography",
+    "display": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 76, "unit": "px" },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": { "value": -1, "unit": "px" },
+        "lineHeight": 1.263
+      },
+      "$description": "76/96"
+    },
+    "title1": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 57, "unit": "px" },
+        "fontWeight": "{font.weight.semibold}",
+        "letterSpacing": { "value": -0.5, "unit": "px" },
+        "lineHeight": 1.158
+      },
+      "$description": "57/66"
+    },
+    "title2": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 48, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": -0.25, "unit": "px" },
+        "lineHeight": 1.167
+      },
+      "$description": "48/56"
+    },
+    "headline": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 38, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.211
+      },
+      "$description": "38/46"
+    },
+    "subtitle": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 38, "unit": "px" },
+        "fontWeight": "{font.weight.regular}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.211
+      },
+      "$description": "38/46"
+    },
+    "body": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 29, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.241
+      },
+      "$description": "29/36"
+    },
+    "callout": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 31, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.226
+      },
+      "$description": "31/38"
+    },
+    "caption": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 25, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.28
+      },
+      "$description": "25/32"
+    },
+    "caption2": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 23, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.304
+      },
+      "$description": "23/30",
+      "$extensions": {
+        "org.project-alpha": { "fontFeatures": ["tnum"] }
+      }
+    },
+    "timecode": {
+      "$value": {
+        "fontFamily": "{font.family.sans}",
+        "fontSize": { "value": 25, "unit": "px" },
+        "fontWeight": "{font.weight.medium}",
+        "letterSpacing": { "value": 0, "unit": "px" },
+        "lineHeight": 1.28
+      },
+      "$description": "25/32, tabular figures (font-feature tnum) — timecodes, bitrates.",
+      "$extensions": {
+        "org.project-alpha": { "fontFeatures": ["tnum"] }
+      }
+    }
+  },
+  "layout": {
+    "$type": "dimension",
+    "margin": { "$value": { "value": 80, "unit": "px" }, "$description": "Horizontal screen margin." },
+    "safe-top": {
+      "$value": { "value": 60, "unit": "px" },
+      "$description": "Overscan-safe inset (TV: 60 pt top/bottom, 80 pt sides per HIG); 0 = use the OS safe area."
+    },
+    "safe-bottom": { "$value": { "value": 60, "unit": "px" }, "$description": "See safe-top." },
+    "safe-side": { "$value": { "value": 80, "unit": "px" }, "$description": "See safe-top." },
+    "gutter": {
+      "$value": { "value": 40, "unit": "px" },
+      "$description": "Gap between items in a row/grid (TV 40 pt per HIG)."
+    },
+    "row-gap": {
+      "$value": { "value": 100, "unit": "px" },
+      "$description": "Vertical gap between shelves (TV ≥ 100 pt between rows without titles)."
+    },
+    "section-gap": { "$value": { "value": 64, "unit": "px" }, "$description": "Gap between sections with titles." },
+    "poster-width": {
+      "$value": { "value": 260, "unit": "px" },
+      "$description": "Unfocused poster width (TV: 6 columns = 260 pt); on other densities the MIN width for computed columns."
+    },
+    "card-width": {
+      "$value": { "value": 410, "unit": "px" },
+      "$description": "Unfocused 16:9 card width (TV: 4 columns = 410 pt); MIN width elsewhere."
+    },
+    "columns": {
+      "$type": "number",
+      "$description": "Fixed column counts; 0 = computed from the min width (poster-width / card-width) and the window width.",
+      "poster": { "$value": 6 },
+      "card": { "$value": 4 }
+    }
+  },
+  "shape": {
+    "$type": "dimension",
+    "card": { "$value": "{radius.lg}", "$description": "Cards and posters (12 pt, TV 16 pt; 01 §4.3)." },
+    "panel": { "$value": "{radius.2xl}", "$description": "Panels and dialogs (24–32 pt, concentric)." },
+    "control": { "$value": "{radius.full}", "$description": "Buttons are capsules." }
+  },
+  "icon-size": {
+    "$type": "dimension",
+    "sm": { "$value": { "value": 28, "unit": "px" } },
+    "md": { "$value": { "value": 36, "unit": "px" } },
+    "lg": { "$value": { "value": 48, "unit": "px" } }
+  },
+  "control": {
+    "$type": "dimension",
+    "height-sm": { "$value": { "value": 56, "unit": "px" } },
+    "height-md": { "$value": { "value": 66, "unit": "px" } },
+    "height-lg": { "$value": { "value": 86, "unit": "px" } }
   }
 }
