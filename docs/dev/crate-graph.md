@@ -19,6 +19,7 @@ flowchart LR
     pa_model["pa-model"]
     pa_recognition["pa-recognition"]
     pa_runtime["pa-runtime"]
+    pa_scanner["pa-scanner"]
     pa_vfs["pa-vfs"]
   end
   subgraph g1["tools — инструменты"]
@@ -30,6 +31,8 @@ flowchart LR
   pa_frb --> pa_ffi
   pa_frb --> pa_recognition
   pa_library -. dev .-> pa_model
+  pa_scanner --> pa_library
+  pa_scanner --> pa_vfs
 ```
 
 | Крейт | Каталог | Внешних зависимостей | Описание |
@@ -43,6 +46,7 @@ flowchart LR
 | `pa-recognition` | `core/crates/pa-recognition` | 1 | Media recognition core (sans-IO): filename parser with N-best hypotheses |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |
+| `pa-scanner` | `core/crates/pa-scanner` | 0 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003) |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
 
 <!-- END GENERATED: crate-graph -->
