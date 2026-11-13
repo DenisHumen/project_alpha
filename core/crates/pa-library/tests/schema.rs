@@ -776,7 +776,10 @@ fn edited_migration_is_refused() {
     let mut conn = open_in_memory().unwrap();
     conn.execute(&format!("UPDATE {HISTORY_TABLE} SET checksum = '1'"), [])
         .unwrap();
-    assert!(matches!(migrate(&mut conn), Err(Error::Migration(_))));
+    assert!(matches!(
+        migrate(&mut conn),
+        Err(Error::ChecksumMismatch { version }) if version == MIGRATIONS[0].version
+    ));
 }
 
 // --- Documentation ----------------------------------------------------------------

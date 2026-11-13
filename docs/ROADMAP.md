@@ -492,13 +492,17 @@ project_alpha/
   - deps: LIB-001, LIB-004, LIB-011 · size: M · parallel: yes · веха: M1 · ref: ADR-0013
   - done when: тест на фикстуре v0: все элементы и прогресс распознанных видны в v1, повторный запуск ничего не дублирует.
 
+- [x] **LIB-016** Убрать уязвимый SQLite: refinery → rusqlite_migration
+  - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
+  - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
+  - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
 ### 3.6. META — распознавание и метаданные
 
 - [x] **META-001** Таксономия, гайд по разметке, формат корпуса
   - Что: отдельный репо `project_alpha-recognition-eval` (данные со смешанными лицензиями в продукт не попадают); категории A1–A17; JSONL-формат (дерево путей, длительность, языки, oshash; разметка: kind, ID, S/E в двух схемах, тип эпизода, extra_type, part, edition); GUIDE.md.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: 03 §1.2, §6.1
   - done when: схема JSONL с валидатором; 50 примеров по всем категориям размечены.
-- [ ] **META-002** Корпус v0: 2 000 групп
+- [x] **META-002** Корпус v0: 2 000 групп
   - Что: публичные RSS-заголовки аниме-релизов, тест-кейсы guessit, anitomy и Sonarr (только как eval-данные), русские релизы, синтетика для A11–A13; сплиты train, dev и закрытый test; git-lfs или DVC.
   - deps: META-001 · size: L · parallel: yes · веха: M2 · ref: 03 §6.1
   - done when: ≥ 2 000 групп, минимум 50 на категорию; валидатор зелёный.
@@ -510,7 +514,7 @@ project_alpha/
   - Что: guessit + наивный поиск TMDB, hunch + TMDB, Jellyfin в Docker (только TMDB, затем с AniDB-плагином) на дереве mkv-заглушек (ffmpeg генерирует нужные длительность и языки).
   - deps: META-002, META-003 · size: M · parallel: yes · веха: M2 · ref: 03 §6.3
   - done when: отчёт «где все проваливаются» по категориям лежит в eval-репо.
-- [ ] **META-005** Парсер имён: токенизатор и N-best гипотезы
+- [x] **META-005** Парсер имён: токенизатор и N-best гипотезы
   - Что: форк или вендоринг hunch (MIT) в `pa-recognition/parse`; токенизатор (скобки `[] () {} 【】`, разделители) → классификаторы токенов → `ParsedName` с весами; без кода под LGPL и GPL.
   - deps: REPO-001 · size: L · parallel: yes · веха: M1 · ref: 03 §2.2, §4.2 [3]
   - done when: ≥ 85 % на тест-кейсах guessit (как eval); защита от ReDoS — только линейные регулярки.
@@ -590,6 +594,10 @@ project_alpha/
   - Что: `Recognizer`-адаптер и/или отдельная метрика «Парсинг» (03 §6.2) в `pa-eval` поверх `pa_recognition::parse`: точность по полям `parse`-блоков корпуса для top-1 и N-best, разрез по категориям, отчёт в Markdown и JSON.
   - deps: META-003, META-005 · size: S · parallel: yes · веха: M2 · ref: 03 §6.2
   - done when: отчёт `pa-eval` содержит раздел «Парсинг»; на `examples.jsonl` воспроизводит числа теста `corpus_examples` крейта `pa-recognition`.
+- [ ] **META-025** Сверка draft-записей корпуса v0
+  - Что: перевести `draft`-записи корпуса v0 (`tools/recognition-eval/corpus`) в `verified`: позиции `tmdb` сериалов (сейчас из эфирного порядка TVmaze) и `tmdb`/`tvdb_absolute` аниме (правила `titles.yaml`) сверить с API TMDB/TVDB через клиент META-009; добавить вторую схему OVA/спешлам, где она есть; расхождения — в `titles.yaml` и `notes`; затем пересчитать бейзлайны.
+  - deps: META-002, META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §6.1
+  - done when: все записи A1–A4, A9 и A16 `verified` (или `disputed` с `notes`); `corpus-validate --strict` без ошибок.
 
 ### 3.7. PLAY — общий плеерный слой
 
@@ -777,7 +785,7 @@ project_alpha/
 
 ### 3.11. UI — Flutter-приложение (телефон, планшет, десктоп, общие экраны)
 
-- [ ] **UI-001** Каркас Flutter-приложения
+- [x] **UI-001** Каркас Flutter-приложения
   - Что: `clients/flutter`: структура по фичам (`lib/features/<f>/`), go_router с файлом `routes.dart` у каждой фичи, state management по ADR (рекомендация — Riverpod), подключение `pa_core`, флейворы store и full (dart-define, Gradle flavors, Xcode schemes), общие состояния (пустое, skeleton, ошибка источника, ретрай).
   - deps: CORE-002 · size: M · parallel: no · веха: M0 · ref: 02 §7, 01 §4.9 п.10
   - done when: приложение собирается на 5 Flutter-платформах в обоих флейворах; widget-тест каркаса.
@@ -1727,10 +1735,10 @@ project_alpha/
 | CORE | 14 | TWI | 22 |
 | NET | 19 | DIST | 27 |
 | LIB | 15 | DSN | 15 |
-| META | 22 | PKG | 17 |
+| META | 25 | PKG | 17 |
 | PLAY | 12 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
 | PLAY-DSK | 8 | LEGAL | 10 |
 | PLAY-APL | 12 | SITE | 6 |
 | UI | 22 | COMM | 6 |
-| TV | 13 | **Всего** | **348** (340 задач + 8 решений владельца) |
+| TV | 13 | **Всего** | **349** (341 задача + 8 решений владельца) |

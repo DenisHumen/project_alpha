@@ -65,6 +65,9 @@ jobs:
               - '.cargo/**'
               - '.config/nextest.toml'
               - '.github/workflows/rust.yml'
+              # corpus data is checked by tests in these crates
+              - 'tools/recognition-eval/**'
+              - 'tools/crates/pa-eval/**'
 
   fmt:
     name: rustfmt
