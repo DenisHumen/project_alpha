@@ -1,0 +1,62 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "id": "304456832",
+        "name": "pixelfHype",
+        "images": {
+          "url_1x": "https://static-cdn.jtvnw.net/emoticons/v2/304456832/static/light/1.0",
+          "url_2x": "https://static-cdn.jtvnw.net/emoticons/v2/304456832/static/light/2.0",
+          "url_4x": "https://static-cdn.jtvnw.net/emoticons/v2/304456832/static/light/3.0"
+        },
+        "tier": "1000",
+        "emote_type": "subscriptions",
+        "emote_set_id": "301590448",
+        "format": [
+          "static",
+          "animated"
+        ],
+        "scale": [
+          "1.0",
+          "2.0",
+          "3.0"
+        ],
+        "theme_mode": [
+          "light",
+          "dark"
+        ]
+      },
+      {
+        "id": "emotesv2_1a2b3c",
+        "name": "pixelfWave",
+        "images": {
+          "url_1x": "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_1a2b3c/static/light/1.0",
+          "url_2x": "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_1a2b3c/static/light/2.0",
+          "url_4x": "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_1a2b3c/static/light/3.0"
+        },
+        "tier": "",
+        "emote_type": "follower",
+        "emote_set_id": "0",
+        "format": [
+          "static"
+        ],
+        "scale": [
+          "1.0",
+          "2.0",
+          "3.0"
+        ],
+        "theme_mode": [
+          "light",
+          "dark"
+        ]
+      }
+    ],
+    "template": "https://static-cdn.jtvnw.net/emoticons/v2/{{id}}/{{format}}/{{theme_mode}}/{{scale}}"
+  }
+}

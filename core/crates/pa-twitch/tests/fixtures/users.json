@@ -1,0 +1,48 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "id": "1001",
+        "login": "pixel_fox",
+        "display_name": "Pixel_Fox",
+        "type": "",
+        "broadcaster_type": "partner",
+        "description": "Retro speedruns every evening.",
+        "profile_image_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/pixel_fox-profile_image-300x300.png",
+        "offline_image_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/pixel_fox-channel_offline_image-1920x1080.png",
+        "view_count": 0,
+        "created_at": "2016-12-14T20:32:28Z"
+      },
+      {
+        "id": "1002",
+        "login": "quiet_owl",
+        "display_name": "Quiet_Owl",
+        "type": "",
+        "broadcaster_type": "affiliate",
+        "description": "",
+        "profile_image_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/quiet_owl-profile_image-300x300.png",
+        "offline_image_url": "",
+        "view_count": 0,
+        "created_at": "2019-03-02T10:00:00Z"
+      },
+      {
+        "id": "1003",
+        "login": "nordlicht",
+        "display_name": "Nordlicht",
+        "type": "",
+        "broadcaster_type": "",
+        "description": "Kochen und Quatschen",
+        "profile_image_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/nordlicht-profile_image-300x300.png",
+        "offline_image_url": "",
+        "view_count": 0,
+        "created_at": "2021-07-19T08:15:00Z"
+      }
+    ]
+  }
+}

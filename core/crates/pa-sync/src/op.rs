@@ -163,7 +163,7 @@ pub fn is_secret_setting(key: &str) -> bool {
             .any(|w| SECRET_WORDS.contains(&w))
 }
 
-fn check_ref(s: &str, what: &'static str) -> Result<(), Error> {
+pub(crate) fn check_ref(s: &str, what: &'static str) -> Result<(), Error> {
     if s.is_empty() || s.len() > MAX_REF_LEN || s.chars().any(char::is_control) {
         Err(Error::Invalid(what))
     } else {

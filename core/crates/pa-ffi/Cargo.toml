@@ -20,6 +20,7 @@ cli = ["uniffi/cli", "uniffi/cargo-metadata"]
 
 [dependencies]
 pa-runtime = { path = "../pa-runtime" }
+pa-secrets = { path = "../pa-secrets" }
 serde_json.workspace = true
 thiserror.workspace = true
 uniffi.workspace = true

@@ -37,7 +37,7 @@ env:
 jobs:
   deny:
     name: cargo-deny (licenses, bans, sources)
-    if: github.event_name != 'schedule'
+    if: ${{ (github.event_name != 'schedule') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -52,6 +52,7 @@ jobs:
       - run: cargo deny --locked check licenses bans sources
 
   advisories:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: advisories (cargo-deny, cargo-audit)
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -70,7 +71,7 @@ jobs:
 
   gpl-canary:
     name: licence gate rejects GPL in pa-ffi
-    if: github.event_name != 'schedule'
+    if: ${{ (github.event_name != 'schedule') && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
