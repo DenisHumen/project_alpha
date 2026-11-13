@@ -10,3 +10,6 @@ target/
 # Local secrets (template: .env.example)
 .env.local
 .env.*.local
+
+# Python bytecode
+__pycache__/
