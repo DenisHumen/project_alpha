@@ -1,0 +1,240 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# LGPL-2.1+ libmpv (PLAY-002): mpv -Dgpl=false + libplacebo + libass on top of
+# our LGPL FFmpeg (tools/ffmpeg), for Linux, Windows, Android (3 ABIs) and macOS.
+# Runs the licence gate on every artifact and uploads the result. Builds are
+# cached by the hash of both recipes plus the toolchain, so unchanged recipes
+# only re-check licences.
+name: libmpv (LGPL)
+
+on:
+  pull_request:
+    paths:
+      - "tools/mpv/**"
+      - "tools/ffmpeg/**"
+      - ".github/workflows/libmpv.yml"
+  push:
+    branches: [main]
+    paths:
+      - "tools/mpv/**"
+      - "tools/ffmpeg/**"
+      - ".github/workflows/libmpv.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: libmpv-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Every file that defines what gets built; artifacts are cached by its hash.
+  RECIPE_GLOB: >-
+    tools/ffmpeg/versions.sh tools/ffmpeg/lib tools/ffmpeg/patches tools/ffmpeg/check-license.sh
+    tools/mpv/*.sh tools/mpv/*.c tools/mpv/lib tools/mpv/patches tools/mpv/docker
+  ANDROID_NDK_PACKAGE: "ndk;28.2.13676358" # r28c
+  MESON_VERSION: "1.10.2"
+  NINJA_VERSION: "1.11.1.4"
+
+jobs:
+  sources:
+    name: Sources and GPL canary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Cache source tarballs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mpv/.cache
+          key: libmpv-src-${{ hashFiles('tools/ffmpeg/versions.sh', 'tools/mpv/versions.sh') }}
+      - name: Download and verify pinned sources
+        run: tools/mpv/build.sh fetch
+      - name: GPL options must fail the build
+        run: |
+          # mpv options: -Dgpl=true and GPL-only features.
+          for flag in -Dgpl=true -Dx11=enabled -Ddvdnav=enabled -Drubberband=enabled -Djack=enabled; do
+            if out="$(PA_MPV_EXTRA_FLAGS="$flag" tools/mpv/build.sh linux-x86_64 2>&1)"; then
+              echo "::error::build accepted $flag"; exit 1
+            fi
+            printf '%s\n' "$out" | grep -q 'forbidden (GPL) mpv option' \
+              || { printf '%s\n' "$out"; echo "::error::$flag failed for the wrong reason"; exit 1; }
+            echo "rejected: $flag"
+          done
+          # The bundled FFmpeg goes through the same gate as tools/ffmpeg.
+          if out="$(PA_FF_EXTRA_FLAGS=--enable-gpl tools/mpv/build.sh linux-x86_64 2>&1)"; then
+            echo "::error::build accepted FFmpeg --enable-gpl"; exit 1
+          fi
+          printf '%s\n' "$out" | grep -q 'forbidden (GPL/nonfree/v3) FFmpeg option' \
+            || { printf '%s\n' "$out"; echo "::error::--enable-gpl failed for the wrong reason"; exit 1; }
+          echo "rejected: FFmpeg --enable-gpl"
+      - name: Licence gate rejects a GPL config.h
+        run: |
+          d="$RUNNER_TEMP/fake-gpl"; mkdir -p "$d"
+          printf '%s\n' '#define CONFIGURATION "-Dgpl=true"' '#define FULLCONFIG "ffmpeg gpl libass x11"' \
+            '#define HAVE_GPL 1' '#define HAVE_X11 1' > "$d/config.h"
+          if tools/mpv/check-license.sh --config "$d"; then echo "::error::GPL config.h passed"; exit 1; fi
+      - name: Corresponding-source bundle
+        run: tools/mpv/build.sh sources
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libmpv-sources
+          path: tools/mpv/out/project_alpha-libmpv-sources-*.tar.xz
+          retention-days: 7
+          if-no-files-found: error
+
+  docker:
+    name: ${{ matrix.target }}
+    needs: sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [linux-x86_64, windows-x86_64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Recipe hash
+        id: recipe
+        run: echo "hash=$(find $RECIPE_GLOB -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - name: Restore source tarballs
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mpv/.cache
+          key: libmpv-src-${{ hashFiles('tools/ffmpeg/versions.sh', 'tools/mpv/versions.sh') }}
+          fail-on-cache-miss: true
+      - name: Cache build output
+        id: out
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mpv/out/${{ matrix.target }}
+          key: libmpv-out-${{ matrix.target }}-${{ steps.recipe.outputs.hash }}
+      - name: Build
+        if: steps.out.outputs.cache-hit != 'true'
+        run: PA_FF_JOBS="$(nproc)" tools/mpv/docker-build.sh "${{ matrix.target }}"
+      - name: Licence check
+        run: tools/mpv/check-license.sh --artifact "tools/mpv/out/${{ matrix.target }}"
+      - name: Runtime check (mpv_client_api_version)
+        if: matrix.target == 'linux-x86_64'
+        run: |
+          # The build already ran it inside the image; repeat it on the runner
+          # with the runner's own system libraries (libva, libpulse, ...).
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends libva2 libva-drm2 libdrm2 libegl1 libpulse0 libasound2t64
+          tools/mpv/check-license.sh --run "tools/mpv/out/${{ matrix.target }}"
+          ldd "tools/mpv/out/${{ matrix.target }}/lib/libmpv.so"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libmpv-${{ matrix.target }}
+          path: tools/mpv/out/${{ matrix.target }}
+          retention-days: 7
+          if-no-files-found: error
+
+  android:
+    name: ${{ matrix.target }}
+    needs: sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [android-arm64-v8a, android-armeabi-v7a, android-x86_64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Recipe hash
+        id: recipe
+        run: echo "hash=$(find $RECIPE_GLOB -type f -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - name: Restore source tarballs
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mpv/.cache
+          key: libmpv-src-${{ hashFiles('tools/ffmpeg/versions.sh', 'tools/mpv/versions.sh') }}
+          fail-on-cache-miss: true
+      - name: Cache build output
+        id: out
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mpv/out/${{ matrix.target }}
+          key: libmpv-out-${{ matrix.target }}-${{ env.ANDROID_NDK_PACKAGE }}-${{ steps.recipe.outputs.hash }}
+      - name: Install toolchain
+        if: steps.out.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends nasm pkg-config
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install -q "meson==$MESON_VERSION" "ninja==$NINJA_VERSION"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+          # sdkmanager verifies the package checksum from Google's repository.
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "$ANDROID_NDK_PACKAGE" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/${ANDROID_NDK_PACKAGE/;//}" >> "$GITHUB_ENV"
+      - name: Build
+        if: steps.out.outputs.cache-hit != 'true'
+        run: PA_FF_JOBS="$(nproc)" tools/mpv/build.sh "${{ matrix.target }}"
+      - name: Licence check
+        run: tools/mpv/check-license.sh --artifact "tools/mpv/out/${{ matrix.target }}"
+      - name: Android packaging check (unversioned SONAMEs, 16 KB pages)
+        run: tools/mpv/bundle.sh check-android "tools/mpv/out/${{ matrix.target }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libmpv-${{ matrix.target }}
+          path: tools/mpv/out/${{ matrix.target }}
+          retention-days: 7
+          if-no-files-found: error
+
+  apple:
+    name: ${{ matrix.target }}
+    needs: sources
+    runs-on: macos-15
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [macos-arm64, macos-x86_64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Recipe and toolchain hash
+        id: recipe
+        run: |
+          echo "hash=$(find $RECIPE_GLOB -type f -print0 | sort -z | xargs -0 shasum -a 256 | shasum -a 256 | cut -c1-16)" >> "$GITHUB_OUTPUT"
+          echo "xcode=$(xcodebuild -version | tr -s ' \n' '-' | sed 's/-$//')" >> "$GITHUB_OUTPUT"
+      - name: Restore source tarballs
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mpv/.cache
+          key: libmpv-src-${{ hashFiles('tools/ffmpeg/versions.sh', 'tools/mpv/versions.sh') }}
+          fail-on-cache-miss: true
+      - name: Cache build output
+        id: out
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/mpv/out/${{ matrix.target }}
+          key: libmpv-out-${{ matrix.target }}-${{ steps.recipe.outputs.xcode }}-${{ steps.recipe.outputs.hash }}
+      - name: Install toolchain
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install nasm pkgconf
+          python3 -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install -q "meson==$MESON_VERSION" "ninja==$NINJA_VERSION"
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+      - name: Build
+        if: steps.out.outputs.cache-hit != 'true'
+        run: PA_FF_JOBS="$(sysctl -n hw.ncpu)" tools/mpv/build.sh "${{ matrix.target }}"
+      - name: Licence check
+        run: tools/mpv/check-license.sh --artifact "tools/mpv/out/${{ matrix.target }}"
+      - name: Runtime check (mpv_client_api_version)
+        if: matrix.target == 'macos-arm64'
+        run: tools/mpv/check-license.sh --run "tools/mpv/out/${{ matrix.target }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libmpv-${{ matrix.target }}
+          path: tools/mpv/out/${{ matrix.target }}
+          retention-days: 7
+          if-no-files-found: error
