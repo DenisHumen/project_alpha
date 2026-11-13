@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 
 typedef _FixMatch = ({String? title, int? year, int? tmdbId});
@@ -15,13 +16,14 @@ Future<void> showFixMatchDialog(BuildContext context, LibraryItem item) async {
   );
   if (result == null || !context.mounted) return;
   final messenger = ScaffoldMessenger.maybeOf(context);
+  final updated = context.l10n.fixMatchUpdated;
   await Services.read(context).library.fixMatch(
     item.id,
     tmdbId: result.tmdbId,
     title: result.title,
     year: result.year,
   );
-  messenger?.showSnackBar(const SnackBar(content: Text('Match updated')));
+  messenger?.showSnackBar(SnackBar(content: Text(updated)));
 }
 
 class _FixMatchDialog extends StatefulWidget {
@@ -49,8 +51,9 @@ class _FixMatchDialogState extends State<_FixMatchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return AlertDialog(
-      title: const Text('Fix match'),
+      title: Text(l.commonFixMatch),
       content: SizedBox(
         width: 420,
         child: SingleChildScrollView(
@@ -68,21 +71,21 @@ class _FixMatchDialogState extends State<_FixMatchDialog> {
               TextField(
                 controller: _title,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: InputDecoration(labelText: l.fixMatchFieldTitle),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _year,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Year'),
+                decoration: InputDecoration(labelText: l.fixMatchFieldYear),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _tmdb,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'TMDB ID (optional)',
-                  helperText: 'From the address of the title on themoviedb.org',
+                decoration: InputDecoration(
+                  labelText: l.fixMatchFieldTmdbId,
+                  helperText: l.fixMatchTmdbHelper,
                 ),
               ),
             ],
@@ -92,7 +95,7 @@ class _FixMatchDialogState extends State<_FixMatchDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l.commonCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.pop<_FixMatch>(context, (
@@ -100,7 +103,7 @@ class _FixMatchDialogState extends State<_FixMatchDialog> {
             year: int.tryParse(_year.text.trim()),
             tmdbId: int.tryParse(_tmdb.text.trim()),
           )),
-          child: const Text('Save'),
+          child: Text(l.commonSave),
         ),
       ],
     );

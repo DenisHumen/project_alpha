@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/cards.dart';
@@ -66,6 +67,7 @@ class _SearchScreenState extends State<SearchScreen> {
     final tracks = q.isEmpty
         ? const <LibraryItem>[]
         : _tracks.where((i) => _match(i, q)).toList();
+    final l = context.l10n;
     final posterRowH =
         d.posterWidth * 1.5 + cardCaptionHeight(d) + (d.isTv ? 12 : 6);
 
@@ -73,7 +75,7 @@ class _SearchScreenState extends State<SearchScreen> {
       clipBehavior: Clip.none,
       padding: EdgeInsets.only(bottom: d.pageInsets.bottom + 90),
       children: [
-        const PageTitle('Search'),
+        PageTitle(l.navSearch),
         Padding(
           padding: EdgeInsets.fromLTRB(
             d.pageInsets.left,
@@ -91,11 +93,11 @@ class _SearchScreenState extends State<SearchScreen> {
               style: Theme.of(context).textTheme.bodyLarge,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
-                hintText: 'Movies, shows, artists, albums, tracks…',
+                hintText: l.searchHint,
                 suffixIcon: q.isEmpty
                     ? null
                     : IconButton(
-                        tooltip: 'Clear',
+                        tooltip: l.commonClear,
                         onPressed: () => setState(_query.clear),
                         icon: const Icon(Icons.close),
                       ),
@@ -104,12 +106,12 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
         if (q.isEmpty)
-          const SizedBox(
+          SizedBox(
             height: 260,
             child: EmptyState(
               icon: Icons.search,
-              title: 'Search your library',
-              message: 'Type a title, a year, an artist or an album.',
+              title: l.searchPromptTitle,
+              message: l.searchPromptMessage,
             ),
           )
         else if (movies.isEmpty && shows.isEmpty && tracks.isEmpty)
@@ -117,13 +119,13 @@ class _SearchScreenState extends State<SearchScreen> {
             height: 260,
             child: EmptyState(
               icon: Icons.search_off,
-              title: 'No results for “${_query.text.trim()}”',
+              title: l.searchNoResults(_query.text.trim()),
             ),
           )
         else ...[
           if (movies.isNotEmpty) ...[
             MediaRow(
-              title: 'Movies',
+              title: l.navMovies,
               itemCount: movies.length,
               height: posterRowH,
               itemBuilder: (context, i) => PosterCard(
@@ -136,7 +138,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ],
           if (shows.isNotEmpty) ...[
             MediaRow(
-              title: 'TV Shows',
+              title: l.navShows,
               itemCount: shows.length,
               height: posterRowH,
               itemBuilder: (context, i) => PosterCard(
@@ -156,7 +158,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 8,
               ),
               child: Text(
-                'Music',
+                l.navMusic,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),

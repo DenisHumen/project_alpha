@@ -13,6 +13,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   pa_library:
     path: ../packages/pa_library
   pa_player:
@@ -22,6 +24,7 @@ dependencies:
   file_picker: ^13.3.3
   flutter_svg: ^2.0.0
   flutter_secure_storage: ^11.2.0
+  intl: ^0.20.2
   material_ui: ^1.1.0
   path_provider: ^2.1.6
   permission_handler: ^13.0.2
@@ -33,6 +36,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # gen-l10n (UI-020): lib/l10n/*.arb -> lib/l10n/app_localizations*.dart,
+  # see l10n.yaml. The generated Dart files are not committed.
+  generate: true
   # Copies of design/brand/src/mark.svg, wordmark.svg and design/placeholders/export
   # (DSN-006); refresh them when the brand changes.
   assets:

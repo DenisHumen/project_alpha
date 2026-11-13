@@ -29,6 +29,7 @@ SPDX-License-Identifier = "MPL-2.0"
 path = [
   "**/*.json",
   "**/*.jsonl",
+  "**/*.arb",
   "**/.gitkeep",
   "**/.gitignore",
   ".github/CODEOWNERS",

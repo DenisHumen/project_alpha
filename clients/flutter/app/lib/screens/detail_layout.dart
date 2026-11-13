@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/artwork.dart';
 
@@ -134,7 +135,7 @@ class DetailBackdropPage extends StatelessWidget {
                         children: [
                           if (!d.isTv && Navigator.of(context).canPop())
                             IconButton(
-                              tooltip: 'Back',
+                              tooltip: context.l10n.commonBack,
                               onPressed: () => Navigator.of(context).maybePop(),
                               style: IconButton.styleFrom(
                                 backgroundColor: Colors.black38,
@@ -206,8 +207,8 @@ class MatchBadge extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           low
-              ? 'Uncertain match (${(c * 100).round()}%) — check “Fix match”'
-              : 'Matched ${(c * 100).round()}%',
+              ? context.l10n.detailMatchUncertain(c)
+              : context.l10n.detailMatched(c),
           style: Theme.of(context).textTheme.labelSmall
               ?.copyWith(color: low ? Colors.amber : null),
         ),

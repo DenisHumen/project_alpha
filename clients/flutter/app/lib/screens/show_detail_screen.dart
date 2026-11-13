@@ -3,6 +3,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../integration/library.dart';
+import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/artwork.dart';
@@ -42,6 +43,7 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
   Widget build(BuildContext context) {
     final show = widget.show;
     final d = KDensity.of(context);
+    final l = context.l10n;
     return StreamBuilder<List<LibraryItem>>(
       stream: _episodes,
       builder: (context, epSnap) => StreamBuilder<List<(LibraryItem, Progress)>>(
@@ -75,8 +77,8 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
 
           final meta = [
             if (show.year != null) '${show.year}',
-            '${seasons.length} season${seasons.length == 1 ? '' : 's'}',
-            '${episodes.length} episodes',
+            l.showSeasonCount(seasons.length),
+            l.showEpisodeCount(episodes.length),
           ].join('  ·  ');
 
           return DetailBackdropPage(
@@ -89,8 +91,8 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
                   primary: true,
                   icon: Icons.play_arrow_rounded,
                   label: nextP != null
-                      ? 'Resume ${episodeCode(next)}'
-                      : 'Play ${episodeCode(next)}',
+                      ? l.showResumeEpisode(episodeCode(l, next))
+                      : l.showPlayEpisode(episodeCode(l, next)),
                   onPressed: () => playVideo(
                     context,
                     next!,
@@ -99,7 +101,7 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
                 ),
               KButton(
                 icon: Icons.manage_search,
-                label: 'Fix match',
+                label: l.commonFixMatch,
                 onPressed: () => showFixMatchDialog(context, show),
               ),
             ],
@@ -120,7 +122,9 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
                             children: [
                               for (final s in seasons)
                                 _SeasonChip(
-                                  label: s == 0 ? 'Specials' : 'Season $s',
+                                  label: s == 0
+                                      ? l.showSpecials
+                                      : l.showSeason(s),
                                   selected: s == season,
                                   onTap: () => setState(() => _season = s),
                                 ),
@@ -218,13 +222,14 @@ class _EpisodeTile extends StatelessWidget {
     final theme = Theme.of(context);
     final thumbW = d.isPhone ? 140.0 : (d.isTv ? 190.0 : 220.0);
     final p = progress;
+    final l = context.l10n;
     return Padding(
       padding: EdgeInsets.only(bottom: d.isTv ? 14 : 12),
       child: KFocusable(
         onActivate: onTap,
         focusScale: d.isTv ? 1.03 : 1.01,
         light: false,
-        semanticLabel: '${episodeCode(episode)} ${episode.title}',
+        semanticLabel: '${episodeCode(l, episode)} ${episode.title}',
         builder: (context, focused) => AnimatedContainer(
           duration: KMotion.focus,
           padding: const EdgeInsets.all(8),
@@ -286,9 +291,9 @@ class _EpisodeTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       [
-                        episodeCode(episode),
-                        formatRuntime(episode.durationMs),
-                        if (p != null) formatRemaining(p),
+                        episodeCode(l, episode),
+                        formatRuntime(l, episode.durationMs),
+                        if (p != null) formatRemaining(l, p),
                       ].join('  ·  '),
                       style: theme.textTheme.labelSmall,
                     ),
