@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MPL-2.0
+# `bootstrap` module: set up a developer machine (REPO-008).
+# Owned by the REPO workstream (docs/ROADMAP.md §0.4).
+#
+#   just bootstrap                          install user-level toolchains, then check
+#   just bootstrap check                    only check: no sudo, no downloads, no changes
+#   just bootstrap run --skip android       (Windows: -Skip android)
+
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"]
+
+script := if os_family() == "windows" { "& '" + source_directory() / "bootstrap.ps1'" } else { "bash '" + source_directory() / "bootstrap.sh'" }
+check_flag := if os_family() == "windows" { "-Check" } else { "--check" }
+
+# Install pinned toolchains (rust-toolchain.toml, mise.toml, Android SDK), then check the machine
+run *args:
+    @{{ script }} {{ args }}
+
+# Only check the machine and print the commands that fix what is missing
+check *args:
+    @{{ script }} {{ check_flag }} {{ args }}

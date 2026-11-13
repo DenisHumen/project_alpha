@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: MPL-2.0
+// Dev Container for the Linux part of project_alpha (REPO-008).
+// Docs: tools/bootstrap/README.md
+{
+  "name": "project_alpha",
+  "build": {
+    "context": "..",
+    "dockerfile": "Dockerfile",
+    "args": {
+      "ACCEPT_ANDROID_SDK_LICENSES": "false"
+    }
+  },
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "CARGO_TARGET_DIR": "${containerWorkspaceFolder}/target"
+  },
+  "postCreateCommand": "mise trust --quiet ${containerWorkspaceFolder}/mise.toml && (just bootstrap || echo 'bootstrap incomplete: see the list above')",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "Dart-Code.flutter",
+        "golang.go",
+        "nefrob.vscode-just-syntax",
+        "editorconfig.editorconfig"
+      ]
+    }
+  }
+}

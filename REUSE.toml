@@ -99,3 +99,17 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = "project_alpha contributors"
 SPDX-License-Identifier = "MPL-2.0"
+
+# UI icons based on Lucide (ISC; icons derived from Feather are also MIT) —
+# the licence is in each SVG header, the copyright is added here (DSN-004).
+[[annotations]]
+path = ["design/icons/svg/*.svg", "design/icons/generated/apple/**/*.svg"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
+
+# Verbatim Lucide licence file (ISC + MIT for Feather-derived icons).
+[[annotations]]
+path = "design/icons/LICENSE-lucide.txt"
+precedence = "override"
+SPDX-FileCopyrightText = ["2026 Lucide Icons and Contributors", "2013-present Cole Bemis"]
+SPDX-License-Identifier = "ISC AND MIT"
