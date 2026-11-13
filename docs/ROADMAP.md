@@ -231,7 +231,7 @@ project_alpha/
   - Что: скан всей истории gitleaks, проверка на приватные ссылки и чужие ассеты, переключение видимости, судьба `project_alpha-releases` по DEC-001, редиректы в README.
   - deps: DEC-001, REPO-002, REPO-009 · size: S · parallel: yes · веха: M0 · ref: S §7
   - done when: репо публичный, в истории нет секретов, Actions на публичных runners работают.
-- [ ] **REPO-012** Инструменты ROADMAP: `just roadmap lint` и `just roadmap next`
+- [x] **REPO-012** Инструменты ROADMAP: `just roadmap lint` и `just roadmap next`
   - Что: скрипт в `tools/roadmap/` (блоки кода игнорируются) проверяет уникальность ID, формат полей, существование ID в deps, отсутствие циклов, что у `[x]` нет открытых deps; `next` выдаёт задачи с закрытыми deps, у которых нет открытого PR (через `gh`).
   - deps: REPO-001 · size: S · parallel: yes · веха: M0 · ref: —
   - done when: lint в CI зелёный на этом файле; `next` на текущем состоянии выдаёт список первой волны (§6).
