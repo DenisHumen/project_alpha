@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Test-media helper (QA-002): writes synthetic Dolby Vision RPU and HDR10+ SEI
+# NAL units and injects them into a raw HEVC (Annex B) stream. Dev-only tool:
+# it is never linked into the apps.
+#
+# Standalone on purpose (own `[workspace]` and Cargo.lock): it is built only by
+# `tools/qa/media/generate.py`, so it does not touch the root workspace lock.
+
+[package]
+name = "pa-hdrmeta"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MPL-2.0"
+publish = false
+description = "Synthetic Dolby Vision RPU / HDR10+ SEI injector for test media"
+
+[workspace]
+
+[dependencies]
+# Both MIT, by the dovi_tool / hdr10plus_tool author; metadata writers only.
+dolby_vision = "=3.3.1"
+hdr10plus = { version = "=2.1.5", features = ["hevc", "json"] } # 2.1.5: `hevc` needs `json` to compile

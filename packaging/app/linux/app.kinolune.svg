@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- Placeholder icon for release 0.1 until design/brand ships a logo. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect width="256" height="256" rx="56" fill="#14161f"/>
+  <circle cx="128" cy="128" r="76" fill="#e8d9a8"/>
+  <circle cx="160" cy="108" r="70" fill="#14161f"/>
+  <path d="M112 100 L168 128 L112 156 Z" fill="#e8d9a8"/>
+</svg>

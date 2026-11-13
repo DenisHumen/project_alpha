@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Generated and downloaded media are never committed (QA-002): see README.md.
+synthetic/
+external/
+library/

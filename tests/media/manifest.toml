@@ -1,0 +1,986 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Манифест тестовых медиа (QA-002). Описывает КАЖДЫЙ файл набора: путь,
+# происхождение, лицензию, назначение и ожидаемые свойства (их проверяет
+# `tools/qa/media/verify.py` через ffprobe). Формат — tests/media/README.md.
+#
+# Синтетические файлы (`synthetic/`) создаёт `tools/qa/media/generate.py`
+# (поле `recipe`, по умолчанию = `id`); в git они не хранятся.
+# Внешние файлы (`external/`) скачивает `tools/qa/media/fetch.py` по `url`
+# и сверяет `size` и `sha256`.
+
+schema = 1
+
+[sources.synthetic]
+licence = "CC0-1.0"
+attribution = "project_alpha contributors; сгенерировано tools/qa/media/generate.py из тестовых источников FFmpeg"
+
+[sources.blender]
+licence = "CC-BY-3.0"
+attribution = "(c) copyright Blender Foundation | www.blender.org"
+
+[sources.blender-ost]
+licence = "CC-BY-ND-3.0"
+attribution = "(C) Joram Letwory - www.tearsofsteel.org"
+
+# =========================================================================
+# Контейнеры и кодеки: 640x360, 3 с, тестовая таблица + тон (каналы: 300, 400 Гц)
+# =========================================================================
+
+[[file]]
+id = "v-h264-aac-mp4"
+path = "synthetic/video/h264-aac.mp4"
+what = "Базовый файл: H.264 High + AAC LC, moov в начале (faststart)"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002", "LIB-006", "QA-003"]
+expect = { format = "mov,mp4,m4a,3gp,3g2,mj2", duration = 3.0 }
+streams = [
+  { type = "video", codec = "h264", profile = "High", width = 640, height = 360, pix_fmt = "yuv420p", fps = "24/1" },
+  { type = "audio", codec = "aac", channels = 2, sample_rate = 48000 },
+]
+
+[[file]]
+id = "v-h264-aac-moov-end"
+path = "synthetic/video/h264-aac-moov-at-end.mp4"
+what = "То же, но moov в конце файла: нужен seek в конец до старта (SMB/WebDAV, ByteSource)"
+used_by = ["NET-008", "PLAY-DSK-002"]
+expect = { format = "mov,mp4,m4a,3gp,3g2,mj2", duration = 3.0 }
+streams = [{ type = "video", codec = "h264" }, { type = "audio", codec = "aac" }]
+
+[[file]]
+id = "v-h264-hi10p-mkv"
+path = "synthetic/video/h264-hi10p-flac.mkv"
+what = "H.264 High 10 (Hi10P, типично для аниме) + FLAC: нет аппаратного декода почти нигде"
+used_by = ["PLAY-AND-007", "PLAY-DSK-004"]
+expect = { format = "matroska,webm", duration = 3.0 }
+streams = [
+  { type = "video", codec = "h264", profile = "High 10", pix_fmt = "yuv420p10le" },
+  { type = "audio", codec = "flac", channels = 2 },
+]
+
+[[file]]
+id = "v-hevc-main10-mkv"
+path = "synthetic/video/hevc-main10-opus.mkv"
+what = "HEVC Main 10 SDR + Opus в MKV"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002"]
+expect = { format = "matroska,webm", duration = 3.0 }
+streams = [
+  { type = "video", codec = "hevc", profile = "Main 10", pix_fmt = "yuv420p10le" },
+  { type = "audio", codec = "opus", channels = 2 },
+]
+
+[[file]]
+id = "v-hevc-mp4"
+path = "synthetic/video/hevc-hvc1-aac.mp4"
+what = "HEVC Main с тегом hvc1 (требование AVPlayer) + AAC"
+used_by = ["PLAY-APL-002"]
+expect = { format = "mov,mp4,m4a,3gp,3g2,mj2", duration = 3.0 }
+streams = [
+  { type = "video", codec = "hevc", codec_tag = "hvc1", profile = "Main" },
+  { type = "audio", codec = "aac" },
+]
+
+[[file]]
+id = "v-av1-mkv"
+path = "synthetic/video/av1-opus.mkv"
+what = "AV1 (SVT-AV1) + Opus в MKV: софт-декод dav1d на старом железе"
+used_by = ["PLAY-DSK-004", "PLAY-AND-002"]
+expect = { format = "matroska,webm", duration = 3.0 }
+streams = [{ type = "video", codec = "av1" }, { type = "audio", codec = "opus" }]
+
+[[file]]
+id = "v-av1-mp4"
+path = "synthetic/video/av1-aac.mp4"
+what = "AV1 + AAC в MP4"
+used_by = ["PLAY-APL-001"]
+expect = { format = "mov,mp4,m4a,3gp,3g2,mj2", duration = 3.0 }
+streams = [{ type = "video", codec = "av1", codec_tag = "av01" }, { type = "audio", codec = "aac" }]
+
+[[file]]
+id = "v-vp9-webm"
+path = "synthetic/video/vp9-opus.webm"
+what = "VP9 + Opus в WebM"
+used_by = ["PLAY-DSK-002"]
+expect = { format = "matroska,webm", duration = 3.0 }
+streams = [{ type = "video", codec = "vp9" }, { type = "audio", codec = "opus" }]
+
+[[file]]
+id = "v-vp8-webm"
+path = "synthetic/video/vp8-vorbis.webm"
+what = "VP8 + Vorbis в WebM (старые веб-файлы)"
+used_by = ["PLAY-DSK-002"]
+expect = { format = "matroska,webm", duration = 3.0 }
+streams = [{ type = "video", codec = "vp8" }, { type = "audio", codec = "vorbis" }]
+
+[[file]]
+id = "v-theora-ogv"
+path = "synthetic/video/theora-vorbis.ogv"
+what = "Theora + Vorbis в Ogg"
+used_by = ["PLAY-DSK-002"]
+expect = { format = "ogg", duration = 3.0 }
+streams = [{ type = "video", codec = "theora" }, { type = "audio", codec = "vorbis" }]
+
+[[file]]
+id = "v-mpeg2-ts"
+path = "synthetic/video/mpeg2-interlaced-ac3.ts"
+what = "MPEG-2 720x576 25i (TFF, 16:9) + AC-3 в MPEG-TS, как запись DVB: деинтерлейс"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002"]
+expect = { format = "mpegts", duration = 3.0 }
+streams = [
+  { type = "video", codec = "mpeg2video", width = 720, height = 576, field_order = "tt" },
+  { type = "audio", codec = "ac3", channels = 2 },
+]
+
+[[file]]
+id = "v-mpeg2-vob"
+path = "synthetic/video/mpeg2-ac3.vob"
+what = "MPEG-2 720x480 29.97 4:3 + AC-3 в MPEG-PS (как VOB с DVD)"
+used_by = ["PLAY-DSK-002", "LIB-007"]
+expect = { format = "mpeg", duration = 3.0 }
+streams = [
+  { type = "video", codec = "mpeg2video", width = 720, height = 480, fps = "30000/1001" },
+  { type = "audio", codec = "ac3" },
+]
+
+[[file]]
+id = "v-h264-m2ts"
+path = "synthetic/video/h264-ac3.m2ts"
+what = "H.264 720p 23.976 + AC-3 5.1 в M2TS (192-байтные пакеты, как BDMV/STREAM)"
+used_by = ["PLAY-DSK-002", "LIB-007"]
+expect = { format = "mpegts", duration = 3.0 }
+streams = [
+  { type = "video", codec = "h264", fps = "24000/1001" },
+  { type = "audio", codec = "ac3", channels = 6 },
+]
+
+[[file]]
+id = "v-mpeg4asp-avi"
+path = "synthetic/video/mpeg4-asp-mp3.avi"
+what = "MPEG-4 ASP (тег XVID) + MP3 в AVI: fallback-путь Android"
+used_by = ["PLAY-AND-007"]
+expect = { format = "avi", duration = 3.0 }
+streams = [
+  { type = "video", codec = "mpeg4", codec_tag = "XVID" },
+  { type = "audio", codec = "mp3" },
+]
+
+[[file]]
+id = "v-wmv"
+path = "synthetic/video/wmv2-wmav2.wmv"
+what = "WMV2 + WMA2 в ASF: fallback-путь Android"
+used_by = ["PLAY-AND-007"]
+expect = { format = "asf", duration = 3.0 }
+streams = [{ type = "video", codec = "wmv2" }, { type = "audio", codec = "wmav2" }]
+
+[[file]]
+id = "v-prores-mov"
+path = "synthetic/video/prores-proxy-pcm.mov"
+what = "ProRes 422 Proxy + PCM 24 бит в MOV (монтажные файлы)"
+used_by = ["PLAY-DSK-002", "PLAY-APL-001"]
+expect = { format = "mov,mp4,m4a,3gp,3g2,mj2", duration = 3.0 }
+streams = [
+  { type = "video", codec = "prores", profile = "Proxy" },
+  { type = "audio", codec = "pcm_s24le" },
+]
+
+[[file]]
+id = "v-flv"
+path = "synthetic/video/h264-aac.flv"
+what = "H.264 + AAC во FLV (старые записи стримов)"
+used_by = ["PLAY-DSK-002"]
+expect = { format = "flv", duration = 3.0 }
+streams = [{ type = "video", codec = "h264" }, { type = "audio", codec = "aac" }]
+
+# =========================================================================
+# AFR / Match frame rate: H.264 1280x720, 3 с, все частые частоты
+# =========================================================================
+
+[[file]]
+id = "afr-23.976"
+path = "synthetic/afr/h264-720p-23.976.mp4"
+what = "23.976 fps (NTSC-фильм): переключение 23.976 Гц"
+used_by = ["PLAY-AND-005", "PLAY-APL-006", "QA-003"]
+expect = { duration = 3.0 }
+streams = [{ type = "video", codec = "h264", width = 1280, height = 720, fps = "24000/1001" }, { type = "audio" }]
+
+[[file]]
+id = "afr-24"
+path = "synthetic/afr/h264-720p-24.mp4"
+what = "24 fps"
+used_by = ["PLAY-AND-005", "PLAY-APL-006"]
+expect = { duration = 3.0 }
+streams = [{ type = "video", fps = "24/1" }, { type = "audio" }]
+
+[[file]]
+id = "afr-25"
+path = "synthetic/afr/h264-720p-25.mp4"
+what = "25 fps (PAL)"
+used_by = ["PLAY-AND-005", "PLAY-APL-006"]
+expect = { duration = 3.0 }
+streams = [{ type = "video", fps = "25/1" }, { type = "audio" }]
+
+[[file]]
+id = "afr-29.97"
+path = "synthetic/afr/h264-720p-29.97.mp4"
+what = "29.97 fps (NTSC-видео)"
+used_by = ["PLAY-AND-005", "PLAY-APL-006"]
+expect = { duration = 3.0 }
+streams = [{ type = "video", fps = "30000/1001" }, { type = "audio" }]
+
+[[file]]
+id = "afr-50"
+path = "synthetic/afr/h264-720p-50.mp4"
+what = "50 fps (спорт, ТВ)"
+used_by = ["PLAY-AND-005", "PLAY-APL-006"]
+expect = { duration = 3.0 }
+streams = [{ type = "video", fps = "50/1" }, { type = "audio" }]
+
+[[file]]
+id = "afr-59.94"
+path = "synthetic/afr/h264-720p-59.94.mp4"
+what = "59.94 fps"
+used_by = ["PLAY-AND-005", "PLAY-APL-006"]
+expect = { duration = 3.0 }
+streams = [{ type = "video", fps = "60000/1001" }, { type = "audio" }]
+
+# =========================================================================
+# HDR: HEVC Main10 1920x1080 23.976, 2 с. Картинка — SDR-таблица, помеченная
+# как PQ/HLG: выглядит тускло, но проверяет переключение режима и метаданные.
+# MDCV: P3-D65 1000/0.0001 нит, CLL 1000/400.
+# =========================================================================
+
+[[file]]
+id = "hdr-hdr10-hevc-mkv"
+path = "synthetic/hdr/hdr10-hevc-1080p.mkv"
+recipe = "hdr-hdr10-hevc"
+what = "HDR10: PQ + статические метаданные (MDCV, CLL) в SEI и в MKV"
+used_by = ["PLAY-DSK-003", "PLAY-AND-004", "LIB-006"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", profile = "Main 10", width = 1920, height = 1080, color_transfer = "smpte2084", color_primaries = "bt2020", frame_side_data = ["Mastering display metadata", "Content light level metadata"] }]
+
+[[file]]
+id = "hdr-hdr10-hevc-mp4"
+path = "synthetic/hdr/hdr10-hevc-1080p.mp4"
+recipe = "hdr-hdr10-hevc"
+what = "HDR10 в MP4 (hvc1)"
+used_by = ["PLAY-APL-002", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", codec_tag = "hvc1", color_transfer = "smpte2084", frame_side_data = ["Mastering display metadata"] }]
+
+[[file]]
+id = "hdr-hdr10-hevc-2160p"
+path = "synthetic/hdr/hdr10-hevc-2160p.mkv"
+what = "HDR10 3840x2160: нагрузка на декодер и вывод 4K"
+used_by = ["PLAY-DSK-003", "PLAY-DSK-004", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", width = 3840, height = 2160, color_transfer = "smpte2084" }]
+
+[[file]]
+id = "hdr-hlg-hevc"
+path = "synthetic/hdr/hlg-hevc-1080p.mkv"
+what = "HLG (ARIB STD-B67), без статических метаданных"
+used_by = ["PLAY-DSK-003", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", color_transfer = "arib-std-b67", color_primaries = "bt2020" }]
+
+[[file]]
+id = "hdr-hdr10plus-mkv"
+path = "synthetic/hdr/hdr10plus-hevc-1080p.mkv"
+recipe = "hdr-hdr10plus"
+what = "HDR10+: SMPTE ST 2094-40 (T.35 SEI) в каждом кадре поверх HDR10"
+used_by = ["PLAY-DSK-003", "PLAY-AND-004", "LIB-006"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", color_transfer = "smpte2084", frame_side_data = ["HDR Dynamic Metadata SMPTE2094-40 (HDR10+)", "Mastering display metadata"] }]
+
+[[file]]
+id = "hdr-hdr10plus-mp4"
+path = "synthetic/hdr/hdr10plus-hevc-1080p.mp4"
+recipe = "hdr-hdr10plus"
+what = "HDR10+ в MP4"
+used_by = ["PLAY-APL-002", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", frame_side_data = ["HDR Dynamic Metadata SMPTE2094-40 (HDR10+)"] }]
+
+[[file]]
+id = "hdr-dv-p5-mp4"
+path = "synthetic/hdr/dv-p5-hevc-1080p.mp4"
+recipe = "hdr-dv-p5"
+what = "Dolby Vision профиль 5 (dvh1, dvcC, RPU в каждом кадре). Без RPU-reshaping цвета неверные — так и задумано"
+used_by = ["PLAY-DSK-003", "PLAY-APL-008", "PLAY-AND-004", "LIB-006"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", codec_tag = "dvh1", side_data = ["DOVI configuration record"], dv_profile = 5, dv_compat = 0, frame_side_data = ["Dolby Vision RPU Data", "Dolby Vision Metadata"] }]
+
+[[file]]
+id = "hdr-dv-p5-mkv"
+path = "synthetic/hdr/dv-p5-hevc-1080p.mkv"
+recipe = "hdr-dv-p5"
+what = "Dolby Vision профиль 5 в MKV (BlockAdditionMapping dvcC)"
+used_by = ["PLAY-DSK-003", "PLAY-APL-008", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", side_data = ["DOVI configuration record"], dv_profile = 5, frame_side_data = ["Dolby Vision RPU Data"] }]
+
+[[file]]
+id = "hdr-dv-p81-mkv"
+path = "synthetic/hdr/dv-p8.1-hevc-1080p.mkv"
+recipe = "hdr-dv-p81"
+what = "Dolby Vision 8.1: HDR10-совместимая база + RPU (самый частый вариант в MKV)"
+used_by = ["PLAY-DSK-003", "PLAY-APL-008", "PLAY-AND-004", "LIB-006"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", color_transfer = "smpte2084", side_data = ["DOVI configuration record"], dv_profile = 8, dv_compat = 1, frame_side_data = ["Dolby Vision RPU Data", "Mastering display metadata"] }]
+
+[[file]]
+id = "hdr-dv-p81-mp4"
+path = "synthetic/hdr/dv-p8.1-hevc-1080p.mp4"
+recipe = "hdr-dv-p81"
+what = "Dolby Vision 8.1 в MP4 (hvc1 + dvcC)"
+used_by = ["PLAY-APL-002", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", codec_tag = "hvc1", side_data = ["DOVI configuration record"], dv_profile = 8, dv_compat = 1 }]
+
+[[file]]
+id = "hdr-dv-p84-mp4"
+path = "synthetic/hdr/dv-p8.4-hlg-hevc-1080p.mp4"
+recipe = "hdr-dv-p84"
+what = "Dolby Vision 8.4: HLG-база + RPU (как видео с iPhone)"
+used_by = ["PLAY-APL-008", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "hevc", color_transfer = "arib-std-b67", side_data = ["DOVI configuration record"], dv_profile = 8, dv_compat = 4 }]
+
+[[file]]
+id = "hdr-hdr10-av1"
+path = "synthetic/hdr/hdr10-av1-1080p.mkv"
+what = "HDR10 в AV1 (10 бит, PQ, MDCV/CLL в OBU metadata)"
+used_by = ["PLAY-DSK-003", "PLAY-AND-004"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "av1", pix_fmt = "yuv420p10le", color_transfer = "smpte2084", frame_side_data = ["Mastering display metadata"] }]
+
+[[file]]
+id = "hdr-hdr10-vp9"
+path = "synthetic/hdr/hdr10-vp9-1080p.webm"
+what = "VP9 Profile 2 PQ (HDR на YouTube-подобных файлах)"
+used_by = ["PLAY-DSK-003"]
+expect = { duration = 2.0 }
+streams = [{ type = "video", codec = "vp9", profile = "Profile 2", color_transfer = "smpte2084" }]
+
+# =========================================================================
+# Аудио: видео 320x180 + одна дорожка, 3 с. Канал i = 300 + 100*i Гц
+# (FL 300, FR 400, FC 500, LFE 600, ...) — ошибки раскладки слышны и измеримы.
+# Atmos (E-AC-3 JOC, TrueHD), DTS-HD MA и DTS:X синтезировать нечем (нет
+# свободных энкодеров) — их проверка только на реальных файлах владельца (QA-011).
+# =========================================================================
+
+[[file]]
+id = "a-ac3-51"
+path = "synthetic/audio/ac3-5.1.mkv"
+what = "AC-3 5.1 448 кбит/с: passthrough и декод"
+used_by = ["PLAY-AND-006", "PLAY-DSK-004", "LIB-006"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "ac3", channels = 6 }]
+
+[[file]]
+id = "a-eac3-51"
+path = "synthetic/audio/eac3-5.1.mkv"
+what = "E-AC-3 5.1"
+used_by = ["PLAY-AND-006", "PLAY-DSK-004", "PLAY-APL-009"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "eac3", channels = 6 }]
+
+[[file]]
+id = "a-truehd-51"
+path = "synthetic/audio/truehd-5.1.mkv"
+what = "Dolby TrueHD 5.1 (без Atmos): passthrough и декод в LPCM"
+used_by = ["PLAY-AND-006", "PLAY-DSK-004", "PLAY-APL-009"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "truehd", channels = 6 }]
+
+[[file]]
+id = "a-dts-51"
+path = "synthetic/audio/dts-5.1.mkv"
+what = "DTS core 5.1"
+used_by = ["PLAY-AND-006", "PLAY-DSK-004", "PLAY-APL-009"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "dts", channels = 6 }]
+
+[[file]]
+id = "a-flac-71"
+path = "synthetic/audio/flac-7.1-24bit.mkv"
+what = "FLAC 7.1 24 бит"
+used_by = ["PLAY-DSK-004", "PLAY-AND-002"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "flac", channels = 8, bits = 24 }]
+
+[[file]]
+id = "a-pcm-71"
+path = "synthetic/audio/pcm-s24le-7.1.mkv"
+what = "LPCM 7.1 24 бит в MKV"
+used_by = ["PLAY-DSK-004", "PLAY-APL-009"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "pcm_s24le", channels = 8 }]
+
+[[file]]
+id = "a-opus-51"
+path = "synthetic/audio/opus-5.1.mkv"
+what = "Opus 5.1 (channel mapping family 1)"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "opus", channels = 6 }]
+
+[[file]]
+id = "a-aac-51"
+path = "synthetic/audio/aac-5.1.mp4"
+what = "AAC LC 5.1 в MP4"
+used_by = ["PLAY-APL-002", "PLAY-AND-002"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "aac", channels = 6 }]
+
+[[file]]
+id = "a-lpcm-m2ts"
+path = "synthetic/audio/lpcm-5.1.m2ts"
+what = "Blu-ray LPCM (pcm_bluray) 5.1 в M2TS"
+used_by = ["PLAY-DSK-004", "PLAY-AND-006"]
+expect = { format = "mpegts", duration = 3.0 }
+streams = [{ type = "video" }, { type = "audio", codec = "pcm_bluray", channels = 6 }]
+
+# =========================================================================
+# Субтитры. События: 0.5–1.5, 2.0–3.0, 3.5–4.5 с; в битмапах событие N = N жёлтых квадратов.
+# =========================================================================
+
+[[file]]
+id = "s-pgs-mkv"
+path = "synthetic/subs/pgs.mkv"
+recipe = "s-bitmap"
+what = "PGS (Blu-ray) 1280x720 в MKV; записан tools/qa/media/pgs.py"
+used_by = ["PLAY-007", "PLAY-AND-003", "PLAY-APL-005"]
+expect = { duration = 5.0 }
+streams = [{ type = "video" }, { type = "subtitle", codec = "hdmv_pgs_subtitle", lang = "eng" }]
+
+[[file]]
+id = "s-vobsub-mkv"
+path = "synthetic/subs/vobsub.mkv"
+recipe = "s-bitmap"
+what = "VobSub (DVD) в MKV, перекодирован из PGS"
+used_by = ["PLAY-007", "PLAY-AND-003", "PLAY-APL-005"]
+expect = { duration = 5.0 }
+streams = [{ type = "video" }, { type = "subtitle", codec = "dvd_subtitle" }]
+
+[[file]]
+id = "s-dvbsub-ts"
+path = "synthetic/subs/dvbsub.ts"
+recipe = "s-bitmap"
+what = "DVB-субтитры в MPEG-TS"
+used_by = ["PLAY-007", "PLAY-AND-003"]
+expect = { format = "mpegts" }
+streams = [{ type = "video" }, { type = "subtitle", codec = "dvb_subtitle" }]
+
+[[file]]
+id = "s-mov-text-mp4"
+path = "synthetic/subs/mov_text.mp4"
+recipe = "s-text"
+what = "tx3g (mov_text) в MP4 — единственный текстовый формат AVPlayer в MP4"
+used_by = ["PLAY-007", "PLAY-APL-002"]
+expect = { duration = 5.0 }
+streams = [{ type = "video" }, { type = "subtitle", codec = "mov_text", lang = "eng" }]
+
+[[file]]
+id = "s-webvtt-webm"
+path = "synthetic/subs/webvtt.webm"
+recipe = "s-text"
+what = "WebVTT в WebM"
+used_by = ["PLAY-007"]
+expect = { duration = 5.0 }
+streams = [{ type = "video" }, { type = "subtitle", codec = "webvtt" }]
+
+[[file]]
+id = "s-ass-fonts"
+path = "synthetic/subs/ass-attached-font.mkv"
+what = "ASS: стили, \\pos, повороты, караоке, CJK (fallback) + шрифт DejaVu Sans во вложении"
+used_by = ["PLAY-007", "PLAY-AND-003", "PLAY-APL-005"]
+licence = "CC0-1.0 AND Bitstream-Vera"
+attribution = "Видео и скрипт — CC0; вложенный шрифт DejaVu Sans — Bitstream Vera Fonts License (копируется из системы при генерации)"
+expect = { duration = 5.0 }
+streams = [
+  { type = "video" },
+  { type = "subtitle", codec = "ass", lang = "rus" },
+  { type = "attachment", filename = "DejaVuSans.ttf", mimetype = "font/ttf" },
+]
+
+# =========================================================================
+# Дорожки, главы, флаги
+# =========================================================================
+
+[[file]]
+id = "t-multi"
+path = "synthetic/tracks/multi-audio-subs-chapters.mkv"
+what = "3 аудио (eng по умолчанию, rus 5.1, jpn-комментарий), 4 субтитра (SDH, default, forced, ASS), 3 главы, шрифт"
+used_by = ["PLAY-005", "PLAY-006", "LIB-006", "UI-013"]
+licence = "CC0-1.0 AND Bitstream-Vera"
+expect = { duration = 5.0, chapters = 3, chapter_titles = ["Пролог", "Middle", "Финал"] }
+streams = [
+  { type = "video", codec = "h264" },
+  { type = "audio", codec = "aac", lang = "eng", title = "English Stereo", default = true },
+  { type = "audio", codec = "ac3", lang = "rus", channels = 6, default = false },
+  { type = "audio", codec = "opus", lang = "jpn", comment = true },
+  { type = "subtitle", codec = "subrip", lang = "eng", hearing_impaired = true },
+  { type = "subtitle", codec = "subrip", lang = "rus", default = true },
+  { type = "subtitle", codec = "subrip", lang = "rus", forced = true, title = "Forced" },
+  { type = "subtitle", codec = "ass", lang = "rus" },
+  { type = "attachment", filename = "DejaVuSans.ttf" },
+]
+
+[[file]]
+id = "t-chapters-mp4"
+path = "synthetic/tracks/chapters.mp4"
+what = "Главы в MP4 (chpl/QuickTime chapter track)"
+used_by = ["PLAY-006", "LIB-006"]
+expect = { duration = 6.0, chapters = 3, chapter_titles = ["Opening", "Part A", "Ending"] }
+
+[[file]]
+id = "t-many-tracks"
+path = "synthetic/tracks/many-tracks.mkv"
+what = "4 аудио + 16 субтитров на разных языках (как релизы аниме): списки дорожек в UI"
+used_by = ["PLAY-005", "UI-013"]
+expect = { duration = 5.0 }
+
+# =========================================================================
+# Папка фильма с внешними субтитрами (sidecar, LIB-007)
+# =========================================================================
+
+[[file]]
+id = "sc-movie"
+path = "synthetic/sidecar/Test Movie (2024)/Test Movie (2024).mkv"
+recipe = "sidecar"
+what = "Фильм без встроенных субтитров"
+used_by = ["LIB-007", "PLAY-007"]
+expect = { duration = 5.0 }
+streams = [{ type = "video" }, { type = "audio" }]
+
+[[file]]
+id = "sc-ru-forced"
+path = "synthetic/sidecar/Test Movie (2024)/Test Movie (2024).ru.forced.srt"
+recipe = "sidecar"
+what = "Внешние forced-субтитры: язык и флаг из имени файла"
+used_by = ["LIB-007"]
+text = { encoding = "utf-8", contains = "НАДПИСЬ" }
+streams = [{ type = "subtitle", codec = "subrip" }]
+
+[[file]]
+id = "sc-rus-cp1251"
+path = "synthetic/sidecar/Test Movie (2024)/Test Movie (2024).rus.srt"
+recipe = "sidecar"
+what = "SRT в Windows-1251 (трёхбуквенный код языка): автоопределение кодировки"
+used_by = ["LIB-007", "PLAY-007"]
+text = { encoding = "cp1251", contains = "Ёлки-палки" }
+
+[[file]]
+id = "sc-en-sdh"
+path = "synthetic/sidecar/Test Movie (2024)/Test Movie (2024).en.sdh.srt"
+recipe = "sidecar"
+what = "SRT UTF-8 с BOM и CRLF, SDH по имени файла"
+used_by = ["LIB-007", "PLAY-007"]
+text = { encoding = "utf-8", bom = true, crlf = true, contains = "[door creaks]" }
+
+[[file]]
+id = "sc-en-ass"
+path = "synthetic/sidecar/Test Movie (2024)/Test Movie (2024).en.ass"
+recipe = "sidecar"
+what = "Внешний ASS"
+used_by = ["LIB-007", "PLAY-007"]
+text = { encoding = "utf-8", contains = "[V4+ Styles]" }
+streams = [{ type = "subtitle", codec = "ass" }]
+
+[[file]]
+id = "sc-de-vtt"
+path = "synthetic/sidecar/Test Movie (2024)/Test Movie (2024).de.vtt"
+recipe = "sidecar"
+what = "Внешний WebVTT"
+used_by = ["LIB-007", "PLAY-007"]
+text = { encoding = "utf-8", contains = "WEBVTT" }
+streams = [{ type = "subtitle", codec = "webvtt" }]
+
+[[file]]
+id = "sc-en-sup"
+path = "synthetic/sidecar/Test Movie (2024)/Test Movie (2024).en.sup"
+recipe = "sidecar"
+what = "Внешний PGS (.sup) 640x360"
+used_by = ["LIB-007", "PLAY-007"]
+streams = [{ type = "subtitle", codec = "hdmv_pgs_subtitle", width = 640, height = 360 }]
+
+# =========================================================================
+# Пограничные случаи
+# =========================================================================
+
+[[file]]
+id = "e-video-only"
+path = "synthetic/edge/video-only.mp4"
+recipe = "e-basic"
+what = "Без аудио: плеер не ждёт аудио-часы"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002"]
+expect = { duration = 3.0 }
+streams = [{ type = "video" }]
+
+[[file]]
+id = "e-audio-only"
+path = "synthetic/edge/audio-only.mka"
+recipe = "e-basic"
+what = "Только аудио в Matroska (.mka)"
+used_by = ["PLAY-DSK-002", "LIB-003"]
+expect = { duration = 3.0 }
+streams = [{ type = "audio", codec = "opus" }]
+
+[[file]]
+id = "e-vfr"
+path = "synthetic/edge/vfr.mkv"
+recipe = "e-basic"
+what = "Переменная частота кадров (каждый 5-й кадр с удвоенной длительностью)"
+used_by = ["PLAY-DSK-002", "PLAY-AND-005"]
+streams = [{ type = "video", codec = "h264" }]
+
+[[file]]
+id = "e-rotated"
+path = "synthetic/edge/rotated-90.mp4"
+recipe = "e-basic"
+what = "Display matrix: поворот 90° (видео с телефона)"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002", "UI-012"]
+expect = { duration = 3.0 }
+streams = [{ type = "video", width = 640, height = 360, side_data = ["Display Matrix"], rotation = 90 }]
+
+[[file]]
+id = "e-anamorphic"
+path = "synthetic/edge/anamorphic-pal-16x9.mkv"
+recipe = "e-basic"
+what = "Анаморф: 720x576 с SAR 64:45 (PAL 16:9)"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002"]
+streams = [{ type = "video", width = 720, height = 576, sar = "64:45" }]
+
+[[file]]
+id = "e-pts-wrap"
+path = "synthetic/edge/pts-wrap.ts"
+recipe = "e-basic"
+what = "MPEG-TS с PTS у границы 33 бит (2^33/90 кГц = 95443.7 с): переход через ноль"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002", "NET-008"]
+expect = { format = "mpegts" }
+streams = [{ type = "video", codec = "h264" }, { type = "audio", codec = "mp2" }]
+
+[[file]]
+id = "e-hevc-4320p"
+path = "synthetic/edge/hevc-4320p.mkv"
+recipe = "e-basic"
+what = "HEVC 7680x4320 (8K), 1 с: превышение возможностей декодера, понятная ошибка"
+used_by = ["PLAY-DSK-004", "PLAY-AND-002"]
+streams = [{ type = "video", codec = "hevc", width = 7680, height = 4320 }]
+
+[[file]]
+id = "e-truncated-mkv"
+path = "synthetic/edge/truncated.mkv"
+recipe = "e-broken"
+what = "MKV, обрезанный на 60 %: нет Cues, длительность из заголовка"
+used_by = ["LIB-004", "PLAY-DSK-002"]
+streams = [{ type = "video" }, { type = "audio" }]
+
+[[file]]
+id = "e-corrupt-middle"
+path = "synthetic/edge/corrupt-middle.mkv"
+recipe = "e-broken"
+what = "4 КиБ мусора в середине: декодер переживает и идёт дальше"
+used_by = ["PLAY-DSK-002", "PLAY-AND-002", "QA-005"]
+streams = [{ type = "video" }, { type = "audio" }]
+
+[[file]]
+id = "e-wrong-extension"
+path = "synthetic/edge/wrong-extension.avi"
+recipe = "e-broken"
+what = "Matroska с расширением .avi: определение формата по содержимому"
+used_by = ["LIB-004"]
+expect = { format = "matroska,webm" }
+
+[[file]]
+id = "e-unicode-name"
+path = "synthetic/edge/имя с пробелами «юникод» 日本語.mkv"
+recipe = "e-broken"
+what = "Юникод, пробелы и кавычки в имени: SMB/WebDAV, URL-кодирование, FFI"
+used_by = ["NET-004", "NET-005", "LIB-003"]
+expect = { format = "matroska,webm", duration = 4.0 }
+
+[[file]]
+id = "e-zero-bytes"
+path = "synthetic/edge/zero-bytes.mkv"
+recipe = "e-broken"
+what = "Пустой файл: сканер и плеер не падают"
+used_by = ["LIB-003", "LIB-004", "PLAY-DSK-002"]
+expect = { probe = "error" }
+
+[[file]]
+id = "e-truncated-faststart"
+path = "synthetic/edge/truncated-faststart.mp4"
+recipe = "e-broken"
+what = "MP4 с moov в начале, обрезанный: заголовок цел, данные кончаются раньше"
+used_by = ["PLAY-DSK-002", "NET-008"]
+expect = { duration = 4.0 }
+
+[[file]]
+id = "e-truncated-moov-end"
+path = "synthetic/edge/truncated-moov-at-end.mp4"
+recipe = "e-broken"
+what = "MP4 с moov в конце, обрезанный: файл не открывается (недокачанная загрузка)"
+used_by = ["LIB-004", "PLAY-DSK-002"]
+expect = { probe = "error" }
+
+# =========================================================================
+# Музыка. Gapless: одна непрерывная свип-волна, разрезанная на 3 трека по
+# сэмплам, не кратным размеру кадра кодека (132301 + 88207 + 110251 при 44.1 кГц).
+# Щелчок на стыке = ошибка gapless (delay/padding, iTunSMPB/LAME/edit list).
+# =========================================================================
+
+[[file]]
+id = "m-gapless-flac-1"
+path = "synthetic/music/gapless/flac/01 Rise.flac"
+recipe = "m-gapless"
+what = "Gapless FLAC, трек 1/3 (точная длина в сэмплах)"
+used_by = ["MUS-002", "MUS-003"]
+expect = { tags = { album = "Gapless Test", track = "1/3", artist = "Синтетика" } }
+streams = [{ type = "audio", codec = "flac", sample_rate = 44100, duration_ts = 132301 }]
+
+[[file]]
+id = "m-gapless-flac-2"
+path = "synthetic/music/gapless/flac/02 Hold.flac"
+recipe = "m-gapless"
+what = "Gapless FLAC, трек 2/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "flac", duration_ts = 88207 }]
+
+[[file]]
+id = "m-gapless-flac-3"
+path = "synthetic/music/gapless/flac/03 Fall.flac"
+recipe = "m-gapless"
+what = "Gapless FLAC, трек 3/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "flac", duration_ts = 110251 }]
+
+[[file]]
+id = "m-gapless-mp3-1"
+path = "synthetic/music/gapless/mp3/01 Rise.mp3"
+recipe = "m-gapless"
+what = "Gapless MP3 (LAME-заголовок с delay/padding), трек 1/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "mp3" }]
+
+[[file]]
+id = "m-gapless-mp3-2"
+path = "synthetic/music/gapless/mp3/02 Hold.mp3"
+recipe = "m-gapless"
+what = "Gapless MP3, трек 2/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "mp3" }]
+
+[[file]]
+id = "m-gapless-mp3-3"
+path = "synthetic/music/gapless/mp3/03 Fall.mp3"
+recipe = "m-gapless"
+what = "Gapless MP3, трек 3/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "mp3" }]
+
+[[file]]
+id = "m-gapless-m4a-1"
+path = "synthetic/music/gapless/m4a/01 Rise.m4a"
+recipe = "m-gapless"
+what = "Gapless AAC в M4A (priming через edit list), трек 1/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "aac" }]
+
+[[file]]
+id = "m-gapless-m4a-2"
+path = "synthetic/music/gapless/m4a/02 Hold.m4a"
+recipe = "m-gapless"
+what = "Gapless AAC в M4A, трек 2/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "aac" }]
+
+[[file]]
+id = "m-gapless-m4a-3"
+path = "synthetic/music/gapless/m4a/03 Fall.m4a"
+recipe = "m-gapless"
+what = "Gapless AAC в M4A, трек 3/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "aac" }]
+
+[[file]]
+id = "m-gapless-opus-1"
+path = "synthetic/music/gapless/opus/01 Rise.opus"
+recipe = "m-gapless"
+what = "Gapless Opus (pre-skip, end trimming), трек 1/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "opus" }]
+
+[[file]]
+id = "m-gapless-opus-2"
+path = "synthetic/music/gapless/opus/02 Hold.opus"
+recipe = "m-gapless"
+what = "Gapless Opus, трек 2/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "opus" }]
+
+[[file]]
+id = "m-gapless-opus-3"
+path = "synthetic/music/gapless/opus/03 Fall.opus"
+recipe = "m-gapless"
+what = "Gapless Opus, трек 3/3"
+used_by = ["MUS-002", "MUS-003"]
+streams = [{ type = "audio", codec = "opus" }]
+
+[[file]]
+id = "m-hires-flac"
+path = "synthetic/music/formats/hires-24bit-96k.flac"
+recipe = "m-formats"
+what = "Hi-Res FLAC 24 бит / 96 кГц: бейдж формата, bit-perfect, смена частоты"
+used_by = ["MUS-001", "MUS-004"]
+streams = [{ type = "audio", codec = "flac", sample_rate = 96000, bits = 24 }]
+
+[[file]]
+id = "m-alac"
+path = "synthetic/music/formats/alac-16-44.m4a"
+recipe = "m-formats"
+what = "ALAC 16/44.1 в M4A"
+used_by = ["MUS-001"]
+streams = [{ type = "audio", codec = "alac", sample_rate = 44100 }]
+
+[[file]]
+id = "m-mp3-cover"
+path = "synthetic/music/formats/id3v2-cover.mp3"
+recipe = "m-formats"
+what = "MP3 с ID3v2.3 и встроенной обложкой 600x600"
+used_by = ["MUS-001", "LIB-003"]
+expect = { tags = { album = "Formats", title = "Tone" } }
+streams = [{ type = "audio", codec = "mp3" }, { type = "video", codec = "png", attached_pic = true, width = 600 }]
+
+[[file]]
+id = "m-cue-flac"
+path = "synthetic/music/cue/CUE Album.flac"
+recipe = "m-formats"
+what = "Альбом одним файлом (9 с) для CUE-разметки"
+used_by = ["MUS-001", "LIB-003"]
+expect = { duration = 9.0 }
+streams = [{ type = "audio", codec = "flac" }]
+
+[[file]]
+id = "m-cue-sheet"
+path = "synthetic/music/cue/CUE Album.cue"
+recipe = "m-formats"
+what = "CUE-лист: 3 трека, INDEX 00 (pregap) у второго"
+used_by = ["MUS-001", "LIB-003"]
+text = { encoding = "utf-8", contains = "INDEX 00 00:02:50" }
+
+[[file]]
+id = "m-lyrics-flac"
+path = "synthetic/music/lyrics/Song.flac"
+recipe = "m-formats"
+what = "Трек под синхронный текст"
+used_by = ["MUS-006"]
+expect = { duration = 6.0 }
+streams = [{ type = "audio", codec = "flac" }]
+
+[[file]]
+id = "m-lyrics-lrc"
+path = "synthetic/music/lyrics/Song.lrc"
+recipe = "m-formats"
+what = "LRC: построчная синхронизация + пословная (enhanced LRC)"
+used_by = ["MUS-006"]
+text = { encoding = "utf-8", contains = "[00:02.00]" }
+
+# =========================================================================
+# Реальные файлы (свободные лицензии), скачиваются `just tests::media-fetch`.
+# Размеры — по HTTP Content-Length на 2026-11-13; sha256 фиксируется командой
+# `fetch.py --pin` при первой загрузке мейнтейнером. Итого ≈ 560 МБ.
+# =========================================================================
+
+[[file]]
+id = "x-sintel-trailer-1080p"
+source = "blender"
+path = "external/blender/sintel_trailer-1080p.mp4"
+url = "https://download.blender.org/durian/trailer/sintel_trailer-1080p.mp4"
+size = 14621544
+what = "Sintel, трейлер 1080p H.264 + AAC: реальная картинка и звук"
+used_by = ["QA-003", "PLAY-DSK-002", "PLAY-AND-002"]
+streams = [{ type = "video", codec = "h264", width = 1920 }, { type = "audio", codec = "aac" }]
+
+[[file]]
+id = "x-sintel-trailer-divx"
+source = "blender"
+path = "external/blender/Sintel_Trailer.480p.DivX_Home_Theater.divx"
+url = "https://download.blender.org/durian/trailer/Sintel_Trailer.480p.DivX_Home_Theater.divx"
+size = 10847244
+what = "Реальный DivX (MPEG-4 ASP в AVI): fallback-путь Android"
+used_by = ["PLAY-AND-007"]
+
+[[file]]
+id = "x-sintel-trailer-divxplus-mkv"
+source = "blender"
+path = "external/blender/Sintel_Trailer1.1080p.DivX_Plus_HD.mkv"
+url = "https://download.blender.org/durian/trailer/Sintel_Trailer1.1080p.DivX_Plus_HD.mkv"
+size = 28211131
+what = "Реальный MKV 1080p (DivX Plus HD) с несколькими дорожками"
+used_by = ["PLAY-005", "QA-003"]
+
+[[file]]
+id = "x-sintel-subs-ru"
+source = "blender"
+path = "external/blender/sintel_ru.srt"
+url = "https://download.blender.org/durian/subs/sintel_ru.srt"
+size = 2016
+what = "Русские субтитры Sintel (реальный SRT сообщества)"
+used_by = ["PLAY-007", "LIB-007"]
+
+[[file]]
+id = "x-tos-720p"
+source = "blender"
+path = "external/blender/tears_of_steel_720p.mov"
+url = "https://download.blender.org/demo/movies/ToS/tears_of_steel_720p.mov"
+size = 372178639
+what = "Tears of Steel 720p, полный фильм (12 мин): долгий просмотр, resume, seek, trickplay"
+used_by = ["QA-003", "PLAY-008", "LIB-010"]
+
+[[file]]
+id = "x-tos-subs-en"
+source = "blender"
+path = "external/blender/TOS-en.srt"
+url = "https://download.blender.org/demo/movies/ToS/subtitles/TOS-en.srt"
+size = 4764
+what = "Английские субтитры Tears of Steel"
+used_by = ["PLAY-007"]
+
+[[file]]
+id = "x-tos-subs-ru"
+source = "blender"
+path = "external/blender/TOS-ru.srt"
+url = "https://download.blender.org/demo/movies/ToS/subtitles/TOS-ru.srt"
+size = 5929
+what = "Русские субтитры Tears of Steel"
+used_by = ["PLAY-007"]
+
+[[file]]
+id = "x-ed-480p"
+source = "blender"
+path = "external/blender/elephantsdream-480-h264-st-aac.mov"
+url = "https://download.blender.org/ED/elephantsdream-480-h264-st-aac.mov"
+size = 103636531
+licence = "CC-BY-2.5"
+what = "Elephants Dream 480p H.264 + AAC в MOV"
+used_by = ["QA-003"]
+
+[[file]]
+id = "x-ed-ac3-51"
+source = "blender"
+path = "external/blender/ED-ME-5.1-DVD.ac3"
+url = "https://download.blender.org/ED/ED-ME-5.1-DVD.ac3"
+size = 37020928
+licence = "CC-BY-2.5"
+what = "Реальная AC-3 5.1 дорожка (DVD) Elephants Dream: passthrough на ресивер"
+used_by = ["PLAY-AND-006", "PLAY-DSK-004"]
+
+[[file]]
+id = "x-tos-ost-dome"
+source = "blender-ost"
+path = "external/blender/02 The dome.mp3"
+url = "https://download.blender.org/demo/movies/ToS/Tears-Of-Steel-OST/02%20The%20dome.mp3"
+size = 12446741
+what = "Реальный MP3 с тегами (саундтрек Tears of Steel). CC BY-ND: только без изменений"
+used_by = ["MUS-001"]
