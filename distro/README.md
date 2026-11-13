@@ -13,6 +13,9 @@
 | `rootfs/` | файлы, копируемые в образ: юниты-заглушки наших сервисов, preset, `tmpfiles.d`, `smb.conf` |
 | `scripts/build-image.sh` | сборка образа (`podman`, если есть, иначе `docker`) |
 | `scripts/make-disk.sh` | загрузочный raw-диск через `bootc install to-disk --via-loopback` в привилегированном контейнере |
+| `scripts/ci-build.sh`, `ci-sbom.sh`, `sign-image.sh` | сборка в CI (build → rechunk → lint), SBOM (syft), подпись cosign |
+| `keys/` | публичный ключ cosign `alpha-os.pub` (кладёт владелец, см. ниже) |
+| `tests/signature-policy.sh` | DIST-002: устройство отклоняет неподписанный образ |
 | `scripts/run-vm.sh` | запуск диска в QEMU/KVM (2 vCPU, 3 GiB, SSH на `127.0.0.1:22522`, `VM_UEFI=1` для OVMF) |
 | `tests/vm-switch-rollback.sh` | сценарий фазы 0: switch → rollback → upgrade → rollback → digest-пин и возврат на тег |
 | `.work/` | локальные артефакты (диски, ключи SSH, логи); в git не попадает |
@@ -63,8 +66,45 @@ distro/tests/vm-switch-rollback.sh          # ~10 минут; KEEP=1 — ост�
 - **Реестр без TLS** разрешается файлом в `/etc/containers/registries.conf.d/` — и в контейнере-установщике, и в VM. Это только для тестов.
 - **image-builder / bootc-image-builder** пока не используем: им нужен образ в containers-storage хоста (то есть podman), а на машине разработчика может быть только docker. Для ISO (DIST-007) — `image-builder … generic-iso` в CI на runner с podman.
 
+## CI и подпись образов (DIST-002)
+
+Workflow `.github/workflows/distro.yml`:
+
+- **PR** (в том числе из форков) — только сборка, токен read-only, без секретов: `podman build` → `bootc-base-imagectl rechunk` (стабильные слои, обновление качает только изменённое) → `bootc container lint` → SBOM (syft, SPDX JSON, артефакт workflow) → `tests/signature-policy.sh`.
+- **push в `main`** — то же, плюс push `ghcr.io/denishumen/alpha-os:<ver>` (`<ver>` = `45.YYYYMMDD.<run>`), подпись cosign по digest, SBOM как attestation, затем `:nightly` переносится на тот же digest. **Тег `os-vX.Y.Z`** — публикует `:X.Y.Z`.
+- **promote** (ручной запуск, окружение `release`): проверяет подпись версии публичным ключом и переносит `:beta` или `:stable` на её digest.
+
+Подпись — cosign v2 **с ключом** (не keyless, 05 §4.2 п.4): подпись лежит рядом с образом как `<repo>:sha256-<digest>.sig`, этот формат проверяет containers/image, а значит и bootc.
+
+### Политика на устройстве
+
+`/usr/libexec/alpha/alpha-signature-policy` ставит при сборке:
+
+- `/etc/containers/policy.json`: `default: reject`; для `ghcr.io/denishumen/alpha-os` — `sigstoreSigned` с ключом `/usr/share/alpha/keys/alpha-os.pub` и `matchRepository` (подходит и для тегов-каналов, и для digest); локальное `containers-storage` разрешено;
+- `/etc/containers/registries.d/alpha-os.yaml`: `use-sigstore-attachments: true`.
+
+Режим задаёт build-arg `ALPHA_SIGNATURE_POLICY`: `auto` (по умолчанию: включить, если в `distro/keys/` есть `alpha-os.pub`), `enforce` (без ключа сборка падает), `off` (стоковая политика; так собирает образы VM-тест с локальным реестром). Режим записан в `/usr/share/alpha/version`.
+
+Пока ключ не закоммичен, CI публикует образ **без** политики и без подписи (с предупреждением) — так нельзя «закирпичить» устройства политикой раньше, чем появятся подписи. Если ключ закоммичен, а секрета нет, публикация падает.
+
+### Тест «неподписанный образ отклоняется»
+
+`distro/tests/signature-policy.sh IMAGE` (в CI на каждом PR; локально нужен `cosign` v2): генерирует одноразовую пару ключей, кладёт в локальный реестр крошечные образы и **внутри собранного образа ОС** (его skopeo и containers/image — тот же стек, которым тянет обновления bootc) ставит политику с тестовым ключом. Ожидается: подписанный — принят; неподписанный, подписанный чужим ключом и образ из другого репозитория — отклонены. Если образ собран с `enforce`, дополнительно проверяется сама поставляемая политика.
+
+### Шаги владельца (один раз)
+
+Агенты ключи не создают и секреты не заводят.
+
+1. Локально, на доверенной машине: `cosign generate-key-pair` (cosign v2), надёжный пароль. Появятся `cosign.key` и `cosign.pub`. `cosign.key` в репозиторий **не** класть; хранить офлайн-копию.
+2. Settings → Secrets and variables → Actions: секрет `COSIGN_PRIVATE_KEY` = содержимое `cosign.key`, `COSIGN_PASSWORD` = пароль.
+3. Settings → Environments: создать `release` с обязательным ревьюером (владелец) — для promote.
+4. PR: `cosign.pub` → `distro/keys/alpha-os.pub`. С этого коммита образы собираются с `enforce`, а CI сверяет подпись этим ключом.
+5. После первой публикации: пакет `alpha-os` в GHCR сделать **public** (иначе устройства не скачают образ) и связать с репозиторием.
+6. Позже — перенос ключа в KMS (`cosign --key gcpkms://…`/`awskms://…`) и ротация: новый образ сначала поставляет оба ключа.
+
 ## Ограничения прототипа
 
-- Нет подписи образа и `policy.json` (DIST-002), нет брендинга (DIST-003), нет настоящих сервисов (DIST-009, DIST-013), нет health-check-ов greenboot (DIST-011).
-- Пакеты не залочены по версиям (lockfile — вместе со сборкой в CI).
+- Нет брендинга (DIST-003), нет настоящих сервисов (DIST-009, DIST-013), нет health-check-ов greenboot (DIST-011).
+- Пакеты не залочены по версиям (lockfile — отдельной задачей).
+- Офлайн-обновления с USB (`oci-archive`) политикой пока отклоняются: проверку подписи для них решим вместе с офлайн-обновлением.
 - Проверено только в QEMU/KVM; железо (Intel N100, AMD APU, `vainfo`, QSV/VAAPI) — отдельно.
