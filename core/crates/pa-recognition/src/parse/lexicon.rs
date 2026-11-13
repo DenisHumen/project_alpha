@@ -295,8 +295,6 @@ pub(crate) const PHRASES: &[(&[&str], Lex)] = &[
     (&["hdrezka", "studio"], Lex::Dub),
     (&["jam", "club"], Lex::Dub),
     (&["anything", "group"], Lex::Dub),
-    (&["anilibria", "tv"], Lex::Dub),
-    (&["animevost", "org"], Lex::Dub),
     (&["sovet", "romantica"], Lex::Dub),
     (&["кравец", "рекордз"], Lex::Dub),
     (&["nekomoe", "kissaten"], Lex::Group),

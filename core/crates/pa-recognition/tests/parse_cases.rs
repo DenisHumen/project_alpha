@@ -466,7 +466,7 @@ fn anime_fansub_a1_a6() {
         ),
         (
             "[Group] Title (2019) - 03 [1080p].mkv",
-            json!({"title": "Title", "year": 2019, "episodes": [3]}),
+            json!({"title": "Title (2019)", "alt_titles": ["Title"], "year": 2019, "episodes": [3]}),
         ),
         (
             "[Group] Title - 03 (BD 1080p FLAC) [12345678].mkv",
@@ -494,19 +494,19 @@ fn anime_fansub_a1_a6() {
         ),
         (
             "Re Zero kara Hajimeru Isekai Seikatsu 2nd Season - 01 [1080p].mkv",
-            json!({"title": "Re Zero kara Hajimeru Isekai Seikatsu", "season": 2, "episodes": [1]}),
+            json!({"title": "Re Zero kara Hajimeru Isekai Seikatsu 2nd Season", "alt_titles": ["Re Zero kara Hajimeru Isekai Seikatsu"], "season": 2, "episodes": [1]}),
         ),
         (
             "[Group] Title 3rd Season - 04.mkv",
-            json!({"title": "Title", "season": 3, "episodes": [4]}),
+            json!({"title": "Title 3rd Season", "alt_titles": ["Title"], "season": 3, "episodes": [4]}),
         ),
         (
             "[Group] Title Season 2 - 04.mkv",
-            json!({"title": "Title", "season": 2, "episodes": [4]}),
+            json!({"title": "Title Season 2", "alt_titles": ["Title"], "season": 2, "episodes": [4]}),
         ),
         (
             "[Group] Shingeki no Kyojin The Final Season Part 2 - 01 [1080p][1A2B3C4D].mkv",
-            json!({"title": "Shingeki no Kyojin The Final Season", "part": 2, "episodes": [1]}),
+            json!({"title": "Shingeki no Kyojin The Final Season Part 2", "part": 2, "episodes": [1]}),
         ),
         (
             "[Group] Title - 1000 [1080p].mkv",
@@ -553,7 +553,7 @@ fn anime_specials_a4() {
         ),
         (
             "[Group] Shingeki no Kyojin OVA - 01 [BD 1080p].mkv",
-            json!({"title": "Shingeki no Kyojin", "episode_kind": "ova", "episodes": [1]}),
+            json!({"title": "Shingeki no Kyojin OVA", "alt_titles": ["Shingeki no Kyojin"], "episode_kind": "ova", "episodes": [1]}),
         ),
         (
             "[Group] Title OVA 2 [720p].mkv",
@@ -1058,5 +1058,101 @@ fn edge_inputs() {
         ("01.mkv", json!({})),
         ("VID_20240101_120000.mp4", json!({})),
         ("   Spaces Around   .mkv", json!({"title": "Spaces Around"})),
+    ]);
+}
+
+/// META-006: anime and Russian release rules (names are made up, not corpus records).
+#[test]
+fn anime_and_russian_rules_meta006() {
+    run_table(&[
+        // A number that is the whole title, episode in its own bracket.
+        (
+            "[AniDUB] 86 [01] [1080p].mkv",
+            json!({"title": "86", "episodes": [1], "release_group": "AniDUB"}),
+        ),
+        // A number before a dash-delimited kind names the work.
+        (
+            "[Group] 86 - NCOP (BD 1080p).mkv",
+            json!({"title": "86", "episode_kind": "ncop", "episodes": null}),
+        ),
+        // Season qualifiers before ` - NN` stay in the title (AniDB naming).
+        (
+            "[Group] Some Show 2nd Season - 05 (1080p) [ABCDEF12].mkv",
+            json!({"title": "Some Show 2nd Season", "alt_titles": ["Some Show"], "season": 2, "episodes": [5]}),
+        ),
+        (
+            "[Group] Some Show (2011) - 120 [1080p].mkv",
+            json!({"title": "Some Show (2011)", "year": 2011, "absolute": [120]}),
+        ),
+        (
+            "[Group] Some Show Part 2 - NCED (BD 1080p).mkv",
+            json!({"title": "Some Show Part 2", "part": 2, "episode_kind": "nced"}),
+        ),
+        // `S2` is a marker, not a name.
+        (
+            "Some Show S2 - 03.mkv",
+            json!({"title": "Some Show", "season": 2, "episodes": [3]}),
+        ),
+        // Transliterated Russian episode marker and dub studio.
+        (
+            "Kovboy.Bibop.14.seriya.JAM.CLUB.mkv",
+            json!({"title": "Kovboy Bibop", "episodes": [14], "dub_studio": "JAM CLUB"}),
+        ),
+        (
+            "Nekiy.serial.03.seriya.Anything.Group.mkv",
+            json!({"title": "Nekiy serial", "episodes": [3], "dub_studio": "Anything Group"}),
+        ),
+        // «Сезон N, серии 1–8 из 10».
+        (
+            "Сериал. Сезон 2, серии 1–8 из 10.mkv",
+            json!({"title": "Сериал", "season": 2, "episodes": [1, 2, 3, 4, 5, 6, 7, 8]}),
+        ),
+        (
+            "Аниме/Название ∕ Title [TV] [11 из 11] [RUS(ext), JAP+Sub]/[AniDUB] Title [03] [1080p].mkv",
+            json!({"title": "Title", "episodes": [3]}),
+        ),
+        // Dub studio as the bracketed group.
+        (
+            "[AniLibria.TV] Some Show - 05 [WEBRip 1080p].mkv",
+            json!({"title": "Some Show", "dub_studio": "AniLibria.TV", "episodes": [5]}),
+        ),
+        // Title words that look like release info.
+        (
+            "The.Italian.Job.1969.576p.DVD5.mkv",
+            json!({"title": "The Italian Job", "year": 1969}),
+        ),
+        (
+            "WWE.Raw.2023.01.16.720p.WEB.h264-GRP.mkv",
+            json!({"title": "WWE Raw", "release_group": "GRP"}),
+        ),
+        (
+            "[Group] Title (RAW) - 05 [1080p].mkv",
+            json!({"title": "Title", "episodes": [5]}),
+        ),
+        (
+            "Some Movie You Are (Not) Alone (2007).mkv",
+            json!({"title": "Some Movie You Are (Not) Alone", "year": 2007}),
+        ),
+        (
+            "Kill Bill - Volume 2 (2004).mkv",
+            json!({"title": "Kill Bill - Volume 2", "year": 2004}),
+        ),
+        (
+            "Blade.Runner.2049.720p.WEB-DL.mkv",
+            json!({"title": "Blade Runner 2049", "absolute": null}),
+        ),
+        // Release group in the glued position.
+        (
+            "Show.S02E09.720p.WEB.H.264-Erai-raws.mkv",
+            json!({"title": "Show", "release_group": "Erai-raws"}),
+        ),
+        (
+            "Movie.2009.DVDRip.XviD-GRP.CD1.avi",
+            json!({"title": "Movie", "release_group": "GRP", "part": 1}),
+        ),
+        (
+            "Movie.2019.1080p.WEB-DL.x264-iNTERNAL.mkv",
+            json!({"title": "Movie", "release_group": "iNTERNAL"}),
+        ),
     ]);
 }
