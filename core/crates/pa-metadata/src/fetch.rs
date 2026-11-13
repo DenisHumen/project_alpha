@@ -10,7 +10,7 @@
 //! 4. On a network error, an exhausted retry budget or a 5xx, a **stale**
 //!    entry younger than [`MAX_CACHE_AGE`] is served instead.
 //!
-//! Provider quirks plug in through [`Hooks`]: reading quota headers,
+//! Provider quirks plug in through an internal hooks trait: reading quota headers,
 //! extracting error messages, rejecting 2xx bodies that carry an error.
 
 use std::sync::Arc;
