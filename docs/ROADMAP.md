@@ -614,8 +614,8 @@ project_alpha/
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
-- [ ] **PLAY-002** LGPL-сборка libmpv
-  - Что: mpv с `-Dgpl=false`, libplacebo, libass, libdovi (MIT); для Linux, Windows и macOS, а также Android (fallback-движок).
+- [x] **PLAY-002** LGPL-сборка libmpv
+  - Что: mpv с `-Dgpl=false`, libplacebo, libass (libdovi — PLAY-014; подключение в Android-APK — PLAY-013); для Linux, Windows и macOS, а также Android (fallback-движок).
   - deps: PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §2.2, §3.1
   - done when: `mpv_client_api_version` доступен; в выводе конфигурации нет GPL.
 - [x] **PLAY-003** Контракт `PlayerEngine` и выбор движка
@@ -658,6 +658,14 @@ project_alpha/
   - Что: Cast sender на Android и iOS (только в флейворах без ограничений F-Droid — Cast SDK проприетарный); AirPlay нативно на Apple; на Cast отдаётся HLS от сервера или файл через прокси.
   - deps: PLAY-003 · size: M · parallel: yes · веха: M5 · ref: 01 §1.5
   - done when: воспроизведение на Chromecast и Apple TV по AirPlay с синхронизацией прогресса.
+- [ ] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
+  - Что: локальная копия `media_kit_libs_android_video` через `dependency_overrides`: Java-обвязка остаётся, скачивание готовых jar убирается; `jniLibs` наполняются `tools/mpv/bundle.sh android` из артефактов `libmpv-android-*` (PLAY-002); `check-native-licences.sh` проверяет APK.
+  - deps: PLAY-002 · size: S · parallel: yes · веха: M1 · ref: tools/mpv/README.md
+  - done when: release-APK содержит только наши LGPL `libmpv.so`/FFmpeg, видео воспроизводится на устройстве, проверка лицензий зелёная.
+- [ ] **PLAY-014** libdovi в сборке libmpv
+  - Что: libdovi (MIT, Rust, cargo-c) для всех таргетов `tools/mpv`, libplacebo с `-Dlibdovi=enabled`; сейчас DV-reshaping идёт встроенным кодом libplacebo.
+  - deps: PLAY-002 · size: M · parallel: yes · веха: M2 · ref: 02 §2.2
+  - done when: `BUILDINFO.txt` показывает libdovi на всех таргетах, гейт лицензий зелёный.
 
 ### 3.8. PLAY-AND — плеер Android и Android TV
 

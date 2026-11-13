@@ -1,0 +1,37 @@
+From: project_alpha contributors
+Subject: [PATCH] meson: d3d11 helpers for d3d-hwaccel without d3d11 output
+
+vf_d3d11vpp.c (d3d-hwaccel) uses d3d11_helpers.h/.c, but those were only
+built, and DXGI_DEBUG_D3D11 only probed, with d3d11 output or ANGLE. With
+neither (no shaderc), mingw-w64 12 failed on the GUID redefinition and
+the link missed mp_params_to_dxgi_colorspace. Not sent upstream yet.
+
+--- a/meson.build
++++ b/meson.build
+@@ -1386,10 +1386,14 @@
+     sources += files('video/filter/vf_gpu.c')
+ endif
+ 
+-if features['d3d11'] or features['egl-angle-win32'] or (features['vulkan'] and win32)
++d3d11_helpers = features['d3d11'] or features['egl-angle-win32'] or (features['vulkan'] and win32)
++if d3d11_helpers
+     sources += files('video/out/gpu/d3d11_helpers.c')
+-    features += {'dxgi-debug-d3d11': cc.has_header_symbol('d3d11sdklayers.h', 'DXGI_DEBUG_D3D11')}
+ endif
++# d3d11_helpers.h/.c are also used by vf_d3d11vpp.c (d3d-hwaccel, below), so
++# probe on every win32 build; mingw-w64 >= 12 declares the GUID itself.
++features += {'dxgi-debug-d3d11': win32 and cc.has_header_symbol('d3d11sdklayers.h', 'DXGI_DEBUG_D3D11',
++                                                                prefix: '#include <windows.h>')}
+ 
+ # hwaccel
+ ffnvcodec = dependency('ffnvcodec', version: '>= 11.1.5.1', required: false)
+@@ -1437,6 +1441,9 @@
+ if features['d3d-hwaccel']
+     sources += files('video/d3d.c',
+                      'video/filter/vf_d3d11vpp.c')
++    if not d3d11_helpers
++        sources += files('video/out/gpu/d3d11_helpers.c')
++    endif
+ endif
+ 
+ amf = cc.has_header('AMF/core/Factory.h', required:
