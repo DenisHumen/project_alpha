@@ -502,7 +502,7 @@ project_alpha/
   - Что: отдельный репо `project_alpha-recognition-eval` (данные со смешанными лицензиями в продукт не попадают); категории A1–A17; JSONL-формат (дерево путей, длительность, языки, oshash; разметка: kind, ID, S/E в двух схемах, тип эпизода, extra_type, part, edition); GUIDE.md.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: 03 §1.2, §6.1
   - done when: схема JSONL с валидатором; 50 примеров по всем категориям размечены.
-- [ ] **META-002** Корпус v0: 2 000 групп
+- [x] **META-002** Корпус v0: 2 000 групп
   - Что: публичные RSS-заголовки аниме-релизов, тест-кейсы guessit, anitomy и Sonarr (только как eval-данные), русские релизы, синтетика для A11–A13; сплиты train, dev и закрытый test; git-lfs или DVC.
   - deps: META-001 · size: L · parallel: yes · веха: M2 · ref: 03 §6.1
   - done when: ≥ 2 000 групп, минимум 50 на категорию; валидатор зелёный.
@@ -594,6 +594,10 @@ project_alpha/
   - Что: `Recognizer`-адаптер и/или отдельная метрика «Парсинг» (03 §6.2) в `pa-eval` поверх `pa_recognition::parse`: точность по полям `parse`-блоков корпуса для top-1 и N-best, разрез по категориям, отчёт в Markdown и JSON.
   - deps: META-003, META-005 · size: S · parallel: yes · веха: M2 · ref: 03 §6.2
   - done when: отчёт `pa-eval` содержит раздел «Парсинг»; на `examples.jsonl` воспроизводит числа теста `corpus_examples` крейта `pa-recognition`.
+- [ ] **META-025** Сверка draft-записей корпуса v0
+  - Что: перевести `draft`-записи корпуса v0 (`tools/recognition-eval/corpus`) в `verified`: позиции `tmdb` сериалов (сейчас из эфирного порядка TVmaze) и `tmdb`/`tvdb_absolute` аниме (правила `titles.yaml`) сверить с API TMDB/TVDB через клиент META-009; добавить вторую схему OVA/спешлам, где она есть; расхождения — в `titles.yaml` и `notes`; затем пересчитать бейзлайны.
+  - deps: META-002, META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §6.1
+  - done when: все записи A1–A4, A9 и A16 `verified` (или `disputed` с `notes`); `corpus-validate --strict` без ошибок.
 
 ### 3.7. PLAY — общий плеерный слой
 
@@ -1731,10 +1735,10 @@ project_alpha/
 | CORE | 14 | TWI | 22 |
 | NET | 19 | DIST | 27 |
 | LIB | 15 | DSN | 15 |
-| META | 22 | PKG | 17 |
+| META | 25 | PKG | 17 |
 | PLAY | 12 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
 | PLAY-DSK | 8 | LEGAL | 10 |
 | PLAY-APL | 12 | SITE | 6 |
 | UI | 22 | COMM | 6 |
-| TV | 13 | **Всего** | **348** (340 задач + 8 решений владельца) |
+| TV | 13 | **Всего** | **349** (341 задача + 8 решений владельца) |
