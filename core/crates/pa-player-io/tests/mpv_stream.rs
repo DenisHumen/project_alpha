@@ -88,7 +88,18 @@ unsafe fn headless(m: &Mpv) -> *mut c_void {
 struct Played {
     loaded: bool,
     file_format: Option<String>,
+    duration: Option<f64>,
     end_reason: Option<c_int>,
+}
+
+unsafe fn property(m: &Mpv, h: *mut c_void, name: &str) -> Option<String> {
+    let p = unsafe { (m.get_property_string)(h, c(name).as_ptr()) };
+    if p.is_null() {
+        return None;
+    }
+    let value = unsafe { CStr::from_ptr(p) }.to_string_lossy().into_owned();
+    unsafe { (m.free)(p.cast()) };
+    Some(value)
 }
 
 /// `loadfile uri` and waits for the end of the file.
@@ -96,18 +107,15 @@ unsafe fn play(m: &Mpv, h: *mut c_void, uri: &str) -> Played {
     let (cmd, uri) = (c("loadfile"), c(uri));
     let mut args = [cmd.as_ptr(), uri.as_ptr(), null()];
     assert_eq!(unsafe { (m.command)(h, args.as_mut_ptr()) }, 0);
-    let mut played = Played { loaded: false, file_format: None, end_reason: None };
+    let mut played = Played { loaded: false, file_format: None, duration: None, end_reason: None };
     let deadline = Instant::now() + Duration::from_secs(60);
     while Instant::now() < deadline {
         let ev = unsafe { &*(m.wait_event)(h, 1.0) };
         match ev.event_id {
             EVENT_FILE_LOADED => {
                 played.loaded = true;
-                let p = unsafe { (m.get_property_string)(h, c("file-format").as_ptr()) };
-                if !p.is_null() {
-                    played.file_format = Some(unsafe { CStr::from_ptr(p) }.to_string_lossy().into_owned());
-                    unsafe { (m.free)(p.cast()) };
-                }
+                played.file_format = unsafe { property(m, h, "file-format") };
+                played.duration = unsafe { property(m, h, "duration") }.and_then(|d| d.parse().ok());
             }
             EVENT_END_FILE => {
                 played.end_reason = Some(unsafe { &*ev.data.cast::<EndFile>() }.reason);
@@ -146,6 +154,8 @@ fn mpv_plays_pa_uri_from_a_vfs_source() {
             "file-format: {:?}",
             played.file_format
         );
+        let duration = played.duration.expect("duration");
+        assert!((duration - 2.0).abs() < 0.05, "duration {duration}");
         assert_eq!(played.end_reason, Some(END_FILE_REASON_EOF));
         assert_eq!(source.max_end.load(Ordering::Relaxed), source.size());
 
