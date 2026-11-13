@@ -297,7 +297,7 @@ project_alpha/
   - Что: крейт `pa-ffi` с UniFFI proc-macro, функция `core_version()`, генерация Kotlin и Swift через `just bindings` (сгенерированное не коммитится, кроме требований Xcode).
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 02 §1.4, 04 §1.3
   - done when: unit-тест FFI, биндинги Kotlin и Swift генерируются в CI.
-- [ ] **CORE-002** flutter_rust_bridge: пакет `pa_core`
+- [x] **CORE-002** flutter_rust_bridge: пакет `pa_core`
   - Что: `clients/flutter/packages/pa_core` с FRB codegen, async-функции и Stream; загрузка нативной библиотеки на 5 Flutter-платформах.
   - deps: CORE-001 · size: M · parallel: no · веха: M0 · ref: 02 §1.4
   - done when: Dart-тест вызывает `core_version()` и подписывается на тестовый Stream.

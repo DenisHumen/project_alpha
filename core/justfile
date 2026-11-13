@@ -39,3 +39,24 @@ smoke-swift: (bindings-for 'swift')
         {{ bindings_dir }}/swift/PACore.swift core/crates/pa-ffi/swift-smoke/main.swift \
         -L target/debug -lpa_ffi -o {{ smoke_dir }}/swift-smoke
     LD_LIBRARY_PATH=target/debug DYLD_LIBRARY_PATH=target/debug {{ smoke_dir }}/swift-smoke
+
+# flutter_rust_bridge version; keep equal to Cargo.toml and pa_core/pubspec.yaml
+frb_version := '2.13.0'
+
+pa_core_dir := 'clients/flutter/packages/pa_core'
+
+# Regenerate the Dart bindings of pa-frb (pa_core/lib/src/rust, pa-frb/src/frb_generated.rs)
+frb:
+    cd {{ pa_core_dir }} && dart pub get && flutter_rust_bridge_codegen generate
+
+# Fail if the committed FRB bindings differ from a fresh `just core frb`
+frb-check: frb
+    git diff --exit-code -- {{ pa_core_dir }}/lib/src/rust core/crates/pa-frb/src/frb_generated.rs
+
+# Install flutter_rust_bridge_codegen of the pinned version
+frb-install:
+    cargo install flutter_rust_bridge_codegen --version {{ frb_version }} --locked
+
+# Dart tests of pa_core: the Native Assets hook builds pa-frb, tests call into Rust
+test-pa-core:
+    cd {{ pa_core_dir }} && dart pub get && dart test

@@ -91,6 +91,18 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
 SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
 
+# flutter_rust_bridge bindings generated from core/crates/pa-frb by
+# `just core frb` (CORE-002, ADR-0013). Committed so that pa_core works
+# without the codegen installed; CI checks they are up to date.
+[[annotations]]
+path = [
+  "core/crates/pa-frb/src/frb_generated.rs",
+  "clients/flutter/packages/pa_core/lib/src/rust/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"
+
 # Flutter-generated scaffolding anywhere in the tree (apps, packages, examples):
 # `flutter create` templates, plugin registrants, Gradle/CMake glue, launcher
 # icons, Xcode projects. Files that carry their own SPDX header keep it

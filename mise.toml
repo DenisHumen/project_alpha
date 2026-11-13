@@ -18,6 +18,8 @@ node = "26.13.1"
 just = "1.59.0"
 "cargo:cargo-ndk" = "4.1.2"
 "cargo:cargo-nextest" = "0.9.151"
+# Dart bindings of the core (CORE-002); keep equal to flutter_rust_bridge in Cargo.toml.
+"cargo:flutter_rust_bridge_codegen" = "2.13.0"
 
 [settings]
 # Prefer prebuilt binaries for cargo:* tools when cargo-binstall is present.

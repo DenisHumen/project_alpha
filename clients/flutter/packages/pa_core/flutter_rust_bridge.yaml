@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: MPL-2.0
+# flutter_rust_bridge_codegen config. Regenerate with `just core frb`.
+rust_input: crate::api
+rust_root: ../../../../core/crates/pa-frb/
+dart_output: lib/src/rust
+web: false
