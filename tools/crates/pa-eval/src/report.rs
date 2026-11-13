@@ -239,7 +239,10 @@ impl Report {
                 total(&["episodes", "absolute"])
             );
             for f in &fields {
-                row.push_str(&format!(" {} |", pct(m.parse.get(*f).and_then(|c| c.accuracy))));
+                row.push_str(&format!(
+                    " {} |",
+                    pct(m.parse.get(*f).and_then(|c| c.accuracy))
+                ));
             }
             let _ = writeln!(o, "{row}");
         }

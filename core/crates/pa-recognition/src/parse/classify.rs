@@ -154,7 +154,10 @@ pub(crate) fn parse_num(s: &str) -> Option<NumTok> {
         }
         None => (s, None),
     };
-    if let Some((p, sep)) = body.char_indices().find(|&(_, c)| matches!(c, '-' | '~' | '–')) {
+    if let Some((p, sep)) = body
+        .char_indices()
+        .find(|&(_, c)| matches!(c, '-' | '~' | '–'))
+    {
         let (a, b) = (&body[..p], &body[p + sep.len_utf8()..]);
         let (x, y) = (ascii_digits_value(a)?, ascii_digits_value(b)?);
         if y <= x || y - x > MAX_RANGE || a.len() > 4 {
@@ -628,9 +631,8 @@ fn split_glued(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Token> {
                         || parse_sxxexx(&ll).is_some()
                         || parse_nxnn(&ll).is_some())
             };
-            let right_extra = |p: usize| {
-                p > 0 && extra_suffix(&core(&t.text[p + 1..]).to_lowercase()).is_some()
-            };
+            let right_extra =
+                |p: usize| p > 0 && extra_suffix(&core(&t.text[p + 1..]).to_lowercase()).is_some();
             t.text
                 .match_indices('-')
                 .map(|(p, _)| p)
@@ -735,16 +737,14 @@ pub(crate) fn classify(tokens: Vec<Token>, brackets: &mut [Bracket]) -> Vec<Clas
                     small(&next_num, 99).map(Tag::Season)
                 }
                 "episode" | "ep" | "e" | "серия" | "серии" | "эпизод" | "session" | "folge"
-                | "seriya" | "serii" | "seriia" | "serija" => {
-                    next_num
-                        .as_ref()
-                        .filter(|n| n.year_like.is_none())
-                        .map(|n| Tag::SeasonEp {
-                            season: None,
-                            episodes: n.values.clone(),
-                            version: n.version,
-                        })
-                }
+                | "seriya" | "serii" | "seriia" | "serija" => next_num
+                    .as_ref()
+                    .filter(|n| n.year_like.is_none())
+                    .map(|n| Tag::SeasonEp {
+                        season: None,
+                        episodes: n.values.clone(),
+                        version: n.version,
+                    }),
                 // `Kill Bill - Volume 2` is a title; only the short forms are release info.
                 "vol" | "том" => small(&next_num, 99).map(|_| Tag::Other),
                 // `серии 1-8 из 10`, `[11 из 11]`: the total after a number is dropped.

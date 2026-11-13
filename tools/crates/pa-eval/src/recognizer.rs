@@ -125,11 +125,7 @@ impl Recognizer for Parser {
         "parser"
     }
 
-    fn recognize(
-        &mut self,
-        case: &CaseInput,
-        _provider: &mut dyn Provider,
-    ) -> Vec<FilePrediction> {
+    fn recognize(&mut self, case: &CaseInput, _provider: &mut dyn Provider) -> Vec<FilePrediction> {
         case.files
             .iter()
             .map(|file| FilePrediction {

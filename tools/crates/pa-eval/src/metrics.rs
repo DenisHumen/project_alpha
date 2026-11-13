@@ -219,9 +219,7 @@ fn score_parse(want: &ParsedName, got: Option<&ParsedName>) -> BTreeMap<String, 
     // matcher (with episode counts) can tell `episodes` from `absolute`.
     // `number` checks the value; `episodes` and `absolute` stay strict.
     let any_scheme = |w: &Option<Vec<f64>>| {
-        w.is_none()
-            || same_numbers(w, &got.episodes)
-            || same_numbers(w, &got.absolute)
+        w.is_none() || same_numbers(w, &got.episodes) || same_numbers(w, &got.absolute)
     };
     check(
         "number",

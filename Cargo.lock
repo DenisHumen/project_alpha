@@ -1666,6 +1666,7 @@ dependencies = [
 name = "pa-eval"
 version = "0.1.0"
 dependencies = [
+ "pa-recognition",
  "pa-recognition-eval",
  "serde",
  "serde_json",
