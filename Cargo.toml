@@ -30,6 +30,7 @@ apple-native-keyring-store = { version = "1.0.2", default-features = false, feat
 axum = { version = "0.8.9", default-features = false }
 chacha20poly1305 = { version = "0.11", default-features = false, features = ["alloc"] }
 dirs = "7.0"
+ed25519-dalek = { version = "3.0", default-features = false, features = ["fast", "zeroize"] }
 flutter_rust_bridge = "=2.13.0"
 futures-util = { version = "0.3.31", default-features = false, features = ["std"] }
 getrandom = "0.4"
@@ -45,6 +46,7 @@ rustls = { version = "0.23", default-features = false }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 sha2 = "0.11"
+spake2 = { version = "=0.5.0-pre.0", features = ["getrandom"] }
 tempfile = "3.27"
 thiserror = "2.0.21"
 tokio = { version = "1.54", default-features = false }
@@ -57,5 +59,6 @@ uniffi = { version = "0.32.2", default-features = false }
 ureq = { version = "3.5", default-features = false, features = ["rustls", "gzip"] }
 uuid = { version = "1.29", default-features = false, features = ["std", "v7"] }
 windows-native-keyring-store = { version = "1.1", default-features = false }
+x25519-dalek = { version = "3.0", default-features = false, features = ["precomputed-tables", "static_secrets", "zeroize"] }
 zbus-secret-service-keyring-store = { version = "1.0.1", default-features = false, features = ["rt-async-io-crypto-rust"] }
 zeroize = "1.9"

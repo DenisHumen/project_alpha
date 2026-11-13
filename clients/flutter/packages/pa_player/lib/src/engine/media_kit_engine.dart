@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 
+import 'audio_profile.dart';
 import 'player_engine.dart';
 
 /// Initialises libmpv bindings. Call once in `main()` before `runApp`.
@@ -36,7 +37,7 @@ class MediaKitEngine implements PlayerEngine {
       ) {
     if (video) _controller = mkv.VideoController(_player);
     _subscribe();
-    _configure(video: video);
+    _ready = _configure(video: video);
   }
 
   /// Factory matching [PlayerEngineFactory].
@@ -55,6 +56,7 @@ class MediaKitEngine implements PlayerEngine {
   final ValueNotifier<EngineState> _state = ValueNotifier(const EngineState());
   final List<StreamSubscription<Object?>> _subs = [];
   bool _disposed = false;
+  late final Future<void> _ready;
 
   /// Direct access for advanced use (diagnostics, app-specific mpv options).
   mk.Player get player => _player;
@@ -236,6 +238,22 @@ class MediaKitEngine implements PlayerEngine {
         QueueRepeat.all => mk.PlaylistMode.loop,
         QueueRepeat.one => mk.PlaylistMode.single,
       });
+
+  @override
+  Future<void> setAudioProfile(AudioProfile profile) async {
+    await _ready;
+    final p = _player.platform;
+    if (_disposed || p is! mk.NativePlayer) return;
+    for (final e in profile.mpvProperties.entries) {
+      // Diagnostics overrides (mpvOptions) win over the profile.
+      if (mpvOptions.containsKey(e.key)) continue;
+      try {
+        await p.setProperty(e.key, e.value);
+      } catch (err) {
+        debugPrint('pa_player: mpv ${e.key}=${e.value} failed: $err');
+      }
+    }
+  }
 
   @override
   Future<void> setAudioTrack(MediaTrack track) async {
