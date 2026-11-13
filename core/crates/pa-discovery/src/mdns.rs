@@ -109,18 +109,18 @@ impl MdnsBackend {
 impl Backend for MdnsBackend {
     fn start(&self, kind: ServiceKind, sink: EventSink) -> Result<(), DiscoveryError> {
         let mut browsing = self.browsing.lock().unwrap_or_else(PoisonError::into_inner);
-        if browsing.is_empty() {
-            if let Some(lock) = &self.lock {
-                lock.acquire();
-            }
+        if browsing.is_empty()
+            && let Some(lock) = &self.lock
+        {
+            lock.acquire();
         }
         let rx = match self.daemon.browse(kind.service_type_local()) {
             Ok(rx) => rx,
             Err(e) => {
-                if browsing.is_empty() {
-                    if let Some(lock) = &self.lock {
-                        lock.release();
-                    }
+                if browsing.is_empty()
+                    && let Some(lock) = &self.lock
+                {
+                    lock.release();
                 }
                 return Err(mdns_err(e));
             }
@@ -138,10 +138,10 @@ impl Backend for MdnsBackend {
                             }
                         }
                         ServiceEvent::ServiceRemoved(_, fullname) => {
-                            if let Some((instance, k)) = split_fullname(&fullname) {
-                                if k == kind {
-                                    sink.removed(kind, instance);
-                                }
+                            if let Some((instance, k)) = split_fullname(&fullname)
+                                && k == kind
+                            {
+                                sink.removed(kind, instance);
                             }
                         }
                         ServiceEvent::SearchStopped(_) => break,
@@ -157,10 +157,10 @@ impl Backend for MdnsBackend {
         let mut browsing = self.browsing.lock().unwrap_or_else(PoisonError::into_inner);
         if browsing.remove(&kind) {
             let _ = self.daemon.stop_browse(kind.service_type_local());
-            if browsing.is_empty() {
-                if let Some(lock) = &self.lock {
-                    lock.release();
-                }
+            if browsing.is_empty()
+                && let Some(lock) = &self.lock
+            {
+                lock.release();
             }
         }
     }
