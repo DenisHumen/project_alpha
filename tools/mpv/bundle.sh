@@ -43,6 +43,9 @@ bundle_linux() {
         soname="$(patchelf --print-soname "$f")"
         name="${soname:-$(basename "$f")}"
         install -m 0644 "$f" "$bundle/lib/$name"
+        # FFmpeg libraries need each other; resolve them next to themselves too
+        # (libmpv.so.2 already has RUNPATH=$ORIGIN from its build).
+        case "$name" in libmpv.so*) ;; *) patchelf --set-rpath '$ORIGIN' "$bundle/lib/$name" ;; esac
         log "lib/$name"
     done
     [ -f "$bundle/lib/libmpv.so.2" ] || die "no libmpv.so.2 in $out/lib"

@@ -1,0 +1,5 @@
+# Filled by tools/mpv/bundle.sh android (PLAY-013); never committed.
+/android/src/main/jniLibs/
+/android/build/
+/android/.gradle/
+.dart_tool/
