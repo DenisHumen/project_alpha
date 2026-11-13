@@ -331,7 +331,10 @@ impl Message {
                 if !is_valid_device_id(&h.device_id) {
                     return Err(Error::Invalid("device id"));
                 }
-                h.cursor.iter().chain(&h.head).try_for_each(Cursor::validate)
+                h.cursor
+                    .iter()
+                    .chain(&h.head)
+                    .try_for_each(Cursor::validate)
             }
             Self::PbUpdate(u) => {
                 check_ref(&u.profile, "profile")?;
@@ -463,9 +466,10 @@ impl Journal {
             .take(limit)
             .cloned()
             .collect();
-        let seq = frames.last().and_then(|f| f.seq).unwrap_or_else(|| {
-            (after as u64).min(self.frames.len() as u64)
-        });
+        let seq = frames
+            .last()
+            .and_then(|f| f.seq)
+            .unwrap_or_else(|| (after as u64).min(self.frames.len() as u64));
         let more = seq < self.frames.len() as u64;
         let end = PullEnd {
             cursor: Cursor {

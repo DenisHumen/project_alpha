@@ -175,7 +175,10 @@ fn frames_of_the_next_version_still_decode() {
     let Message::PbUpdate(u) = proto::decode(pb).unwrap() else {
         panic!("not a pb.update");
     };
-    assert_eq!((u.state, u.rate, u.duration_ms), (PlayState::Other, 1.0, None));
+    assert_eq!(
+        (u.state, u.rate, u.duration_ms),
+        (PlayState::Other, 1.0, None)
+    );
 }
 
 #[test]
@@ -186,7 +189,10 @@ fn ops_of_a_newer_schema_are_relayed_unread() {
         &format!("\"schema_version\":{}", SCHEMA_VERSION + 1),
         1,
     );
-    assert!(matches!(frame.open(), Err(Error::Invalid("schema version"))));
+    assert!(matches!(
+        frame.open(),
+        Err(Error::Invalid("schema version"))
+    ));
     let sealed = OpFrame {
         payload: Payload {
             enc: "secretbox.v1".into(),
@@ -194,7 +200,10 @@ fn ops_of_a_newer_schema_are_relayed_unread() {
         },
         ..frame.clone()
     };
-    assert!(matches!(sealed.open(), Err(Error::Invalid("payload encryption"))));
+    assert!(matches!(
+        sealed.open(),
+        Err(Error::Invalid("payload encryption"))
+    ));
 
     // The hub stores both without reading them.
     let mut hub = Journal::new("j1").unwrap();
@@ -250,14 +259,26 @@ fn journal_dedups_and_pages_by_cursor() {
     });
     let seqs: Vec<_> = frames.iter().map(|f| f.seq.unwrap()).collect();
     assert_eq!(seqs, [2, 3, 4]);
-    assert_eq!(end, PullEnd { cursor: cursor(4), more: true });
+    assert_eq!(
+        end,
+        PullEnd {
+            cursor: cursor(4),
+            more: true
+        }
+    );
 
     let (frames, end) = j.pull(&Pull {
         cursor: Some(end.cursor),
         limit: 3,
     });
     assert_eq!(frames.len(), 1);
-    assert_eq!(end, PullEnd { cursor: cursor(5), more: false });
+    assert_eq!(
+        end,
+        PullEnd {
+            cursor: cursor(5),
+            more: false
+        }
+    );
 
     // A cursor of another journal (new hub) starts from the beginning.
     let (frames, _) = j.pull(&Pull {
@@ -303,7 +324,10 @@ fn phone_hands_playback_over_to_tv_through_a_hub() {
     })) else {
         panic!("not a hello");
     };
-    assert_eq!(proto::negotiate(ProtoRange::LOCAL, from_hub.proto).unwrap(), 1);
+    assert_eq!(
+        proto::negotiate(ProtoRange::LOCAL, from_hub.proto).unwrap(),
+        1
+    );
 
     // Outbox first: every due op goes out, the hub acks, the outbox drains.
     for pending in outbox::due(&phone_db, T0, 100).unwrap() {
