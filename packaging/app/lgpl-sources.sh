@@ -62,7 +62,7 @@ first="$1/BUILDINFO.txt"
     echo
     echo "Our own build from [\`tools/mpv\`](https://github.com/DenisHumen/project_alpha/tree/main/tools/mpv)"
     echo "(mpv \`-Dgpl=false\`, FFmpeg without GPL/nonfree/version3 code), shared libraries loaded by the app."
-    echo "Targets: $(printf '`%s` ' "${targets[@]}")."
+    echo "Targets: $(printf '`%s`, ' "${targets[@]}" | sed 's/, $//')."
     echo "Corresponding sources (all upstream tarballs, build recipes and patches): \`$(basename "$out")\` in this release."
     echo "To relink, rebuild with \`tools/mpv/build.sh <target>\` and replace the libraries"
     echo "(Android: \`lib/<abi>/*.so\` in the APK, then re-sign it; Linux: \`lib/\` of the bundle)."

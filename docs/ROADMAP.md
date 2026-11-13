@@ -658,7 +658,7 @@ project_alpha/
   - Что: Cast sender на Android и iOS (только в флейворах без ограничений F-Droid — Cast SDK проприетарный); AirPlay нативно на Apple; на Cast отдаётся HLS от сервера или файл через прокси.
   - deps: PLAY-003 · size: M · parallel: yes · веха: M5 · ref: 01 §1.5
   - done when: воспроизведение на Chromecast и Apple TV по AirPlay с синхронизацией прогресса.
-- [ ] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
+- [x] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
   - Что: локальная копия `media_kit_libs_android_video` через `dependency_overrides`: Java-обвязка остаётся, скачивание готовых jar убирается; `jniLibs` наполняются `tools/mpv/bundle.sh android` из артефактов `libmpv-android-*` (PLAY-002); `check-native-licences.sh` проверяет APK.
   - deps: PLAY-002 · size: S · parallel: yes · веха: M1 · ref: tools/mpv/README.md
   - done when: release-APK содержит только наши LGPL `libmpv.so`/FFmpeg, видео воспроизводится на устройстве, проверка лицензий зелёная.
