@@ -22,6 +22,7 @@ flowchart LR
     pa_recognition["pa-recognition"]
     pa_runtime["pa-runtime"]
     pa_scanner["pa-scanner"]
+    pa_secrets["pa-secrets"]
     pa_sync["pa-sync"]
     pa_twitch["pa-twitch"]
     pa_vfs["pa-vfs"]
@@ -36,6 +37,7 @@ flowchart LR
   pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
   pa_ffi --> pa_runtime
+  pa_ffi --> pa_secrets
   pa_frb --> pa_ffi
   pa_frb --> pa_recognition
   pa_library -. dev .-> pa_model
@@ -63,6 +65,7 @@ flowchart LR
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |
 | `pa-scanner` | `core/crates/pa-scanner` | 0 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003) |
+| `pa-secrets` | `core/crates/pa-secrets` | 11 | Secret storage of project_alpha: OS keychains, platform callbacks, encrypted-file fallback, log redaction |
 | `pa-server` | `server` | 8 | Kinolune media server (mode B): axum HTTP on top of the core crates |
 | `pa-sync` | `core/crates/pa-sync` | 4 | Serverless state sync: hybrid logical clock, sync operations, LWW merge and the SQLite outbox (SYNC-001) |
 | `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client: users, follows, streams, VODs, clips, categories, chat metadata (TWI-001) |
