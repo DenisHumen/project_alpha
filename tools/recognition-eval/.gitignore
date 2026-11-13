@@ -1,0 +1,4 @@
+# Build output while the crate is built standalone (before the root Cargo workspace exists).
+/target/
+# The workspace lock file lives at the repository root.
+/Cargo.lock

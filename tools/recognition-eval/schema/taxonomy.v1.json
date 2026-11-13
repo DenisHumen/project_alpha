@@ -1,0 +1,125 @@
+{
+  "taxonomy_version": 1,
+  "source": "docs/research/03-metadata-recognition.md §1.2",
+  "categories": [
+    {
+      "code": "A1",
+      "slug": "anime-absolute-numbering",
+      "name_en": "Anime absolute numbering",
+      "name_ru": "Абсолютная нумерация аниме",
+      "focus_ru": "Эпизод задан сквозным номером (1085), провайдер делит серию на сезоны. Размечаются минимум две схемы: anidb и tmdb/tvdb_aired."
+    },
+    {
+      "code": "A2",
+      "slug": "season-as-separate-title",
+      "name_en": "Season released as a separate title",
+      "name_ru": "Сезон как отдельный тайтл",
+      "focus_ru": "В AniDB/MAL сезон — отдельная запись, в TMDB/TVDB — сезон N общей серии. Работа размечается по AniDB-записи куска."
+    },
+    {
+      "code": "A3",
+      "slug": "in-cour-numbering",
+      "name_en": "Numbering restarted inside a cour or part",
+      "name_ru": "Нумерация «внутри куска»",
+      "focus_ru": "Релизёр считает с 1, у провайдера сквозная нумерация (или наоборот). Нужны обе схемы."
+    },
+    {
+      "code": "A4",
+      "slug": "specials-ova-recaps",
+      "name_en": "Specials, OVA, ONA, recaps, .5 episodes, NCOP/NCED",
+      "name_ru": "Спешлы, OVA, ONA, рекапы, .5-эпизоды, NCOP/NCED",
+      "focus_ru": "Тип эпизода (special, recap, credit) и S00 у TMDB/TVDB против S/C-эпизодов AniDB."
+    },
+    {
+      "code": "A5",
+      "slug": "multilingual-titles",
+      "name_en": "Romaji / English / native titles",
+      "name_ru": "Ромадзи, английское и японское название",
+      "focus_ru": "Одна работа под разными названиями и письменностями."
+    },
+    {
+      "code": "A6",
+      "slug": "release-group-and-hash-tags",
+      "name_en": "Release group and CRC32 tags",
+      "name_ru": "Release-group и хэш-теги",
+      "focus_ru": "Мусорные токены ([Group], [ABCD1234], v2) не должны попадать в название. Размечается parse.release_group и parse.crc32."
+    },
+    {
+      "code": "A7",
+      "slug": "cyrillic-and-russian-releases",
+      "name_en": "Cyrillic titles and Russian releases",
+      "name_ru": "Кириллица и русские релизы",
+      "focus_ru": "Транслит, двойные названия через «/», теги студий озвучки и трекеров."
+    },
+    {
+      "code": "A8",
+      "slug": "no-year-remakes-homonyms",
+      "name_en": "No year, remakes, homonyms",
+      "name_ru": "Нет года, ремейки, одноимённые",
+      "focus_ru": "Верный ответ — не самый популярный кандидат. Решают длительность, число эпизодов, язык."
+    },
+    {
+      "code": "A9",
+      "slug": "multi-episode-files",
+      "name_en": "Multi-episode files",
+      "name_ru": "Мульти-эпизодные файлы",
+      "focus_ru": "Один файл — несколько эпизодов: episodes содержит больше одного элемента."
+    },
+    {
+      "code": "A10",
+      "slug": "extras-trailers-samples",
+      "name_en": "Extras, trailers, samples",
+      "name_ru": "Extras, трейлеры, сэмплы",
+      "focus_ru": "Файл не должен стать фильмом или эпизодом: role extra/sample, extra_type."
+    },
+    {
+      "code": "A11",
+      "slug": "daily-shows",
+      "name_en": "Daily shows",
+      "name_ru": "Daily shows",
+      "focus_ru": "Эпизод определяется датой эфира: air_date обязателен."
+    },
+    {
+      "code": "A12",
+      "slug": "disc-structures",
+      "name_en": "Disc structures (BDMV, VIDEO_TS, ISO)",
+      "name_ru": "Дисковые структуры",
+      "focus_ru": "Имя есть только у родительской папки. Метка с unit bdmv/video_ts покрывает каталог целиком."
+    },
+    {
+      "code": "A13",
+      "slug": "split-files",
+      "name_en": "Split files (cd1/cd2, part1/part2, disc1)",
+      "name_ru": "Разбитые файлы",
+      "focus_ru": "Части склеиваются в один элемент: role part, part = 1..N без пропусков."
+    },
+    {
+      "code": "A14",
+      "slug": "digits-in-title",
+      "name_en": "Digits in the title",
+      "name_ru": "Цифры в названии",
+      "focus_ru": "Цифра — часть названия, а не год, сезон или эпизод. parse.title обязателен."
+    },
+    {
+      "code": "A15",
+      "slug": "mixed-dump-folder",
+      "name_en": "Mixed dump folder",
+      "name_ru": "Общая папка-свалка",
+      "focus_ru": "Смесь фильмов и серий без контекста: в записи несколько работ (works), каждый файл ссылается на свою."
+    },
+    {
+      "code": "A16",
+      "slug": "episode-order-schemes",
+      "name_en": "DVD / aired / absolute order",
+      "name_ru": "Порядок «DVD / эфир / абсолютный»",
+      "focus_ru": "Провайдер и релизёр используют разные порядки: размечаются все известные схемы (tvdb_aired, tvdb_dvd, tmdb)."
+    },
+    {
+      "code": "A17",
+      "slug": "anime-franchise-movies",
+      "name_en": "Anime franchise movies",
+      "name_ru": "Фильмы аниме-франшиз",
+      "focus_ru": "Фильм или «сезон»: kind anime + anime_type movie, при этом в TMDB это может быть фильм, а в AniDB — отдельная запись."
+    }
+  ]
+}
