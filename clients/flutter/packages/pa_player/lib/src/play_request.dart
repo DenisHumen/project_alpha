@@ -11,6 +11,7 @@ class PlayRequest {
     this.subtitleUri,
     this.artist,
     this.album,
+    this.albumId,
     this.artworkUri,
     this.durationMs,
   });
@@ -30,6 +31,10 @@ class PlayRequest {
 
   /// Music: album name.
   final String? album;
+
+  /// Music: library album id (MUS-001 `music_albums.id`). Groups tracks for
+  /// album ReplayGain ([ReplayGainMode.auto]); falls back to [album].
+  final String? albumId;
 
   /// Music: cover art (file path or http(s) URL).
   final String? artworkUri;

@@ -1082,7 +1082,7 @@ project_alpha/
   - Что: Artist, ReleaseGroup, Release, Recording, Track (MBID), AudioFile, жанры, композиторы, вид «папки»; чтение тегов (ID3v2, Vorbis, MP4, APE через lofty), встроенные обложки и `folder.jpg`, мультидиск.
   - deps: LIB-001, LIB-003 · size: M · parallel: yes · веха: M6 · ref: 03 §5 (музыка), 01 §4.11
   - done when: коллекция из 5 000 треков индексируется; сборники разбираются правильно.
-- [ ] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
+- [x] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
   - Что: `gapless-audio`, `prefetch-playlist`, `replaygain=track|album` на десктопе и Android; на Apple — MPVKit audio.
   - deps: PLAY-002, MUS-001 · size: M · parallel: no · веха: M6 · ref: 02 §5.2 (вариант A)
   - done when: тестовый gapless-альбом без пауз на стыках (проверка по сэмплам).
@@ -1138,6 +1138,10 @@ project_alpha/
   - Что: синхронизация очереди и позиции (по аналогии со Spotify Connect, через SYNC); Last.fm и ListenBrainz с ключом пользователя [P2]; эквалайзер [P2].
   - deps: MUS-003, SYNC-003 · size: M · parallel: yes · веха: M6 · ref: 01 §4.11, §1.5
   - done when: очередь продолжается на втором устройстве с той же позиции.
+- [ ] **MUS-016** Аудиорежим MPVKit на Apple (`AudioKit`)
+  - Что: часть MUS-002 для Apple: `clients/apple/AudioKit` на MPVKit (LGPL) с тем же профилем, что `AudioProfile` в `pa_player` (gapless, prefetch, ReplayGain track/album/auto, pre-amp, защита от клиппинга); проверка стыков по сэмплам, как в `gapless_libmpv_test.dart`.
+  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-NNNN (music-audio-mode-libmpv)
+  - done when: XCTest на macOS проигрывает тестовый альбом через MPVKit без пауз на стыках (проверка по сэмплам).
 
 ### 3.16. TWI — Twitch
 
@@ -1752,7 +1756,7 @@ project_alpha/
 |---|---|---|---|
 | DEC | 8 | SYNC | 12 |
 | REPO | 13 | SRV | 18 |
-| CI | 12 | MUS | 15 |
+| CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
 | NET | 20 | DIST | 27 |
 | LIB | 15 | DSN | 15 |
