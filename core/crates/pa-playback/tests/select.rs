@@ -31,7 +31,13 @@ fn auto(platform: P, p: &MediaProfile) -> E {
 #[test]
 fn auto_matrix() {
     let mp4_sdr = profile(C::Mp4, V::H264, R::Sdr, &[A::Aac], &[S::MovText]);
-    let mkv_hdr = profile(C::Mkv, V::Hevc, R::Hdr10, &[A::Eac3, A::TrueHd], &[S::Pgs, S::Ass]);
+    let mkv_hdr = profile(
+        C::Mkv,
+        V::Hevc,
+        R::Hdr10,
+        &[A::Eac3, A::TrueHd],
+        &[S::Pgs, S::Ass],
+    );
     let mkv_dv7 = profile(C::Mkv, V::Hevc, R::DolbyVision7, &[A::TrueHd], &[S::Pgs]);
     let mkv_dv8 = profile(C::Mkv, V::Hevc, R::DolbyVision8, &[A::Eac3], &[S::Srt]);
     let hls_dv5 = profile(C::Hls, V::Hevc, R::DolbyVision5, &[A::Eac3], &[S::WebVtt]);
@@ -62,10 +68,24 @@ fn auto_matrix() {
 #[test]
 fn chains_follow_adr_0003() {
     assert_eq!(auto_chain(P::Android), [E::Media3, E::Mpv]);
-    assert_eq!(auto_chain(P::TvOs), [E::AvFoundation, E::VideoToolbox, E::Mpv]);
+    assert_eq!(
+        auto_chain(P::TvOs),
+        [E::AvFoundation, E::VideoToolbox, E::Mpv]
+    );
     assert_eq!(auto_chain(P::Linux), [E::Mpv]);
-    for platform in [P::Android, P::AndroidTv, P::Ios, P::TvOs, P::MacOs, P::Windows, P::Linux] {
-        let engines: Vec<E> = default_candidates(platform).iter().map(|c| c.engine).collect();
+    for platform in [
+        P::Android,
+        P::AndroidTv,
+        P::Ios,
+        P::TvOs,
+        P::MacOs,
+        P::Windows,
+        P::Linux,
+    ] {
+        let engines: Vec<E> = default_candidates(platform)
+            .iter()
+            .map(|c| c.engine)
+            .collect();
         assert_eq!(engines, auto_chain(platform), "{platform:?}");
     }
     assert!(default_capabilities(E::Media3, P::Ios).is_none());
@@ -75,8 +95,12 @@ fn chains_follow_adr_0003() {
 #[test]
 fn first_full_engine_wins_and_limitations_are_explained() {
     let file = profile(C::Mkv, V::Hevc, R::DolbyVision7, &[A::TrueHd], &[S::Pgs]);
-    let sel = select_engine(&default_candidates(P::AndroidTv), &file, EnginePreference::Auto)
-        .expect("selected");
+    let sel = select_engine(
+        &default_candidates(P::AndroidTv),
+        &file,
+        EnginePreference::Auto,
+    )
+    .expect("selected");
     assert!(!sel.manual);
     assert_eq!(
         sel.chosen().limitations,
@@ -96,10 +120,12 @@ fn first_full_engine_wins_and_limitations_are_explained() {
 
     // A refined matrix (this SoC decodes P7) makes Media3 full.
     let mut candidates = default_candidates(P::AndroidTv);
-    candidates[0].dynamic_ranges.push(pa_playback::RangeCapability {
-        range: R::DolbyVision7,
-        support: RangeSupport::Native,
-    });
+    candidates[0]
+        .dynamic_ranges
+        .push(pa_playback::RangeCapability {
+            range: R::DolbyVision7,
+            support: RangeSupport::Native,
+        });
     let sel = select_engine(&candidates, &file, EnginePreference::Auto).expect("selected");
     assert!(sel.chosen().is_full());
 }
@@ -149,8 +175,12 @@ fn manual_override() {
     let sel = select_engine(&candidates, &file, EnginePreference::Manual(E::Mpv)).expect("mpv");
     assert_eq!((sel.engine, sel.manual), (E::Mpv, true));
     // Honoured even when the matrix says the engine cannot play the file.
-    let sel = select_engine(&candidates, &file, EnginePreference::Manual(E::AvFoundation))
-        .expect("manual");
+    let sel = select_engine(
+        &candidates,
+        &file,
+        EnginePreference::Manual(E::AvFoundation),
+    )
+    .expect("manual");
     assert_eq!(sel.engine, E::AvFoundation);
     assert!(!sel.chosen().is_playable());
     assert_eq!(

@@ -170,7 +170,9 @@ impl EngineError {
 pub enum EngineEvent {
     /// Playlist item `index` starts opening. Resets everything except rate,
     /// volume and repeat; `playing` becomes `false` until `PlayingChanged`.
-    Loading { index: u32 },
+    Loading {
+        index: u32,
+    },
     /// The item is open: duration and video size are known.
     Loaded {
         duration_ms: u64,
@@ -183,18 +185,36 @@ pub enum EngineEvent {
         subtitles: Vec<Track>,
     },
     /// Selected track; `None` means off.
-    TrackSelected { kind: TrackKind, id: Option<String> },
+    TrackSelected {
+        kind: TrackKind,
+        id: Option<String>,
+    },
     /// Position tick (at least every 500 ms while playing) or a finished seek.
-    Position { position_ms: u64, buffered_ms: u64 },
-    PlayingChanged { playing: bool },
-    BufferingChanged { buffering: bool },
-    RateChanged { rate: f64 },
-    VolumeChanged { volume: f64 },
-    RepeatChanged { repeat: RepeatMode },
+    Position {
+        position_ms: u64,
+        buffered_ms: u64,
+    },
+    PlayingChanged {
+        playing: bool,
+    },
+    BufferingChanged {
+        buffering: bool,
+    },
+    RateChanged {
+        rate: f64,
+    },
+    VolumeChanged {
+        volume: f64,
+    },
+    RepeatChanged {
+        repeat: RepeatMode,
+    },
     /// The last item ended (repeat off). Playback is paused at the end.
     Ended,
     /// Playback failed; the engine stays usable for a new `open`.
-    Error { error: EngineError },
+    Error {
+        error: EngineError,
+    },
     /// [`PlayerEngine::close`] finished; no events follow.
     Closed,
 }
@@ -399,8 +419,7 @@ pub trait PlayerEngine: Send + Sync {
     fn set_subtitle_track(&self, id: Option<String>) -> Result<(), EngineError>;
 
     /// Loads a subtitle file (SRT, ASS, VTT) and selects it.
-    fn add_external_subtitle(&self, uri: String, title: Option<String>)
-    -> Result<(), EngineError>;
+    fn add_external_subtitle(&self, uri: String, title: Option<String>) -> Result<(), EngineError>;
 
     /// Current technical numbers.
     fn stats(&self) -> Result<PlaybackStats, EngineError>;

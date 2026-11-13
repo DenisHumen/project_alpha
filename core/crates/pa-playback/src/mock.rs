@@ -127,7 +127,9 @@ impl Inner {
         if let Some(id) = &id
             && !tracks.iter().any(|t| &t.id == id)
         {
-            return Err(EngineError::argument(format!("unknown {kind:?} track {id}")));
+            return Err(EngineError::argument(format!(
+                "unknown {kind:?} track {id}"
+            )));
         }
         self.emit(EngineEvent::TrackSelected { kind, id });
         Ok(())
@@ -342,11 +344,7 @@ impl PlayerEngine for MockEngine {
         self.run(|inner| inner.select(TrackKind::Subtitle, id))
     }
 
-    fn add_external_subtitle(
-        &self,
-        uri: String,
-        title: Option<String>,
-    ) -> Result<(), EngineError> {
+    fn add_external_subtitle(&self, uri: String, title: Option<String>) -> Result<(), EngineError> {
         self.run(|inner| {
             inner.check_open()?;
             if uri.is_empty() {

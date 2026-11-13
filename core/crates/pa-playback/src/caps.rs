@@ -290,96 +290,136 @@ pub fn default_capabilities(engine: EngineKind, platform: Platform) -> Option<En
     let apple = matches!(platform, Platform::Ios | Platform::TvOs | Platform::MacOs);
     let android = matches!(platform, Platform::Android | Platform::AndroidTv);
 
-    let (containers, video, audio, subs, ranges): (&[C], &[V], &[A], &[S], Vec<(R, RangeSupport)>) =
-        match engine {
-            EngineKind::Mock => (
+    type Row = (
+        &'static [C],
+        &'static [V],
+        &'static [A],
+        &'static [S],
+        Vec<(R, RangeSupport)>,
+    );
+    let (containers, video, audio, subs, ranges): Row = match engine {
+        EngineKind::Mock => (
+            ALL_C,
+            ALL_V,
+            ALL_A,
+            ALL_S,
+            [
+                R::Hdr10,
+                R::Hdr10Plus,
+                R::Hlg,
+                R::DolbyVision5,
+                R::DolbyVision7,
+                R::DolbyVision8,
+            ]
+            .map(|r| (r, Native))
+            .to_vec(),
+        ),
+        // MediaCodec + FFmpeg audio extension (PLAY-AND-004); ASS, PGS
+        // and VobSub through the core overlay (PLAY-AND-006). P7 only on
+        // some SoCs: platforms add it at runtime.
+        EngineKind::Media3 if android => (
+            &[C::Mkv, C::WebM, C::Mp4, C::Mov, C::MpegTs, C::Hls],
+            &[V::H264, V::Hevc, V::Av1, V::Vp9, V::Vp8, V::Mpeg2, V::Mpeg4],
+            &[
+                A::Aac,
+                A::Mp3,
+                A::Opus,
+                A::Vorbis,
+                A::Flac,
+                A::Alac,
+                A::Ac3,
+                A::Eac3,
+                A::TrueHd,
+                A::Dts,
+                A::DtsHd,
+                A::Pcm,
+            ],
+            &[
+                S::Srt,
+                S::WebVtt,
+                S::Ass,
+                S::Pgs,
+                S::VobSub,
+                S::DvbSub,
+                S::Cea608,
+                S::MovText,
+            ],
+            [
+                R::Hdr10,
+                R::Hdr10Plus,
+                R::Hlg,
+                R::DolbyVision5,
+                R::DolbyVision8,
+            ]
+            .map(|r| (r, Native))
+            .to_vec(),
+        ),
+        EngineKind::Media3 => return None,
+        // AVPlayer: no MKV, no ASS/PGS, no TrueHD/DTS; native HDR, DV
+        // and Match Content.
+        EngineKind::AvFoundation if apple => (
+            &[C::Mp4, C::Mov, C::Hls],
+            &[V::H264, V::Hevc, V::Av1, V::ProRes],
+            &[
+                A::Aac,
+                A::Mp3,
+                A::Flac,
+                A::Alac,
+                A::Ac3,
+                A::Eac3,
+                A::Pcm,
+                A::Opus,
+            ],
+            &[S::WebVtt, S::Cea608, S::MovText],
+            [
+                R::Hdr10,
+                R::Hdr10Plus,
+                R::Hlg,
+                R::DolbyVision5,
+                R::DolbyVision8,
+            ]
+            .map(|r| (r, Native))
+            .to_vec(),
+        ),
+        // Own engine: FFmpeg demux and software fallback, VideoToolbox,
+        // core subtitle overlay; P7 converted to P8.1 (PLAY-APL-007).
+        EngineKind::VideoToolbox if apple => (
+            ALL_C,
+            ALL_V,
+            ALL_A,
+            ALL_S,
+            [
+                R::Hdr10,
+                R::Hlg,
+                R::DolbyVision5,
+                R::DolbyVision7,
+                R::DolbyVision8,
+            ]
+            .map(|r| (r, Native))
+            .to_vec(),
+        ),
+        EngineKind::AvFoundation | EngineKind::VideoToolbox => return None,
+        // libmpv plays everything; HDR goes to the display only through
+        // the native desktop surface (ADR-0009), DV is always tone-mapped
+        // by libplacebo. On Android and Apple everything is tone-mapped.
+        EngineKind::Mpv => {
+            let hdr = if apple || android { ToneMapped } else { Native };
+            (
                 ALL_C,
                 ALL_V,
                 ALL_A,
                 ALL_S,
-                [R::Hdr10, R::Hdr10Plus, R::Hlg, R::DolbyVision5, R::DolbyVision7, R::DolbyVision8]
-                    .map(|r| (r, Native))
-                    .to_vec(),
-            ),
-            // MediaCodec + FFmpeg audio extension (PLAY-AND-004); ASS, PGS
-            // and VobSub through the core overlay (PLAY-AND-006). P7 only on
-            // some SoCs: platforms add it at runtime.
-            EngineKind::Media3 if android => (
-                &[C::Mkv, C::WebM, C::Mp4, C::Mov, C::MpegTs, C::Hls],
-                &[V::H264, V::Hevc, V::Av1, V::Vp9, V::Vp8, V::Mpeg2, V::Mpeg4],
-                &[
-                    A::Aac,
-                    A::Mp3,
-                    A::Opus,
-                    A::Vorbis,
-                    A::Flac,
-                    A::Alac,
-                    A::Ac3,
-                    A::Eac3,
-                    A::TrueHd,
-                    A::Dts,
-                    A::DtsHd,
-                    A::Pcm,
+                vec![
+                    (R::Hdr10, hdr),
+                    (R::Hdr10Plus, hdr),
+                    (R::Hlg, hdr),
+                    (R::DolbyVision5, ToneMapped),
+                    (R::DolbyVision7, ToneMapped),
+                    (R::DolbyVision8, ToneMapped),
                 ],
-                &[
-                    S::Srt,
-                    S::WebVtt,
-                    S::Ass,
-                    S::Pgs,
-                    S::VobSub,
-                    S::DvbSub,
-                    S::Cea608,
-                    S::MovText,
-                ],
-                [R::Hdr10, R::Hdr10Plus, R::Hlg, R::DolbyVision5, R::DolbyVision8]
-                    .map(|r| (r, Native))
-                    .to_vec(),
-            ),
-            EngineKind::Media3 => return None,
-            // AVPlayer: no MKV, no ASS/PGS, no TrueHD/DTS; native HDR, DV
-            // and Match Content.
-            EngineKind::AvFoundation if apple => (
-                &[C::Mp4, C::Mov, C::Hls],
-                &[V::H264, V::Hevc, V::Av1, V::ProRes],
-                &[A::Aac, A::Mp3, A::Flac, A::Alac, A::Ac3, A::Eac3, A::Pcm, A::Opus],
-                &[S::WebVtt, S::Cea608, S::MovText],
-                [R::Hdr10, R::Hdr10Plus, R::Hlg, R::DolbyVision5, R::DolbyVision8]
-                    .map(|r| (r, Native))
-                    .to_vec(),
-            ),
-            // Own engine: FFmpeg demux and software fallback, VideoToolbox,
-            // core subtitle overlay; P7 converted to P8.1 (PLAY-APL-007).
-            EngineKind::VideoToolbox if apple => (
-                ALL_C,
-                ALL_V,
-                ALL_A,
-                ALL_S,
-                [R::Hdr10, R::Hlg, R::DolbyVision5, R::DolbyVision7, R::DolbyVision8]
-                    .map(|r| (r, Native))
-                    .to_vec(),
-            ),
-            EngineKind::AvFoundation | EngineKind::VideoToolbox => return None,
-            // libmpv plays everything; HDR goes to the display only through
-            // the native desktop surface (ADR-0009), DV is always tone-mapped
-            // by libplacebo. On Android and Apple everything is tone-mapped.
-            EngineKind::Mpv => {
-                let hdr = if apple || android { ToneMapped } else { Native };
-                (
-                    ALL_C,
-                    ALL_V,
-                    ALL_A,
-                    ALL_S,
-                    vec![
-                        (R::Hdr10, hdr),
-                        (R::Hdr10Plus, hdr),
-                        (R::Hlg, hdr),
-                        (R::DolbyVision5, ToneMapped),
-                        (R::DolbyVision7, ToneMapped),
-                        (R::DolbyVision8, ToneMapped),
-                    ],
-                )
-            }
-        };
+            )
+        }
+    };
 
     Some(EngineCapabilities {
         engine,

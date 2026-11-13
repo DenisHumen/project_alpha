@@ -74,8 +74,11 @@ impl EngineListener for Recorder {
     }
 }
 
+/// One contract case.
+pub type Case = fn(&dyn Harness);
+
 /// Every case, by name.
-pub const CASES: &[(&str, fn(&dyn Harness))] = &[
+pub const CASES: &[(&str, Case)] = &[
     ("open_loads_item", open_loads_item),
     ("open_at_start_position", open_at_start_position),
     ("open_paused", open_paused),
@@ -166,14 +169,21 @@ pub fn open_loads_item(h: &dyn Harness) {
     assert!(s.video_width.is_some() && s.video_height.is_some());
     let events = rec.events();
     let first = events.first().expect("events were sent");
-    assert_eq!(first, &EngineEvent::Loading { index: 0 }, "Loading comes first");
+    assert_eq!(
+        first,
+        &EngineEvent::Loading { index: 0 },
+        "Loading comes first"
+    );
     let loaded = events
         .iter()
         .position(|e| matches!(e, EngineEvent::Loaded { .. }));
     let tracks = events
         .iter()
         .position(|e| matches!(e, EngineEvent::TracksChanged { .. }));
-    assert!(loaded.is_some() && tracks.is_some(), "Loaded and TracksChanged sent");
+    assert!(
+        loaded.is_some() && tracks.is_some(),
+        "Loaded and TracksChanged sent"
+    );
 }
 
 pub fn open_at_start_position(h: &dyn Harness) {
@@ -226,7 +236,10 @@ pub fn commands_need_open_item(h: &dyn Harness) {
     state_error(e.seek(1_000), "seek");
     state_error(e.set_audio_track(None), "set_audio_track");
     state_error(e.set_subtitle_track(None), "set_subtitle_track");
-    state_error(e.add_external_subtitle("x.srt".into(), None), "add_external_subtitle");
+    state_error(
+        e.add_external_subtitle("x.srt".into(), None),
+        "add_external_subtitle",
+    );
     // Settings are accepted before open and survive it.
     let rec = Recorder::attach(e);
     e.set_rate(1.25).expect("rate before open");
@@ -280,7 +293,10 @@ pub fn rate(h: &dyn Harness) {
     let rec = open(h, 0, 0, true);
     for bad in [0.0, -1.0, f64::NAN, f64::INFINITY] {
         assert!(
-            matches!(h.engine().set_rate(bad), Err(EngineError::InvalidArgument { .. })),
+            matches!(
+                h.engine().set_rate(bad),
+                Err(EngineError::InvalidArgument { .. })
+            ),
             "rate {bad} is rejected"
         );
     }
@@ -317,9 +333,13 @@ pub fn select_tracks(h: &dyn Harness) {
     let rec = open(h, 0, 0, false);
     let s = h.engine().state();
     let other = non_selected(&s.audio_tracks, &s.audio_track);
-    h.engine().set_audio_track(Some(other.id.clone())).expect("audio");
+    h.engine()
+        .set_audio_track(Some(other.id.clone()))
+        .expect("audio");
     let sub = s.subtitle_tracks[0].id.clone();
-    h.engine().set_subtitle_track(Some(sub.clone())).expect("subtitle on");
+    h.engine()
+        .set_subtitle_track(Some(sub.clone()))
+        .expect("subtitle on");
     h.advance(0);
     let s = assert_state_is_fold(h, &rec);
     assert_eq!(s.audio_track, Some(other.id));
@@ -344,7 +364,11 @@ pub fn external_subtitle(h: &dyn Harness) {
     h.advance(0);
     let s = assert_state_is_fold(h, &rec);
     assert_eq!(s.subtitle_tracks.len(), before + 1);
-    let track = s.subtitle_tracks.iter().find(|t| t.external).expect("external track");
+    let track = s
+        .subtitle_tracks
+        .iter()
+        .find(|t| t.external)
+        .expect("external track");
     assert_eq!(s.subtitle_track.as_ref(), Some(&track.id), "it is selected");
 }
 
@@ -373,7 +397,10 @@ pub fn playlist_advance_and_jump(h: &dyn Harness) {
     assert_eq!(s.playlist_index, 1, "next item after the first ends");
     assert!(s.playing && !s.completed);
     assert_near(s.duration_ms, fx.durations_ms[1], "duration of item 1");
-    assert!(!rec.events().contains(&EngineEvent::Ended), "no Ended mid-playlist");
+    assert!(
+        !rec.events().contains(&EngineEvent::Ended),
+        "no Ended mid-playlist"
+    );
     h.engine().jump(0).expect("jump");
     h.advance(0);
     let s = assert_state_is_fold(h, &rec);
@@ -408,8 +435,14 @@ pub fn stats(h: &dyn Harness) {
     assert!(h.engine().stats().is_err(), "stats need an open item");
     let _rec = open(h, 0, 0, true);
     let stats = h.engine().stats().expect("stats");
-    assert!(stats.video_codec.is_some(), "video codec reported: {stats:?}");
-    assert!(stats.audio_codec.is_some(), "audio codec reported: {stats:?}");
+    assert!(
+        stats.video_codec.is_some(),
+        "video codec reported: {stats:?}"
+    );
+    assert!(
+        stats.audio_codec.is_some(),
+        "audio codec reported: {stats:?}"
+    );
 }
 
 pub fn close(h: &dyn Harness) {
@@ -423,7 +456,8 @@ pub fn close(h: &dyn Harness) {
     assert_eq!(h.engine().play(), Err(EngineError::Closed));
     assert_eq!(h.engine().set_rate(1.0), Err(EngineError::Closed));
     assert!(matches!(
-        h.engine().open(OpenRequest::single(h.fixture().items[0].clone())),
+        h.engine()
+            .open(OpenRequest::single(h.fixture().items[0].clone())),
         Err(EngineError::Closed)
     ));
     assert_eq!(rec.events().len(), count, "no events after Closed");
@@ -493,7 +527,9 @@ pub fn mock_harness() -> Box<dyn Harness> {
     let (fixture, registry) = mock_fixture();
     let engine = registry
         .into_iter()
-        .fold(MockEngine::new(), |e, (uri, media)| e.with_media(uri, media));
+        .fold(MockEngine::new(), |e, (uri, media)| {
+            e.with_media(uri, media)
+        });
     Box::new(MockHarness { engine, fixture })
 }
 

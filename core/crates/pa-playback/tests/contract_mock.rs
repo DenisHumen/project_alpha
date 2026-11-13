@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use pa_playback::contract::{self, Harness};
 use pa_playback::{
-    EngineError, EngineEvent, EngineKind, EngineListener, EngineState, OpenRequest,
+    EngineError, EngineEvent, EngineKind, EngineListener, EngineState, MockEngine, OpenRequest,
     PlaybackStats, PlayerEngine, RepeatMode,
 };
 
@@ -21,14 +21,14 @@ fn run_all_passes() {
 #[should_panic(expected = "play_pause")]
 fn broken_engine_fails() {
     /// The mock, except that `pause` is accepted and does nothing.
-    struct IgnoresPause(Box<dyn Harness>);
+    struct IgnoresPause(MockEngine, contract::Fixture);
 
     impl Harness for IgnoresPause {
         fn engine(&self) -> &dyn PlayerEngine {
             self
         }
         fn fixture(&self) -> contract::Fixture {
-            self.0.fixture()
+            self.1.clone()
         }
         fn advance(&self, ms: u64) {
             self.0.advance(ms)
@@ -37,60 +37,66 @@ fn broken_engine_fails() {
 
     impl PlayerEngine for IgnoresPause {
         fn kind(&self) -> EngineKind {
-            self.0.engine().kind()
+            self.0.kind()
         }
         fn set_listener(&self, l: Option<Arc<dyn EngineListener>>) {
-            self.0.engine().set_listener(l)
+            self.0.set_listener(l)
         }
         fn state(&self) -> EngineState {
-            self.0.engine().state()
+            self.0.state()
         }
         fn open(&self, r: OpenRequest) -> Result<(), EngineError> {
-            self.0.engine().open(r)
+            self.0.open(r)
         }
         fn play(&self) -> Result<(), EngineError> {
-            self.0.engine().play()
+            self.0.play()
         }
         fn pause(&self) -> Result<(), EngineError> {
-            if self.0.engine().state().loaded {
+            if self.0.state().loaded {
                 Ok(())
             } else {
-                self.0.engine().pause()
+                self.0.pause()
             }
         }
         fn seek(&self, p: u64) -> Result<(), EngineError> {
-            self.0.engine().seek(p)
+            self.0.seek(p)
         }
         fn set_rate(&self, r: f64) -> Result<(), EngineError> {
-            self.0.engine().set_rate(r)
+            self.0.set_rate(r)
         }
         fn set_volume(&self, v: f64) -> Result<(), EngineError> {
-            self.0.engine().set_volume(v)
+            self.0.set_volume(v)
         }
         fn set_repeat(&self, r: RepeatMode) -> Result<(), EngineError> {
-            self.0.engine().set_repeat(r)
+            self.0.set_repeat(r)
         }
         fn jump(&self, i: u32) -> Result<(), EngineError> {
-            self.0.engine().jump(i)
+            self.0.jump(i)
         }
         fn set_audio_track(&self, id: Option<String>) -> Result<(), EngineError> {
-            self.0.engine().set_audio_track(id)
+            self.0.set_audio_track(id)
         }
         fn set_subtitle_track(&self, id: Option<String>) -> Result<(), EngineError> {
-            self.0.engine().set_subtitle_track(id)
+            self.0.set_subtitle_track(id)
         }
         fn add_external_subtitle(&self, u: String, t: Option<String>) -> Result<(), EngineError> {
-            self.0.engine().add_external_subtitle(u, t)
+            self.0.add_external_subtitle(u, t)
         }
         fn stats(&self) -> Result<PlaybackStats, EngineError> {
-            self.0.engine().stats()
+            self.0.stats()
         }
         fn close(&self) -> Result<(), EngineError> {
-            self.0.engine().close()
+            self.0.close()
         }
     }
 
-    contract::run_all(&|| Box::new(IgnoresPause(contract::mock_harness())));
+    contract::run_all(&|| {
+        let (fixture, media) = contract::mock_fixture();
+        let engine = media
+            .into_iter()
+            .fold(MockEngine::new(), |e, (uri, m)| e.with_media(uri, m));
+        Box::new(IgnoresPause(engine, fixture))
+    });
 }
 
 #[test]
@@ -116,7 +122,7 @@ fn events_serialize_as_tagged_json() {
 
 #[test]
 fn listener_may_call_back_into_the_engine() {
-    struct Reentrant(std::sync::Mutex<Option<Arc<pa_playback::MockEngine>>>);
+    struct Reentrant(std::sync::Mutex<Option<Arc<MockEngine>>>);
     impl EngineListener for Reentrant {
         fn on_event(&self, _: EngineEvent) {
             if let Some(engine) = self.0.lock().expect("lock").as_ref() {
@@ -128,7 +134,7 @@ fn listener_may_call_back_into_the_engine() {
     let engine = Arc::new(
         media
             .into_iter()
-            .fold(pa_playback::MockEngine::new(), |e, (u, m)| e.with_media(u, m)),
+            .fold(MockEngine::new(), |e, (u, m)| e.with_media(u, m)),
     );
     let listener = Arc::new(Reentrant(std::sync::Mutex::new(Some(engine.clone()))));
     engine.set_listener(Some(listener.clone()));
