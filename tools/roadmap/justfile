@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MPL-2.0
+# `roadmap` module: lint docs/ROADMAP.md and list ready tasks (REPO-012).
+# Owned by the REPO workstream (docs/ROADMAP.md §0.4).
+
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-Command"]
+
+python := if os_family() == "windows" { "python" } else { "python3" }
+script := source_directory() / "roadmap.py"
+
+# Validate docs/ROADMAP.md: IDs, field format, deps, cycles, milestones
+lint:
+    @{{ python }} -B "{{ script }}" lint
+
+# Tasks whose deps are ticked and that have no open PR, e.g. `just roadmap next CORE NET`
+next *args:
+    @{{ python }} -B "{{ script }}" next {{ args }}
+
+# Unit tests of the roadmap tool
+test:
+    @{{ python }} -B -m unittest discover -s "{{ source_directory() }}" -t "{{ source_directory() }}"

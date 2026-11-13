@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Fetch cosign signatures stored next to the image (<repo>:sha256-<digest>.sig).
+docker:
+  @ALPHA_IMAGE_REPO@:
+    use-sigstore-attachments: true

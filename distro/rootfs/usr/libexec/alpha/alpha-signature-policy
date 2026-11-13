@@ -1,0 +1,31 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: MPL-2.0
+# Install the container signature policy of the NAS OS (DIST-002).
+#
+#   alpha-signature-policy REPO
+#
+# Writes /etc/containers/policy.json ("reject" by default, a cosign signature made with our
+# key for REPO, local containers-storage allowed) and /etc/containers/registries.d/alpha-os.yaml
+# (sigstore attachments for REPO) from the templates in /usr/share/alpha/containers.
+# bootc reads the same policy through containers/image, so `bootc switch|upgrade` refuses
+# images of REPO that are not signed with /usr/share/alpha/keys/alpha-os.pub, and images
+# from any other repository.
+#
+# Runs at image build time; distro/tests/signature-policy.sh also runs it inside the image.
+set -euo pipefail
+
+repo="${1:?usage: alpha-signature-policy REPO (e.g. ghcr.io/denishumen/alpha-os)}"
+src=/usr/share/alpha/containers
+key=/usr/share/alpha/keys/alpha-os.pub
+
+[[ "${repo}" =~ ^[a-z0-9.:-]+(/[a-z0-9._-]+)+$ ]] || { echo "bad repository: ${repo}" >&2; exit 1; }
+[[ -s "${key}" ]] || { echo "public key not found: ${key}" >&2; exit 1; }
+grep -q 'BEGIN PUBLIC KEY' "${key}" || { echo "not a PEM public key: ${key}" >&2; exit 1; }
+
+install -d -m 0755 /etc/containers/registries.d
+sed "s|@ALPHA_IMAGE_REPO@|${repo}|g" "${src}/policy.json" > /etc/containers/policy.json
+sed "s|@ALPHA_IMAGE_REPO@|${repo}|g" "${src}/registries.d/alpha-os.yaml" \
+    > /etc/containers/registries.d/alpha-os.yaml
+chmod 0644 /etc/containers/policy.json /etc/containers/registries.d/alpha-os.yaml
+python3 -c 'import json, sys; json.load(open(sys.argv[1]))' /etc/containers/policy.json
+echo "signature policy: ${repo} must be signed with ${key}; other images are rejected"
