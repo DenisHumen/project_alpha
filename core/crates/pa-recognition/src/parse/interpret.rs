@@ -7,6 +7,8 @@
 //! weighted options; hypotheses are the combinations of options, weighted by
 //! the product of option weights.
 
+use std::borrow::Cow;
+
 use super::classify::{Classified, NumTok, Tag};
 use super::lexicon;
 use super::token::Bracket;
@@ -125,11 +127,15 @@ pub(crate) fn analyze(
                 || matches!(t.tag, Tag::Season(_)))
     });
     if group.is_none() {
-        // `x264-GROUP` glued after a release token, last plain token.
-        let last_plain = toks.iter().rposition(plain);
+        // `x264-GROUP` glued after a release token: the last plain token,
+        // not counting trailing `CD1`/`Part 2` markers. The position decides,
+        // so a flag word there (`-iNTERNAL`) is the group too.
+        let last_plain = toks
+            .iter()
+            .rposition(|t| plain(t) && !matches!(t.tag, Tag::Part(_) | Tag::Consumed));
         if let Some(k) = last_plain
             && toks[k].tok.glued_hyphen
-            && matches!(toks[k].tag, Tag::Free | Tag::Group)
+            && matches!(toks[k].tag, Tag::Free | Tag::Group | Tag::Other)
         {
             group = Some(toks[k].display.clone());
             toks[k].tag = Tag::Group;
@@ -268,10 +274,20 @@ pub(crate) fn analyze(
                 candidate(k) && (Some(k) != first_plain || !has_free_words) && is_end_of_title(k)
             })
         };
+        // `[AniDUB] 86 [01]`: when the only plain number is the whole title,
+        // the lone bracketed number is the episode.
+        let numeric_title_only = !has_free_words
+            && plain_idx
+                .iter()
+                .all(|&j| !candidate(j) || Some(j) == first_plain);
         let (cand, style) = match after_dash {
             Some(k) => (Some(k), 0),
             None => match in_bracket() {
-                Some(k) if plain_idx.is_empty() || !plain_idx.iter().any(|&j| candidate(j)) => {
+                Some(k)
+                    if plain_idx.is_empty()
+                        || !plain_idx.iter().any(|&j| candidate(j))
+                        || numeric_title_only =>
+                {
                     (Some(k), 1)
                 }
                 _ => (at_title_end(), 2),
@@ -282,7 +298,23 @@ pub(crate) fn analyze(
             let big = n.digits >= 3 || n.values[0].number >= 100;
             let structured = n.range || n.version.is_some() || n.values[0].fraction.is_some();
             let movie_like = style == 2 && (strong_year || year_tok.is_some());
-            let mut w = if has_season || has_kind {
+            // `86 - NCOP`: a number right before a dash-delimited kind or
+            // episode marker names the work, the marker is the episode.
+            let before_dash_marker = style == 2
+                && (k + 1..toks.len())
+                    .find(|&j| toks[j].tag != Tag::Consumed)
+                    .is_some_and(|j| {
+                        toks[j].tok.dash_before
+                            && matches!(toks[j].tag, Tag::Kind(..) | Tag::SeasonEp { .. })
+                    });
+            // `Blade Runner 2049`: a 4-digit number ending a title without
+            // fansub signs is part of the title.
+            let title_number = style == 2 && n.digits == 4 && !crc_or_fansub && !n.range;
+            let mut w = if before_dash_marker {
+                [0.08, 0.02, 0.90]
+            } else if title_number && !has_season && !has_kind {
+                [0.10, 0.10, 0.80]
+            } else if has_season || has_kind {
                 [0.86, 0.04, 0.10]
             } else if movie_like {
                 [0.12, 0.03, 0.85]
@@ -325,16 +357,114 @@ pub(crate) fn analyze(
     }
 }
 
-fn join_title(parts: &[&Classified]) -> String {
+/// A title piece: text and whether a dash delimiter precedes it.
+type Piece<'a> = (Cow<'a, str>, bool);
+
+fn piece(t: &Classified) -> Piece<'_> {
+    (Cow::Borrowed(t.tok.text.as_str()), t.tok.dash_before)
+}
+
+fn join_title(parts: &[Piece<'_>]) -> String {
     let mut s = String::new();
-    for (i, t) in parts.iter().enumerate() {
+    for (i, (text, dash)) in parts.iter().enumerate() {
         if i > 0 {
-            s.push_str(if t.tok.dash_before { " - " } else { " " });
+            s.push_str(if *dash { " - " } else { " " });
         }
-        s.push_str(&t.tok.text);
+        s.push_str(text);
     }
     s.trim_matches(|c: char| c.is_whitespace() || matches!(c, '-' | ',' | ':' | '–' | '—'))
         .to_string()
+}
+
+/// Tokens that stay in the title although they carry a tag, with their text.
+///
+/// - Season, part and kind qualifiers between the title and a dash-delimited
+///   episode marker: `Title 2nd Season - 05`, `Title OVA - 02`,
+///   `Title Part 2 - NCED`. This is the anime convention: AniDB and fansub
+///   groups name later seasons this way, so the qualifier is part of the
+///   work's name. The season, part and kind fields are still filled.
+/// - A year in parentheses in the same place: `Hunter x Hunter (2011) - 26`.
+/// - A parenthesized phrase of plain words inside a title run:
+///   `You Are (Not) Alone`.
+///
+/// The flag is `true` for qualifiers (the title without them becomes an
+/// alternative title) and `false` for phrases that are just title words.
+fn title_qualifiers(a: &Analysis, marker: &dyn Fn(usize) -> bool) -> Vec<Option<(String, bool)>> {
+    let toks = &a.toks;
+    let mut keep: Vec<Option<(String, bool)>> = vec![None; toks.len()];
+    // `S2` is a release marker, `2nd Season` / `Season 2` are names.
+    let short_season = |t: &Classified| {
+        let l = t.tok.text.to_ascii_lowercase();
+        l.strip_prefix('s')
+            .is_some_and(|d| !d.is_empty() && d.bytes().all(|b| b.is_ascii_digit()))
+    };
+    let paren = |k: usize| {
+        toks[k]
+            .tok
+            .bracket
+            .map(|b| &a.brackets[b])
+            .filter(|b| b.open == '(')
+    };
+    // Qualifiers before ` - <marker>`.
+    if let Some(m) = (0..toks.len()).find(|&k| toks[k].tok.dash_before && marker(k)) {
+        let mut k = m;
+        let mut quals = Vec::new();
+        let mut words = false;
+        while k > 0 {
+            k -= 1;
+            let t = &toks[k];
+            let qual = match &t.tag {
+                Tag::Season(_) => plain(t) && !short_season(t),
+                Tag::Part(_) | Tag::Kind(_, None) => plain(t),
+                Tag::Year(_) => paren(k).is_some_and(|b| b.tokens.len() == 1),
+                Tag::Consumed => true,
+                _ => false,
+            };
+            if qual {
+                quals.push(k);
+                continue;
+            }
+            words = plain(t) && matches!(t.tag, Tag::Free | Tag::Num(_)) && !marker(k);
+            break;
+        }
+        if words && quals.iter().any(|&q| toks[q].tag != Tag::Consumed) {
+            for q in quals {
+                let text = match toks[q].tag {
+                    Tag::Year(y) => format!("({y})"),
+                    _ => toks[q].tok.text.clone(),
+                };
+                keep[q] = Some((text, true));
+            }
+        }
+    }
+    // `(Not)` between title words.
+    for (bi, b) in a.brackets.iter().enumerate() {
+        if b.open != '(' || b.tokens.is_empty() || Some(bi) == a.group_bracket {
+            continue;
+        }
+        let (s, e) = (b.tokens.start, b.tokens.end);
+        let inner_words = e - s <= 3
+            && toks[s..e].iter().all(|t| {
+                t.tag == Tag::Free && t.tok.text.chars().all(|c| c.is_alphabetic() || c == '\'')
+            });
+        let before = s > 0 && plain(&toks[s - 1]) && toks[s - 1].tag == Tag::Free;
+        let after = toks
+            .get(e)
+            .is_some_and(|t| plain(t) && t.tag == Tag::Free && !t.tok.dash_before);
+        if inner_words && before && after {
+            for (k, slot) in keep.iter_mut().enumerate().take(e).skip(s) {
+                let mut text = toks[k].tok.text.clone();
+                if k == s {
+                    text.insert(0, '(');
+                }
+                if k + 1 == e {
+                    text.push(')');
+                }
+                *slot = Some((text, false));
+            }
+        }
+    }
+    keep
 }
 
 /// Builds one hypothesis for a choice of roles (`choice[i]` indexes `points[i].options`).
@@ -366,16 +496,31 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
             || matches!(toks[k].tag, Tag::Season(_) | Tag::Kind(..))
     };
 
+    let keep = title_qualifiers(a, &marker);
+
     // Title runs over plain tokens.
-    let mut titles: Vec<Vec<&Classified>> = Vec::new();
-    let mut episode_title: Vec<&Classified> = Vec::new();
+    let mut titles: Vec<Vec<Piece<'_>>> = Vec::new();
+    let mut episode_title: Vec<Piece<'_>> = Vec::new();
     let mut state = 0; // 0: looking for title, 1: in title, 2: title done
     let mut seen_marker_before_title = false;
     let mut after_marker = false;
     let mut in_ep_title = false;
+    // Title without its qualifiers: `Title` for `Title 2nd Season`.
+    let mut base_title: Option<String> = None;
     #[allow(clippy::needless_range_loop)] // `k` also indexes `roles`
     for k in 0..toks.len() {
         let t = &toks[k];
+        if let Some((text, qualifier)) = &keep[k] {
+            // Kept in the title (`2nd Season`, `(2011)`, `(Not)`).
+            if state == 1 {
+                let title = titles.last_mut().expect("title started");
+                if *qualifier && base_title.is_none() {
+                    base_title = Some(join_title(title));
+                }
+                title.push((Cow::Owned(text.clone()), t.tok.dash_before));
+            }
+            continue;
+        }
         if t.tag == Tag::Consumed {
             continue;
         }
@@ -390,19 +535,19 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
             match state {
                 0 if !seen_marker_before_title => {
                     state = 1;
-                    titles.push(vec![t]);
+                    titles.push(vec![piece(t)]);
                 }
                 1 => {
                     if t.tok.slash_before {
-                        titles.push(vec![t]);
+                        titles.push(vec![piece(t)]);
                     } else {
-                        titles.last_mut().expect("title started").push(t);
+                        titles.last_mut().expect("title started").push(piece(t));
                     }
                 }
                 _ => {
                     if after_marker && (episode_title.is_empty() || in_ep_title) {
                         in_ep_title = true;
-                        episode_title.push(t);
+                        episode_title.push(piece(t));
                     }
                 }
             }
@@ -434,7 +579,7 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
                     .iter()
                     .any(|t| t.tag == Tag::Free && t.tok.text.chars().any(char::is_alphabetic))
             {
-                titles.push(ts.iter().collect());
+                titles.push(ts.iter().map(piece).collect());
                 reasons.push("title:bracket".into());
                 break;
             }
@@ -445,7 +590,11 @@ pub(crate) fn build(a: &Analysis, choice: &[usize]) -> (ParsedName, Vec<String>)
         .map(|p| join_title(&p))
         .filter(|s| !s.is_empty());
     out.title = titles.next();
-    out.alt_titles = titles.collect();
+    out.alt_titles = base_title
+        .filter(|b| !b.is_empty() && out.title.as_ref() != Some(b))
+        .into_iter()
+        .chain(titles)
+        .collect();
     if !episode_title.is_empty() {
         let s = join_title(&episode_title);
         if !s.is_empty() {

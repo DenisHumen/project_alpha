@@ -31,6 +31,7 @@ axum = { version = "0.8.9", default-features = false }
 chacha20poly1305 = { version = "0.11", default-features = false, features = ["alloc"] }
 dirs = "7.0"
 flutter_rust_bridge = "=2.13.0"
+futures-util = { version = "0.3.31", default-features = false, features = ["std"] }
 getrandom = "0.4"
 hkdf = "0.13"
 keyring-core = { version = "1.0.1", default-features = false }
@@ -46,6 +47,7 @@ sha2 = "0.11"
 tempfile = "3.27"
 thiserror = "2.0.21"
 tokio = { version = "1.54", default-features = false }
+tokio-tungstenite = { version = "0.29", default-features = false, features = ["connect"] }
 toml = "1.2"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", default-features = false }

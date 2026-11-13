@@ -1,0 +1,7 @@
+{
+  "status": 400,
+  "body": {
+    "status": 400,
+    "message": "Invalid refresh token"
+  }
+}
