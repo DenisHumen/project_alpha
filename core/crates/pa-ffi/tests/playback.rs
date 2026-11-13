@@ -6,13 +6,15 @@
 use std::sync::Arc;
 
 use pa_ffi::{
-    ContractFixture, EngineError, EngineEvent, EngineKind, EngineListener, EngineState,
-    OpenRequest, PlaybackStats, PlayerEngine, PlayerEngineHarness, RepeatMode,
-    engine_event_to_json, engine_state_apply, engine_state_default, player_engine_contract_cases,
+    ContractFixture, EngineListener, PlayerEngine, PlayerEngineHarness, engine_event_to_json,
+    engine_state_apply, engine_state_default, player_engine_contract_cases,
     player_engine_contract_run,
 };
 use pa_playback::contract;
-use pa_playback::{MockEngine, PlayerEngine as CoreEngine};
+use pa_playback::{
+    EngineError, EngineEvent, EngineKind, EngineState, MockEngine, OpenRequest, PlaybackStats,
+    PlayerEngine as CoreEngine, RepeatMode,
+};
 
 /// Forwards core events to an FFI listener.
 struct ToFfi(Arc<dyn EngineListener>);
