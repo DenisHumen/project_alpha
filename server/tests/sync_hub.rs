@@ -426,14 +426,14 @@ async fn load_50_devices_10_messages_per_second() {
             for n in 0..SECONDS * PER_SECOND {
                 tick.tick().await;
                 let msg = if n % PER_SECOND == PER_SECOND - 1 {
-                    let op = progress_op(&device, i as u32, n * 1000, 1_763_000_000_000 + n);
+                    let op = progress_op(&device, i as u32 + 1, n * 1000, 1_763_000_000_000 + n);
                     ops_sent.lock().unwrap().insert(op.op_id, Instant::now());
                     ops += 1;
                     Message::Op(OpFrame::plain(&op).unwrap())
                 } else {
                     // `position_ms` carries the send time for the receivers.
                     pbs += 1;
-                    Message::PbUpdate(pb(&device, i as u32, micros(), 1_763_000_000_000 + n))
+                    Message::PbUpdate(pb(&device, i as u32 + 1, micros(), 1_763_000_000_000 + n))
                 };
                 let frame = proto::encode(&msg).unwrap();
                 tx.send(WsMessage::Text(frame.into())).await.unwrap();
