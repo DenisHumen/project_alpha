@@ -33,7 +33,8 @@ const Set<String> ignoredFolders = {
 };
 
 final RegExp _extraFileRe = RegExp(
-  r'(?:^|[\s._\-\[(])(?:sample|trailer|teaser)(?:[\s._\-\])]|$)'
+  r'^(?:sample|trailer|teaser)(?:[\s._\-]|$)'
+  r'|[\s._\-\[(](?:sample|trailer|teaser)[\])]?$'
   r'|-(?:featurette|deleted|behindthescenes|interview|scene|short|other|extra)$',
   caseSensitive: false,
 );
