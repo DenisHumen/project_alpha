@@ -67,9 +67,9 @@ fn temp_db(name: &str) -> PathBuf {
     ))
 }
 
-fn remove_db(path: &PathBuf) {
+fn remove_db(path: &std::path::Path) {
     for suffix in ["", "-wal", "-shm"] {
-        let mut p = path.clone().into_os_string();
+        let mut p = path.as_os_str().to_owned();
         p.push(suffix);
         let _ = std::fs::remove_file(p);
     }
