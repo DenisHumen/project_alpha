@@ -148,11 +148,15 @@ impl PlatformDirs {
                 }
             }
             Platform::Windows => {
-                let local = ::dirs::data_local_dir().ok_or_else(required)?.join(app_dir_name);
+                let local = ::dirs::data_local_dir()
+                    .ok_or_else(required)?
+                    .join(app_dir_name);
                 Self {
                     cache: local.join("cache"),
                     data: local,
-                    config: ::dirs::config_dir().ok_or_else(required)?.join(app_dir_name),
+                    config: ::dirs::config_dir()
+                        .ok_or_else(required)?
+                        .join(app_dir_name),
                 }
             }
             Platform::Linux | Platform::Other => {

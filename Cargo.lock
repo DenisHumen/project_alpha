@@ -753,6 +753,10 @@ dependencies = [
 name = "pa-ffi"
 version = "0.1.0"
 dependencies = [
+ "pa-runtime",
+ "serde_json",
+ "tempfile",
+ "thiserror",
  "uniffi",
 ]
 

@@ -32,9 +32,9 @@ mod paths;
 mod runtime;
 mod settings;
 
-pub use paths::{DEFAULT_APP_DIR_NAME, Platform, PlatformDirs};
 pub use error::{RuntimeError, SettingsError};
 pub use host::{LifecycleState, PlatformHost};
+pub use paths::{DEFAULT_APP_DIR_NAME, Platform, PlatformDirs};
 pub use runtime::{Runtime, RuntimeConfig};
 pub use settings::{
     EXPORT_FORMAT, EXPORT_VERSION, ImportMode, MAX_SETTING_KEY_LEN, SCHEMA_VERSION, SETTINGS_FILE,

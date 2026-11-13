@@ -101,7 +101,8 @@ impl Settings {
         conn.busy_timeout(BUSY_TIMEOUT)?;
         // WAL survives a process kill without losing committed writes and
         // lets readers run during writes.
-        let _mode: String = conn.pragma_update_and_check(None, "journal_mode", "WAL", |r| r.get(0))?;
+        let _mode: String =
+            conn.pragma_update_and_check(None, "journal_mode", "WAL", |r| r.get(0))?;
         conn.pragma_update(None, "synchronous", "NORMAL")?;
         Self::from_connection(conn)
     }
@@ -143,11 +144,9 @@ impl Settings {
         validate_key(key)?;
         self.with_conn(|conn| {
             let text: Option<String> = conn
-                .query_row(
-                    "SELECT value FROM settings WHERE key = ?1",
-                    [key],
-                    |r| r.get(0),
-                )
+                .query_row("SELECT value FROM settings WHERE key = ?1", [key], |r| {
+                    r.get(0)
+                })
                 .optional()?;
             Ok(text.map(|t| serde_json::from_str(&t)).transpose()?)
         })
@@ -226,7 +225,11 @@ impl Settings {
 
     /// Writes an export document into the store in one transaction: either
     /// every key is imported or none. Returns the number of imported keys.
-    pub fn import(&self, export: &SettingsExport, mode: ImportMode) -> Result<usize, SettingsError> {
+    pub fn import(
+        &self,
+        export: &SettingsExport,
+        mode: ImportMode,
+    ) -> Result<usize, SettingsError> {
         if export.format != EXPORT_FORMAT {
             return Err(SettingsError::InvalidExport(format!(
                 "format is {:?}, expected {EXPORT_FORMAT:?}",
@@ -260,8 +263,8 @@ impl Settings {
 
     /// Parses `json` as an export document and [`import`](Self::import)s it.
     pub fn import_json(&self, json: &str, mode: ImportMode) -> Result<usize, SettingsError> {
-        let export: SettingsExport = serde_json::from_str(json)
-            .map_err(|e| SettingsError::InvalidExport(e.to_string()))?;
+        let export: SettingsExport =
+            serde_json::from_str(json).map_err(|e| SettingsError::InvalidExport(e.to_string()))?;
         self.import(&export, mode)
     }
 
@@ -379,7 +382,13 @@ mod tests {
     #[test]
     fn keys_are_validated() {
         let s = Settings::open_in_memory().unwrap();
-        for bad in ["", "UI.theme", "ui theme", "ключ", &"a".repeat(MAX_SETTING_KEY_LEN + 1)] {
+        for bad in [
+            "",
+            "UI.theme",
+            "ui theme",
+            "ключ",
+            &"a".repeat(MAX_SETTING_KEY_LEN + 1),
+        ] {
             assert!(
                 matches!(s.set(bad, &1), Err(SettingsError::InvalidKey(_))),
                 "{bad:?} accepted"
@@ -405,7 +414,9 @@ mod tests {
                 .unwrap();
         }
         let err = Settings::open(&path).expect_err("downgrade must fail");
-        assert!(matches!(err, SettingsError::SchemaTooNew { found, .. } if found == SCHEMA_VERSION + 1));
+        assert!(
+            matches!(err, SettingsError::SchemaTooNew { found, .. } if found == SCHEMA_VERSION + 1)
+        );
     }
 
     #[test]
@@ -416,7 +427,10 @@ mod tests {
         s.set("ui.theme", "light").unwrap();
         s.close().unwrap();
         let s = Settings::open(&path).unwrap();
-        assert_eq!(s.get::<String>("ui.theme").unwrap().as_deref(), Some("light"));
+        assert_eq!(
+            s.get::<String>("ui.theme").unwrap().as_deref(),
+            Some("light")
+        );
         assert_eq!(s.schema_version().unwrap(), SCHEMA_VERSION);
     }
 
@@ -424,8 +438,11 @@ mod tests {
     fn export_import_round_trip() {
         let a = Settings::open_in_memory().unwrap();
         a.set("ui.theme", "dark").unwrap();
-        a.set("player.subtitles", &json!({"size": 42, "langs": ["ru", "en"]}))
-            .unwrap();
+        a.set(
+            "player.subtitles",
+            &json!({"size": 42, "langs": ["ru", "en"]}),
+        )
+        .unwrap();
         a.set("player.hw-decoding", &true).unwrap();
         let json = a.export_json().unwrap();
 
@@ -445,7 +462,10 @@ mod tests {
         dst.set("player.volume", &10).unwrap();
         dst.import(&export, ImportMode::Merge).unwrap();
         assert_eq!(dst.keys().unwrap(), ["player.volume", "ui.theme"]);
-        assert_eq!(dst.get::<String>("ui.theme").unwrap().as_deref(), Some("dark"));
+        assert_eq!(
+            dst.get::<String>("ui.theme").unwrap().as_deref(),
+            Some("dark")
+        );
 
         dst.import(&export, ImportMode::Replace).unwrap();
         assert_eq!(dst.keys().unwrap(), ["ui.theme"]);
@@ -464,7 +484,10 @@ mod tests {
             assert!(s.import_json(doc, ImportMode::Replace).is_err(), "{doc}");
         }
         assert_eq!(s.keys().unwrap(), ["ui.theme"]);
-        assert_eq!(s.get::<String>("ui.theme").unwrap().as_deref(), Some("light"));
+        assert_eq!(
+            s.get::<String>("ui.theme").unwrap().as_deref(),
+            Some("light")
+        );
     }
 
     #[test]
@@ -473,7 +496,10 @@ mod tests {
         s.close().unwrap();
         s.close().unwrap();
         assert!(s.is_closed());
-        assert!(matches!(s.get_value("ui.theme"), Err(SettingsError::Closed)));
+        assert!(matches!(
+            s.get_value("ui.theme"),
+            Err(SettingsError::Closed)
+        ));
         assert!(matches!(s.set("ui.theme", "x"), Err(SettingsError::Closed)));
     }
 }
