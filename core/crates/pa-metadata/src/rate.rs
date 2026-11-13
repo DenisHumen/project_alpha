@@ -20,15 +20,43 @@ pub struct RateLimit {
     pub per_second: f64,
 }
 
+impl RateLimit {
+    /// A bucket that never lets more than `per_minute` requests through in
+    /// any 60-second window, `burst` of them back to back.
+    ///
+    /// A token bucket admits at most `burst + per_second × window` requests
+    /// in a window, so the refill rate is `(per_minute − burst) / 60`. A
+    /// small burst also keeps short windows low: with `burst = 3` and 90/min
+    /// at most 4 requests fall into any one second.
+    pub fn per_minute(per_minute: u32, burst: u32) -> Self {
+        let burst = burst.clamp(1, per_minute.max(2) - 1);
+        Self {
+            burst,
+            per_second: f64::from(per_minute.saturating_sub(burst).max(1)) / 60.0,
+        }
+    }
+
+    fn sanitized(self) -> Self {
+        Self {
+            burst: self.burst.max(1),
+            per_second: if self.per_second > 0.0 {
+                self.per_second
+            } else {
+                1.0
+            },
+        }
+    }
+}
+
 /// Shared token bucket.
 #[derive(Debug)]
 pub struct RateLimiter {
-    limit: RateLimit,
     state: Mutex<BucketState>,
 }
 
 #[derive(Debug)]
 struct BucketState {
+    limit: RateLimit,
     tokens: f64,
     last: Option<Duration>,
     paused_until: Duration,
@@ -37,17 +65,10 @@ struct BucketState {
 impl RateLimiter {
     /// A full bucket.
     pub fn new(limit: RateLimit) -> Self {
-        let limit = RateLimit {
-            burst: limit.burst.max(1),
-            per_second: if limit.per_second > 0.0 {
-                limit.per_second
-            } else {
-                1.0
-            },
-        };
+        let limit = limit.sanitized();
         Self {
-            limit,
             state: Mutex::new(BucketState {
+                limit,
                 tokens: f64::from(limit.burst),
                 last: None,
                 paused_until: Duration::ZERO,
@@ -59,23 +80,39 @@ impl RateLimiter {
     /// pause has passed. Callers are served one at a time.
     pub fn acquire(&self, clock: &dyn Clock) {
         let mut s = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        let limit = s.limit;
         let now = clock.monotonic();
         if s.paused_until > now {
             clock.sleep(s.paused_until - now);
         }
         let now = clock.monotonic();
         if let Some(last) = s.last {
-            let refill = (now.saturating_sub(last)).as_secs_f64() * self.limit.per_second;
-            s.tokens = (s.tokens + refill).min(f64::from(self.limit.burst));
+            let refill = (now.saturating_sub(last)).as_secs_f64() * limit.per_second;
+            s.tokens = (s.tokens + refill).min(f64::from(limit.burst));
         }
         s.last = Some(now);
         if s.tokens < 1.0 {
-            let wait = Duration::from_secs_f64((1.0 - s.tokens) / self.limit.per_second);
+            let wait = Duration::from_secs_f64((1.0 - s.tokens) / limit.per_second);
             clock.sleep(wait);
             s.last = Some(clock.monotonic());
             s.tokens = 1.0;
         }
         s.tokens -= 1.0;
+    }
+
+    /// The limit in force.
+    pub fn limit(&self) -> RateLimit {
+        self.state.lock().unwrap_or_else(|e| e.into_inner()).limit
+    }
+
+    /// Changes the limit for the following requests (a provider announced a
+    /// different quota). Tokens already in the bucket are kept, capped at the
+    /// new burst, so a lower limit takes effect at once.
+    pub fn set_limit(&self, limit: RateLimit) {
+        let limit = limit.sanitized();
+        let mut s = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        s.limit = limit;
+        s.tokens = s.tokens.min(f64::from(limit.burst));
     }
 
     /// Holds every caller until `delay` from now (after a 429).
@@ -177,6 +214,33 @@ mod tests {
         limiter.pause_for(&clock, Duration::from_secs(5));
         limiter.acquire(&clock);
         assert_eq!(clock.sleeps()[0], Duration::from_secs(5));
+    }
+
+    #[test]
+    fn per_minute_never_exceeds_the_window() {
+        let l = RateLimit::per_minute(30, 2);
+        assert_eq!(l.burst, 2);
+        assert!((l.per_second - 28.0 / 60.0).abs() < 1e-9);
+        let l = RateLimit::per_minute(1, 5);
+        assert_eq!(l.burst, 1);
+        assert!(l.per_second > 0.0);
+    }
+
+    #[test]
+    fn set_limit_caps_tokens() {
+        let clock = ManualClock::default();
+        let limiter = RateLimiter::new(RateLimit {
+            burst: 10,
+            per_second: 10.0,
+        });
+        limiter.set_limit(RateLimit {
+            burst: 1,
+            per_second: 1.0,
+        });
+        limiter.acquire(&clock);
+        limiter.acquire(&clock);
+        assert_eq!(clock.sleeps(), vec![Duration::from_secs(1)]);
+        assert_eq!(limiter.limit().burst, 1);
     }
 
     #[test]

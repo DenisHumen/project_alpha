@@ -543,7 +543,7 @@ project_alpha/
   - Что: сетевой слой вне sans-IO ядра; TMDB: поиск, детали, переводы ru-RU, альтернативные названия, episode groups, external ids, изображения, коллекции; rate limit, ProviderCache с TTL; ключ проекта по умолчанию (по DEC-008) и поле «свой ключ».
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 03 §3.1, §4.7, S §3
   - done when: тесты на записанных ответах; 429 от TMDB обрабатывается backoff-ом; атрибуция TMDB выводится в UI-016.
-- [ ] **META-010** Клиенты AniList и Shikimori
+- [x] **META-010** Клиенты AniList и Shikimori
   - Что: AniList GraphQL (адаптивный лимит 30–90 запросов в минуту, связи сезонов); Shikimori (User-Agent с именем приложения, 5 запросов в секунду и 90 в минуту, русские названия и описания по MAL ID).
   - deps: META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §3.2
   - done when: тесты на записанных ответах; лимиты соблюдаются под нагрузочным тестом.

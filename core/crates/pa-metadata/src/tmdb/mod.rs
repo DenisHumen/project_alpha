@@ -204,15 +204,10 @@ impl TmdbClient {
     /// key (if any) and the given cache.
     #[cfg(feature = "http")]
     pub fn live(config: TmdbConfig, user_key: Option<&str>, cache: Arc<dyn ProviderCache>) -> Self {
-        let ua = concat!(
-            "Kinolune/",
-            env!("CARGO_PKG_VERSION"),
-            " (+https://github.com/DenisHumen/project_alpha)"
-        );
         Self::new(
             config,
             Keys::tmdb_from_build().with_user_key(user_key),
-            Arc::new(crate::http::UreqTransport::new(ua)),
+            Arc::new(crate::http::UreqTransport::new(crate::USER_AGENT)),
             cache,
             Arc::new(crate::clock::SystemClock::default()),
         )

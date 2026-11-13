@@ -10,7 +10,16 @@
 //!
 //! Requests are matched by [`HttpRequest::canonical`] — path plus sorted
 //! query, **without** credentials — so cassettes never contain keys and
-//! replay works with any key. Several lines for the same request are served
+//! replay works with any key. A `POST` additionally matches its JSON body
+//! ([`HttpRequest::canonical_post`]); a GraphQL body is written as its
+//! operation and variables:
+//!
+//! ```json
+//! {"request":{"path":"/","graphql":{"operation":"Search","variables":{"search":"x"}}},
+//!  "response":{"status":200,"body":{"data":{...}}}}
+//! ```
+//!
+//! Other `POST` bodies go to `"body"` as JSON. Several lines for the same request are served
 //! in order and the last one repeats (to script "429, then 200").
 //!
 //! Provider-neutral recording for the eval runner happens one level up
@@ -24,7 +33,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::http::{
-    AUTH_HEADERS, HttpRequest, HttpResponse, HttpTransport, TransportError, encode_component,
+    AUTH_HEADERS, HttpRequest, HttpResponse, HttpTransport, TransportError, canonical_body,
+    encode_component, graphql_parts,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,6 +48,19 @@ struct RecordedRequest {
     path: String,
     #[serde(default)]
     query: BTreeMap<String, String>,
+    /// GraphQL `POST`: operation name and variables.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    graphql: Option<RecordedGraphql>,
+    /// Any other JSON `POST` body.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    body: Option<Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct RecordedGraphql {
+    operation: String,
+    #[serde(default)]
+    variables: Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,7 +82,45 @@ impl RecordedRequest {
             out.push('=');
             encode_component(v, &mut out);
         }
+        if let Some(g) = &self.graphql {
+            let variables = match &g.variables {
+                Value::Null => "{}".to_owned(),
+                v => v.to_string(),
+            };
+            out.push_str(&format!(" graphql:{}{variables}", g.operation));
+        } else if let Some(body) = &self.body {
+            out.push(' ');
+            out.push_str(&canonical_body(body));
+        }
         out
+    }
+
+    fn from_live(request: &HttpRequest, body: Option<&str>) -> Self {
+        let mut recorded = Self {
+            path: request.path.clone(),
+            query: request
+                .query
+                .iter()
+                .filter(|(k, _)| !crate::http::AUTH_QUERY_PARAMS.contains(&k.as_str()))
+                .cloned()
+                .collect(),
+            graphql: None,
+            body: None,
+        };
+        if let Some(body) = body {
+            let value: Value =
+                serde_json::from_str(body).unwrap_or_else(|_| Value::String(body.to_owned()));
+            match graphql_parts(&value) {
+                Some((operation, _)) => {
+                    recorded.graphql = Some(RecordedGraphql {
+                        operation,
+                        variables: value.get("variables").cloned().unwrap_or(Value::Null),
+                    });
+                }
+                None => recorded.body = Some(value),
+            }
+        }
+        recorded
     }
 }
 
@@ -115,20 +176,19 @@ impl ReplayTransport {
             .push_back(response);
     }
 
-    /// Requests received so far, in order, as sent (credentials included —
+    /// Requests received so far (`GET` and `POST`), in order, as sent (credentials included —
     /// tests use this to check how the key is passed).
     pub fn requests(&self) -> Vec<HttpRequest> {
         self.log.lock().unwrap_or_else(|e| e.into_inner()).clone()
     }
 }
 
-impl HttpTransport for ReplayTransport {
-    fn get(&self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
+impl ReplayTransport {
+    fn serve(&self, request: &HttpRequest, key: String) -> Result<HttpResponse, TransportError> {
         self.log
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .push(request.clone());
-        let key = request.canonical();
         let mut routes = self.routes.lock().unwrap_or_else(|e| e.into_inner());
         let queue = routes
             .get_mut(&key)
@@ -139,6 +199,16 @@ impl HttpTransport for ReplayTransport {
             queue.front().cloned()
         };
         response.ok_or_else(|| TransportError(format!("not in cassette: {key}")))
+    }
+}
+
+impl HttpTransport for ReplayTransport {
+    fn get(&self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
+        self.serve(request, request.canonical())
+    }
+
+    fn post_json(&self, request: &HttpRequest, body: &str) -> Result<HttpResponse, TransportError> {
+        self.serve(request, request.canonical_post(body))
     }
 }
 
@@ -168,19 +238,15 @@ impl<T: HttpTransport> RecordingTransport<T> {
     }
 }
 
-impl<T: HttpTransport> HttpTransport for RecordingTransport<T> {
-    fn get(&self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
-        let response = self.inner.get(request)?;
+impl<T: HttpTransport> RecordingTransport<T> {
+    fn record(
+        &self,
+        request: &HttpRequest,
+        body: Option<&str>,
+        response: &HttpResponse,
+    ) -> Result<(), TransportError> {
         let exchange = Exchange {
-            request: RecordedRequest {
-                path: request.path.clone(),
-                query: request
-                    .query
-                    .iter()
-                    .filter(|(k, _)| !crate::http::AUTH_QUERY_PARAMS.contains(&k.as_str()))
-                    .cloned()
-                    .collect(),
-            },
+            request: RecordedRequest::from_live(request, body),
             response: RecordedResponse {
                 status: response.status,
                 headers: response
@@ -200,6 +266,20 @@ impl<T: HttpTransport> HttpTransport for RecordingTransport<T> {
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .push(line);
+        Ok(())
+    }
+}
+
+impl<T: HttpTransport> HttpTransport for RecordingTransport<T> {
+    fn get(&self, request: &HttpRequest) -> Result<HttpResponse, TransportError> {
+        let response = self.inner.get(request)?;
+        self.record(request, None, &response)?;
+        Ok(response)
+    }
+
+    fn post_json(&self, request: &HttpRequest, body: &str) -> Result<HttpResponse, TransportError> {
+        let response = self.inner.post_json(request, body)?;
+        self.record(request, Some(body), &response)?;
         Ok(response)
     }
 }
@@ -261,5 +341,53 @@ mod tests {
             replay.get(&request("/a", &[("q", "1")])).unwrap().body,
             r#"{"v":1}"#
         );
+    }
+
+    #[test]
+    fn graphql_post_records_operation_and_replays() {
+        let cassette = r#"{"request":{"path":"/","graphql":{"operation":"Media","variables":{"id":7}}},"response":{"status":200,"body":{"data":{"Media":{"id":7}}}}}"#;
+        let t = ReplayTransport::from_jsonl(cassette).unwrap();
+        let r = request("/", &[]);
+        let body =
+            r#"{"query":"query Media($id: Int) { Media(id: $id) { id } }","variables":{"id":7}}"#;
+        assert_eq!(
+            t.post_json(&r, body).unwrap().body,
+            r#"{"data":{"Media":{"id":7}}}"#
+        );
+        assert!(t.get(&r).is_err(), "GET does not match a POST line");
+        assert!(
+            t.post_json(&r, r#"{"query":"query Media { x }","variables":{"id":8}}"#)
+                .is_err()
+        );
+
+        let rec = RecordingTransport::new(t);
+        rec.post_json(&r, body).unwrap();
+        let jsonl = rec.to_jsonl();
+        assert!(
+            jsonl.contains(r#""graphql":{"operation":"Media","variables":{"id":7}}"#),
+            "{jsonl}"
+        );
+        assert!(
+            !jsonl.contains("query Media"),
+            "query text is not recorded: {jsonl}"
+        );
+        let replay = ReplayTransport::from_jsonl(&jsonl).unwrap();
+        assert!(replay.post_json(&r, body).is_ok());
+
+        let plain = ReplayTransport::from_jsonl(
+            r#"{"request":{"path":"/p","body":{"b":1,"a":[1]}},"response":{"status":201}}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            plain
+                .post_json(&r_path("/p"), r#"{"a":[1],"b":1}"#)
+                .unwrap()
+                .status,
+            201
+        );
+    }
+
+    fn r_path(path: &str) -> HttpRequest {
+        request(path, &[])
     }
 }
