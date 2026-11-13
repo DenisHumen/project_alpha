@@ -1526,11 +1526,11 @@ project_alpha/
   - Что: некоммерческий open source с добровольными донатами и публикацией в сторах — запросить письменное подтверждение условий и атрибуции.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: S §5, 03 §3.1
   - done when: письменный ответ сохранён в `docs/legal/`.
-- [ ] **LEGAL-002** Таблица условий провайдеров
+- [x] **LEGAL-002** Таблица условий провайдеров
   - Что: AniDB (регистрация UDP и HTTP клиента), AniList, Shikimori, OpenSubtitles, Fanart.tv, MusicBrainz, AcoustID, LRCLIB, Trakt (client secret в open source), TVDB, 7TV, BTTV, FFZ; что разрешено с ключом проекта и что только с ключом пользователя.
   - deps: — · size: M · parallel: yes · веха: M1 · ref: 03 §3, §3.5, 06 §3.2
   - done when: `docs/legal/providers.md`; регистрации клиентов (AniDB, Twitch dev, OpenSubtitles) выполнены владельцем.
-- [ ] **LEGAL-003** Лицензии данных маппингов аниме
+- [x] **LEGAL-003** Лицензии данных маппингов аниме
   - Что: Anime-Lists и Fribb — лицензия не указана: открыть issue с запросом; anime-offline-database (ODbL, share-alike) — условия встраивания в бандл.
   - deps: — · size: S · parallel: yes · веха: M1 · ref: 03 §3.2, §4.7
   - done when: решение по каждому источнику записано; META-008 опирается на него.
