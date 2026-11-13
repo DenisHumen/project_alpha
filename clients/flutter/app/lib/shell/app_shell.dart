@@ -221,7 +221,6 @@ class _MiniPlayer extends StatelessWidget {
             ),
             child: NowPlayingBar(
               controller: services.music,
-              subtitle: services.trackSubtitles[services.music.current?.uri],
               onOpen: () => openNowPlaying(context),
             ),
           ),
@@ -283,11 +282,10 @@ class _SidebarLayout extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             LinearProgressIndicator(
-                              value:
-                                  (services.scanProgress?.filesFound ?? 0) == 0
+                              value: (services.scanProgress?.total ?? 0) == 0
                                   ? null
-                                  : services.scanProgress!.filesProcessed /
-                                        services.scanProgress!.filesFound,
+                                  : services.scanProgress!.processed /
+                                        services.scanProgress!.total!,
                             ),
                           ],
                         ),

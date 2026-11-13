@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/integration/library.dart';
+import 'package:kinolune/integration/player.dart';
 import 'package:kinolune/platform/form_factor.dart';
 import 'package:kinolune/shell/app_shell.dart';
 import 'package:material_ui/material_ui.dart';
@@ -95,8 +96,8 @@ void main() {
       await tester.tap(find.text('Play'));
       await settle(tester, 3);
       expect(services.music.current?.title, 'Streetlamp Waltz');
-      expect(find.text('Velvet Static · Nocturne Avenue'), findsOneWidget);
-      services.music.stop();
+      expect(find.byType(NowPlayingBar), findsOneWidget);
+      services.music.pause();
       await settle(tester, 2);
     });
 
@@ -130,7 +131,7 @@ void main() {
       await tester.tap(find.text('Add and scan'));
       await settle(tester, 20);
       expect(services.sources.single.path, '/srv/media');
-      expect(services.scanProgress?.done, isTrue);
+      expect(services.scanProgress?.isDone, isTrue);
       expect(find.text('Recently Added Movies'), findsOneWidget);
     });
 
@@ -183,7 +184,7 @@ void main() {
       await tester.tap(find.text('Save'));
       await settle(tester, 3);
       expect(await services.tmdbKey(), 'abc123');
-      expect((services.library as FakeLibrary).tmdbApiKey, 'abc123');
+      expect(await services.library.tmdbApiKey(), 'abc123');
     });
   });
 

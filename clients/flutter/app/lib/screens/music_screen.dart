@@ -306,7 +306,7 @@ class TrackTile extends StatelessWidget {
                           size: 18,
                         )
                       : Text(
-                          '${track.episode ?? ''}',
+                          '${track.trackNumber ?? ''}',
                           style: theme.textTheme.labelMedium,
                         ),
                 ),

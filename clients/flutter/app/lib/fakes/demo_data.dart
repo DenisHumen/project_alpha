@@ -289,7 +289,7 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
           artist: artist,
           album: album,
           year: year,
-          episode: n + 1, // track number
+          trackNumber: n + 1,
           filePath:
               '/media/Music/$artist/$album/${(n + 1).toString().padLeft(2, '0')} ${names[n]}.flac',
           durationMs: (150 + (n * 37 + album.length * 11) % 130) * 1000,

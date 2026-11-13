@@ -13,6 +13,7 @@ import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/services/secure_store.dart';
 import 'package:kinolune/shell/app_shell.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:pa_player/testing.dart';
 
 bool _fontsLoaded = false;
 
@@ -80,6 +81,7 @@ Future<AppServices> demoServices({bool empty = false}) async {
         ? FakeLibrary(scanStepDelay: Duration.zero)
         : FakeLibrary.demo(scanStepDelay: Duration.zero),
     secureStore: MemorySecureStore(),
+    playerEngineFactory: ({bool video = true}) => FakePlayerEngine(),
   );
   await s.init();
   return s;

@@ -34,6 +34,7 @@ class _AddSourceDialog extends StatefulWidget {
 
 class _AddSourceDialogState extends State<_AddSourceDialog> {
   SourceKind _kind = SourceKind.localFolder;
+  static final _smbUnsupported = Platform.isAndroid;
   final _name = TextEditingController();
   final _path = TextEditingController();
   final _smbUrl = TextEditingController(text: 'smb://');
@@ -147,16 +148,22 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SegmentedButton<SourceKind>(
-                segments: const [
-                  ButtonSegment(
+                segments: [
+                  const ButtonSegment(
                     value: SourceKind.localFolder,
                     icon: Icon(Icons.folder_outlined),
                     label: Text('Folder'),
                   ),
+                  // pa_library 0.1 has no SMB client on Android (SmbUnsupportedException).
                   ButtonSegment(
                     value: SourceKind.smb,
-                    icon: Icon(Icons.lan_outlined),
-                    label: Text('SMB share (beta)'),
+                    enabled: !_smbUnsupported,
+                    icon: const Icon(Icons.lan_outlined),
+                    label: Text(
+                      _smbUnsupported
+                          ? 'SMB (coming soon)'
+                          : 'SMB share (beta)',
+                    ),
                   ),
                 ],
                 selected: {_kind},

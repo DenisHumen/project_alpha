@@ -253,8 +253,13 @@ class _ScanSection extends StatelessWidget {
     final String status;
     if (p == null) {
       status = 'Not scanned in this session.';
-    } else if (!p.done) {
-      status = 'Scanning… ${p.filesProcessed} of ${p.filesFound} files';
+    } else if (services.scanning) {
+      status = switch (p.phase) {
+        ScanPhase.connecting => 'Connecting…',
+        ScanPhase.metadata =>
+          'Fetching posters and descriptions… ${p.processed} of ${p.total ?? p.filesFound}',
+        _ => 'Scanning… ${p.processed} of ${p.total ?? p.filesFound} files',
+      };
     } else if (p.error != null) {
       status = 'Scan finished with an error: ${p.error}';
     } else {
@@ -277,12 +282,12 @@ class _ScanSection extends StatelessWidget {
             Expanded(child: Text(status, style: theme.textTheme.bodySmall)),
           ],
         ),
-        if (p != null && !p.done) ...[
+        if (p != null && services.scanning) ...[
           const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: p.filesFound == 0 ? null : p.filesProcessed / p.filesFound,
+              value: (p.total ?? 0) == 0 ? null : p.processed / p.total!,
               minHeight: 6,
             ),
           ),

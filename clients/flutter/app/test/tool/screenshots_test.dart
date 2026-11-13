@@ -132,7 +132,7 @@ void main() {
         await shot.setup?.call(tester, services);
         await settle(tester, 8);
         await capture(tester, '$prefix-${shot.name}');
-        services.music.stop();
+        services.music.pause();
         await tester.pumpWidget(const SizedBox());
         await settle(tester, 2);
       });

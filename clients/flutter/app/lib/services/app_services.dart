@@ -14,15 +14,16 @@ class AppServices extends ChangeNotifier {
     required this.library,
     required this.secureStore,
     MusicPlayerController? music,
-  }) : music = music ?? MusicPlayerController();
+    this.playerEngineFactory,
+  }) : music =
+           music ?? MusicPlayerController(engineFactory: playerEngineFactory);
 
   final Library library;
   final SecureStore secureStore;
   final MusicPlayerController music;
 
-  /// Subtitle (artist · album) for the current music queue; the contract's
-  /// PlayRequest carries only a title.
-  final Map<String, String> trackSubtitles = {};
+  /// Overrides the media_kit engine (tests use pa_player's FakePlayerEngine).
+  final PlayerEngineFactory? playerEngineFactory;
 
   List<MediaSource> _sources = const [];
   List<MediaSource> get sources => _sources;
@@ -30,8 +31,9 @@ class AppServices extends ChangeNotifier {
   bool get loaded => _loaded;
 
   ScanProgress? _scan;
+  bool _scanRunning = false;
   ScanProgress? get scanProgress => _scan;
-  bool get scanning => _scan != null && !_scan!.done;
+  bool get scanning => _scanRunning;
 
   Future<void> init() async {
     _sources = await library.sources();
@@ -63,41 +65,40 @@ class AppServices extends ChangeNotifier {
 
   /// Scans one source or all of them; progress is published via [scanProgress].
   Future<void> scan({String? sourceId}) async {
-    if (scanning) return;
+    if (_scanRunning) return;
     final targets = sourceId == null
         ? _sources
         : _sources.where((s) => s.id == sourceId).toList();
-    _scan = ScanProgress(filesFound: 0, filesProcessed: 0);
+    _scanRunning = true;
+    _scan = const ScanProgress(phase: ScanPhase.connecting);
     notifyListeners();
+    final errors = <String>[];
+    var found = 0;
     try {
       for (final s in targets) {
         final pwd = s.kind == SourceKind.smb
             ? await secureStore.read(SecureStore.smbPassword(s.id))
             : null;
         await for (final p in library.scan(sourceId: s.id, smbPassword: pwd)) {
-          _scan = ScanProgress(
-            filesFound: p.filesFound,
-            filesProcessed: p.filesProcessed,
-            currentPath: p.currentPath,
-            error: p.error,
-          );
+          _scan = p;
+          if (p.isDone) {
+            found += p.filesFound;
+            if (p.error != null) errors.add('${s.name}: ${p.error}');
+          }
           notifyListeners();
         }
       }
-      _scan = ScanProgress(
-        filesFound: _scan?.filesFound ?? 0,
-        filesProcessed: _scan?.filesFound ?? 0,
-        done: true,
-        error: _scan?.error,
-      );
     } catch (e) {
-      _scan = ScanProgress(
-        filesFound: 0,
-        filesProcessed: 0,
-        done: true,
-        error: '$e',
-      );
+      errors.add('$e');
     }
+    _scanRunning = false;
+    _scan = ScanProgress(
+      phase: ScanPhase.done,
+      filesFound: found,
+      processed: found,
+      total: found,
+      error: errors.isEmpty ? null : errors.join('\n'),
+    );
     notifyListeners();
   }
 

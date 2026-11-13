@@ -9,6 +9,7 @@ import 'branding.dart';
 import 'config.dart';
 import 'fakes/fake_library.dart';
 import 'integration/library.dart';
+import 'integration/player.dart';
 import 'platform/form_factor.dart';
 import 'platform/libmpv_check.dart';
 import 'services/app_services.dart';
@@ -16,6 +17,7 @@ import 'services/secure_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ensurePaPlayerInitialized();
   LicenseRegistry.addLicense(() async* {
     yield const LicenseEntryWithLineBreaks(
       [kAppName],

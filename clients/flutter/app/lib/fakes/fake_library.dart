@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 //
-// In-memory implementation of the pa_library `Library` interface.
+// In-memory implementation of the pa_library `Library` interface for the demo
+// mode, screenshots and widget tests.
 //
 // * `FakeLibrary()` starts empty (onboarding is shown); a scan "finds" the
-//   demo library so the whole flow can be tried before R01-LIB lands.
-// * `FakeLibrary.demo()` starts with the demo library (screenshots, tests,
-//   `--dart-define=KINOLUNE_DEMO=true`).
+//   demo library so the whole flow can be tried without media files.
+// * `FakeLibrary.demo()` starts with the demo library
+//   (`--dart-define=KINOLUNE_DEMO=true`).
 
 import 'dart:async';
 
@@ -17,7 +18,7 @@ class FakeLibrary implements Library {
 
   FakeLibrary.demo({this.scanStepDelay = const Duration(milliseconds: 60)}) {
     _sources.add(
-      MediaSource(
+      const MediaSource(
         id: 'src-demo',
         kind: SourceKind.localFolder,
         name: 'Demo library',
@@ -31,7 +32,7 @@ class FakeLibrary implements Library {
   final List<MediaSource> _sources = [];
   final _items = _Live<List<LibraryItem>>(const []);
   final _progress = _Live<Map<String, Progress>>(const {});
-  String? tmdbApiKey;
+  String? _tmdbApiKey;
   int _nextId = 1;
 
   void _load(DemoLibraryData d) {
@@ -44,9 +45,9 @@ class FakeLibrary implements Library {
 
   @override
   Future<MediaSource> addSource(MediaSource s) async {
-    if (s.id.isEmpty) s.id = 'src-${_nextId++}';
-    _sources.add(s);
-    return s;
+    final src = s.id.isEmpty ? s.copyWith(id: 'src-${_nextId++}') : s;
+    _sources.add(src);
+    return src;
   }
 
   @override
@@ -61,31 +62,42 @@ class FakeLibrary implements Library {
   @override
   Stream<ScanProgress> scan({String? sourceId, String? smbPassword}) async* {
     if (_sources.isEmpty) {
-      yield ScanProgress(
-        filesFound: 0,
-        filesProcessed: 0,
-        done: true,
-        error: 'No sources',
-      );
+      yield const ScanProgress(phase: ScanPhase.done, error: 'No sources');
       return;
     }
+    yield ScanProgress(phase: ScanPhase.connecting, sourceId: sourceId);
     final data = buildDemoLibraryData();
     final all = [...data.movies, ...data.episodes, ...data.tracks];
     final total = all.length;
     for (var i = 0; i < total; i += 7) {
       await Future<void>.delayed(scanStepDelay);
       yield ScanProgress(
+        phase: ScanPhase.scanning,
+        sourceId: sourceId,
         filesFound: total,
-        filesProcessed: i,
+        processed: i,
+        total: total,
         currentPath: all[i].filePath,
       );
     }
     _load(data);
-    yield ScanProgress(filesFound: total, filesProcessed: total, done: true);
+    yield ScanProgress(
+      phase: ScanPhase.done,
+      sourceId: sourceId,
+      filesFound: total,
+      processed: total,
+      total: total,
+    );
   }
 
   @override
-  Future<void> setTmdbApiKey(String? key) async => tmdbApiKey = key;
+  Future<void> setTmdbApiKey(String? key) async => _tmdbApiKey = key;
+
+  @override
+  Future<String?> tmdbApiKey() async => _tmdbApiKey;
+
+  @override
+  Future<void> setMetadataLanguage(String? language) async {}
 
   Stream<List<LibraryItem>> _ofKind(
     ItemKind kind, [
@@ -116,6 +128,39 @@ class FakeLibrary implements Library {
   Stream<List<LibraryItem>> tracks() => _ofKind(ItemKind.track);
 
   @override
+  Stream<List<LibraryItem>> recentlyAdded({
+    ItemKind kind = ItemKind.movie,
+    int limit = 20,
+  }) => _ofKind(kind).map((l) => l.take(limit).toList());
+
+  @override
+  Future<LibraryItem?> item(String id) async {
+    for (final i in _items.value) {
+      if (i.id == id) return i;
+    }
+    return null;
+  }
+
+  @override
+  Future<Progress?> progress(String itemId) async => _progress.value[itemId];
+
+  @override
+  Future<List<LibraryItem>> search(String query, {int limit = 100}) async {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return const [];
+    return _items.value
+        .where(
+          (i) =>
+              i.kind != ItemKind.episode &&
+              (i.title.toLowerCase().contains(q) ||
+                  (i.artist?.toLowerCase().contains(q) ?? false) ||
+                  (i.album?.toLowerCase().contains(q) ?? false)),
+        )
+        .take(limit)
+        .toList();
+  }
+
+  @override
   Stream<List<(LibraryItem, Progress)>> continueWatching() {
     final ctrl = StreamController<List<(LibraryItem, Progress)>>();
     List<LibraryItem> items = _items.value;
@@ -133,8 +178,8 @@ class FakeLibrary implements Library {
       ctrl.add(list);
     }
 
-    late StreamSubscription<List<LibraryItem>> s1;
-    late StreamSubscription<Map<String, Progress>> s2;
+    StreamSubscription<List<LibraryItem>>? s1;
+    StreamSubscription<Map<String, Progress>>? s2;
     ctrl.onListen = () {
       s1 = _items.stream.listen((v) {
         items = v;
@@ -146,19 +191,25 @@ class FakeLibrary implements Library {
       });
     };
     ctrl.onCancel = () async {
-      await s1.cancel();
-      await s2.cancel();
+      await s1?.cancel();
+      await s2?.cancel();
     };
     return ctrl.stream;
   }
 
-  /// Not part of the contract: progress lookup used by fakes/tests.
-  Progress? progressOf(String itemId) => _progress.value[itemId];
-
   @override
   Future<void> saveProgress(Progress p) async {
-    if (p.durationMs > 0 && p.positionMs / p.durationMs > .95) p.watched = true;
-    _progress.value = {..._progress.value, p.itemId: p};
+    final watched = p.durationMs > 0 && p.positionMs / p.durationMs > .95;
+    _progress.value = {
+      ..._progress.value,
+      p.itemId: Progress(
+        itemId: p.itemId,
+        positionMs: p.positionMs,
+        durationMs: p.durationMs,
+        updatedAt: p.updatedAt,
+        watched: p.watched || watched,
+      ),
+    };
   }
 
   @override
@@ -171,14 +222,34 @@ class FakeLibrary implements Library {
     _items.value = [
       for (final i in _items.value)
         if (i.id == itemId)
-          (i
-            ..title = (title != null && title.isNotEmpty) ? title : i.title
-            ..year = year ?? i.year
-            ..matchConfidence = 1.0)
+          LibraryItem(
+            id: i.id,
+            kind: i.kind,
+            title: (title != null && title.isNotEmpty) ? title : i.title,
+            filePath: i.filePath,
+            originalTitle: i.originalTitle,
+            year: year ?? i.year,
+            overview: i.overview,
+            posterUrl: i.posterUrl,
+            backdropUrl: i.backdropUrl,
+            showId: i.showId,
+            season: i.season,
+            episode: i.episode,
+            artist: i.artist,
+            album: i.album,
+            trackNumber: i.trackNumber,
+            durationMs: i.durationMs,
+            matchConfidence: 1.0,
+            tmdbId: tmdbId ?? i.tmdbId,
+            addedAt: i.addedAt,
+          )
         else
           i,
     ];
   }
+
+  @override
+  Future<void> close() async {}
 }
 
 /// A tiny "behaviour subject": new listeners get the current value first.

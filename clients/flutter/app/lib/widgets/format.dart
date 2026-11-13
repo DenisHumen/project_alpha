@@ -49,7 +49,7 @@ List<Album> groupAlbums(List<LibraryItem> tracks) {
         .add(t);
   }
   for (final a in map.values) {
-    a.tracks.sort((x, y) => (x.episode ?? 0).compareTo(y.episode ?? 0));
+    a.tracks.sort((x, y) => (x.trackNumber ?? 0).compareTo(y.trackNumber ?? 0));
   }
   return map.values.toList();
 }
