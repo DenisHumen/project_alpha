@@ -195,7 +195,18 @@ write_mpv_link_file() { # <file>
         # libplacebo has C++ parts: link the NDK's static libc++ into libmpv.
         android) args="$args -Wl,--no-undefined -lc++_static -lc++abi" ;;
     esac
-    local out="" w
+    local out="" w cflags=""
     for w in $args; do out="$out'$w', "; done
-    printf '[built-in options]\nc_link_args = [%s]\n' "${out%, }" > "$1"
+    {
+        # mpv enables Objective-C on macOS (add_languages('objc')): the cross
+        # file must name the compiler, with the same target and sysroot.
+        if [ "$T_OS" = darwin ]; then
+            for w in $T_CFLAGS; do cflags="$cflags'$w', "; done
+            printf "[binaries]\nobjc = '%s'\n\n" "$CC"
+        fi
+        printf '[built-in options]\nc_link_args = [%s]\n' "${out%, }"
+        if [ "$T_OS" = darwin ]; then
+            printf 'objc_args = [%s]\nobjc_link_args = [%s]\n' "${cflags%, }" "${out%, }"
+        fi
+    } > "$1"
 }
