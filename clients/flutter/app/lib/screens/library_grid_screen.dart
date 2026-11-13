@@ -101,7 +101,9 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: PageTitle(
-                  libraryTab ? l.navLibrary : (movies ? l.navMovies : l.navShows),
+                  libraryTab
+                      ? l.navLibrary
+                      : (movies ? l.navMovies : l.navShows),
                   trailing: Text(
                     movies
                         ? l.libraryMovieCount(all.length)

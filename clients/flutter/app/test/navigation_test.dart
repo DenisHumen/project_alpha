@@ -60,7 +60,12 @@ void main() {
       ('phone', FormFactor.phone, _phone, 'tabs'),
       ('tablet portrait', FormFactor.phone, _tablet, 'rail'),
       ('tablet landscape', FormFactor.phone, const Size(1180, 820), 'sidebar'),
-      ('narrow desktop window', FormFactor.desktop, const Size(560, 800), 'tabs'),
+      (
+        'narrow desktop window',
+        FormFactor.desktop,
+        const Size(560, 800),
+        'tabs',
+      ),
       ('desktop', FormFactor.desktop, _desktop, 'sidebar'),
       ('large desktop', FormFactor.desktop, _large, 'sidebar'),
       ('tv', FormFactor.tv, _tv, 'top-menu'),
@@ -200,9 +205,7 @@ void main() {
         setSurface(t, size);
         final services = await demoServices();
         await services.setShowTwitch(true);
-        await t.pumpWidget(
-          testApp(services, formFactor: ff, section: section),
-        );
+        await t.pumpWidget(testApp(services, formFactor: ff, section: section));
         await settle(t);
         await expectLater(
           find.byKey(screenshotKey),

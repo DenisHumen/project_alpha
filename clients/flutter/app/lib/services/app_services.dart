@@ -49,8 +49,7 @@ class AppServices extends ChangeNotifier {
 
   Future<void> init() async {
     locale.value = parseLocaleTag(await preferences.read(Preferences.locale));
-    showTwitch.value =
-        await preferences.read(Preferences.showTwitch) == 'true';
+    showTwitch.value = await preferences.read(Preferences.showTwitch) == 'true';
     _sources = await library.sources();
     final key = await secureStore.read(SecureStore.tmdbKey);
     if (key != null && key.isNotEmpty) await library.setTmdbApiKey(key);

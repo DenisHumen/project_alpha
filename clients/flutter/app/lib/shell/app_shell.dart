@@ -550,9 +550,7 @@ class _RailItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l = context.l10n;
-    final label = section == Section.shows
-        ? l.navShowsShort
-        : section.label(l);
+    final label = section == Section.shows ? l.navShowsShort : section.label(l);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       child: KFocusable(
@@ -730,9 +728,9 @@ class _TvLayout extends StatelessWidget {
                   const SizedBox(width: 36),
                   for (final s in shell.menuSections)
                     if (s != Section.search && s != Section.settings) ...[
-                    _TvTab(shell: shell, section: s),
-                    const SizedBox(width: 6),
-                  ],
+                      _TvTab(shell: shell, section: s),
+                      const SizedBox(width: 6),
+                    ],
                   const Spacer(),
                   _TvTab(shell: shell, section: Section.search, iconOnly: true),
                   const SizedBox(width: 6),
