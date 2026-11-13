@@ -492,6 +492,10 @@ project_alpha/
   - deps: LIB-001, LIB-004, LIB-011 · size: M · parallel: yes · веха: M1 · ref: ADR-0013
   - done when: тест на фикстуре v0: все элементы и прогресс распознанных видны в v1, повторный запуск ничего не дублирует.
 
+- [ ] **LIB-016** Убрать уязвимый SQLite: refinery → rusqlite_migration
+  - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
+  - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
+  - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
 ### 3.6. META — распознавание и метаданные
 
 - [x] **META-001** Таксономия, гайд по разметке, формат корпуса
@@ -1639,11 +1643,6 @@ project_alpha/
   - done when: изменения из Weblate приходят PR-ами и проходят CI.
 
 ---
-
-- [ ] **LIB-016** Убрать уязвимый SQLite: refinery → rusqlite_migration
-  - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
-  - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
-  - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
 
 ## 4. Критический путь
 
