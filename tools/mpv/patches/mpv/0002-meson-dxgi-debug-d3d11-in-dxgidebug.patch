@@ -1,0 +1,20 @@
+From: project_alpha contributors
+Subject: [PATCH] meson: find DXGI_DEBUG_D3D11 in dxgidebug.h too
+
+mingw-w64 12 declares DXGI_DEBUG_D3D11 in dxgidebug.h instead of
+d3d11sdklayers.h, so the probe failed and d3d11_helpers.h redefined it.
+Not sent upstream yet.
+
+--- a/meson.build
++++ b/meson.build
+@@ -1388,7 +1388,9 @@
+ 
+ if features['d3d11'] or features['egl-angle-win32'] or (features['vulkan'] and win32)
+     sources += files('video/out/gpu/d3d11_helpers.c')
+-    features += {'dxgi-debug-d3d11': cc.has_header_symbol('d3d11sdklayers.h', 'DXGI_DEBUG_D3D11')}
++    # mingw-w64 >= 12 declares it in dxgidebug.h, which d3d11_helpers.h includes.
++    features += {'dxgi-debug-d3d11': cc.has_header_symbol('d3d11sdklayers.h', 'DXGI_DEBUG_D3D11') or
++                 cc.has_header_symbol('dxgidebug.h', 'DXGI_DEBUG_D3D11', prefix: '#include <windows.h>')}
+ endif
+ 
+ # hwaccel

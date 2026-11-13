@@ -69,7 +69,7 @@ install_licenses() {
     cp "$SRC_DIR/freetype/docs/FTL.TXT" "$dst/freetype-FTL.TXT"
     if [ "$T_OS" = linux ]; then
         cp "$SRC_DIR/libdisplay_info/LICENSE" "$dst/libdisplay-info-LICENSE"
-        cp /usr/share/hwdata/LICENSE "$dst/hwdata-pnp.ids-LICENSE"
+        cp /usr/share/doc/hwdata/copyright "$dst/hwdata-pnp.ids-copyright"
     fi
     if [ "$T_OS" = windows ]; then cp "$SRC_DIR/zlib/LICENSE" "$dst/zlib-LICENSE"; fi
     if [ "$T_OS" = android ]; then
