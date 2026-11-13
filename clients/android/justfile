@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# `android` module: Kotlin: Media3 player, audio.
+# Owned by the PLAY-AND workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+
+# Placeholder until the area gets real recipes
+info:
+    @echo "android: no recipes yet (PLAY-AND, see docs/ROADMAP.md)"

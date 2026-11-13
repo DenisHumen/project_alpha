@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# `design` module: design tokens and assets.
+# Owned by the DSN workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+
+# Placeholder until the area gets real recipes
+info:
+    @echo "design: no recipes yet (DSN, see docs/ROADMAP.md)"

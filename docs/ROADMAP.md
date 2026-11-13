@@ -187,7 +187,7 @@ project_alpha/
 
 ### 3.1. REPO — репозиторий и governance
 
-- [ ] **REPO-001** Каркас монорепо
+- [x] **REPO-001** Каркас монорепо
   - Что: каталоги по §0.4; корневой `Cargo.toml` (workspace, `members` по глобу, `[workspace.dependencies]`), `rust-toolchain.toml`, `.editorconfig`, `.gitignore`, `.gitattributes` (LFS для `design/**`, `tests/media/**`), корневой `justfile` только с `mod`-строками, `.env.example`.
   - deps: — · size: S · parallel: no · веха: M0 · ref: S §7, 04 §4.1
   - done when: `just --list` показывает модули; `cargo metadata` проходит на пустом workspace; `git lfs track` настроен.
