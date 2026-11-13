@@ -103,8 +103,7 @@ impl Member {
 
 /// Checks a device name: 1 to [`MAX_NAME_LEN`] bytes, no control characters.
 pub fn check_name(name: &str) -> Result<()> {
-    if name.trim().is_empty() || name.len() > MAX_NAME_LEN || name.chars().any(char::is_control)
-    {
+    if name.trim().is_empty() || name.len() > MAX_NAME_LEN || name.chars().any(char::is_control) {
         return Err(Error::Invalid("device name"));
     }
     Ok(())
@@ -198,7 +197,12 @@ pub fn family_id_of(founder: &[u8; 32]) -> String {
 
 impl Roster {
     /// A new family with `founder` as its only device.
-    pub fn found(founder: &DeviceIdentity, name: &str, kind: DeviceKind, now_ms: u64) -> Result<Self> {
+    pub fn found(
+        founder: &DeviceIdentity,
+        name: &str,
+        kind: DeviceKind,
+        now_ms: u64,
+    ) -> Result<Self> {
         let keys = founder.public();
         let mut roster = Self {
             family: family_id_of(&keys.sign),
@@ -375,7 +379,12 @@ impl Roster {
             .collect()
     }
 
-    fn revoke_key(&mut self, by: &DeviceIdentity, key: &[u8; 32], now_ms: u64) -> Result<Revocation> {
+    fn revoke_key(
+        &mut self,
+        by: &DeviceIdentity,
+        key: &[u8; 32],
+        now_ms: u64,
+    ) -> Result<Revocation> {
         let member = self
             .members
             .get(key)
@@ -444,7 +453,12 @@ impl Roster {
         if strict && r.by != r.key && self.revoked.contains_key(&r.by) {
             return Err(Error::Revoked(by.device_id.clone()));
         }
-        identity::verify(&r.by, r.transcript(&self.family).bytes(), &r.sig, "revocation")?;
+        identity::verify(
+            &r.by,
+            r.transcript(&self.family).bytes(),
+            &r.sig,
+            "revocation",
+        )?;
         if self.records() >= MAX_RECORDS {
             return Err(Error::Invalid("too many devices"));
         }
@@ -626,9 +640,11 @@ mod tests {
         assert!(matches!(roster.authorize("tv"), Err(Error::Revoked(_))));
         // A revoked device cannot admit others or come back with old keys.
         let pc = id("pc");
-        assert!(roster
-            .admit(&tv, "pc", "PC", DeviceKind::Desktop, pc.public(), 4)
-            .is_err());
+        assert!(
+            roster
+                .admit(&tv, "pc", "PC", DeviceKind::Desktop, pc.public(), 4)
+                .is_err()
+        );
         assert!(matches!(
             roster.admit(&phone, "tv", "TV", DeviceKind::Tv, tv.public(), 5),
             Err(Error::Revoked(_))
@@ -686,8 +702,15 @@ mod tests {
         // the TV admits afterwards are not taken over.
         a.revoke(&phone, "tv", 4).unwrap();
         let laptop = id("laptop");
-        b.admit(&tv, "laptop", "Laptop", DeviceKind::Desktop, laptop.public(), 5)
-            .unwrap();
+        b.admit(
+            &tv,
+            "laptop",
+            "Laptop",
+            DeviceKind::Desktop,
+            laptop.public(),
+            5,
+        )
+        .unwrap();
         let report = a.merge(&b).unwrap();
         assert_eq!(report.members, 0);
         assert_eq!(report.rejected, 1);

@@ -27,11 +27,13 @@ fn nibble(c: u8) -> Option<u8> {
 /// Bytes of lowercase hex text, at most `max` bytes.
 pub(crate) fn from_hex(text: &str, max: usize) -> Result<Vec<u8>> {
     let raw = text.as_bytes();
-    if raw.len() % 2 != 0 || raw.len() > max * 2 {
+    if !raw.len().is_multiple_of(2) || raw.len() > max * 2 {
         return Err(Error::Invalid("hex"));
     }
-    raw.chunks_exact(2)
-        .map(|p| Some((nibble(p[0])? << 4) | nibble(p[1])?))
+    raw.as_chunks::<2>()
+        .0
+        .iter()
+        .map(|[hi, lo]| Some((nibble(*hi)? << 4) | nibble(*lo)?))
         .collect::<Option<Vec<u8>>>()
         .ok_or(Error::Invalid("hex"))
 }

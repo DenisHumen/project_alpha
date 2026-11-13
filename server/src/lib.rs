@@ -15,6 +15,7 @@
 pub mod config;
 mod http;
 pub mod logging;
+pub mod pairing;
 pub mod sync;
 
 use std::future::Future;
@@ -59,6 +60,14 @@ pub enum Error {
         path: PathBuf,
         /// Cause.
         source: sync::journal::JournalError,
+    },
+    /// The device family (keys, roster) could not be loaded.
+    #[error("device family in {path}: {source}")]
+    Pairing {
+        /// Data directory.
+        path: PathBuf,
+        /// Cause.
+        source: pa_pairing::Error,
     },
     /// Socket or other I/O error.
     #[error("{context}: {source}")]
@@ -141,23 +150,31 @@ impl Server {
     pub async fn bind(config: &Config, data_dir: &Path) -> Result<Self, Error> {
         let path = data_dir.join(config::LIBRARY_FILE);
         let journal = data_dir.join(sync::JOURNAL_FILE);
-        let (library, hub) = {
-            let path = path.clone();
-            let sync_config = config.sync.clone();
-            tokio::task::spawn_blocking(move || {
-                let library = Library::open(&path)?;
-                let hub = sync::Hub::open(&journal, library.clone(), &sync_config)?;
-                Ok::<_, Error>((library, hub))
-            })
-            .await
-            .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()))?
-        };
         let listener = TcpListener::bind(config.listen)
             .await
             .map_err(|source| Error::Io {
                 context: format!("bind {}", config.listen),
                 source,
             })?;
+        // Pairing QR codes carry the actual address, when it is a concrete one.
+        let addr = listener
+            .local_addr()
+            .ok()
+            .filter(|a| !a.ip().is_unspecified())
+            .map(|a| a.to_string());
+        let (library, hub) = {
+            let path = path.clone();
+            let sync_config = config.sync.clone();
+            let data_dir = data_dir.to_owned();
+            tokio::task::spawn_blocking(move || {
+                let library = Library::open(&path)?;
+                let hub =
+                    sync::Hub::open(&journal, library.clone(), &sync_config, &data_dir, addr)?;
+                Ok::<_, Error>((library, hub))
+            })
+            .await
+            .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()))?
+        };
         tracing::info!(
             db = %path.display(),
             schema = pa_library::latest_version(),
@@ -205,13 +222,16 @@ impl Server {
             // shutdown of axum: close them ourselves.
             hub.close();
         };
-        axum::serve(self.listener, app)
-            .with_graceful_shutdown(shutdown)
-            .await
-            .map_err(|source| Error::Io {
-                context: "serve".to_owned(),
-                source,
-            })?;
+        axum::serve(
+            self.listener,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .with_graceful_shutdown(shutdown)
+        .await
+        .map_err(|source| Error::Io {
+            context: "serve".to_owned(),
+            source,
+        })?;
         tracing::info!("stopped accepting connections");
         self.hub.drain(Duration::from_secs(5)).await;
         if let Err(e) = self.library.checkpoint().await {

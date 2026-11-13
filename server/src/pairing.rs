@@ -79,7 +79,7 @@ pub struct Pairing {
 }
 
 fn now_ms() -> u64 {
-    u64::try_from(pa_sync::hlc::now_ms()).unwrap_or(0)
+    u64::try_from(crate::sync::now_ms()).unwrap_or(0)
 }
 
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -250,7 +250,10 @@ impl Pairing {
                     }
                     // The revoking member rotated the key and sealed it to
                     // us in the same update.
-                    (after.difference(&before).cloned().collect::<Vec<_>>(), changed)
+                    (
+                        after.difference(&before).cloned().collect::<Vec<_>>(),
+                        changed,
+                    )
                 }
                 Err(e) => {
                     tracing::warn!(device = from, error = %e, "pairing: family update rejected");

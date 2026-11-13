@@ -488,7 +488,11 @@ impl Joiner {
     pub fn intro(&mut self, identity: &DeviceIdentity, msg: &PairMessage) -> Result<PairMessage> {
         let theirs = spake_of(msg)?;
         let spake = self.spake.take().ok_or(Error::Unexpected)?;
-        let key = Zeroizing::new(spake.finish(&theirs).map_err(|_| Error::Invalid("spake2"))?);
+        let key = Zeroizing::new(
+            spake
+                .finish(&theirs)
+                .map_err(|_| Error::Invalid("spake2"))?,
+        );
         let session = Session::derive(&key, &self.msg, &theirs);
         let intro = Intro {
             device: self.request.clone(),
@@ -581,7 +585,11 @@ impl Inviter {
     pub fn receive_hello(&mut self, msg: &PairMessage) -> Result<()> {
         let theirs = spake_of(msg)?;
         let spake = self.spake.take().ok_or(Error::Unexpected)?;
-        let key = Zeroizing::new(spake.finish(&theirs).map_err(|_| Error::Invalid("spake2"))?);
+        let key = Zeroizing::new(
+            spake
+                .finish(&theirs)
+                .map_err(|_| Error::Invalid("spake2"))?,
+        );
         self.session = Some(Session::derive(&key, &theirs, &self.msg));
         Ok(())
     }
@@ -668,7 +676,10 @@ mod tests {
         assert_eq!(PairingCode::long().unwrap().expose().len(), 32);
         assert!(PairingCode::parse("12345").is_err());
         assert!(PairingCode::parse("12345x").is_err());
-        assert_eq!(format!("{:?}", PairingCode::parse("123456").unwrap()), "PairingCode(***)");
+        assert_eq!(
+            format!("{:?}", PairingCode::parse("123456").unwrap()),
+            "PairingCode(***)"
+        );
     }
 
     #[test]
@@ -711,7 +722,10 @@ mod tests {
         let (mut inviter, i_hello) = Inviter::start(&mut inv, 1).unwrap();
         inviter.receive_hello(&wire(&j_hello)).unwrap();
         let intro = joiner.intro(&phone, &wire(&i_hello)).unwrap();
-        assert!(matches!(inviter.open_intro(&wire(&intro)), Err(Error::WrongCode)));
+        assert!(matches!(
+            inviter.open_intro(&wire(&intro)),
+            Err(Error::WrongCode)
+        ));
         let err = PairMessage::error(code::WRONG_CODE, None);
         assert!(matches!(joiner.finish(&wire(&err)), Err(Error::WrongCode)));
         assert_eq!(fam.roster().active().count(), 1);

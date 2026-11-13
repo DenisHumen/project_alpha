@@ -24,7 +24,12 @@ pub fn nonce() -> Result<String> {
     Ok(codec::to_hex(&codec::random::<32>()?))
 }
 
-fn transcript(prover: &str, verifier: &str, prover_nonce: &str, verifier_nonce: &str) -> Transcript {
+fn transcript(
+    prover: &str,
+    verifier: &str,
+    prover_nonce: &str,
+    verifier_nonce: &str,
+) -> Transcript {
     let mut t = Transcript::new("kinolune.sync.auth.v1");
     t.put_str(prover)
         .put_str(verifier)

@@ -4,8 +4,7 @@
 use pa_model::{MediaKey, MediaKind, SCHEMA_VERSION};
 use pa_sync::proto::{
     self, Ack, Auth, Change, Cursor, ErrorFrame, Family, Hello, Journal, Message, OpFrame, Payload,
-    PlayState,
-    PlaybackUpdate, ProtoRange, Pull, PullEnd, Role, Takeover,
+    PlayState, PlaybackUpdate, ProtoRange, Pull, PullEnd, Role, Takeover,
 };
 use pa_sync::{Error, Hlc, Op, OpBody, OpId, Replica, outbox};
 use uuid::Uuid;

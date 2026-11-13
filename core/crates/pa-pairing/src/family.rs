@@ -98,7 +98,10 @@ pub struct KeyEnvelope {
 impl KeyEnvelope {
     fn header(family: &str, epoch: u32, from: &[u8; 32], to: &[u8; 32]) -> Transcript {
         let mut t = Transcript::new("kinolune.family-key.v1");
-        t.put_str(family).put_u64(u64::from(epoch)).put(from).put(to);
+        t.put_str(family)
+            .put_u64(u64::from(epoch))
+            .put(from)
+            .put(to);
         t
     }
 
@@ -158,7 +161,12 @@ impl KeyEnvelope {
             return Err(Error::Revoked(sender.device_id.clone()));
         }
         let family = roster.family_id();
-        identity::verify(&self.from, self.signed(family).bytes(), &self.sig, "key envelope")?;
+        identity::verify(
+            &self.from,
+            self.signed(family).bytes(),
+            &self.sig,
+            "key envelope",
+        )?;
         let shared = me.agree(&sender.keys.dh)?;
         let sealed = codec::from_hex(&self.sealed, 64)?;
         let header = Self::header(family, self.epoch, &self.from, &self.to);
@@ -228,7 +236,12 @@ pub struct Family {
 
 impl Family {
     /// A new family with this device as the founder.
-    pub fn found(identity: DeviceIdentity, name: &str, kind: DeviceKind, now_ms: u64) -> Result<Self> {
+    pub fn found(
+        identity: DeviceIdentity,
+        name: &str,
+        kind: DeviceKind,
+        now_ms: u64,
+    ) -> Result<Self> {
         let roster = Roster::found(&identity, name, kind, now_ms)?;
         Ok(Self {
             identity,
@@ -430,7 +443,8 @@ mod tests {
         let mut fam = Family::found(id("phone"), "Phone", DeviceKind::Phone, 1).unwrap();
         let tv = id("tv");
         let pc = id("pc");
-        fam.admit("tv", "TV", DeviceKind::Tv, tv.public(), 2).unwrap();
+        fam.admit("tv", "TV", DeviceKind::Tv, tv.public(), 2)
+            .unwrap();
         fam.admit("pc", "PC", DeviceKind::Desktop, pc.public(), 3)
             .unwrap();
         let update = fam.update_for("tv").unwrap();
@@ -439,7 +453,14 @@ mod tests {
         assert_eq!(key.expose(), fam.key().expose());
         assert!(env.open(fam.roster(), &pc).is_err());
         let mut bad = env.clone();
-        bad.sealed.replace_range(0..2, if &bad.sealed[0..2] == "00" { "01" } else { "00" });
+        bad.sealed.replace_range(
+            0..2,
+            if &bad.sealed[0..2] == "00" {
+                "01"
+            } else {
+                "00"
+            },
+        );
         assert!(bad.open(fam.roster(), &tv).is_err());
         assert!(format!("{key:?}").contains("***"));
     }
@@ -470,7 +491,10 @@ mod tests {
             roster: phone.roster().clone(),
             key: None,
         };
-        assert!(matches!(pc.apply_update(&roster_only), Err(Error::Revoked(_))));
+        assert!(matches!(
+            pc.apply_update(&roster_only),
+            Err(Error::Revoked(_))
+        ));
         assert!(phone.revoke("phone", 5).is_err());
     }
 
