@@ -939,7 +939,7 @@ project_alpha/
   - Что: гибридные логические часы, `op_id` (UUIDv7), операции (progress.upsert, watched/unwatch, favorite, rating, плейлисты, folder_rule, настройки без секретов, избранное Twitch); LWW по полю, «просмотрено» монотонно; outbox в SQLite с идемпотентностью и ретраями.
   - deps: CORE-005, LIB-001 · size: M · parallel: no · веха: M3 · ref: 04 §1.8
   - done when: property-тест (proptest): применение операций в любом порядке даёт одно состояние.
-- [ ] **SYNC-002** Протокол синхронизации
+- [x] **SYNC-002** Протокол синхронизации
   - Что: `docs/api/sync-protocol.md`; сообщения hello{device_id, cursor}, pb.update, pb.takeover, op, ack, change, pull; версионированный непрозрачный payload (готовность к E2E); одинаков для P2P, хаба на сервере и iroh.
   - deps: SYNC-001 · size: M · parallel: no · веха: M3 · ref: 04 §1.8.1
   - done when: спецификация и тесты кодека сообщений; совместимость версий ±1.

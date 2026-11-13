@@ -59,17 +59,12 @@ exceptions = [
     # as a fallback trust store (reqwest in pa-twitch, TWI-001).
     # CDLA-Permissive-2.0 is a permissive data licence without copyleft.
     { crate = "webpki-root-certs", allow = ["CDLA-Permissive-2.0"] },
+    # Mozilla's CA root list as Rust data (pa-metadata HTTPS, ADR-0018).
+    { crate = "webpki-roots", allow = ["CDLA-Permissive-2.0"] },
 ]
 
 [licenses.private]
 ignore = false
-
-# Per-crate exceptions (narrow: one crate, one licence, with a reason).
-[[licenses.exceptions]]
-# Mozilla's CA root list as Rust data (pa-metadata HTTPS, ADR-0017). CDLA
-# Permissive 2.0 is a permissive data licence: no copyleft, attribution only.
-crate = "webpki-roots"
-allow = ["CDLA-Permissive-2.0"]
 
 # --- Bans and duplicates -----------------------------------------------------
 [bans]
