@@ -673,7 +673,7 @@ project_alpha/
   - Что: в `spikes/android-player` сравнить PlatformView (SurfaceView, Hybrid Composition) и отдельную Activity с нативным SurfaceView; проверить HDR10, DV и AFR на Shield или Chromecast GTV; оверлей OSD на Flutter или нативный.
   - deps: — · size: M · parallel: yes · веха: M0 · ref: 02 §1.3, §2.8
   - done when: ADR-0008 с замерами и выбранным вариантом.
-- [ ] **PLAY-AND-002** Плагин `pa_player_android` на Media3
+- [x] **PLAY-AND-002** Плагин `pa_player_android` на Media3
   - Что: ExoPlayer по выбранной в спайке схеме, реализация `PlayerEngine` через UniFFI, события и треки, связь с Flutter OSD.
   - deps: PLAY-AND-001, CORE-004, PLAY-003, UI-001 · size: L · parallel: no · веха: M1 · ref: 02 §2.2, §7
   - done when: instrumented-тест воспроизводит MKV H.264 и HEVC; seek и смена дорожек работают.

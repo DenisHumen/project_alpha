@@ -1,7 +1,26 @@
 # SPDX-License-Identifier: MPL-2.0
-# `android` module: Kotlin: Media3 player, audio.
-# Owned by the PLAY-AND workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+# `android` module: Kotlin: Media3 player (clients/android/player), audio.
+# Owned by the PLAY-AND workstream (docs/ROADMAP.md §0.4).
+#
+# The player library takes the core from the CORE-004 build: run
+# `just core aar` (or `tools/bindings/build-aar.sh --debug x86_64` for the
+# emulator) first. JDK 17+, `gradle` and ANDROID_HOME as for pa-core-android.
 
-# Placeholder until the area gets real recipes
-info:
-    @echo "android: no recipes yet (PLAY-AND, see docs/ROADMAP.md)"
+set working-directory := '../..'
+
+gen_dir := env('CARGO_TARGET_DIR', 'target') / 'android'
+fixtures_dir := 'clients/android/player/build/fixtures'
+
+# Test media for the instrumented tests (ffmpeg with libx264/libx265; FFMPEG overrides it)
+fixtures:
+    clients/android/player/tools/make-fixtures.sh {{ fixtures_dir }}
+
+# JUnit tests of the player library (JVM)
+test:
+    gradle -p clients/android/player testDebugUnitTest -PpaGenDir="$(realpath {{ gen_dir }})" --console=plain
+
+# Instrumented tests on an emulator: the core contract suite and H.264/HEVC playback (set ANDROID_SERIAL)
+test-device: fixtures
+    test -n "${ANDROID_SERIAL:-}" || { echo "set ANDROID_SERIAL to the emulator or device to test on" >&2; exit 1; }
+    gradle -p clients/android/player connectedDebugAndroidTest -PpaGenDir="$(realpath {{ gen_dir }})" \
+        -PpaFixturesDir="$(realpath {{ fixtures_dir }})" --console=plain
