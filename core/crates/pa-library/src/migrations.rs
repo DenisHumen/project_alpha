@@ -66,8 +66,14 @@ mod tests {
             version,
             sql,
         };
-        assert_eq!(file(1, "SELECT 1;").checksum(), file(2, "SELECT 1;").checksum());
-        assert_ne!(file(1, "SELECT 1;").checksum(), file(1, "SELECT 2;").checksum());
+        assert_eq!(
+            file(1, "SELECT 1;").checksum(),
+            file(2, "SELECT 1;").checksum()
+        );
+        assert_ne!(
+            file(1, "SELECT 1;").checksum(),
+            file(1, "SELECT 2;").checksum()
+        );
         // FNV-1a 64 test vector: empty input is the offset basis.
         assert_eq!(file(3, "").checksum(), "cbf29ce484222325");
     }

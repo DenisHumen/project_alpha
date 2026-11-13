@@ -65,7 +65,10 @@ impl fmt::Display for Error {
         match self {
             Self::Sqlite(e) => write!(f, "sqlite: {e}"),
             Self::ChecksumMismatch { version } => {
-                write!(f, "applied migration {version} was edited (checksum mismatch)")
+                write!(
+                    f,
+                    "applied migration {version} was edited (checksum mismatch)"
+                )
             }
             Self::ForeignDatabase { legacy_v0: true } => {
                 f.write_str("database is a pa_library v0 file; import it instead of migrating")
