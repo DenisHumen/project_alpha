@@ -64,8 +64,10 @@ void main() {
 
   test('missing folder reports an error and yields nothing', () async {
     final errors = <String>[];
-    final files = await scanFolder(p.join(tmp.path, 'nope'),
-        onError: (path, e) => errors.add(path)).toList();
+    final files = await scanFolder(
+      p.join(tmp.path, 'nope'),
+      onError: (path, e) => errors.add(path),
+    ).toList();
     expect(files, isEmpty);
     expect(errors, hasLength(1));
   });
@@ -87,29 +89,39 @@ void main() {
 
   group('music path fallback', () {
     test('Artist/Album/NN - Title', () {
-      final t = trackInfoFromPath('/m/Queen/A Night at the Opera/11 - Bohemian Rhapsody.mp3',
-          root: '/m');
+      final t = trackInfoFromPath(
+        '/m/Queen/A Night at the Opera/11 - Bohemian Rhapsody.mp3',
+        root: '/m',
+      );
       expect(t.artist, 'Queen');
       expect(t.album, 'A Night at the Opera');
       expect(t.trackNumber, 11);
       expect(t.title, 'Bohemian Rhapsody');
     });
     test('"Artist - Album (Year)" folder', () {
-      final t = trackInfoFromPath('/m/Кино - Группа крови (1988)/01. Группа крови.flac',
-          root: '/m');
+      final t = trackInfoFromPath(
+        '/m/Кино - Группа крови (1988)/01. Группа крови.flac',
+        root: '/m',
+      );
       expect(t.artist, 'Кино');
       expect(t.album, 'Группа крови');
       expect(t.title, 'Группа крови');
       expect(t.trackNumber, 1);
     });
     test('CD folders are skipped', () {
-      final t = trackInfoFromPath('/m/Artist/Album/CD2/03 Song.mp3', root: '/m');
+      final t = trackInfoFromPath(
+        '/m/Artist/Album/CD2/03 Song.mp3',
+        root: '/m',
+      );
       expect(t.album, 'Album');
       expect(t.artist, 'Artist');
       expect(t.title, 'Song');
     });
     test('loose "Artist - Title" file', () {
-      final t = trackInfoFromPath('/m/Music/Daft Punk - One More Time.mp3', root: '/m');
+      final t = trackInfoFromPath(
+        '/m/Music/Daft Punk - One More Time.mp3',
+        root: '/m',
+      );
       expect(t.artist, 'Daft Punk');
       expect(t.title, 'One More Time');
       expect(t.album, isNull);
@@ -118,7 +130,16 @@ void main() {
       List<int> frame(String id, String text) {
         final data = [0x03, ...utf8.encode(text)]; // UTF-8 encoding byte
         final n = data.length;
-        return [...ascii.encode(id), n >> 24, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff, 0, 0, ...data];
+        return [
+          ...ascii.encode(id),
+          n >> 24,
+          (n >> 16) & 0xff,
+          (n >> 8) & 0xff,
+          n & 0xff,
+          0,
+          0,
+          ...data,
+        ];
       }
 
       final frames = [
@@ -130,7 +151,10 @@ void main() {
       final size = frames.length;
       final header = [
         ...ascii.encode('ID3'), 4, 0, 0, // v2.4
-        (size >> 21) & 0x7f, (size >> 14) & 0x7f, (size >> 7) & 0x7f, size & 0x7f,
+        (size >> 21) & 0x7f,
+        (size >> 14) & 0x7f,
+        (size >> 7) & 0x7f,
+        size & 0x7f,
       ];
       final f = File(p.join(tmp.path, 'x', 'y', 'track01.mp3'));
       f.parent.createSync(recursive: true);
@@ -143,7 +167,10 @@ void main() {
     });
     test('unreadable tags fall back to the path', () {
       touch(tmp.path, 'Artist/Album/02 - Track.mp3');
-      final t = trackInfo(p.join(tmp.path, 'Artist/Album/02 - Track.mp3'), root: tmp.path);
+      final t = trackInfo(
+        p.join(tmp.path, 'Artist/Album/02 - Track.mp3'),
+        root: tmp.path,
+      );
       expect(t.title, 'Track');
       expect(t.artist, 'Artist');
     });
@@ -152,20 +179,33 @@ void main() {
   test('findLocalImage', () {
     touch(tmp.path, 'Album/01.mp3');
     touch(tmp.path, 'Album/Cover.JPG');
-    expect(findLocalImage(p.join(tmp.path, 'Album/01.mp3')), endsWith('Cover.JPG'));
+    expect(
+      findLocalImage(p.join(tmp.path, 'Album/01.mp3')),
+      endsWith('Cover.JPG'),
+    );
     touch(tmp.path, 'Movie/movie.mkv');
     touch(tmp.path, 'Movie/folder.jpg');
-    expect(findLocalImage(p.join(tmp.path, 'Movie/movie.mkv'), video: true),
-        startsWith('file://'));
     expect(
-        findLocalImage(p.join(tmp.path, 'Movie/movie.mkv'),
-            video: true, allowGeneric: false),
-        isNull);
+      findLocalImage(p.join(tmp.path, 'Movie/movie.mkv'), video: true),
+      startsWith('file://'),
+    );
+    expect(
+      findLocalImage(
+        p.join(tmp.path, 'Movie/movie.mkv'),
+        video: true,
+        allowGeneric: false,
+      ),
+      isNull,
+    );
     touch(tmp.path, 'Movie/movie-poster.png');
     expect(
-        findLocalImage(p.join(tmp.path, 'Movie/movie.mkv'),
-            video: true, allowGeneric: false),
-        endsWith('movie-poster.png'));
+      findLocalImage(
+        p.join(tmp.path, 'Movie/movie.mkv'),
+        video: true,
+        allowGeneric: false,
+      ),
+      endsWith('movie-poster.png'),
+    );
   });
 
   group('smb', () {
@@ -180,12 +220,21 @@ void main() {
       expect(() => SmbUrl.parse('smb://nas'), throwsFormatException);
     });
     test('findGvfsPath', () {
-      Directory(p.join(tmp.path, 'smb-share:server=nas.local,share=media,user=bob'))
-          .createSync();
-      Directory(p.join(tmp.path, 'smb-share:server=other,share=media')).createSync();
+      Directory(
+        p.join(tmp.path, 'smb-share:server=nas.local,share=media,user=bob'),
+      ).createSync();
+      Directory(
+        p.join(tmp.path, 'smb-share:server=other,share=media'),
+      ).createSync();
       final u = SmbUrl.parse('smb://NAS.local/Media/Movies');
-      expect(findGvfsPath(u, tmp.path),
-          p.join(tmp.path, 'smb-share:server=nas.local,share=media,user=bob', 'Movies'));
+      expect(
+        findGvfsPath(u, tmp.path),
+        p.join(
+          tmp.path,
+          'smb-share:server=nas.local,share=media,user=bob',
+          'Movies',
+        ),
+      );
       expect(findGvfsPath(SmbUrl.parse('smb://x/y'), tmp.path), isNull);
     });
     test('resolver mounts via gio when not mounted', () async {
@@ -196,12 +245,17 @@ void main() {
         runner: (exe, args, {stdinText}) async {
           calls.add([exe, ...args]);
           stdin = stdinText;
-          Directory(p.join(tmp.path, 'smb-share:server=nas,share=media')).createSync();
+          Directory(
+            p.join(tmp.path, 'smb-share:server=nas,share=media'),
+          ).createSync();
           return ProcessResult(1, 0, '', '');
         },
       );
-      final path = await resolver.resolve('smb://nas/media/TV',
-          username: 'bob', password: 'pw');
+      final path = await resolver.resolve(
+        'smb://nas/media/TV',
+        username: 'bob',
+        password: 'pw',
+      );
       expect(path, p.join(tmp.path, 'smb-share:server=nas,share=media', 'TV'));
       expect(calls.single, ['gio', 'mount', 'smb://nas/media']);
       expect(stdin, 'bob\nWORKGROUP\npw\n');
@@ -212,7 +266,10 @@ void main() {
         runner: (exe, args, {stdinText}) async =>
             ProcessResult(1, 2, '', 'Failed to mount'),
       );
-      expect(resolver.resolve('smb://nas/media'), throwsA(isA<SmbMountException>()));
+      expect(
+        resolver.resolve('smb://nas/media'),
+        throwsA(isA<SmbMountException>()),
+      );
     });
   }, testOn: 'linux');
 }

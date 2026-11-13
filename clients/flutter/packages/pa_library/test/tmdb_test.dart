@@ -27,10 +27,14 @@ void main() {
     expect(r.first.title, 'The Matrix');
     expect(r.first.year, 1999);
     expect(r.first.isTv, isFalse);
-    expect(r.first.posterUrl,
-        'https://image.tmdb.org/t/p/w500/fixture-matrix-poster.jpg');
-    expect(r.first.backdropUrl,
-        'https://image.tmdb.org/t/p/w1280/fixture-matrix-backdrop.jpg');
+    expect(
+      r.first.posterUrl,
+      'https://image.tmdb.org/t/p/w500/fixture-matrix-poster.jpg',
+    );
+    expect(
+      r.first.backdropUrl,
+      'https://image.tmdb.org/t/p/w1280/fixture-matrix-backdrop.jpg',
+    );
     expect(r[1].posterUrl, isNull);
     final u = fake.requests.single;
     expect(u.host, 'api.themoviedb.org');
@@ -42,7 +46,10 @@ void main() {
   test('v4 token is sent as bearer, not in the query', () async {
     final token = 'eyJhbGciOiJIUzI1NiJ9.${'a' * 60}.signature';
     await client(key: token).searchMovie('The Matrix');
-    expect(fake.requests.single.queryParameters.containsKey('api_key'), isFalse);
+    expect(
+      fake.requests.single.queryParameters.containsKey('api_key'),
+      isFalse,
+    );
   });
 
   test('language parameter', () async {
@@ -72,10 +79,13 @@ void main() {
   test('401 throws TmdbException', () async {
     fake.forceStatus = 401;
     expect(
-        () => client().searchMovie('x'),
-        throwsA(isA<TmdbException>()
+      () => client().searchMovie('x'),
+      throwsA(
+        isA<TmdbException>()
             .having((e) => e.statusCode, 'status', 401)
-            .having((e) => e.message, 'message', 'Invalid API key')));
+            .having((e) => e.message, 'message', 'Invalid API key'),
+      ),
+    );
   });
 
   test('429 is retried', () async {
@@ -101,8 +111,12 @@ void main() {
       expect(m.confidence, greaterThan(0.9));
     });
     test('falls back to the alternative title', () async {
-      final m = await client().findBest('Матрица',
-          altTitle: 'The Matrix', year: 1999, tv: false);
+      final m = await client().findBest(
+        'Матрица',
+        altTitle: 'The Matrix',
+        year: 1999,
+        tv: false,
+      );
       expect(m!.result.id, 603);
     });
     test('returns null when nothing matches', () async {
@@ -118,14 +132,19 @@ void main() {
     TmdbSearchResult r(String t, int? y) =>
         TmdbSearchResult(id: 1, isTv: false, title: t, year: y);
     test('year mismatch lowers the score', () {
-      expect(scoreMatch(r('Heat', 1995), ['Heat'], 1995),
-          greaterThan(scoreMatch(r('Heat', 1986), ['Heat'], 1995)));
+      expect(
+        scoreMatch(r('Heat', 1995), ['Heat'], 1995),
+        greaterThan(scoreMatch(r('Heat', 1986), ['Heat'], 1995)),
+      );
     });
     test('off-by-one year is tolerated', () {
       expect(scoreMatch(r('Heat', 1996), ['Heat'], 1995), greaterThan(0.8));
     });
     test('different title scores low', () {
-      expect(scoreMatch(r('Dune Part Two', 2024), ['Dune'], 2021), lessThan(0.45));
+      expect(
+        scoreMatch(r('Dune Part Two', 2024), ['Dune'], 2021),
+        lessThan(0.45),
+      );
     });
     test('titleSimilarity', () {
       expect(titleSimilarity('matrix', 'matrix'), 1);

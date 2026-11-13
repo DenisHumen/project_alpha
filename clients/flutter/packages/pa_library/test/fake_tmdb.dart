@@ -19,8 +19,10 @@ class FakeTmdb {
   late final http.Client client = MockClient((req) async {
     requests.add(req.url);
     if (forceStatus != null) {
-      return http.Response('{"status_message":"Invalid API key","success":false}',
-          forceStatus!);
+      return http.Response(
+        '{"status_message":"Invalid API key","success":false}',
+        forceStatus!,
+      );
     }
     if (rateLimitResponses > 0) {
       rateLimitResponses--;
@@ -31,8 +33,11 @@ class FakeTmdb {
       return http.Response('{"status_message":"not found"}', 404);
     }
     final body = File('test/fixtures/tmdb/$fixture.json').readAsBytesSync();
-    return http.Response.bytes(body, 200,
-        headers: {'content-type': 'application/json; charset=utf-8'});
+    return http.Response.bytes(
+      body,
+      200,
+      headers: {'content-type': 'application/json; charset=utf-8'},
+    );
   });
 
   String? _route(Uri u) {

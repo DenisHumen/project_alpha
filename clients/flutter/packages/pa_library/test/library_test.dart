@@ -33,8 +33,10 @@ void main() {
     touch(media, 'Anime/[SubsPlease] Sousou no Frieren - 01 (1080p).mkv');
     touch(media, 'Anime/[SubsPlease] Sousou no Frieren - 02 (1080p).mkv');
     touch(media, 'Music/Queen/A Night at the Opera/11 - Bohemian Rhapsody.mp3');
-    lib = await Library.open(p.join(tmp.path, 'db', 'library.sqlite'),
-        httpClient: fake.client);
+    lib = await Library.open(
+      p.join(tmp.path, 'db', 'library.sqlite'),
+      httpClient: fake.client,
+    );
   });
 
   tearDown(() async {
@@ -46,25 +48,51 @@ void main() {
 
   test('sources CRUD', () async {
     expect(await lib.sources(), isEmpty);
-    final s = await lib.addSource(MediaSource(
-        id: '', kind: SourceKind.localFolder, name: 'Media', path: media));
+    final s = await lib.addSource(
+      MediaSource(
+        id: '',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     expect(s.id, isNotEmpty);
-    final smb = await lib.addSource(const MediaSource(
-        id: 'nas', kind: SourceKind.smb, name: 'NAS', path: 'smb://nas/media', username: 'bob'));
+    final smb = await lib.addSource(
+      const MediaSource(
+        id: 'nas',
+        kind: SourceKind.smb,
+        name: 'NAS',
+        path: 'smb://nas/media',
+        username: 'bob',
+      ),
+    );
     expect((await lib.sources()).map((e) => e.id), [s.id, 'nas']);
     await lib.addSource(smb.copyWith(name: 'NAS 2'));
     expect((await lib.sources()).last.name, 'NAS 2');
     await lib.removeSource('nas');
     expect(await lib.sources(), [s]);
     expect(
-        () => lib.addSource(const MediaSource(
-            id: '', kind: SourceKind.smb, name: 'bad', path: '/not/smb')),
-        throwsFormatException);
+      () => lib.addSource(
+        const MediaSource(
+          id: '',
+          kind: SourceKind.smb,
+          name: 'bad',
+          path: '/not/smb',
+        ),
+      ),
+      throwsFormatException,
+    );
   });
 
   test('scan without TMDB key uses parsed titles', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     final events = await scanAll();
     expect(events.last.phase, ScanPhase.done);
     expect(events.last.errors, isEmpty);
@@ -102,29 +130,47 @@ void main() {
   test('scan with TMDB key fetches posters and episode titles', () async {
     await lib.setTmdbApiKey('test-key');
     expect(await lib.tmdbApiKey(), 'test-key');
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     final events = await scanAll();
     expect(events.any((e) => e.phase == ScanPhase.metadata), isTrue);
     expect(events.last.errors, isEmpty);
 
-    final matrix = (await lib.movies().first).firstWhere((m) => m.title == 'The Matrix');
+    final matrix = (await lib.movies().first).firstWhere(
+      (m) => m.title == 'The Matrix',
+    );
     expect(matrix.tmdbId, 603);
-    expect(matrix.posterUrl, 'https://image.tmdb.org/t/p/w500/fixture-matrix-poster.jpg');
+    expect(
+      matrix.posterUrl,
+      'https://image.tmdb.org/t/p/w500/fixture-matrix-poster.jpg',
+    );
     expect(matrix.overview, startsWith('Fixture overview'));
     expect(matrix.matchConfidence, greaterThan(0.9));
 
-    final unknown = (await lib.movies().first).firstWhere((m) => m.title == 'Unknown Film');
+    final unknown = (await lib.movies().first).firstWhere(
+      (m) => m.title == 'Unknown Film',
+    );
     expect(unknown.tmdbId, isNull);
     expect(unknown.year, 2003);
 
-    final bb = (await lib.shows().first).firstWhere((s) => s.title == 'Breaking Bad');
+    final bb = (await lib.shows().first).firstWhere(
+      (s) => s.title == 'Breaking Bad',
+    );
     expect(bb.tmdbId, 1396);
     expect(bb.year, 2008);
     final eps = await lib.episodes(bb.id).first;
     expect(eps.map((e) => e.title), ['Pilot', "Cat's in the Bag..."]);
     expect(eps.first.posterUrl, bb.posterUrl);
-    expect(eps.first.backdropUrl, 'https://image.tmdb.org/t/p/w780/fixture-bb-s1e1.jpg');
+    expect(
+      eps.first.backdropUrl,
+      'https://image.tmdb.org/t/p/w780/fixture-bb-s1e1.jpg',
+    );
 
     // Second scan: nothing changed → no new TMDB requests.
     final before = fake.requests.length;
@@ -135,16 +181,28 @@ void main() {
   test('invalid TMDB key is reported, library still filled', () async {
     fake.forceStatus = 401;
     await lib.setTmdbApiKey('bad');
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     final events = await scanAll();
     expect(events.last.errors, contains('TMDB: invalid API key'));
     expect(await lib.movies().first, hasLength(3));
   });
 
   test('removed files disappear, offline source keeps items', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await scanAll();
     File(p.join(media, 'Movies/Unknown Film 2003.avi')).deleteSync();
     Directory(p.join(media, 'Anime')).deleteSync(recursive: true);
@@ -162,8 +220,14 @@ void main() {
   });
 
   test('removeSource deletes its items', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await scanAll();
     await lib.removeSource('m');
     expect(await lib.movies().first, isEmpty);
@@ -174,10 +238,22 @@ void main() {
   test('scanning a single source / unknown source', () async {
     final other = p.join(tmp.path, 'other');
     touch(other, 'Heat (1995).mkv');
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
-    await lib.addSource(MediaSource(
-        id: 'o', kind: SourceKind.localFolder, name: 'Other', path: other));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
+    await lib.addSource(
+      MediaSource(
+        id: 'o',
+        kind: SourceKind.localFolder,
+        name: 'Other',
+        path: other,
+      ),
+    );
     await lib.scan(sourceId: 'o').toList();
     expect((await lib.movies().first).map((m) => m.title), ['Heat']);
     final ev = await lib.scan(sourceId: 'zzz').toList();
@@ -185,13 +261,23 @@ void main() {
   });
 
   test('SMB source on an unreachable server reports an error', () async {
-    final l = await Library.open(':memory:',
-        httpClient: fake.client,
-        smbResolver: SmbResolver(
-            gvfsRootOverride: tmp.path,
-            runner: (exe, args, {stdinText}) async => ProcessResult(0, 2, '', 'nope')));
-    await l.addSource(const MediaSource(
-        id: 's', kind: SourceKind.smb, name: 'NAS', path: 'smb://nas/media'));
+    final l = await Library.open(
+      ':memory:',
+      httpClient: fake.client,
+      smbResolver: SmbResolver(
+        gvfsRootOverride: tmp.path,
+        runner: (exe, args, {stdinText}) async =>
+            ProcessResult(0, 2, '', 'nope'),
+      ),
+    );
+    await l.addSource(
+      const MediaSource(
+        id: 's',
+        kind: SourceKind.smb,
+        name: 'NAS',
+        path: 'smb://nas/media',
+      ),
+    );
     final ev = await l.scan(smbPassword: 'pw').toList();
     expect(ev.last.phase, ScanPhase.done);
     expect(ev.last.errors.single, contains('Could not mount'));
@@ -199,34 +285,55 @@ void main() {
   });
 
   test('progress and continueWatching (2%..95%)', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await scanAll();
     final movies = await lib.movies().first;
     final t0 = DateTime(2026, 1, 1);
-    await lib.saveProgress(Progress(
-        itemId: movies[0].id, positionMs: 1000, durationMs: 100000, updatedAt: t0)); // 1%
-    await lib.saveProgress(Progress(
+    await lib.saveProgress(
+      Progress(
+        itemId: movies[0].id,
+        positionMs: 1000,
+        durationMs: 100000,
+        updatedAt: t0,
+      ),
+    ); // 1%
+    await lib.saveProgress(
+      Progress(
         itemId: movies[1].id,
         positionMs: 50000,
         durationMs: 100000,
-        updatedAt: t0.add(const Duration(minutes: 1)))); // 50%
-    await lib.saveProgress(Progress(
+        updatedAt: t0.add(const Duration(minutes: 1)),
+      ),
+    ); // 50%
+    await lib.saveProgress(
+      Progress(
         itemId: movies[2].id,
         positionMs: 30000,
         durationMs: 100000,
-        updatedAt: t0.add(const Duration(minutes: 2)))); // 30%
+        updatedAt: t0.add(const Duration(minutes: 2)),
+      ),
+    ); // 30%
     var cw = await lib.continueWatching().first;
     expect(cw.map((e) => e.$1.id), [movies[2].id, movies[1].id]);
     expect(cw.first.$2.positionMs, 30000);
     expect(cw.first.$2.fraction, closeTo(0.3, 1e-9));
 
     // 96% → watched, leaves the row.
-    await lib.saveProgress(Progress(
+    await lib.saveProgress(
+      Progress(
         itemId: movies[2].id,
         positionMs: 96000,
         durationMs: 100000,
-        updatedAt: t0.add(const Duration(minutes: 3))));
+        updatedAt: t0.add(const Duration(minutes: 3)),
+      ),
+    );
     cw = await lib.continueWatching().first;
     expect(cw.map((e) => e.$1.id), [movies[1].id]);
     expect((await lib.progress(movies[2].id))!.watched, isTrue);
@@ -234,8 +341,14 @@ void main() {
   });
 
   test('streams re-emit on changes', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     final seen = <int>[];
     final sub = lib.movies().listen((m) => seen.add(m.length));
     await scanAll();
@@ -246,10 +359,18 @@ void main() {
   });
 
   test('fixMatch by title without key, then by TMDB id', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await scanAll();
-    final unknown = (await lib.movies().first).firstWhere((m) => m.title == 'Unknown Film');
+    final unknown = (await lib.movies().first).firstWhere(
+      (m) => m.title == 'Unknown Film',
+    );
     await lib.fixMatch(unknown.id, title: 'Inception', year: 2010);
     var fixed = (await lib.item(unknown.id))!;
     expect(fixed.title, 'Inception');
@@ -260,7 +381,10 @@ void main() {
     await lib.fixMatch(unknown.id, tmdbId: 27205);
     fixed = (await lib.item(unknown.id))!;
     expect(fixed.tmdbId, 27205);
-    expect(fixed.posterUrl, 'https://image.tmdb.org/t/p/w500/fixture-inception-poster.jpg');
+    expect(
+      fixed.posterUrl,
+      'https://image.tmdb.org/t/p/w500/fixture-inception-poster.jpg',
+    );
 
     // Locked items survive a rescan.
     await scanAll();
@@ -270,10 +394,18 @@ void main() {
   });
 
   test('fixMatch on an episode applies to the show', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await scanAll();
-    final frieren = (await lib.shows().first).firstWhere((s) => s.title.contains('Frieren'));
+    final frieren = (await lib.shows().first).firstWhere(
+      (s) => s.title.contains('Frieren'),
+    );
     final ep = (await lib.episodes(frieren.id).first).first;
     await lib.setTmdbApiKey('k');
     await lib.fixMatch(ep.id, title: 'Breaking Bad');
@@ -284,8 +416,14 @@ void main() {
 
   test('search is case-insensitive and Unicode-aware', () async {
     touch(media, 'Movies/Брат.1997.mkv');
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await scanAll();
     expect((await lib.search('МАТРИ')), isEmpty);
     expect((await lib.search('брат')).single.title, 'Брат');
@@ -295,18 +433,33 @@ void main() {
   });
 
   test('recentlyAdded', () async {
-    await lib.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await scanAll();
     expect(await lib.recentlyAdded().first, hasLength(3));
-    expect(await lib.recentlyAdded(kind: ItemKind.show, limit: 1).first, hasLength(1));
+    expect(
+      await lib.recentlyAdded(kind: ItemKind.show, limit: 1).first,
+      hasLength(1),
+    );
   });
 
   test('database persists across open/close', () async {
     final dbPath = p.join(tmp.path, 'persist.sqlite');
     var l = await Library.open(dbPath, httpClient: fake.client);
-    await l.addSource(MediaSource(
-        id: 'm', kind: SourceKind.localFolder, name: 'Media', path: media));
+    await l.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
     await l.scan().toList();
     await l.close();
     l = await Library.open(dbPath, httpClient: fake.client);
