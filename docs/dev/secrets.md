@@ -25,7 +25,7 @@
 | App Store Connect API key (`.p8`, key id, issuer id) | Secrets окружения `store` | TestFlight, App Store, нотаризация macOS | ключ с минимальной ролью |
 | Сертификаты подписи Apple (`.p12` и пароль) | Secrets окружения `store` / `release` | подпись iOS, tvOS, macOS | |
 | Подпись Windows (Azure Trusted Signing) | OIDC → federated credential в Azure | MSIX, установщики | без секретов в GitHub |
-| Подпись образов NAS-ОС и релизных артефактов | cosign keyless (OIDC, Sigstore) | DIST, release | приватного ключа нет |
+| Ключ cosign для образов NAS-ОС | Secret окружения `release` (или KMS) | DIST-002 | создаёт владелец; публичный ключ — в `policy.json` образа |
 | Ключ minisign для `config/` (удалённые конфиги) | Secret отдельного окружения публикации конфигов | workflow публикации конфигов | публичный ключ встроен в клиенты (CORE-014) |
 | `GITHUB_TOKEN` | выдаётся GitHub на запуск | все workflow | по умолчанию только чтение; права повышаются в конкретном job |
 
