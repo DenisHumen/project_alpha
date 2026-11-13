@@ -54,7 +54,12 @@ pub fn parse_video_duration(text: &str) -> Option<Duration> {
     let mut seen_unit = false;
     for ch in text.trim().chars() {
         if let Some(digit) = ch.to_digit(10) {
-            number = Some(number.unwrap_or(0).checked_mul(10)?.checked_add(digit as u64)?);
+            number = Some(
+                number
+                    .unwrap_or(0)
+                    .checked_mul(10)?
+                    .checked_add(digit as u64)?,
+            );
             continue;
         }
         let factor = match ch {
@@ -78,14 +83,26 @@ mod tests {
 
     #[test]
     fn encodes_reserved_characters() {
-        assert_eq!(encode_query_component("a b&c=d/é"), "a%20b%26c%3Dd%2F%C3%A9");
-        assert_eq!(encode_query_component("Just_Chatting-1.~"), "Just_Chatting-1.~");
+        assert_eq!(
+            encode_query_component("a b&c=d/é"),
+            "a%20b%26c%3Dd%2F%C3%A9"
+        );
+        assert_eq!(
+            encode_query_component("Just_Chatting-1.~"),
+            "Just_Chatting-1.~"
+        );
     }
 
     #[test]
     fn durations() {
-        assert_eq!(parse_video_duration("3h8m33s"), Some(Duration::from_secs(11313)));
-        assert_eq!(parse_video_duration("52m4s"), Some(Duration::from_secs(3124)));
+        assert_eq!(
+            parse_video_duration("3h8m33s"),
+            Some(Duration::from_secs(11313))
+        );
+        assert_eq!(
+            parse_video_duration("52m4s"),
+            Some(Duration::from_secs(3124))
+        );
         assert_eq!(parse_video_duration("21s"), Some(Duration::from_secs(21)));
         assert_eq!(parse_video_duration(""), None);
         assert_eq!(parse_video_duration("12"), None);

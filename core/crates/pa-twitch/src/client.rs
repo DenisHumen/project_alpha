@@ -474,8 +474,7 @@ impl HelixClient {
                 200..=299 => return Ok(Some(response)),
                 404 if allow_404 => return Ok(None),
                 429 => {
-                    let wait =
-                        retry_after_429(&response, self.clock.now(), self.backoff(attempt));
+                    let wait = retry_after_429(&response, self.clock.now(), self.backoff(attempt));
                     if attempt >= self.config.max_retries || wait > self.config.max_wait {
                         return Err(Error::RateLimited { retry_after: wait });
                     }
@@ -685,10 +684,7 @@ impl HelixClient {
         query.extend(q.game_ids.iter().map(|v| ("game_id", v.clone())));
         query.extend(q.languages.iter().map(|v| ("language", v.clone())));
         push_paging(&mut query, q.first, q.after.as_ref());
-        Ok(self
-            .get::<Vec<Stream>>("streams", query)
-            .await?
-            .into_page())
+        Ok(self.get::<Vec<Stream>>("streams", query).await?.into_page())
     }
 
     /// `GET /channels` for any number of broadcasters (batched by 100).

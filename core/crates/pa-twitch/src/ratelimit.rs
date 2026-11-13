@@ -105,7 +105,10 @@ mod tests {
         assert_eq!(state.wait_before_send(at(990)), None);
         state.consume(at(990));
         assert_eq!(state.remaining, Some(0));
-        assert_eq!(state.wait_before_send(at(990)), Some(Duration::from_secs(10)));
+        assert_eq!(
+            state.wait_before_send(at(990)),
+            Some(Duration::from_secs(10))
+        );
         assert_eq!(state.wait_before_send(at(1000)), None);
         state.consume(at(1000));
         assert_eq!(state.remaining, Some(799));

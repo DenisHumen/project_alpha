@@ -67,7 +67,11 @@ async fn users_are_batched_sent_with_auth_and_cached() {
         .unwrap();
     assert_eq!(users.len(), 3);
     assert_eq!(users[0].display_name, "Pixel_Fox");
-    assert!(users[0].profile_image_url.ends_with("profile_image-300x300.png"));
+    assert!(
+        users[0]
+            .profile_image_url
+            .ends_with("profile_image-300x300.png")
+    );
     assert_eq!(h.urls(), ["users?id=1001&id=1002&login=nordlicht"]);
 
     let request = &h.transport.requests()[0];
@@ -79,7 +83,12 @@ async fn users_are_batched_sent_with_auth_and_cached() {
         request.header("authorization").unwrap(),
         format!("Bearer {TOKEN}")
     );
-    assert!(request.header("user-agent").unwrap().starts_with("Kinolune/"));
+    assert!(
+        request
+            .header("user-agent")
+            .unwrap()
+            .starts_with("Kinolune/")
+    );
     assert!(
         !request
             .header("user-agent")
@@ -318,9 +327,16 @@ async fn vods_of_a_channel() {
     let vod = &page.items[0];
     assert_eq!(vod.kind, VideoType::Archive);
     assert_eq!(vod.stream_id.as_deref(), Some("40952000001"));
-    assert_eq!(vod.duration(), Some(Duration::from_secs(3 * 3600 + 8 * 60 + 33)));
+    assert_eq!(
+        vod.duration(),
+        Some(Duration::from_secs(3 * 3600 + 8 * 60 + 33))
+    );
     assert_eq!(vod.muted_segments[0].offset, 120);
-    assert!(vod.thumbnail(320, 180).unwrap().ends_with("thumb0-320x180.jpg"));
+    assert!(
+        vod.thumbnail(320, 180)
+            .unwrap()
+            .ends_with("thumb0-320x180.jpg")
+    );
 
     let highlight = &page.items[1];
     assert_eq!(highlight.kind, VideoType::Highlight);
@@ -381,7 +397,11 @@ async fn clips_of_a_channel() {
     assert_eq!(page.items[0].vod_offset, Some(5400));
     assert!((page.items[0].duration - 28.4).abs() < f64::EPSILON);
     assert_eq!(page.items[1].vod_offset, None);
-    assert!(page.items[1].embed_url.starts_with("https://clips.twitch.tv/embed"));
+    assert!(
+        page.items[1]
+            .embed_url
+            .starts_with("https://clips.twitch.tv/embed")
+    );
     assert_eq!(page.next, None);
 }
 
@@ -479,7 +499,10 @@ async fn schedule_and_missing_schedule() {
     assert_eq!(page.schedule.vacation, None);
     assert_eq!(page.next, None);
 
-    assert_eq!(h.client.get_schedule("1002", None, None).await.unwrap(), None);
+    assert_eq!(
+        h.client.get_schedule("1002", None, None).await.unwrap(),
+        None
+    );
 }
 
 #[tokio::test]

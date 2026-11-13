@@ -87,7 +87,9 @@ impl FixtureTransport {
         self.lock_queue().len()
     }
 
-    fn lock_queue(&self) -> std::sync::MutexGuard<'_, VecDeque<Result<HttpResponse, TransportError>>> {
+    fn lock_queue(
+        &self,
+    ) -> std::sync::MutexGuard<'_, VecDeque<Result<HttpResponse, TransportError>>> {
         self.queue.lock().unwrap_or_else(|e| e.into_inner())
     }
 }
