@@ -14,10 +14,7 @@ class EngineUpdate {
 
   factory EngineUpdate.fromJson(String json) {
     final map = jsonDecode(json) as Map<String, Object?>;
-    return EngineUpdate(
-      (map['event']! as Map).cast<String, Object?>(),
-      (map['state']! as Map).cast<String, Object?>(),
-    );
+    return EngineUpdate((map['event']! as Map).cast<String, Object?>(), (map['state']! as Map).cast<String, Object?>());
   }
 
   final Map<String, Object?> event;

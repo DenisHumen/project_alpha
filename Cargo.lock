@@ -2308,6 +2308,7 @@ dependencies = [
 name = "pa-ffi"
 version = "0.1.0"
 dependencies = [
+ "pa-playback",
  "pa-runtime",
  "pa-secrets",
  "serde_json",

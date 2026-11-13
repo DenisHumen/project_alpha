@@ -67,7 +67,10 @@ void main() {
       await osd.setSubtitleTrack(null);
       await osd.addExternalSubtitle('file:///s.srt', title: 'RU');
       expect((await osd.stats())['video_codec'], 'hevc');
-      await expectLater(osd.jump(5), throwsA(isA<PlatformException>().having((e) => e.code, 'code', 'invalid_argument')));
+      await expectLater(
+        osd.jump(5),
+        throwsA(isA<PlatformException>().having((e) => e.code, 'code', 'invalid_argument')),
+      );
       expect(calls.map((c) => '${c.method}:${c.arguments}'), [
         'seek:7000',
         'setAudioTrack:2',
@@ -81,23 +84,24 @@ void main() {
 
     test('events update the state in order', () async {
       late MockStreamHandlerEventSink sink;
-      messenger.setMockStreamHandler(
-        events,
-        MockStreamHandler.inline(onListen: (_, s) => sink = s),
-      );
+      messenger.setMockStreamHandler(events, MockStreamHandler.inline(onListen: (_, s) => sink = s));
       final osd = PlayerOsdBridge(commands: commands, events: events);
       final types = <String>[];
       osd.updates.listen((u) => types.add(u.type));
       await pumpEventQueue();
 
-      sink.success(jsonEncode({
-        'event': {'event': 'loading', 'index': 0},
-        'state': {'loaded': false, 'playlist_index': 0},
-      }));
-      sink.success(jsonEncode({
-        'event': {'event': 'position', 'position_ms': 1200, 'buffered_ms': 5000},
-        'state': {'loaded': true, 'position_ms': 1200},
-      }));
+      sink.success(
+        jsonEncode({
+          'event': {'event': 'loading', 'index': 0},
+          'state': {'loaded': false, 'playlist_index': 0},
+        }),
+      );
+      sink.success(
+        jsonEncode({
+          'event': {'event': 'position', 'position_ms': 1200, 'buffered_ms': 5000},
+          'state': {'loaded': true, 'position_ms': 1200},
+        }),
+      );
       await pumpEventQueue();
 
       expect(types, ['loading', 'position']);
