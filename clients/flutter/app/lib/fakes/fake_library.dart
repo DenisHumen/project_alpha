@@ -16,7 +16,14 @@ class FakeLibrary implements Library {
   FakeLibrary({this.scanStepDelay = const Duration(milliseconds: 60)});
 
   FakeLibrary.demo({this.scanStepDelay = const Duration(milliseconds: 60)}) {
-    _sources.add(MediaSource(id: 'src-demo', kind: SourceKind.localFolder, name: 'Demo library', path: '/media'));
+    _sources.add(
+      MediaSource(
+        id: 'src-demo',
+        kind: SourceKind.localFolder,
+        name: 'Demo library',
+        path: '/media',
+      ),
+    );
     _load(buildDemoLibraryData());
   }
 
@@ -54,7 +61,12 @@ class FakeLibrary implements Library {
   @override
   Stream<ScanProgress> scan({String? sourceId, String? smbPassword}) async* {
     if (_sources.isEmpty) {
-      yield ScanProgress(filesFound: 0, filesProcessed: 0, done: true, error: 'No sources');
+      yield ScanProgress(
+        filesFound: 0,
+        filesProcessed: 0,
+        done: true,
+        error: 'No sources',
+      );
       return;
     }
     final data = buildDemoLibraryData();
@@ -62,7 +74,11 @@ class FakeLibrary implements Library {
     final total = all.length;
     for (var i = 0; i < total; i += 7) {
       await Future<void>.delayed(scanStepDelay);
-      yield ScanProgress(filesFound: total, filesProcessed: i, currentPath: all[i].filePath);
+      yield ScanProgress(
+        filesFound: total,
+        filesProcessed: i,
+        currentPath: all[i].filePath,
+      );
     }
     _load(data);
     yield ScanProgress(filesFound: total, filesProcessed: total, done: true);
@@ -71,8 +87,13 @@ class FakeLibrary implements Library {
   @override
   Future<void> setTmdbApiKey(String? key) async => tmdbApiKey = key;
 
-  Stream<List<LibraryItem>> _ofKind(ItemKind kind, [bool Function(LibraryItem)? where]) =>
-      _items.stream.map((all) => all.where((i) => i.kind == kind && (where?.call(i) ?? true)).toList());
+  Stream<List<LibraryItem>> _ofKind(
+    ItemKind kind, [
+    bool Function(LibraryItem)? where,
+  ]) => _items.stream.map(
+    (all) =>
+        all.where((i) => i.kind == kind && (where?.call(i) ?? true)).toList(),
+  );
 
   @override
   Stream<List<LibraryItem>> movies() => _ofKind(ItemKind.movie);
@@ -81,8 +102,15 @@ class FakeLibrary implements Library {
   Stream<List<LibraryItem>> shows() => _ofKind(ItemKind.show);
 
   @override
-  Stream<List<LibraryItem>> episodes(String showId) => _ofKind(ItemKind.episode, (i) => i.showId == showId)
-      .map((l) => l..sort((a, b) => ((a.season ?? 0) * 1000 + (a.episode ?? 0)).compareTo((b.season ?? 0) * 1000 + (b.episode ?? 0))));
+  Stream<List<LibraryItem>> episodes(String showId) =>
+      _ofKind(ItemKind.episode, (i) => i.showId == showId).map(
+        (l) => l
+          ..sort(
+            (a, b) => ((a.season ?? 0) * 1000 + (a.episode ?? 0)).compareTo(
+              (b.season ?? 0) * 1000 + (b.episode ?? 0),
+            ),
+          ),
+      );
 
   @override
   Stream<List<LibraryItem>> tracks() => _ofKind(ItemKind.track);
@@ -134,7 +162,12 @@ class FakeLibrary implements Library {
   }
 
   @override
-  Future<void> fixMatch(String itemId, {int? tmdbId, String? title, int? year}) async {
+  Future<void> fixMatch(
+    String itemId, {
+    int? tmdbId,
+    String? title,
+    int? year,
+  }) async {
     _items.value = [
       for (final i in _items.value)
         if (i.id == itemId)

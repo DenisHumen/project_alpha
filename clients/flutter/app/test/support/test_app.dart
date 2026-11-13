@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
@@ -28,18 +27,29 @@ Future<void> loadAppFonts() async {
     final loader = FontLoader(family);
     for (final f in files) {
       final file = File('${dir.path}/$f');
-      if (file.existsSync()) loader.addFont(Future.value(ByteData.sublistView(file.readAsBytesSync())));
+      if (file.existsSync()) {
+        loader.addFont(
+          Future.value(ByteData.sublistView(file.readAsBytesSync())),
+        );
+      }
     }
     await loader.load();
   }
 
-  await load('Roboto', ['Roboto-Regular.ttf', 'Roboto-Medium.ttf', 'Roboto-Bold.ttf', 'Roboto-Black.ttf', 'Roboto-Light.ttf']);
+  await load('Roboto', [
+    'Roboto-Regular.ttf',
+    'Roboto-Medium.ttf',
+    'Roboto-Bold.ttf',
+    'Roboto-Black.ttf',
+    'Roboto-Light.ttf',
+  ]);
   await load('MaterialIcons', ['MaterialIcons-Regular.otf']);
 }
 
 Directory? _materialFontsDir() {
   final candidates = <String>[
-    if (Platform.environment['FLUTTER_ROOT'] != null) '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts',
+    if (Platform.environment['FLUTTER_ROOT'] != null)
+      '${Platform.environment['FLUTTER_ROOT']}/bin/cache/artifacts/material_fonts',
   ];
   // flutter_tester lives in <flutter>/bin/cache/artifacts/engine/<platform>/.
   var d = File(Platform.resolvedExecutable).parent;
@@ -57,7 +67,9 @@ Directory? _materialFontsDir() {
 
 Future<AppServices> demoServices({bool empty = false}) async {
   final s = AppServices(
-    library: empty ? FakeLibrary(scanStepDelay: Duration.zero) : FakeLibrary.demo(scanStepDelay: Duration.zero),
+    library: empty
+        ? FakeLibrary(scanStepDelay: Duration.zero)
+        : FakeLibrary.demo(scanStepDelay: Duration.zero),
     secureStore: MemorySecureStore(),
   );
   await s.init();
@@ -66,10 +78,18 @@ Future<AppServices> demoServices({bool empty = false}) async {
 
 final screenshotKey = GlobalKey();
 
-Widget testApp(AppServices services, {FormFactor formFactor = FormFactor.desktop, Section section = Section.home}) {
+Widget testApp(
+  AppServices services, {
+  FormFactor formFactor = FormFactor.desktop,
+  Section section = Section.home,
+}) {
   return RepaintBoundary(
     key: screenshotKey,
-    child: KinoluneApp(services: services, formFactor: formFactor, initialSection: section),
+    child: KinoluneApp(
+      services: services,
+      formFactor: formFactor,
+      initialSection: section,
+    ),
   );
 }
 
@@ -86,7 +106,11 @@ Future<void> settle(WidgetTester tester, [int frames = 12]) async {
   }
 }
 
-Future<void> pressKey(WidgetTester tester, LogicalKeyboardKey key, {int times = 1}) async {
+Future<void> pressKey(
+  WidgetTester tester,
+  LogicalKeyboardKey key, {
+  int times = 1,
+}) async {
   for (var i = 0; i < times; i++) {
     await tester.sendKeyEvent(key);
     await tester.pump(const Duration(milliseconds: 80));
@@ -98,7 +122,9 @@ Future<void> pressKey(WidgetTester tester, LogicalKeyboardKey key, {int times = 
 Future<void> capture(WidgetTester tester, String name) async {
   final dir = Platform.environment['KINOLUNE_SCREENSHOTS_DIR'];
   if (dir == null || dir.isEmpty) return;
-  final boundary = screenshotKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  final boundary =
+      screenshotKey.currentContext!.findRenderObject()!
+          as RenderRepaintBoundary;
   final dpr = tester.view.devicePixelRatio;
   final bytes = await tester.runAsync(() async {
     final ui.Image image = await boundary.toImage(pixelRatio: dpr);
@@ -108,5 +134,5 @@ Future<void> capture(WidgetTester tester, String name) async {
   });
   final file = File('$dir/$name.png');
   file.parent.createSync(recursive: true);
-  file.writeAsBytesSync(bytes! as Uint8List);
+  file.writeAsBytesSync(bytes!);
 }

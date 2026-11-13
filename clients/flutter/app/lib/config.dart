@@ -12,9 +12,9 @@ abstract final class AppConfig {
   static const _formFactor = String.fromEnvironment('KINOLUNE_FORM_FACTOR');
 
   static FormFactor? get forcedFormFactor => switch (_formFactor) {
-        'tv' => FormFactor.tv,
-        'phone' => FormFactor.phone,
-        'desktop' => FormFactor.desktop,
-        _ => null,
-      };
+    'tv' => FormFactor.tv,
+    'phone' => FormFactor.phone,
+    'desktop' => FormFactor.desktop,
+    _ => null,
+  };
 }

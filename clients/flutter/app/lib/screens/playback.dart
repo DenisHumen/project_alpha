@@ -18,17 +18,32 @@ Future<Progress?> resumeProgressOf(Library library, String itemId) async {
 }
 
 /// Opens the fullscreen player on the root navigator and saves progress.
-Future<void> playVideo(BuildContext context, LibraryItem item, {int startPositionMs = 0}) async {
+Future<void> playVideo(
+  BuildContext context,
+  LibraryItem item, {
+  int startPositionMs = 0,
+}) async {
   final services = Services.read(context);
-  final title = item.kind == ItemKind.episode ? '${episodeCode(item)}  ${item.title}' : item.title;
+  final title = item.kind == ItemKind.episode
+      ? '${episodeCode(item)}  ${item.title}'
+      : item.title;
   services.music.pause();
   await Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
       builder: (_) => PlayerScreen(
-        request: PlayRequest(uri: item.filePath, title: title, startPositionMs: startPositionMs),
+        request: PlayRequest(
+          uri: item.filePath,
+          title: title,
+          startPositionMs: startPositionMs,
+        ),
         onProgress: (pos, dur) => services.library.saveProgress(
-          Progress(itemId: item.id, positionMs: pos, durationMs: dur, updatedAt: DateTime.now()),
+          Progress(
+            itemId: item.id,
+            positionMs: pos,
+            durationMs: dur,
+            updatedAt: DateTime.now(),
+          ),
         ),
       ),
     ),
@@ -40,8 +55,13 @@ void playTracks(BuildContext context, List<LibraryItem> tracks, int index) {
   final services = Services.read(context);
   services.trackSubtitles
     ..clear()
-    ..addAll({for (final t in tracks) t.filePath: [t.artist, t.album].whereType<String>().join(' · ')});
-  services.music.play([for (final t in tracks) PlayRequest(uri: t.filePath, title: t.title)], index: index);
+    ..addAll({
+      for (final t in tracks)
+        t.filePath: [t.artist, t.album].whereType<String>().join(' · '),
+    });
+  services.music.play([
+    for (final t in tracks) PlayRequest(uri: t.filePath, title: t.title),
+  ], index: index);
 }
 
 void openNowPlaying(BuildContext context) {

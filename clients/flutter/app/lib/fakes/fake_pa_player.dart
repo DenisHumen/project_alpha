@@ -13,7 +13,12 @@ import 'package:material_ui/material_ui.dart';
 import '../widgets/artwork.dart';
 
 class PlayRequest {
-  PlayRequest({required this.uri, required this.title, this.startPositionMs = 0, this.subtitleUri});
+  PlayRequest({
+    required this.uri,
+    required this.title,
+    this.startPositionMs = 0,
+    this.subtitleUri,
+  });
 
   String uri;
   String title;
@@ -29,7 +34,12 @@ String _fmt(Duration d) {
 
 /// Fullscreen video player (fake: simulated 45-minute timeline).
 class PlayerScreen extends StatefulWidget {
-  const PlayerScreen({super.key, required this.request, required this.onProgress, this.onFinished});
+  const PlayerScreen({
+    super.key,
+    required this.request,
+    required this.onProgress,
+    this.onFinished,
+  });
 
   final PlayRequest request;
   final void Function(int positionMs, int durationMs) onProgress;
@@ -86,7 +96,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
 
   void _seek(int seconds) {
     setState(() {
-      final ms = (_pos.inMilliseconds + seconds * 1000).clamp(0, _duration.inMilliseconds);
+      final ms = (_pos.inMilliseconds + seconds * 1000).clamp(
+        0,
+        _duration.inMilliseconds,
+      );
       _pos = Duration(milliseconds: ms);
     });
     _report();
@@ -103,16 +116,23 @@ class _PlayerScreenState extends State<PlayerScreen> {
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent e) {
-    if (e is! KeyDownEvent && e is! KeyRepeatEvent) return KeyEventResult.ignored;
+    if (e is! KeyDownEvent && e is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
     final k = e.logicalKey;
-    if (k == LogicalKeyboardKey.space || k == LogicalKeyboardKey.select || k == LogicalKeyboardKey.enter ||
+    if (k == LogicalKeyboardKey.space ||
+        k == LogicalKeyboardKey.select ||
+        k == LogicalKeyboardKey.enter ||
         k == LogicalKeyboardKey.mediaPlayPause) {
       _toggle();
-    } else if (k == LogicalKeyboardKey.arrowLeft || k == LogicalKeyboardKey.mediaRewind) {
+    } else if (k == LogicalKeyboardKey.arrowLeft ||
+        k == LogicalKeyboardKey.mediaRewind) {
       _seek(-10);
-    } else if (k == LogicalKeyboardKey.arrowRight || k == LogicalKeyboardKey.mediaFastForward) {
+    } else if (k == LogicalKeyboardKey.arrowRight ||
+        k == LogicalKeyboardKey.mediaFastForward) {
       _seek(30);
-    } else if (k == LogicalKeyboardKey.escape || k == LogicalKeyboardKey.goBack) {
+    } else if (k == LogicalKeyboardKey.escape ||
+        k == LogicalKeyboardKey.goBack) {
       Navigator.of(context).maybePop();
     } else {
       _poke();
@@ -136,67 +156,126 @@ class _PlayerScreenState extends State<PlayerScreen> {
           child: GestureDetector(
             onTap: _poke,
             onDoubleTap: _toggle,
-            child: Stack(fit: StackFit.expand, children: [
-              Opacity(opacity: .55, child: GeneratedArt(seed: widget.request.uri, style: ArtStyle.backdrop)),
-              Center(
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(_playing ? Icons.graphic_eq : Icons.pause, size: 48, color: Colors.white70),
-                  const SizedBox(height: 12),
-                  Text('Preview player', style: theme.textTheme.titleLarge),
-                  Text('Real playback comes with pa_player (media_kit)', style: theme.textTheme.bodySmall),
-                ]),
-              ),
-              AnimatedOpacity(
-                opacity: _osd ? 1 : 0,
-                duration: const Duration(milliseconds: 250),
-                child: DecoratedBox(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0xAA000000), Colors.transparent, Colors.transparent, Color(0xCC000000)],
-                      stops: [0, .25, .6, 1],
-                    ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Opacity(
+                  opacity: .55,
+                  child: GeneratedArt(
+                    seed: widget.request.uri,
+                    style: ArtStyle.backdrop,
                   ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(32, 16, 32, 28),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(children: [
-                          IconButton(
-                            tooltip: 'Back',
-                            onPressed: () => Navigator.of(context).maybePop(),
-                            icon: const Icon(Icons.arrow_back),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(widget.request.title, style: theme.textTheme.titleLarge, overflow: TextOverflow.ellipsis)),
-                        ]),
-                        const Spacer(),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(value: f.clamp(0, 1), minHeight: 5),
+                ),
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _playing ? Icons.graphic_eq : Icons.pause,
+                        size: 48,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(height: 12),
+                      Text('Preview player', style: theme.textTheme.titleLarge),
+                      Text(
+                        'Real playback comes with pa_player (media_kit)',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                AnimatedOpacity(
+                  opacity: _osd ? 1 : 0,
+                  duration: const Duration(milliseconds: 250),
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xAA000000),
+                          Colors.transparent,
+                          Colors.transparent,
+                          Color(0xCC000000),
+                        ],
+                        stops: [0, .25, .6, 1],
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(32, 16, 32, 28),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                IconButton(
+                                  tooltip: 'Back',
+                                  onPressed: () =>
+                                      Navigator.of(context).maybePop(),
+                                  icon: const Icon(Icons.arrow_back),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    widget.request.title,
+                                    style: theme.textTheme.titleLarge,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Spacer(),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: f.clamp(0, 1),
+                                minHeight: 5,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Text(
+                                  _fmt(_pos),
+                                  style: theme.textTheme.labelMedium,
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  tooltip: 'Back 10 s',
+                                  onPressed: () => _seek(-10),
+                                  icon: const Icon(Icons.replay_10),
+                                ),
+                                IconButton(
+                                  tooltip: _playing ? 'Pause' : 'Play',
+                                  iconSize: 40,
+                                  onPressed: _toggle,
+                                  icon: Icon(
+                                    _playing
+                                        ? Icons.pause_circle_filled
+                                        : Icons.play_circle_filled,
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Forward 30 s',
+                                  onPressed: () => _seek(30),
+                                  icon: const Icon(Icons.forward_30),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  '-${_fmt(_duration - _pos)}',
+                                  style: theme.textTheme.labelMedium,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
-                        Row(children: [
-                          Text(_fmt(_pos), style: theme.textTheme.labelMedium),
-                          const Spacer(),
-                          IconButton(tooltip: 'Back 10 s', onPressed: () => _seek(-10), icon: const Icon(Icons.replay_10)),
-                          IconButton(
-                            tooltip: _playing ? 'Pause' : 'Play',
-                            iconSize: 40,
-                            onPressed: _toggle,
-                            icon: Icon(_playing ? Icons.pause_circle_filled : Icons.play_circle_filled),
-                          ),
-                          IconButton(tooltip: 'Forward 30 s', onPressed: () => _seek(30), icon: const Icon(Icons.forward_30)),
-                          const Spacer(),
-                          Text('-${_fmt(_duration - _pos)}', style: theme.textTheme.labelMedium),
-                        ]),
-                      ]),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ),
         ),
       ),
@@ -278,7 +357,9 @@ class MusicPlayerController extends ChangeNotifier {
   }
 
   void seek(Duration d) {
-    position = Duration(milliseconds: d.inMilliseconds.clamp(0, trackLength.inMilliseconds));
+    position = Duration(
+      milliseconds: d.inMilliseconds.clamp(0, trackLength.inMilliseconds),
+    );
     notifyListeners();
   }
 
@@ -300,7 +381,12 @@ class MusicPlayerController extends ChangeNotifier {
 
 /// Mini player shown at the bottom of the shell (Spotify-like).
 class NowPlayingBar extends StatelessWidget {
-  const NowPlayingBar({super.key, required this.controller, this.onOpen, this.subtitle});
+  const NowPlayingBar({
+    super.key,
+    required this.controller,
+    this.onOpen,
+    this.subtitle,
+  });
 
   final MusicPlayerController controller;
   final VoidCallback? onOpen;
@@ -314,40 +400,78 @@ class NowPlayingBar extends StatelessWidget {
         final cur = controller.current;
         if (cur == null) return const SizedBox.shrink();
         final theme = Theme.of(context);
-        final f = controller.position.inMilliseconds / controller.duration.inMilliseconds;
+        final f =
+            controller.position.inMilliseconds /
+            controller.duration.inMilliseconds;
         return Material(
           color: const Color(0xF21F1F27),
           borderRadius: BorderRadius.circular(14),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: onOpen,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 8, 4, 6),
-                child: Row(children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: SizedBox.square(dimension: 40, child: GeneratedArt(seed: _albumSeed(cur), style: ArtStyle.album)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 8, 4, 6),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: SizedBox.square(
+                          dimension: 40,
+                          child: GeneratedArt(
+                            seed: _albumSeed(cur),
+                            style: ArtStyle.album,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              cur.title,
+                              style: theme.textTheme.titleSmall,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (subtitle != null)
+                              Text(
+                                subtitle!,
+                                style: theme.textTheme.labelSmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Previous',
+                        onPressed: controller.previous,
+                        icon: const Icon(Icons.skip_previous),
+                      ),
+                      IconButton(
+                        tooltip: controller.playing ? 'Pause' : 'Play',
+                        onPressed: controller.playing
+                            ? controller.pause
+                            : controller.resume,
+                        icon: Icon(
+                          controller.playing ? Icons.pause : Icons.play_arrow,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Next',
+                        onPressed: controller.next,
+                        icon: const Icon(Icons.skip_next),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(cur.title, style: theme.textTheme.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      if (subtitle != null)
-                        Text(subtitle!, style: theme.textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ]),
-                  ),
-                  IconButton(tooltip: 'Previous', onPressed: controller.previous, icon: const Icon(Icons.skip_previous)),
-                  IconButton(
-                    tooltip: controller.playing ? 'Pause' : 'Play',
-                    onPressed: controller.playing ? controller.pause : controller.resume,
-                    icon: Icon(controller.playing ? Icons.pause : Icons.play_arrow),
-                  ),
-                  IconButton(tooltip: 'Next', onPressed: controller.next, icon: const Icon(Icons.skip_next)),
-                ]),
-              ),
-              LinearProgressIndicator(value: f.clamp(0, 1), minHeight: 2),
-            ]),
+                ),
+                LinearProgressIndicator(value: f.clamp(0, 1), minHeight: 2),
+              ],
+            ),
           ),
         );
       },
@@ -370,79 +494,154 @@ class NowPlayingScreen extends StatelessWidget {
         listenable: controller,
         builder: (context, _) {
           final cur = controller.current;
-          if (cur == null) return const Center(child: Text('Nothing is playing'));
+          if (cur == null) {
+            return const Center(child: Text('Nothing is playing'));
+          }
           final seed = _albumSeed(cur);
-          return Stack(fit: StackFit.expand, children: [
-            Opacity(opacity: .35, child: GeneratedArt(seed: seed, style: ArtStyle.album)),
-            const DecoratedBox(decoration: BoxDecoration(color: Color(0xB30B0B0F))),
-            SafeArea(
-              child: LayoutBuilder(builder: (context, c) {
-                final art = math.min(c.maxWidth * .7, c.maxHeight * .45).clamp(120.0, 420.0);
-                return Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      tooltip: 'Close',
-                      onPressed: () => Navigator.of(context).maybePop(),
-                      icon: const Icon(Icons.keyboard_arrow_down, size: 32),
-                    ),
-                  ),
-                  const Spacer(),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: SizedBox.square(dimension: art, child: GeneratedArt(seed: seed, style: ArtStyle.album)),
-                  ),
-                  const SizedBox(height: 28),
-                  Text(cur.title, style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
-                  if (subtitle != null) Text(subtitle!, style: theme.textTheme.bodySmall),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: math.min(520, c.maxWidth - 48),
-                    child: Column(children: [
-                      Slider(
-                        value: controller.position.inMilliseconds.toDouble(),
-                        max: controller.duration.inMilliseconds.toDouble(),
-                        onChanged: (v) => controller.seek(Duration(milliseconds: v.round())),
-                      ),
-                      Row(children: [
-                        Text(_fmt(controller.position), style: theme.textTheme.labelSmall),
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              Opacity(
+                opacity: .35,
+                child: GeneratedArt(seed: seed, style: ArtStyle.album),
+              ),
+              const DecoratedBox(
+                decoration: BoxDecoration(color: Color(0xB30B0B0F)),
+              ),
+              SafeArea(
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    final art = math
+                        .min(c.maxWidth * .7, c.maxHeight * .45)
+                        .clamp(120.0, 420.0);
+                    return Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            tooltip: 'Close',
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            icon: const Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 32,
+                            ),
+                          ),
+                        ),
                         const Spacer(),
-                        Text(_fmt(controller.duration), style: theme.textTheme.labelSmall),
-                      ]),
-                    ]),
-                  ),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    IconButton(
-                      tooltip: 'Shuffle',
-                      onPressed: () {
-                        controller.queue.shuffle = !controller.queue.shuffle;
-                        controller.seek(controller.position);
-                      },
-                      icon: Icon(Icons.shuffle, color: controller.queue.shuffle ? theme.colorScheme.primary : null),
-                    ),
-                    IconButton(iconSize: 36, tooltip: 'Previous', onPressed: controller.previous, icon: const Icon(Icons.skip_previous)),
-                    IconButton(
-                      iconSize: 64,
-                      autofocus: true,
-                      tooltip: controller.playing ? 'Pause' : 'Play',
-                      onPressed: controller.playing ? controller.pause : controller.resume,
-                      icon: Icon(controller.playing ? Icons.pause_circle_filled : Icons.play_circle_filled),
-                    ),
-                    IconButton(iconSize: 36, tooltip: 'Next', onPressed: controller.next, icon: const Icon(Icons.skip_next)),
-                    IconButton(
-                      tooltip: 'Repeat',
-                      onPressed: () {
-                        controller.queue.repeat = !controller.queue.repeat;
-                        controller.seek(controller.position);
-                      },
-                      icon: Icon(Icons.repeat, color: controller.queue.repeat ? theme.colorScheme.primary : null),
-                    ),
-                  ]),
-                  const Spacer(flex: 2),
-                ]);
-              }),
-            ),
-          ]);
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: SizedBox.square(
+                            dimension: art,
+                            child: GeneratedArt(
+                              seed: seed,
+                              style: ArtStyle.album,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        Text(
+                          cur.title,
+                          style: theme.textTheme.headlineMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        if (subtitle != null)
+                          Text(subtitle!, style: theme.textTheme.bodySmall),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: math.min(520, c.maxWidth - 48),
+                          child: Column(
+                            children: [
+                              Slider(
+                                value: controller.position.inMilliseconds
+                                    .toDouble(),
+                                max: controller.duration.inMilliseconds
+                                    .toDouble(),
+                                onChanged: (v) => controller.seek(
+                                  Duration(milliseconds: v.round()),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    _fmt(controller.position),
+                                    style: theme.textTheme.labelSmall,
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    _fmt(controller.duration),
+                                    style: theme.textTheme.labelSmall,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              tooltip: 'Shuffle',
+                              onPressed: () {
+                                controller.queue.shuffle =
+                                    !controller.queue.shuffle;
+                                controller.seek(controller.position);
+                              },
+                              icon: Icon(
+                                Icons.shuffle,
+                                color: controller.queue.shuffle
+                                    ? theme.colorScheme.primary
+                                    : null,
+                              ),
+                            ),
+                            IconButton(
+                              iconSize: 36,
+                              tooltip: 'Previous',
+                              onPressed: controller.previous,
+                              icon: const Icon(Icons.skip_previous),
+                            ),
+                            IconButton(
+                              iconSize: 64,
+                              autofocus: true,
+                              tooltip: controller.playing ? 'Pause' : 'Play',
+                              onPressed: controller.playing
+                                  ? controller.pause
+                                  : controller.resume,
+                              icon: Icon(
+                                controller.playing
+                                    ? Icons.pause_circle_filled
+                                    : Icons.play_circle_filled,
+                              ),
+                            ),
+                            IconButton(
+                              iconSize: 36,
+                              tooltip: 'Next',
+                              onPressed: controller.next,
+                              icon: const Icon(Icons.skip_next),
+                            ),
+                            IconButton(
+                              tooltip: 'Repeat',
+                              onPressed: () {
+                                controller.queue.repeat =
+                                    !controller.queue.repeat;
+                                controller.seek(controller.position);
+                              },
+                              icon: Icon(
+                                Icons.repeat,
+                                color: controller.queue.repeat
+                                    ? theme.colorScheme.primary
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(flex: 2),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
         },
       ),
     );

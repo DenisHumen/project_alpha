@@ -53,24 +53,46 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               autofocus: !d.isPhone,
               primary: true,
               icon: Icons.play_arrow_rounded,
-              label: progress != null ? 'Resume ${formatClock(progress.positionMs)}' : 'Play',
-              onPressed: () => playVideo(context, item, startPositionMs: progress?.positionMs ?? 0),
+              label: progress != null
+                  ? 'Resume ${formatClock(progress.positionMs)}'
+                  : 'Play',
+              onPressed: () => playVideo(
+                context,
+                item,
+                startPositionMs: progress?.positionMs ?? 0,
+              ),
             ),
             if (progress != null)
-              KButton(icon: Icons.replay, label: 'From beginning', onPressed: () => playVideo(context, item)),
+              KButton(
+                icon: Icons.replay,
+                label: 'From beginning',
+                onPressed: () => playVideo(context, item),
+              ),
             KButton(
               icon: Icons.manage_search,
               label: 'Fix match',
-              onPressed: () => showFixMatchDialog(context, item).then((_) => setState(() {})),
+              onPressed: () => showFixMatchDialog(
+                context,
+                item,
+              ).then((_) => setState(() {})),
             ),
           ],
           extra: Padding(
             padding: const EdgeInsets.only(top: 16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              MatchBadge(confidence: item.matchConfidence),
-              const SizedBox(height: 4),
-              Text(item.filePath, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.labelSmall?.copyWith(color: KColors.textTertiary)),
-            ]),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MatchBadge(confidence: item.matchConfidence),
+                const SizedBox(height: 4),
+                Text(
+                  item.filePath,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: KColors.textTertiary),
+                ),
+              ],
+            ),
           ),
         );
       },

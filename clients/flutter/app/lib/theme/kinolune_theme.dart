@@ -81,13 +81,14 @@ class KDensity {
   bool get isPhone => formFactor == FormFactor.phone;
   bool get isDesktop => formFactor == FormFactor.desktop;
 
-  static KDensity of(BuildContext context) => forFactor(FormFactorScope.of(context));
+  static KDensity of(BuildContext context) =>
+      forFactor(FormFactorScope.of(context));
 
   static KDensity forFactor(FormFactor f) => switch (f) {
-        FormFactor.tv => tv,
-        FormFactor.phone => phone,
-        FormFactor.desktop => desktop,
-      };
+    FormFactor.tv => tv,
+    FormFactor.phone => phone,
+    FormFactor.desktop => desktop,
+  };
 
   static const desktop = KDensity(
     formFactor: FormFactor.desktop,
@@ -102,7 +103,16 @@ class KDensity {
     focusScalePoster: 1.05,
     focusScaleCard: 1.04,
     focusScaleButton: 1.03,
-    type: KType(display: 40, title1: 28, title2: 22, headline: 17, body: 14, callout: 14, caption: 12, caption2: 11),
+    type: KType(
+      display: 40,
+      title1: 28,
+      title2: 22,
+      headline: 17,
+      body: 14,
+      callout: 14,
+      caption: 12,
+      caption2: 11,
+    ),
   );
 
   static const phone = KDensity(
@@ -118,7 +128,16 @@ class KDensity {
     focusScalePoster: 1.0,
     focusScaleCard: 1.0,
     focusScaleButton: 1.0,
-    type: KType(display: 32, title1: 28, title2: 22, headline: 17, body: 15, callout: 15, caption: 13, caption2: 11),
+    type: KType(
+      display: 32,
+      title1: 28,
+      title2: 22,
+      headline: 17,
+      body: 15,
+      callout: 15,
+      caption: 13,
+      caption2: 11,
+    ),
   );
 
   static const tv = KDensity(
@@ -135,7 +154,16 @@ class KDensity {
     focusScalePoster: 1.10,
     focusScaleCard: 1.08,
     focusScaleButton: 1.06,
-    type: KType(display: 36, title1: 26, title2: 22, headline: 17, body: 13, callout: 14, caption: 12, caption2: 11),
+    type: KType(
+      display: 36,
+      title1: 26,
+      title2: 22,
+      headline: 17,
+      body: 13,
+      callout: 14,
+      caption: 12,
+      caption2: 11,
+    ),
   );
 }
 
@@ -151,14 +179,26 @@ class KType {
     required this.caption,
     required this.caption2,
   });
-  final double display, title1, title2, headline, body, callout, caption, caption2;
+  final double display,
+      title1,
+      title2,
+      headline,
+      body,
+      callout,
+      caption,
+      caption2;
 }
 
 /// Font family. Roboto is Apache-2.0 and is the platform font on Android; on
 /// Linux fontconfig falls back to the desktop sans font. Inter (DSN-005)
 /// replaces it once the font files land in design/.
 const kFontFamily = 'Roboto';
-const kFontFallback = <String>['Inter', 'Noto Sans', 'Cantarell', 'DejaVu Sans'];
+const kFontFallback = <String>[
+  'Inter',
+  'Noto Sans',
+  'Cantarell',
+  'DejaVu Sans',
+];
 
 ThemeData buildKinoluneTheme(FormFactor formFactor) {
   final d = KDensity.forFactor(formFactor);
@@ -179,8 +219,18 @@ ThemeData buildKinoluneTheme(FormFactor formFactor) {
     outlineVariant: KColors.stroke,
     error: KColors.live,
   );
-  TextStyle s(double size, FontWeight w, {double? height, Color color = KColors.textPrimary}) =>
-      TextStyle(fontSize: size, fontWeight: w, height: height, color: color, letterSpacing: 0);
+  TextStyle s(
+    double size,
+    FontWeight w, {
+    double? height,
+    Color color = KColors.textPrimary,
+  }) => TextStyle(
+    fontSize: size,
+    fontWeight: w,
+    height: height,
+    color: color,
+    letterSpacing: 0,
+  );
   final textTheme = TextTheme(
     displayLarge: s(t.display, FontWeight.w700, height: 1.15),
     displayMedium: s(t.display * .85, FontWeight.w700, height: 1.15),
@@ -192,7 +242,12 @@ ThemeData buildKinoluneTheme(FormFactor formFactor) {
     titleSmall: s(t.caption, FontWeight.w600, height: 1.3),
     bodyLarge: s(t.body + 1, FontWeight.w400, height: 1.45),
     bodyMedium: s(t.body, FontWeight.w400, height: 1.45),
-    bodySmall: s(t.caption, FontWeight.w400, height: 1.35, color: KColors.textSecondary),
+    bodySmall: s(
+      t.caption,
+      FontWeight.w400,
+      height: 1.35,
+      color: KColors.textSecondary,
+    ),
     labelLarge: s(t.callout, FontWeight.w600),
     labelMedium: s(t.caption, FontWeight.w500, color: KColors.textSecondary),
     labelSmall: s(t.caption2, FontWeight.w500, color: KColors.textSecondary),
@@ -208,10 +263,16 @@ ThemeData buildKinoluneTheme(FormFactor formFactor) {
     fontFamilyFallback: kFontFallback,
     textTheme: textTheme,
     visualDensity: VisualDensity.standard,
-    splashFactory: formFactor == FormFactor.tv ? NoSplash.splashFactory : InkSparkle.splashFactory,
+    splashFactory: formFactor == FormFactor.tv
+        ? NoSplash.splashFactory
+        : InkSparkle.splashFactory,
     focusColor: Colors.white.withValues(alpha: .12),
     hoverColor: Colors.white.withValues(alpha: .06),
-    dividerTheme: const DividerThemeData(color: KColors.stroke, thickness: 1, space: 1),
+    dividerTheme: const DividerThemeData(
+      color: KColors.stroke,
+      thickness: 1,
+      space: 1,
+    ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -222,18 +283,25 @@ ThemeData buildKinoluneTheme(FormFactor formFactor) {
       color: KColors.bgElevated,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(d.cardRadius)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(d.cardRadius),
+      ),
     ),
     dialogTheme: DialogThemeData(
       backgroundColor: KColors.bgElevated,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(d.panelRadius)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(d.panelRadius),
+      ),
       titleTextStyle: textTheme.headlineSmall,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.white.withValues(alpha: .06),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: KColors.accent, width: 2),
@@ -245,7 +313,10 @@ ThemeData buildKinoluneTheme(FormFactor formFactor) {
       backgroundColor: Colors.white.withValues(alpha: .06),
       selectedColor: Colors.white,
       labelStyle: textTheme.labelLarge?.copyWith(fontSize: t.caption + 1),
-      secondaryLabelStyle: textTheme.labelLarge?.copyWith(fontSize: t.caption + 1, color: Colors.black),
+      secondaryLabelStyle: textTheme.labelLarge?.copyWith(
+        fontSize: t.caption + 1,
+        color: Colors.black,
+      ),
       side: BorderSide.none,
       shape: const StadiumBorder(),
       showCheckmark: false,

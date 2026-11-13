@@ -25,7 +25,8 @@ Future<FormFactor> detectFormFactor() async {
   if (kIsWeb) return FormFactor.desktop;
   if (Platform.isAndroid) {
     try {
-      final isTv = await _deviceChannel.invokeMethod<bool>('isTelevision') ?? false;
+      final isTv =
+          await _deviceChannel.invokeMethod<bool>('isTelevision') ?? false;
       if (isTv) return FormFactor.tv;
     } on PlatformException {
       // fall through
@@ -41,13 +42,21 @@ Future<FormFactor> detectFormFactor() async {
 /// Provides the [FormFactor] to the tree. A phone/tablet with a wide window
 /// gets the sidebar layout via [effectiveLayoutOf].
 class FormFactorScope extends InheritedWidget {
-  const FormFactorScope({super.key, required this.formFactor, required super.child});
+  const FormFactorScope({
+    super.key,
+    required this.formFactor,
+    required super.child,
+  });
 
   final FormFactor formFactor;
 
   static FormFactor of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<FormFactorScope>()?.formFactor ?? FormFactor.desktop;
+      context
+          .dependOnInheritedWidgetOfExactType<FormFactorScope>()
+          ?.formFactor ??
+      FormFactor.desktop;
 
   @override
-  bool updateShouldNotify(FormFactorScope oldWidget) => oldWidget.formFactor != formFactor;
+  bool updateShouldNotify(FormFactorScope oldWidget) =>
+      oldWidget.formFactor != formFactor;
 }

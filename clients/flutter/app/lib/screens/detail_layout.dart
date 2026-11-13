@@ -31,18 +31,30 @@ class DetailBackdropPage extends StatelessWidget {
     final d = KDensity.of(context);
     final theme = Theme.of(context);
     final screen = MediaQuery.sizeOf(context);
-    final heroHeight = d.isPhone ? screen.height * .62 : screen.height * (d.isTv ? .92 : .78);
+    final heroHeight = d.isPhone
+        ? screen.height * .62
+        : screen.height * (d.isTv ? .8 : .78);
     final posterW = d.isPhone ? 110.0 : (d.isTv ? 150.0 : 190.0);
 
     final info = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(item.title, style: theme.textTheme.displayLarge, maxLines: 2, overflow: TextOverflow.ellipsis),
+        Text(
+          item.title,
+          style: theme.textTheme.displayLarge,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
         if (item.originalTitle != null && item.originalTitle != item.title)
           Text(item.originalTitle!, style: theme.textTheme.bodySmall),
         const SizedBox(height: 8),
-        Text(meta, style: theme.textTheme.labelMedium?.copyWith(fontSize: d.type.caption + 1)),
+        Text(
+          meta,
+          style: theme.textTheme.labelMedium?.copyWith(
+            fontSize: d.type.caption + 1,
+          ),
+        ),
         if (item.overview != null) ...[
           const SizedBox(height: 12),
           ConstrainedBox(
@@ -51,12 +63,16 @@ class DetailBackdropPage extends StatelessWidget {
               item.overview!,
               maxLines: d.isTv ? 3 : 5,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyLarge?.copyWith(color: KColors.textSecondary),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: KColors.textSecondary,
+              ),
             ),
           ),
         ],
         SizedBox(height: d.isTv ? 18 : 22),
-        FocusTraversalGroup(child: Wrap(spacing: 12, runSpacing: 12, children: actions)),
+        FocusTraversalGroup(
+          child: Wrap(spacing: 12, runSpacing: 12, children: actions),
+        ),
         ?extra,
       ],
     );
@@ -68,62 +84,98 @@ class DetailBackdropPage extends StatelessWidget {
           SliverToBoxAdapter(
             child: SizedBox(
               height: heroHeight,
-              child: Stack(fit: StackFit.expand, children: [
-                Artwork(url: item.backdropUrl, seed: item.showId ?? item.id, style: ArtStyle.backdrop),
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [Color(0xF00B0B0F), Color(0x990B0B0F), Color(0x200B0B0F)],
-                      stops: [0, .5, 1],
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Artwork(
+                    url: item.backdropUrl,
+                    seed: item.showId ?? item.id,
+                    style: ArtStyle.backdrop,
+                  ),
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Color(0xF00B0B0F),
+                          Color(0x990B0B0F),
+                          Color(0x200B0B0F),
+                        ],
+                        stops: [0, .5, 1],
+                      ),
                     ),
                   ),
-                ),
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Color(0x660B0B0F), Color(0x000B0B0F), KColors.bgBase],
-                      stops: [0, .35, 1],
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0x660B0B0F),
+                          Color(0x000B0B0F),
+                          KColors.bgBase,
+                        ],
+                        stops: [0, .35, 1],
+                      ),
                     ),
                   ),
-                ),
-                SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(d.pageInsets.left, d.pageInsets.top, d.pageInsets.right, d.isTv ? 24 : 32),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      if (!d.isTv && Navigator.of(context).canPop())
-                        IconButton(
-                          tooltip: 'Back',
-                          onPressed: () => Navigator.of(context).maybePop(),
-                          style: IconButton.styleFrom(backgroundColor: Colors.black38),
-                          icon: const Icon(Icons.arrow_back),
-                        ),
-                      const Spacer(),
-                      if (d.isPhone)
-                        info
-                      else
-                        Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(d.cardRadius),
-                            child: SizedBox(
-                              width: posterW,
-                              child: AspectRatio(
-                                aspectRatio: 2 / 3,
-                                child: Artwork(url: item.posterUrl, seed: item.id, style: ArtStyle.poster, title: item.title, subtitle: item.year?.toString()),
+                  SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        d.pageInsets.left,
+                        d.pageInsets.top,
+                        d.pageInsets.right,
+                        d.isTv ? 24 : 32,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (!d.isTv && Navigator.of(context).canPop())
+                            IconButton(
+                              tooltip: 'Back',
+                              onPressed: () => Navigator.of(context).maybePop(),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black38,
                               ),
+                              icon: const Icon(Icons.arrow_back),
                             ),
-                          ),
-                          SizedBox(width: d.isTv ? 28 : 32),
-                          Expanded(child: info),
-                        ]),
-                    ]),
+                          const Spacer(),
+                          if (d.isPhone)
+                            info
+                          else
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                    d.cardRadius,
+                                  ),
+                                  child: SizedBox(
+                                    width: posterW,
+                                    child: AspectRatio(
+                                      aspectRatio: 2 / 3,
+                                      child: Artwork(
+                                        url: item.posterUrl,
+                                        seed: item.id,
+                                        style: ArtStyle.poster,
+                                        title: item.title,
+                                        subtitle: item.year?.toString(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: d.isTv ? 28 : 32),
+                                Expanded(child: info),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ]),
+                ],
+              ),
             ),
           ),
           if (footer != null) SliverToBoxAdapter(child: footer),
@@ -143,13 +195,23 @@ class MatchBadge extends StatelessWidget {
     final c = confidence;
     if (c == null) return const SizedBox.shrink();
     final low = c < .75;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(low ? Icons.help_outline : Icons.verified_outlined, size: 14, color: low ? Colors.amber : KColors.textSecondary),
-      const SizedBox(width: 4),
-      Text(
-        low ? 'Uncertain match (${(c * 100).round()}%) — check “Fix match”' : 'Matched ${(c * 100).round()}%',
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: low ? Colors.amber : null),
-      ),
-    ]);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          low ? Icons.help_outline : Icons.verified_outlined,
+          size: 14,
+          color: low ? Colors.amber : KColors.textSecondary,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          low
+              ? 'Uncertain match (${(c * 100).round()}%) — check “Fix match”'
+              : 'Matched ${(c * 100).round()}%',
+          style: Theme.of(context).textTheme.labelSmall
+              ?.copyWith(color: low ? Colors.amber : null),
+        ),
+      ],
+    );
   }
 }

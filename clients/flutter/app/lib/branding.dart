@@ -12,4 +12,5 @@ const kRepoUrl = 'https://github.com/DenisHumen/project_alpha';
 const kTmdbUrl = 'https://www.themoviedb.org';
 
 /// Attribution required by the TMDB API terms of use.
-const kTmdbNotice = 'This product uses the TMDB API but is not endorsed or certified by TMDB.';
+const kTmdbNotice =
+    'This product uses the TMDB API but is not endorsed or certified by TMDB.';

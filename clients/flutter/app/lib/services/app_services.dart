@@ -10,8 +10,11 @@ import 'secure_store.dart';
 
 /// App-wide services, provided to the tree by [Services].
 class AppServices extends ChangeNotifier {
-  AppServices({required this.library, required this.secureStore, MusicPlayerController? music})
-      : music = music ?? MusicPlayerController();
+  AppServices({
+    required this.library,
+    required this.secureStore,
+    MusicPlayerController? music,
+  }) : music = music ?? MusicPlayerController();
 
   final Library library;
   final SecureStore secureStore;
@@ -61,12 +64,16 @@ class AppServices extends ChangeNotifier {
   /// Scans one source or all of them; progress is published via [scanProgress].
   Future<void> scan({String? sourceId}) async {
     if (scanning) return;
-    final targets = sourceId == null ? _sources : _sources.where((s) => s.id == sourceId).toList();
+    final targets = sourceId == null
+        ? _sources
+        : _sources.where((s) => s.id == sourceId).toList();
     _scan = ScanProgress(filesFound: 0, filesProcessed: 0);
     notifyListeners();
     try {
       for (final s in targets) {
-        final pwd = s.kind == SourceKind.smb ? await secureStore.read(SecureStore.smbPassword(s.id)) : null;
+        final pwd = s.kind == SourceKind.smb
+            ? await secureStore.read(SecureStore.smbPassword(s.id))
+            : null;
         await for (final p in library.scan(sourceId: s.id, smbPassword: pwd)) {
           _scan = ScanProgress(
             filesFound: p.filesFound,
@@ -84,7 +91,12 @@ class AppServices extends ChangeNotifier {
         error: _scan?.error,
       );
     } catch (e) {
-      _scan = ScanProgress(filesFound: 0, filesProcessed: 0, done: true, error: '$e');
+      _scan = ScanProgress(
+        filesFound: 0,
+        filesProcessed: 0,
+        done: true,
+        error: '$e',
+      );
     }
     notifyListeners();
   }
@@ -106,7 +118,11 @@ class AppServices extends ChangeNotifier {
 }
 
 class Services extends InheritedNotifier<AppServices> {
-  const Services({super.key, required AppServices services, required super.child}) : super(notifier: services);
+  const Services({
+    super.key,
+    required AppServices services,
+    required super.child,
+  }) : super(notifier: services);
 
   static AppServices of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<Services>()!.notifier!;

@@ -47,9 +47,15 @@ class AppShell extends StatefulWidget {
 
 class AppShellState extends State<AppShell> {
   late Section _section = widget.initialSection;
-  final _navKeys = {for (final s in Section.values) s: GlobalKey<NavigatorState>()};
-  late final _observers = {for (final s in Section.values) s: _RebuildObserver(() => setState(() {}))};
-  final _menuFocus = {for (final s in Section.values) s: FocusNode(debugLabel: 'menu-${s.name}')};
+  final _navKeys = {
+    for (final s in Section.values) s: GlobalKey<NavigatorState>(),
+  };
+  late final _observers = {
+    for (final s in Section.values) s: _RebuildObserver(() => setState(() {})),
+  };
+  final _menuFocus = {
+    for (final s in Section.values) s: FocusNode(debugLabel: 'menu-${s.name}'),
+  };
 
   Section get section => _section;
 
@@ -62,6 +68,18 @@ class AppShellState extends State<AppShell> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Nested navigators grab focus for their first route; on TV the menu tab
+    // must own the initial focus instead.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && KDensity.of(context).isTv) {
+        _menuFocus[_section]!.requestFocus();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     for (final f in _menuFocus.values) {
       f.dispose();
@@ -70,13 +88,17 @@ class AppShellState extends State<AppShell> {
   }
 
   Widget _rootFor(Section s) => switch (s) {
-        Section.home => HomeScreen(onOpenSection: (i) => select(const [Section.home, Section.movies, Section.shows, Section.music][i])),
-        Section.movies => const LibraryGridScreen(kind: ItemKind.movie),
-        Section.shows => const LibraryGridScreen(kind: ItemKind.show),
-        Section.music => const MusicScreen(),
-        Section.search => const SearchScreen(),
-        Section.settings => const SettingsScreen(),
-      };
+    Section.home => HomeScreen(
+      onOpenSection: (i) => select(
+        const [Section.home, Section.movies, Section.shows, Section.music][i],
+      ),
+    ),
+    Section.movies => const LibraryGridScreen(kind: ItemKind.movie),
+    Section.shows => const LibraryGridScreen(kind: ItemKind.show),
+    Section.music => const MusicScreen(),
+    Section.search => const SearchScreen(),
+    Section.settings => const SettingsScreen(),
+  };
 
   bool get _nestedCanPop => _navKeys[_section]!.currentState?.canPop() ?? false;
 
@@ -111,14 +133,19 @@ class AppShellState extends State<AppShell> {
             child: Navigator(
               key: _navKeys[s],
               observers: [_observers[s]!],
-              routeDirectionalTraversalEdgeBehavior: TraversalEdgeBehavior.parentScope,
-              onGenerateRoute: (_) => MaterialPageRoute<void>(builder: (_) => _rootFor(s)),
+              routeDirectionalTraversalEdgeBehavior:
+                  TraversalEdgeBehavior.parentScope,
+              onGenerateRoute: (_) =>
+                  MaterialPageRoute<void>(builder: (_) => _rootFor(s)),
             ),
           ),
       ],
     );
 
-    final canExit = _section == Section.home && !_nestedCanPop && !(d.isTv && !_menuFocus[Section.home]!.hasFocus);
+    final canExit =
+        _section == Section.home &&
+        !_nestedCanPop &&
+        !(d.isTv && !_menuFocus[Section.home]!.hasFocus);
     final Widget body;
     if (d.isTv) {
       body = _TvLayout(shell: this, content: content);
@@ -133,9 +160,15 @@ class AppShellState extends State<AppShell> {
         if (!didPop) _handleBack();
       },
       child: Shortcuts(
-        shortcuts: const {SingleActivator(LogicalKeyboardKey.escape): _BackIntent()},
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.escape): _BackIntent(),
+        },
         child: Actions(
-          actions: {_BackIntent: CallbackAction<_BackIntent>(onInvoke: (_) => _handleBack())},
+          actions: {
+            _BackIntent: CallbackAction<_BackIntent>(
+              onInvoke: (_) => _handleBack(),
+            ),
+          },
           child: body,
         ),
       ),
@@ -151,7 +184,8 @@ class _RebuildObserver extends NavigatorObserver {
   _RebuildObserver(this.onChange);
   final VoidCallback onChange;
 
-  void _later() => WidgetsBinding.instance.addPostFrameCallback((_) => onChange());
+  void _later() =>
+      WidgetsBinding.instance.addPostFrameCallback((_) => onChange());
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) => _later();
@@ -177,7 +211,13 @@ class _MiniPlayer extends StatelessWidget {
           child: DecoratedBox(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              boxShadow: const [BoxShadow(color: Color(0x80000000), blurRadius: 24, offset: Offset(0, 8))],
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x80000000),
+                  blurRadius: 24,
+                  offset: Offset(0, 8),
+                ),
+              ],
             ),
             child: NowPlayingBar(
               controller: services.music,
@@ -204,53 +244,84 @@ class _SidebarLayout extends StatelessWidget {
     final services = Services.of(context);
     final theme = Theme.of(context);
     return Scaffold(
-      body: Row(children: [
-        Container(
-          width: 232,
-          decoration: const BoxDecoration(
-            color: KColors.bgElevated,
-            border: Border(right: BorderSide(color: KColors.stroke)),
-          ),
-          child: SafeArea(
-            right: false,
-            child: FocusTraversalGroup(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                const Padding(padding: EdgeInsets.fromLTRB(20, 22, 20, 26), child: KinoluneLogo(size: 30)),
-                for (final s in Section.values) ...[
-                  if (s == Section.search) const SizedBox(height: 18),
-                  _SidebarItem(section: s, selected: shell.section == s, onTap: () => shell.select(s)),
-                ],
-                const Spacer(),
-                if (services.scanning)
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('Scanning library…', style: theme.textTheme.labelMedium),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(
-                        value: (services.scanProgress?.filesFound ?? 0) == 0
-                            ? null
-                            : services.scanProgress!.filesProcessed / services.scanProgress!.filesFound,
+      body: Row(
+        children: [
+          Container(
+            width: 232,
+            decoration: const BoxDecoration(
+              color: KColors.bgElevated,
+              border: Border(right: BorderSide(color: KColors.stroke)),
+            ),
+            child: SafeArea(
+              right: false,
+              child: FocusTraversalGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(20, 22, 20, 26),
+                      child: KinoluneLogo(size: 30),
+                    ),
+                    for (final s in Section.values) ...[
+                      if (s == Section.search) const SizedBox(height: 18),
+                      _SidebarItem(
+                        section: s,
+                        selected: shell.section == s,
+                        onTap: () => shell.select(s),
                       ),
-                    ]),
-                  ),
-              ]),
+                    ],
+                    const Spacer(),
+                    if (services.scanning)
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Scanning library…',
+                              style: theme.textTheme.labelMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              value:
+                                  (services.scanProgress?.filesFound ?? 0) == 0
+                                  ? null
+                                  : services.scanProgress!.filesProcessed /
+                                        services.scanProgress!.filesFound,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: Stack(children: [
-            Positioned.fill(child: content),
-            const Positioned(left: 24, right: 24, bottom: 20, child: Center(child: _MiniPlayer())),
-          ]),
-        ),
-      ]),
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(child: content),
+                const Positioned(
+                  left: 24,
+                  right: 24,
+                  bottom: 20,
+                  child: Center(child: _MiniPlayer()),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _SidebarItem extends StatelessWidget {
-  const _SidebarItem({required this.section, required this.selected, required this.onTap});
+  const _SidebarItem({
+    required this.section,
+    required this.selected,
+    required this.onTap,
+  });
 
   final Section section;
   final bool selected;
@@ -273,19 +344,25 @@ class _SidebarItem extends StatelessWidget {
           color: selected
               ? Colors.white.withValues(alpha: .1)
               : hovered
-                  ? Colors.white.withValues(alpha: .05)
-                  : Colors.transparent,
-          child: Row(children: [
-            Icon(selected ? section.selectedIcon : section.icon, size: 20, color: selected ? KColors.accentSoft : KColors.textSecondary),
-            const SizedBox(width: 14),
-            Text(
-              section.label,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? Colors.white : KColors.textSecondary,
+              ? Colors.white.withValues(alpha: .05)
+              : Colors.transparent,
+          child: Row(
+            children: [
+              Icon(
+                selected ? section.selectedIcon : section.icon,
+                size: 20,
+                color: selected ? KColors.accentSoft : KColors.textSecondary,
               ),
-            ),
-          ]),
+              const SizedBox(width: 14),
+              Text(
+                section.label,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? Colors.white : KColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -300,33 +377,46 @@ class _PhoneLayout extends StatelessWidget {
   final AppShellState shell;
   final Widget content;
 
-  static const _tabs = [Section.home, Section.movies, Section.shows, Section.music, Section.search];
+  static const _tabs = [
+    Section.home,
+    Section.movies,
+    Section.shows,
+    Section.music,
+    Section.search,
+  ];
 
   @override
   Widget build(BuildContext context) {
     final idx = _tabs.indexOf(shell.section);
     return Scaffold(
-      body: Stack(children: [
-        Positioned.fill(child: content),
-        if (shell.section == Section.home && !shell._nestedCanPop)
-          Positioned(
-            right: 8,
-            top: MediaQuery.paddingOf(context).top + 4,
-            child: IconButton(
-              tooltip: 'Settings',
-              style: IconButton.styleFrom(backgroundColor: Colors.black38),
-              onPressed: () => shell.select(Section.settings),
-              icon: const Icon(Icons.settings_outlined),
+      body: Stack(
+        children: [
+          Positioned.fill(child: content),
+          if (shell.section == Section.home && !shell._nestedCanPop)
+            Positioned(
+              right: 8,
+              top: MediaQuery.paddingOf(context).top + 4,
+              child: IconButton(
+                tooltip: 'Settings',
+                style: IconButton.styleFrom(backgroundColor: Colors.black38),
+                onPressed: () => shell.select(Section.settings),
+                icon: const Icon(Icons.settings_outlined),
+              ),
             ),
-          ),
-        const Positioned(left: 8, right: 8, bottom: 8, child: _MiniPlayer()),
-      ]),
+          const Positioned(left: 8, right: 8, bottom: 8, child: _MiniPlayer()),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: idx < 0 ? 0 : idx,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (i) => shell.select(_tabs[i]),
         destinations: [
-          for (final s in _tabs) NavigationDestination(icon: Icon(s.icon), selectedIcon: Icon(s.selectedIcon), label: s == Section.shows ? 'Shows' : s.label),
+          for (final s in _tabs)
+            NavigationDestination(
+              icon: Icon(s.icon),
+              selectedIcon: Icon(s.selectedIcon),
+              label: s == Section.shows ? 'Shows' : s.label,
+            ),
         ],
       ),
     );
@@ -345,37 +435,65 @@ class _TvLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
     return Scaffold(
-      body: Column(children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(d.pageInsets.left, 18, d.pageInsets.right, 6),
-          child: FocusTraversalGroup(
-            child: Row(children: [
-              const KinoluneLogo(size: 26),
-              const SizedBox(width: 36),
-              for (final s in const [Section.home, Section.movies, Section.shows, Section.music]) ...[
-                _TvTab(shell: shell, section: s),
-                const SizedBox(width: 6),
-              ],
-              const Spacer(),
-              _TvTab(shell: shell, section: Section.search, iconOnly: true),
-              const SizedBox(width: 6),
-              _TvTab(shell: shell, section: Section.settings, iconOnly: true),
-            ]),
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              d.pageInsets.left,
+              18,
+              d.pageInsets.right,
+              6,
+            ),
+            child: FocusTraversalGroup(
+              child: Row(
+                children: [
+                  const KinoluneLogo(size: 26),
+                  const SizedBox(width: 36),
+                  for (final s in const [
+                    Section.home,
+                    Section.movies,
+                    Section.shows,
+                    Section.music,
+                  ]) ...[
+                    _TvTab(shell: shell, section: s),
+                    const SizedBox(width: 6),
+                  ],
+                  const Spacer(),
+                  _TvTab(shell: shell, section: Section.search, iconOnly: true),
+                  const SizedBox(width: 6),
+                  _TvTab(
+                    shell: shell,
+                    section: Section.settings,
+                    iconOnly: true,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-        Expanded(
-          child: Stack(children: [
-            Positioned.fill(child: content),
-            const Positioned(right: 40, bottom: 24, child: _MiniPlayer(maxWidth: 380)),
-          ]),
-        ),
-      ]),
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(child: content),
+                const Positioned(
+                  right: 40,
+                  bottom: 24,
+                  child: _MiniPlayer(maxWidth: 380),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _TvTab extends StatelessWidget {
-  const _TvTab({required this.shell, required this.section, this.iconOnly = false});
+  const _TvTab({
+    required this.shell,
+    required this.section,
+    this.iconOnly = false,
+  });
 
   final AppShellState shell;
   final Section section;
@@ -397,19 +515,37 @@ class _TvTab extends StatelessWidget {
       focusScale: 1.06,
       semanticLabel: section.label,
       builder: (context, focused) {
-        final fg = focused ? KColors.focusLabel : (selected ? Colors.white : KColors.textSecondary);
+        final fg = focused
+            ? KColors.focusLabel
+            : (selected ? Colors.white : KColors.textSecondary);
         return AnimatedContainer(
           duration: KMotion.focus,
-          padding: EdgeInsets.symmetric(horizontal: iconOnly ? 10 : 16, vertical: 7),
+          padding: EdgeInsets.symmetric(
+            horizontal: iconOnly ? 10 : 16,
+            vertical: 7,
+          ),
           decoration: BoxDecoration(
-            color: focused ? KColors.focusFill : (selected ? Colors.white.withValues(alpha: .14) : Colors.transparent),
+            color: focused
+                ? KColors.focusFill
+                : (selected
+                      ? Colors.white.withValues(alpha: .14)
+                      : Colors.transparent),
             borderRadius: BorderRadius.circular(999),
           ),
           child: iconOnly
-              ? Icon(selected ? section.selectedIcon : section.icon, size: 20, color: fg)
+              ? Icon(
+                  selected ? section.selectedIcon : section.icon,
+                  size: 20,
+                  color: fg,
+                )
               : Text(
                   section.label,
-                  style: theme.textTheme.titleMedium?.copyWith(color: fg, fontWeight: selected || focused ? FontWeight.w700 : FontWeight.w500),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: fg,
+                    fontWeight: selected || focused
+                        ? FontWeight.w700
+                        : FontWeight.w500,
+                  ),
                 ),
         );
       },

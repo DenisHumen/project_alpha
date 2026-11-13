@@ -12,7 +12,12 @@ import 'shell/app_shell.dart';
 import 'theme/kinolune_theme.dart';
 
 class KinoluneApp extends StatefulWidget {
-  const KinoluneApp({super.key, required this.services, required this.formFactor, this.initialSection = Section.home});
+  const KinoluneApp({
+    super.key,
+    required this.services,
+    required this.formFactor,
+    this.initialSection = Section.home,
+  });
 
   final AppServices services;
   final FormFactor formFactor;
@@ -26,7 +31,10 @@ class _KinoluneAppState extends State<KinoluneApp> {
   late AppServices _services = widget.services;
 
   Future<void> _useDemo() async {
-    final demo = AppServices(library: FakeLibrary.demo(), secureStore: _services.secureStore);
+    final demo = AppServices(
+      library: FakeLibrary.demo(),
+      secureStore: _services.secureStore,
+    );
     await demo.init();
     setState(() => _services = demo);
   }
@@ -47,19 +55,30 @@ class _KinoluneAppState extends State<KinoluneApp> {
           shortcuts: {
             ...WidgetsApp.defaultShortcuts,
             // D-pad centre / remote OK.
-            const SingleActivator(LogicalKeyboardKey.select): const ActivateIntent(),
+            const SingleActivator(LogicalKeyboardKey.select):
+                const ActivateIntent(),
           },
           // On TV, the focus highlight must always be visible.
           builder: (context, child) {
-            if (tv) FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+            if (tv) {
+              FocusManager.instance.highlightStrategy =
+                  FocusHighlightStrategy.alwaysTraditional;
+            }
             return child!;
           },
           home: ListenableBuilder(
             listenable: _services,
             builder: (context, _) {
-              if (!_services.loaded) return const Scaffold(body: SizedBox.shrink());
-              if (_services.sources.isEmpty) return OnboardingScreen(onTryDemo: _useDemo);
-              return AppShell(key: ObjectKey(_services), initialSection: widget.initialSection);
+              if (!_services.loaded) {
+                return const Scaffold(body: SizedBox.shrink());
+              }
+              if (_services.sources.isEmpty) {
+                return OnboardingScreen(onTryDemo: _useDemo);
+              }
+              return AppShell(
+                key: ObjectKey(_services),
+                initialSection: widget.initialSection,
+              );
             },
           ),
         ),

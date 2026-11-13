@@ -33,7 +33,10 @@ Future<void> main() async {
     final dir = await getApplicationSupportDirectory();
     library = await Library.open('${dir.path}/kinolune.db');
   }
-  final services = AppServices(library: library, secureStore: PlatformSecureStore());
+  final services = AppServices(
+    library: library,
+    secureStore: PlatformSecureStore(),
+  );
   await services.init();
   runApp(KinoluneApp(services: services, formFactor: formFactor));
 }

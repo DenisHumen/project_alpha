@@ -18,7 +18,11 @@ const kLogoPlay = Color(0xFF3B82F6);
 
 /// Draws the mark into a square of [size]. [background] fills a rounded tile.
 class LogoPainter extends CustomPainter {
-  const LogoPainter({this.background = true, this.cornerRadius = .22, this.markScale = 1});
+  const LogoPainter({
+    this.background = true,
+    this.cornerRadius = .22,
+    this.markScale = 1,
+  });
 
   final bool background;
   final double cornerRadius;
@@ -31,7 +35,10 @@ class LogoPainter extends CustomPainter {
     final s = math.min(size.width, size.height);
     final rect = Offset.zero & Size(s, s);
     if (background) {
-      final rr = RRect.fromRectAndRadius(rect, Radius.circular(s * cornerRadius));
+      final rr = RRect.fromRectAndRadius(
+        rect,
+        Radius.circular(s * cornerRadius),
+      );
       canvas.drawRRect(
         rr,
         Paint()
@@ -53,13 +60,23 @@ class LogoPainter extends CustomPainter {
       c,
       s * .42,
       Paint()
-        ..shader = RadialGradient(colors: [kLogoMoon.withValues(alpha: .18), kLogoMoon.withValues(alpha: 0)])
-            .createShader(Rect.fromCircle(center: c, radius: s * .42)),
+        ..shader = RadialGradient(
+          colors: [
+            kLogoMoon.withValues(alpha: .18),
+            kLogoMoon.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: c, radius: s * .42)),
     );
     // Crescent = moon disc minus offset disc.
     final moon = Path()..addOval(Rect.fromCircle(center: c, radius: s * .3));
-    final bite = Path()..addOval(Rect.fromCircle(center: c + Offset(s * .14, -s * .07), radius: s * .26));
-    canvas.drawPath(Path.combine(PathOperation.difference, moon, bite), Paint()..color = kLogoMoon);
+    final bite = Path()
+      ..addOval(
+        Rect.fromCircle(center: c + Offset(s * .14, -s * .07), radius: s * .26),
+      );
+    canvas.drawPath(
+      Path.combine(PathOperation.difference, moon, bite),
+      Paint()..color = kLogoMoon,
+    );
     // Play triangle in the crescent's hollow.
     final tri = Path()
       ..moveTo(s * .47, s * .36)
@@ -86,11 +103,18 @@ class LogoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(LogoPainter old) =>
-      old.background != background || old.cornerRadius != cornerRadius || old.markScale != markScale;
+      old.background != background ||
+      old.cornerRadius != cornerRadius ||
+      old.markScale != markScale;
 }
 
 class KinoluneLogo extends StatelessWidget {
-  const KinoluneLogo({super.key, this.size = 32, this.showName = true, this.nameStyle});
+  const KinoluneLogo({
+    super.key,
+    this.size = 32,
+    this.showName = true,
+    this.nameStyle,
+  });
 
   final double size;
   final bool showName;
@@ -98,16 +122,27 @@ class KinoluneLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mark = SizedBox.square(dimension: size, child: const CustomPaint(painter: LogoPainter()));
+    final mark = SizedBox.square(
+      dimension: size,
+      child: const CustomPaint(painter: LogoPainter()),
+    );
     if (!showName) return mark;
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      mark,
-      SizedBox(width: size * .35),
-      Text(
-        kAppName,
-        style: nameStyle ??
-            Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: size * .6, fontWeight: FontWeight.w700, letterSpacing: .3),
-      ),
-    ]);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        mark,
+        SizedBox(width: size * .35),
+        Text(
+          kAppName,
+          style:
+              nameStyle ??
+              Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: size * .6,
+                fontWeight: FontWeight.w700,
+                letterSpacing: .3,
+              ),
+        ),
+      ],
+    );
   }
 }

@@ -43,13 +43,16 @@ class KFocusable extends StatefulWidget {
   State<KFocusable> createState() => _KFocusableState();
 }
 
-class _KFocusableState extends State<KFocusable> with SingleTickerProviderStateMixin {
+class _KFocusableState extends State<KFocusable>
+    with SingleTickerProviderStateMixin {
   bool _focused = false;
   bool _hovered = false;
   bool _pressed = false;
   Offset _pointer = const Offset(.3, .2);
-  late final AnimationController _breath =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 3200));
+  late final AnimationController _breath = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 3200),
+  );
 
   @override
   void dispose() {
@@ -68,7 +71,8 @@ class _KFocusableState extends State<KFocusable> with SingleTickerProviderStateM
     }
   }
 
-  bool get _reduceMotion => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  bool get _reduceMotion =>
+      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +81,10 @@ class _KFocusableState extends State<KFocusable> with SingleTickerProviderStateM
     final scale = _pressed
         ? .97
         : _focused
-            ? (widget.focusScale ?? d.focusScaleCard)
-            : _hovered
-                ? 1 + ((widget.focusScale ?? d.focusScaleCard) - 1) * .5
-                : 1.0;
+        ? (widget.focusScale ?? d.focusScaleCard)
+        : _hovered
+        ? 1 + ((widget.focusScale ?? d.focusScaleCard) - 1) * .5
+        : 1.0;
     final radius = BorderRadius.circular(widget.radius ?? d.cardRadius);
     final showGlow = _focused && (d.isTv || d.isDesktop);
 
@@ -89,29 +93,39 @@ class _KFocusableState extends State<KFocusable> with SingleTickerProviderStateM
       builder: (context, child) {
         // Light drifts slowly on TV (no touchpad tilt), follows the pointer on desktop.
         final t = Curves.easeInOut.transform(_breath.value);
-        final light = d.isTv ? Offset(.15 + .5 * t, .1 + .15 * math.sin(t * math.pi)) : _pointer;
-        return Stack(fit: StackFit.passthrough, children: [
-          child!,
-          if (widget.light)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: AnimatedOpacity(
-                  opacity: active ? 1 : 0,
-                  duration: KMotion.focus,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: radius,
-                      gradient: RadialGradient(
-                        center: Alignment(light.dx * 2 - 1, light.dy * 2 - 1),
-                        radius: 1.1,
-                        colors: [Colors.white.withValues(alpha: _focused ? .22 : .12), Colors.white.withValues(alpha: 0)],
+        final light = d.isTv
+            ? Offset(.15 + .5 * t, .1 + .15 * math.sin(t * math.pi))
+            : _pointer;
+        return Stack(
+          fit: StackFit.passthrough,
+          children: [
+            child!,
+            if (widget.light)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: active ? 1 : 0,
+                    duration: KMotion.focus,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        borderRadius: radius,
+                        gradient: RadialGradient(
+                          center: Alignment(light.dx * 2 - 1, light.dy * 2 - 1),
+                          radius: 1.1,
+                          colors: [
+                            Colors.white.withValues(
+                              alpha: _focused ? .22 : .12,
+                            ),
+                            Colors.white.withValues(alpha: 0),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-        ]);
+          ],
+        );
       },
       child: widget.builder(context, active),
     );
@@ -125,7 +139,9 @@ class _KFocusableState extends State<KFocusable> with SingleTickerProviderStateM
         onShowFocusHighlight: (_) {},
         onFocusChange: _setFocus,
         onShowHoverHighlight: (h) => setState(() => _hovered = h),
-        mouseCursor: widget.onActivate != null ? SystemMouseCursors.click : MouseCursor.defer,
+        mouseCursor: widget.onActivate != null
+            ? SystemMouseCursors.click
+            : MouseCursor.defer,
         shortcuts: const {
           SingleActivator(LogicalKeyboardKey.select): ActivateIntent(),
           SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
@@ -133,22 +149,33 @@ class _KFocusableState extends State<KFocusable> with SingleTickerProviderStateM
           SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
         },
         actions: {
-          ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) {
-            widget.onActivate?.call();
-            return null;
-          }),
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onActivate?.call();
+              return null;
+            },
+          ),
         },
         child: MouseRegion(
           onHover: (e) {
             final box = context.findRenderObject() as RenderBox?;
             if (box == null || !box.hasSize) return;
-            setState(() => _pointer = Offset(e.localPosition.dx / box.size.width, e.localPosition.dy / box.size.height));
+            setState(
+              () => _pointer = Offset(
+                e.localPosition.dx / box.size.width,
+                e.localPosition.dy / box.size.height,
+              ),
+            );
           },
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTapDown: d.isPhone ? (_) => setState(() => _pressed = true) : null,
+            onTapDown: d.isPhone
+                ? (_) => setState(() => _pressed = true)
+                : null,
             onTapUp: d.isPhone ? (_) => setState(() => _pressed = false) : null,
-            onTapCancel: d.isPhone ? () => setState(() => _pressed = false) : null,
+            onTapCancel: d.isPhone
+                ? () => setState(() => _pressed = false)
+                : null,
             onTap: widget.onActivate,
             child: AnimatedScale(
               scale: scale,
@@ -160,15 +187,26 @@ class _KFocusableState extends State<KFocusable> with SingleTickerProviderStateM
                   borderRadius: radius,
                   boxShadow: showGlow
                       ? [
-                          const BoxShadow(color: Color(0x73000000), blurRadius: 24, offset: Offset(0, 10)),
-                          BoxShadow(color: KColors.focusGlow, blurRadius: 22, spreadRadius: 1),
+                          const BoxShadow(
+                            color: Color(0x73000000),
+                            blurRadius: 24,
+                            offset: Offset(0, 10),
+                          ),
+                          BoxShadow(
+                            color: KColors.focusGlow,
+                            blurRadius: 22,
+                            spreadRadius: 1,
+                          ),
                         ]
                       : const [],
                 ),
                 foregroundDecoration: _focused && !d.isPhone
                     ? BoxDecoration(
                         borderRadius: radius,
-                        border: Border.all(color: Colors.white.withValues(alpha: .85), width: d.isTv ? 2 : 1.5),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: .85),
+                          width: d.isTv ? 2 : 1.5,
+                        ),
                       )
                     : null,
                 child: ClipRRect(borderRadius: radius, child: content),
@@ -233,15 +271,27 @@ class _KButtonState extends State<KButton> {
         final vPad = d.isTv ? 10.0 : 11.0;
         return AnimatedContainer(
           duration: KMotion.focus,
-          padding: EdgeInsets.symmetric(horizontal: d.isTv ? 22 : 20, vertical: vPad),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (widget.icon != null) ...[
-              Icon(widget.icon, color: fg, size: d.type.callout + 6),
-              const SizedBox(width: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: d.isTv ? 22 : 20,
+            vertical: vPad,
+          ),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.icon != null) ...[
+                Icon(widget.icon, color: fg, size: d.type.callout + 6),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                widget.label,
+                style: theme.textTheme.labelLarge?.copyWith(color: fg),
+              ),
             ],
-            Text(widget.label, style: theme.textTheme.labelLarge?.copyWith(color: fg)),
-          ]),
+          ),
         );
       },
     );

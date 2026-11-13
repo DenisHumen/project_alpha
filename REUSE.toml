@@ -87,3 +87,48 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
 SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
+
+# Flutter-generated platform scaffolding of the app (`flutter create`
+# templates, generated plugin registrants, Gradle config). Template code is
+# BSD-3-Clause by The Flutter Authors; our edits are MPL-2.0.
+[[annotations]]
+path = [
+  "clients/flutter/app/analysis_options.yaml",
+  "clients/flutter/app/android/build.gradle.kts",
+  "clients/flutter/app/android/settings.gradle.kts",
+  "clients/flutter/app/android/gradle.properties",
+  "clients/flutter/app/android/gradle/wrapper/gradle-wrapper.properties",
+  "clients/flutter/app/android/app/build.gradle.kts",
+  "clients/flutter/app/android/app/src/debug/AndroidManifest.xml",
+  "clients/flutter/app/android/app/src/profile/AndroidManifest.xml",
+  "clients/flutter/app/android/app/src/main/AndroidManifest.xml",
+  "clients/flutter/app/android/app/src/main/res/drawable/launch_background.xml",
+  "clients/flutter/app/android/app/src/main/res/drawable-v21/launch_background.xml",
+  "clients/flutter/app/android/app/src/main/res/values/styles.xml",
+  "clients/flutter/app/android/app/src/main/res/values-night/styles.xml",
+  "clients/flutter/app/linux/CMakeLists.txt",
+  "clients/flutter/app/linux/flutter/CMakeLists.txt",
+  "clients/flutter/app/linux/flutter/generated_plugin_registrant.cc",
+  "clients/flutter/app/linux/flutter/generated_plugin_registrant.h",
+  "clients/flutter/app/linux/flutter/generated_plugins.cmake",
+  "clients/flutter/app/linux/runner/CMakeLists.txt",
+  "clients/flutter/app/linux/runner/main.cc",
+  "clients/flutter/app/linux/runner/my_application.cc",
+  "clients/flutter/app/linux/runner/my_application.h",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
+SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
+
+# Project-original images: app icons and the TV banner rendered from the logo
+# painter (clients/flutter/app/test/tool/generate_icons_test.dart) and
+# screenshots of the app with the built-in demo library (art drawn in code).
+[[annotations]]
+path = [
+  "clients/flutter/app/android/app/src/main/res/**/*.png",
+  "clients/flutter/app/assets/**/*.png",
+  "docs/screenshots/**/*.png",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "project_alpha contributors"
+SPDX-License-Identifier = "MPL-2.0"

@@ -22,7 +22,14 @@ int _hash(String s) {
 
 /// Shows [url] (http(s) or local file) and falls back to [GeneratedArt].
 class Artwork extends StatelessWidget {
-  const Artwork({super.key, required this.url, required this.seed, required this.style, this.title, this.subtitle});
+  const Artwork({
+    super.key,
+    required this.url,
+    required this.seed,
+    required this.style,
+    this.title,
+    this.subtitle,
+  });
 
   final String? url;
   final String seed;
@@ -32,19 +39,40 @@ class Artwork extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = GeneratedArt(seed: seed, style: style, title: title, subtitle: subtitle);
+    final fallback = GeneratedArt(
+      seed: seed,
+      style: style,
+      title: title,
+      subtitle: subtitle,
+    );
     final u = url;
     if (u == null || u.isEmpty) return fallback;
     Widget err(BuildContext _, Object _, StackTrace? _) => fallback;
     if (u.startsWith('http://') || u.startsWith('https://')) {
-      return Image.network(u, fit: BoxFit.cover, errorBuilder: err, gaplessPlayback: true);
+      return Image.network(
+        u,
+        fit: BoxFit.cover,
+        errorBuilder: err,
+        gaplessPlayback: true,
+      );
     }
-    return Image.file(File(u), fit: BoxFit.cover, errorBuilder: err, gaplessPlayback: true);
+    return Image.file(
+      File(u),
+      fit: BoxFit.cover,
+      errorBuilder: err,
+      gaplessPlayback: true,
+    );
   }
 }
 
 class GeneratedArt extends StatelessWidget {
-  const GeneratedArt({super.key, required this.seed, required this.style, this.title, this.subtitle});
+  const GeneratedArt({
+    super.key,
+    required this.seed,
+    required this.style,
+    this.title,
+    this.subtitle,
+  });
 
   final String seed;
   final ArtStyle style;
@@ -55,47 +83,53 @@ class GeneratedArt extends StatelessWidget {
   Widget build(BuildContext context) {
     final painter = _ArtPainter(_hash(seed), style);
     final t = title;
-    if (t == null) return CustomPaint(painter: painter, child: const SizedBox.expand());
+    if (t == null) {
+      return CustomPaint(painter: painter, child: const SizedBox.expand());
+    }
     return CustomPaint(
       painter: painter,
-      child: LayoutBuilder(builder: (context, c) {
-        final w = c.maxWidth;
-        return Padding(
-          padding: EdgeInsets.all(w * .08),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                t.toUpperCase(),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: (w * .115).clamp(8.0, 40.0),
-                  fontWeight: FontWeight.w800,
-                  height: 1.05,
-                  letterSpacing: w * .006,
-                  shadows: const [Shadow(color: Color(0x88000000), blurRadius: 8)],
-                ),
-              ),
-              if (subtitle != null) ...[
-                SizedBox(height: w * .025),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          final w = c.maxWidth;
+          return Padding(
+            padding: EdgeInsets.all(w * .08),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  subtitle!,
-                  maxLines: 1,
+                  t.toUpperCase(),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: .75),
-                    fontSize: (w * .065).clamp(6.0, 18.0),
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: w * .01,
+                    color: Colors.white,
+                    fontSize: (w * .115).clamp(8.0, 40.0),
+                    fontWeight: FontWeight.w800,
+                    height: 1.05,
+                    letterSpacing: w * .006,
+                    shadows: const [
+                      Shadow(color: Color(0x88000000), blurRadius: 8),
+                    ],
                   ),
                 ),
+                if (subtitle != null) ...[
+                  SizedBox(height: w * .025),
+                  Text(
+                    subtitle!,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: .75),
+                      fontSize: (w * .065).clamp(6.0, 18.0),
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: w * .01,
+                    ),
+                  ),
+                ],
               ],
-            ],
-          ),
-        );
-      }),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -136,14 +170,31 @@ class _ArtPainter extends CustomPainter {
   void _scene(Canvas canvas, Size s, double hue, double hue2) {
     final w = s.width, hgt = s.height;
     // Moon / sun with halo.
-    final orb = Offset(w * (.2 + _r(2) * .6), hgt * (style == ArtStyle.poster ? .18 + _r(3) * .2 : .2 + _r(3) * .25));
+    final orb = Offset(
+      w * (.2 + _r(2) * .6),
+      hgt * (style == ArtStyle.poster ? .18 + _r(3) * .2 : .2 + _r(3) * .25),
+    );
     final rad = math.min(w, hgt) * (.1 + _r(4) * .1);
     final orbColor = HSLColor.fromAHSL(1, (hue + 180) % 360, .5, .82).toColor();
-    canvas.drawCircle(orb, rad * 2.6, Paint()..shader = RadialGradient(colors: [orbColor.withValues(alpha: .35), orbColor.withValues(alpha: 0)]).createShader(Rect.fromCircle(center: orb, radius: rad * 2.6)));
+    canvas.drawCircle(
+      orb,
+      rad * 2.6,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            orbColor.withValues(alpha: .35),
+            orbColor.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: orb, radius: rad * 2.6)),
+    );
     canvas.drawCircle(orb, rad, Paint()..color = orbColor);
     if (_r(5) > .45) {
       // crescent
-      canvas.drawCircle(orb + Offset(rad * .45, -rad * .2), rad * .9, Paint()..color = HSLColor.fromAHSL(1, hue, .5, .3).toColor());
+      canvas.drawCircle(
+        orb + Offset(rad * .45, -rad * .2),
+        rad * .9,
+        Paint()..color = HSLColor.fromAHSL(1, hue, .5, .3).toColor(),
+      );
     }
     // Layered hills.
     for (var layer = 0; layer < 3; layer++) {
@@ -153,14 +204,26 @@ class _ArtPainter extends CustomPainter {
       final phase = _r(30 + layer) * math.pi * 2;
       final path = Path()..moveTo(0, hgt);
       for (var x = 0.0; x <= w; x += w / 48) {
-        final y = base - amp * math.sin(x / w * math.pi * freq + phase) - amp * .4 * math.sin(x / w * math.pi * freq * 2.7 + phase * 1.3);
+        final y =
+            base -
+            amp * math.sin(x / w * math.pi * freq + phase) -
+            amp * .4 * math.sin(x / w * math.pi * freq * 2.7 + phase * 1.3);
         path.lineTo(x, y);
       }
       path
         ..lineTo(w, hgt)
         ..close();
       final light = .2 - layer * .06;
-      canvas.drawPath(path, Paint()..color = HSLColor.fromAHSL(1, (hue2 + layer * 8) % 360, .45, light.clamp(.03, 1)).toColor());
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = HSLColor.fromAHSL(
+            1,
+            (hue2 + layer * 8) % 360,
+            .45,
+            light.clamp(.03, 1),
+          ).toColor(),
+      );
     }
     // Vignette for legibility.
     canvas.drawRect(
@@ -199,7 +262,11 @@ class _ArtPainter extends CustomPainter {
           ..color = accent.withValues(alpha: .55);
         for (var i = -6; i < 10; i++) {
           final x = i * m * .16;
-          canvas.drawLine(Offset(x, s.height), Offset(x + s.height, 0), p..color = accent.withValues(alpha: (.15 + (i % 3) * .2)));
+          canvas.drawLine(
+            Offset(x, s.height),
+            Offset(x + s.height, 0),
+            p..color = accent.withValues(alpha: (.15 + (i % 3) * .2)),
+          );
         }
         canvas.restore();
       default: // grid of dots
@@ -207,7 +274,14 @@ class _ArtPainter extends CustomPainter {
         for (var y = 0; y < 6; y++) {
           for (var x = 0; x < 6; x++) {
             final r = m * .035 * (.4 + ((x + y + h) % 4) * .3);
-            canvas.drawCircle(Offset(m * (.14 + x * .145), m * (.14 + y * .145)), r, p..color = accent.withValues(alpha: .25 + ((x * y + h) % 5) * .15));
+            canvas.drawCircle(
+              Offset(m * (.14 + x * .145), m * (.14 + y * .145)),
+              r,
+              p
+                ..color = accent.withValues(
+                  alpha: .25 + ((x * y + h) % 5) * .15,
+                ),
+            );
           }
         }
     }

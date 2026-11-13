@@ -49,19 +49,24 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
         builder: (context, cwSnap) {
           final episodes = epSnap.data ?? const <LibraryItem>[];
           final progress = <String, Progress>{
-            for (final (i, p) in cwSnap.data ?? const <(LibraryItem, Progress)>[])
+            for (final (i, p)
+                in cwSnap.data ?? const <(LibraryItem, Progress)>[])
               if (i.showId == show.id) i.id: p,
           };
-          final seasons = {for (final e in episodes) e.season ?? 0}.toList()..sort();
+          final seasons = {for (final e in episodes) e.season ?? 0}.toList()
+            ..sort();
           final season = _season ?? (seasons.isEmpty ? 1 : seasons.first);
-          final inSeason = episodes.where((e) => (e.season ?? 0) == season).toList();
+          final inSeason = episodes
+              .where((e) => (e.season ?? 0) == season)
+              .toList();
 
           // "Up next": the most recent in-progress episode, else the first one.
           LibraryItem? next;
           Progress? nextP;
           for (final e in episodes) {
             final p = progress[e.id];
-            if (p != null && (nextP == null || p.updatedAt.isAfter(nextP.updatedAt))) {
+            if (p != null &&
+                (nextP == null || p.updatedAt.isAfter(nextP.updatedAt))) {
               next = e;
               nextP = p;
             }
@@ -83,38 +88,65 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
                   autofocus: !d.isPhone,
                   primary: true,
                   icon: Icons.play_arrow_rounded,
-                  label: nextP != null ? 'Resume ${episodeCode(next)}' : 'Play ${episodeCode(next)}',
-                  onPressed: () => playVideo(context, next!, startPositionMs: nextP?.positionMs ?? 0),
+                  label: nextP != null
+                      ? 'Resume ${episodeCode(next)}'
+                      : 'Play ${episodeCode(next)}',
+                  onPressed: () => playVideo(
+                    context,
+                    next!,
+                    startPositionMs: nextP?.positionMs ?? 0,
+                  ),
                 ),
-              KButton(icon: Icons.manage_search, label: 'Fix match', onPressed: () => showFixMatchDialog(context, show)),
+              KButton(
+                icon: Icons.manage_search,
+                label: 'Fix match',
+                onPressed: () => showFixMatchDialog(context, show),
+              ),
             ],
             footer: episodes.isEmpty
                 ? null
                 : Padding(
-                    padding: EdgeInsets.only(left: d.pageInsets.left, right: d.pageInsets.right),
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      FocusTraversalGroup(
-                        child: Wrap(spacing: 10, runSpacing: 10, children: [
-                          for (final s in seasons)
-                            _SeasonChip(
-                              label: s == 0 ? 'Specials' : 'Season $s',
-                              selected: s == season,
-                              onTap: () => setState(() => _season = s),
-                            ),
-                        ]),
-                      ),
-                      SizedBox(height: d.isTv ? 16 : 20),
-                      FocusTraversalGroup(
-                        child: Column(children: [
-                          for (final e in inSeason)
-                            _EpisodeTile(
-                              episode: e,
-                              progress: progress[e.id],
-                              onTap: () => playVideo(context, e, startPositionMs: progress[e.id]?.positionMs ?? 0),
-                            ),
-                        ]),
-                      ),
-                    ]),
+                    padding: EdgeInsets.only(
+                      left: d.pageInsets.left,
+                      right: d.pageInsets.right,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FocusTraversalGroup(
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              for (final s in seasons)
+                                _SeasonChip(
+                                  label: s == 0 ? 'Specials' : 'Season $s',
+                                  selected: s == season,
+                                  onTap: () => setState(() => _season = s),
+                                ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: d.isTv ? 16 : 20),
+                        FocusTraversalGroup(
+                          child: Column(
+                            children: [
+                              for (final e in inSeason)
+                                _EpisodeTile(
+                                  episode: e,
+                                  progress: progress[e.id],
+                                  onTap: () => playVideo(
+                                    context,
+                                    e,
+                                    startPositionMs:
+                                        progress[e.id]?.positionMs ?? 0,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
           );
         },
@@ -124,7 +156,11 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
 }
 
 class _SeasonChip extends StatelessWidget {
-  const _SeasonChip({required this.label, required this.selected, required this.onTap});
+  const _SeasonChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -144,14 +180,20 @@ class _SeasonChip extends StatelessWidget {
           duration: KMotion.focus,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: focused ? Colors.white : (selected ? Colors.white.withValues(alpha: .22) : Colors.white.withValues(alpha: .07)),
+            color: focused
+                ? Colors.white
+                : (selected
+                      ? Colors.white.withValues(alpha: .22)
+                      : Colors.white.withValues(alpha: .07)),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
             label,
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: focused ? Colors.black : (on ? Colors.white : KColors.textSecondary),
-                ),
+              color: focused
+                  ? Colors.black
+                  : (on ? Colors.white : KColors.textSecondary),
+            ),
           ),
         );
       },
@@ -160,7 +202,11 @@ class _SeasonChip extends StatelessWidget {
 }
 
 class _EpisodeTile extends StatelessWidget {
-  const _EpisodeTile({required this.episode, required this.onTap, this.progress});
+  const _EpisodeTile({
+    required this.episode,
+    required this.onTap,
+    this.progress,
+  });
 
   final LibraryItem episode;
   final Progress? progress;
@@ -182,38 +228,84 @@ class _EpisodeTile extends StatelessWidget {
         builder: (context, focused) => AnimatedContainer(
           duration: KMotion.focus,
           padding: const EdgeInsets.all(8),
-          color: focused ? Colors.white.withValues(alpha: .08) : Colors.transparent,
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(d.cardRadius * .75),
-              child: SizedBox(
-                width: thumbW,
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Stack(fit: StackFit.expand, children: [
-                    Artwork(url: episode.backdropUrl, seed: episode.id, style: ArtStyle.backdrop),
-                    Center(child: Icon(Icons.play_circle_outline, color: Colors.white.withValues(alpha: focused ? .95 : .6), size: 30)),
-                    if (p != null) Positioned(left: 8, right: 8, bottom: 7, child: KProgressBar(value: p.positionMs / p.durationMs, height: 3)),
-                  ]),
+          color: focused
+              ? Colors.white.withValues(alpha: .08)
+              : Colors.transparent,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(d.cardRadius * .75),
+                child: SizedBox(
+                  width: thumbW,
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Artwork(
+                          url: episode.backdropUrl,
+                          seed: episode.id,
+                          style: ArtStyle.backdrop,
+                        ),
+                        Center(
+                          child: Icon(
+                            Icons.play_circle_outline,
+                            color: Colors.white.withValues(
+                              alpha: focused ? .95 : .6,
+                            ),
+                            size: 30,
+                          ),
+                        ),
+                        if (p != null)
+                          Positioned(
+                            left: 8,
+                            right: 8,
+                            bottom: 7,
+                            child: KProgressBar(
+                              value: p.positionMs / p.durationMs,
+                              height: 3,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${episode.episode}. ${episode.title}', style: theme.textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
-                Text(
-                  [episodeCode(episode), formatRuntime(episode.durationMs), if (p != null) formatRemaining(p)].join('  ·  '),
-                  style: theme.textTheme.labelSmall,
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${episode.episode}. ${episode.title}',
+                      style: theme.textTheme.titleMedium,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      [
+                        episodeCode(episode),
+                        formatRuntime(episode.durationMs),
+                        if (p != null) formatRemaining(p),
+                      ].join('  ·  '),
+                      style: theme.textTheme.labelSmall,
+                    ),
+                    if (episode.overview != null && !d.isPhone) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        episode.overview!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ],
                 ),
-                if (episode.overview != null && !d.isPhone) ...[
-                  const SizedBox(height: 6),
-                  Text(episode.overview!, maxLines: 2, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall),
-                ],
-              ]),
-            ),
-          ]),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -13,10 +13,10 @@ enum SortOrder { added, title, year }
 
 extension on SortOrder {
   String get label => switch (this) {
-        SortOrder.added => 'Recently added',
-        SortOrder.title => 'Title',
-        SortOrder.year => 'Year',
-      };
+    SortOrder.added => 'Recently added',
+    SortOrder.title => 'Title',
+    SortOrder.year => 'Year',
+  };
 }
 
 /// Poster grid for Movies and Shows with sorting and filters.
@@ -55,10 +55,19 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
         builder: (context, cwSnap) {
           final all = snap.data ?? const <LibraryItem>[];
           final inProgress = <String>{
-            for (final (i, _) in cwSnap.data ?? const <(LibraryItem, Progress)>[]) i.showId ?? i.id,
+            for (final (i, _)
+                in cwSnap.data ?? const <(LibraryItem, Progress)>[])
+              i.showId ?? i.id,
           };
-          final decades = {for (final i in all) if (i.year != null) i.year! ~/ 10 * 10}.toList()..sort((a, b) => b - a);
-          final filters = ['All', 'In progress', for (final dd in decades) '${dd}s'];
+          final decades = {
+            for (final i in all)
+              if (i.year != null) i.year! ~/ 10 * 10,
+          }.toList()..sort((a, b) => b - a);
+          final filters = [
+            'All',
+            'In progress',
+            for (final dd in decades) '${dd}s',
+          ];
           var items = all.where((i) {
             if (_filter == 'All') return true;
             if (_filter == 'In progress') return inProgress.contains(i.id);
@@ -69,7 +78,10 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
             case SortOrder.added:
               break;
             case SortOrder.title:
-              items.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+              items.sort(
+                (a, b) =>
+                    a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+              );
             case SortOrder.year:
               items.sort((a, b) => (b.year ?? 0).compareTo(a.year ?? 0));
           }
@@ -81,24 +93,41 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
               SliverToBoxAdapter(
                 child: PageTitle(
                   _title,
-                  trailing: Text('${all.length} titles', style: Theme.of(context).textTheme.labelMedium),
+                  trailing: Text(
+                    '${all.length} titles',
+                    style: Theme.of(context).textTheme.labelMedium,
+                  ),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(d.pageInsets.left, 0, d.pageInsets.right, d.isTv ? 18 : 20),
+                  padding: EdgeInsets.fromLTRB(
+                    d.pageInsets.left,
+                    0,
+                    d.pageInsets.right,
+                    d.isTv ? 18 : 20,
+                  ),
                   child: FocusTraversalGroup(
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       clipBehavior: Clip.none,
-                      child: Row(children: [
-                        _SortButton(value: _sort, onChanged: (s) => setState(() => _sort = s)),
-                        const SizedBox(width: 16),
-                        for (final f in filters) ...[
-                          FilterPill(label: f, selected: f == _filter, onTap: () => setState(() => _filter = f)),
-                          const SizedBox(width: 8),
+                      child: Row(
+                        children: [
+                          _SortButton(
+                            value: _sort,
+                            onChanged: (s) => setState(() => _sort = s),
+                          ),
+                          const SizedBox(width: 16),
+                          for (final f in filters) ...[
+                            FilterPill(
+                              label: f,
+                              selected: f == _filter,
+                              onTap: () => setState(() => _filter = f),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                         ],
-                      ]),
+                      ),
                     ),
                   ),
                 ),
@@ -107,20 +136,32 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: EmptyState(
-                    icon: widget.kind == ItemKind.movie ? Icons.movie_outlined : Icons.tv_outlined,
-                    title: all.isEmpty ? 'No ${_title.toLowerCase()} yet' : 'Nothing matches this filter',
-                    message: all.isEmpty ? 'Add a source in Settings and scan your library.' : null,
+                    icon: widget.kind == ItemKind.movie
+                        ? Icons.movie_outlined
+                        : Icons.tv_outlined,
+                    title: all.isEmpty
+                        ? 'No ${_title.toLowerCase()} yet'
+                        : 'Nothing matches this filter',
+                    message: all.isEmpty
+                        ? 'Add a source in Settings and scan your library.'
+                        : null,
                   ),
                 )
               else
                 SliverPadding(
-                  padding: EdgeInsets.fromLTRB(d.pageInsets.left, d.isTv ? 6 : 0, d.pageInsets.right, d.pageInsets.bottom + 24),
+                  padding: EdgeInsets.fromLTRB(
+                    d.pageInsets.left,
+                    d.isTv ? 6 : 0,
+                    d.pageInsets.right,
+                    d.pageInsets.bottom + 24,
+                  ),
                   sliver: SliverGrid(
-                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: d.posterWidth + d.gap,
-                      mainAxisSpacing: d.isTv ? 22 : 18,
-                      crossAxisSpacing: d.gap,
-                      childAspectRatio: d.posterWidth / (d.posterWidth * 1.5 + (d.isTv ? 44 : 40)),
+                    gridDelegate: CardGridDelegate(
+                      minItemWidth: d.posterWidth,
+                      mainSpacing: d.isTv ? 22 : 18,
+                      crossSpacing: d.gap,
+                      artAspect: 1.5,
+                      extraHeight: cardCaptionHeight(d),
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (context, i) => LayoutBuilder(
@@ -143,7 +184,13 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
 }
 
 class FilterPill extends StatelessWidget {
-  const FilterPill({super.key, required this.label, required this.selected, required this.onTap, this.icon});
+  const FilterPill({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.icon,
+  });
 
   final String label;
   final bool selected;
@@ -163,22 +210,35 @@ class FilterPill extends StatelessWidget {
         duration: KMotion.focus,
         padding: EdgeInsets.symmetric(horizontal: 14, vertical: d.isTv ? 6 : 7),
         decoration: BoxDecoration(
-          color: focused ? Colors.white : (selected ? Colors.white.withValues(alpha: .2) : Colors.white.withValues(alpha: .06)),
+          color: focused
+              ? Colors.white
+              : (selected
+                    ? Colors.white.withValues(alpha: .2)
+                    : Colors.white.withValues(alpha: .06)),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          if (icon != null) ...[
-            Icon(icon, size: d.type.caption + 4, color: focused ? Colors.black : Colors.white),
-            const SizedBox(width: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: d.type.caption + 4,
+                color: focused ? Colors.black : Colors.white,
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontSize: d.type.caption + 1,
+                color: focused
+                    ? Colors.black
+                    : (selected ? Colors.white : KColors.textSecondary),
+              ),
+            ),
           ],
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontSize: d.type.caption + 1,
-                  color: focused ? Colors.black : (selected ? Colors.white : KColors.textSecondary),
-                ),
-          ),
-        ]),
+        ),
       ),
     );
   }
@@ -196,7 +256,9 @@ class _SortButton extends StatelessWidget {
       icon: Icons.sort,
       label: 'Sort: ${value.label}',
       selected: true,
-      onTap: () => onChanged(SortOrder.values[(value.index + 1) % SortOrder.values.length]),
+      onTap: () => onChanged(
+        SortOrder.values[(value.index + 1) % SortOrder.values.length],
+      ),
     );
   }
 }

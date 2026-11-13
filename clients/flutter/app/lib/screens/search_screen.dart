@@ -57,10 +57,17 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
     final q = _query.text.trim().toLowerCase();
-    final movies = q.isEmpty ? const <LibraryItem>[] : _movies.where((i) => _match(i, q)).toList();
-    final shows = q.isEmpty ? const <LibraryItem>[] : _shows.where((i) => _match(i, q)).toList();
-    final tracks = q.isEmpty ? const <LibraryItem>[] : _tracks.where((i) => _match(i, q)).toList();
-    final posterRowH = d.posterWidth * 1.5 + (d.isTv ? 52 : 46);
+    final movies = q.isEmpty
+        ? const <LibraryItem>[]
+        : _movies.where((i) => _match(i, q)).toList();
+    final shows = q.isEmpty
+        ? const <LibraryItem>[]
+        : _shows.where((i) => _match(i, q)).toList();
+    final tracks = q.isEmpty
+        ? const <LibraryItem>[]
+        : _tracks.where((i) => _match(i, q)).toList();
+    final posterRowH =
+        d.posterWidth * 1.5 + cardCaptionHeight(d) + (d.isTv ? 12 : 6);
 
     return ListView(
       clipBehavior: Clip.none,
@@ -68,7 +75,12 @@ class _SearchScreenState extends State<SearchScreen> {
       children: [
         const PageTitle('Search'),
         Padding(
-          padding: EdgeInsets.fromLTRB(d.pageInsets.left, 0, d.pageInsets.right, 24),
+          padding: EdgeInsets.fromLTRB(
+            d.pageInsets.left,
+            0,
+            d.pageInsets.right,
+            24,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
             child: TextField(
@@ -92,16 +104,33 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ),
         if (q.isEmpty)
-          const SizedBox(height: 260, child: EmptyState(icon: Icons.search, title: 'Search your library', message: 'Type a title, a year, an artist or an album.'))
+          const SizedBox(
+            height: 260,
+            child: EmptyState(
+              icon: Icons.search,
+              title: 'Search your library',
+              message: 'Type a title, a year, an artist or an album.',
+            ),
+          )
         else if (movies.isEmpty && shows.isEmpty && tracks.isEmpty)
-          SizedBox(height: 260, child: EmptyState(icon: Icons.search_off, title: 'No results for “${_query.text.trim()}”'))
+          SizedBox(
+            height: 260,
+            child: EmptyState(
+              icon: Icons.search_off,
+              title: 'No results for “${_query.text.trim()}”',
+            ),
+          )
         else ...[
           if (movies.isNotEmpty) ...[
             MediaRow(
               title: 'Movies',
               itemCount: movies.length,
               height: posterRowH,
-              itemBuilder: (context, i) => PosterCard(item: movies[i], width: d.posterWidth, onTap: () => openItem(context, movies[i])),
+              itemBuilder: (context, i) => PosterCard(
+                item: movies[i],
+                width: d.posterWidth,
+                onTap: () => openItem(context, movies[i]),
+              ),
             ),
             SizedBox(height: d.rowGap),
           ],
@@ -110,21 +139,39 @@ class _SearchScreenState extends State<SearchScreen> {
               title: 'TV Shows',
               itemCount: shows.length,
               height: posterRowH,
-              itemBuilder: (context, i) => PosterCard(item: shows[i], width: d.posterWidth, onTap: () => openItem(context, shows[i])),
+              itemBuilder: (context, i) => PosterCard(
+                item: shows[i],
+                width: d.posterWidth,
+                onTap: () => openItem(context, shows[i]),
+              ),
             ),
             SizedBox(height: d.rowGap),
           ],
           if (tracks.isNotEmpty) ...[
             Padding(
-              padding: EdgeInsets.fromLTRB(d.pageInsets.left, 0, d.pageInsets.right, 8),
-              child: Text('Music', style: Theme.of(context).textTheme.titleLarge),
+              padding: EdgeInsets.fromLTRB(
+                d.pageInsets.left,
+                0,
+                d.pageInsets.right,
+                8,
+              ),
+              child: Text(
+                'Music',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: d.pageInsets.left),
-              child: Column(children: [
-                for (var i = 0; i < tracks.length; i++)
-                  TrackTile(track: tracks[i], showArt: true, onTap: () => playTracks(context, tracks, i)),
-              ]),
+              child: Column(
+                children: [
+                  for (var i = 0; i < tracks.length; i++)
+                    TrackTile(
+                      track: tracks[i],
+                      showArt: true,
+                      onTap: () => playTracks(context, tracks, i),
+                    ),
+                ],
+              ),
             ),
           ],
         ],

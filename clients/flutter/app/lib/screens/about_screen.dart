@@ -17,15 +17,27 @@ class AboutScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: EdgeInsets.fromLTRB(d.pageInsets.left, d.pageInsets.top, d.pageInsets.right, d.pageInsets.bottom + 90),
+          padding: EdgeInsets.fromLTRB(
+            d.pageInsets.left,
+            d.pageInsets.top,
+            d.pageInsets.right,
+            d.pageInsets.bottom + 90,
+          ),
           children: [
             if (!d.isTv)
               Align(
                 alignment: Alignment.centerLeft,
-                child: IconButton(tooltip: 'Back', onPressed: () => Navigator.of(context).maybePop(), icon: const Icon(Icons.arrow_back)),
+                child: IconButton(
+                  tooltip: 'Back',
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.arrow_back),
+                ),
               ),
             const SizedBox(height: 8),
-            Align(alignment: Alignment.centerLeft, child: KinoluneLogo(size: d.isTv ? 44 : 56)),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: KinoluneLogo(size: d.isTv ? 44 : 56),
+            ),
             const SizedBox(height: 16),
             Text('Version $kAppVersion', style: theme.textTheme.labelMedium),
             const SizedBox(height: 12),
@@ -35,11 +47,18 @@ class AboutScreen extends StatelessWidget {
                 '$kAppName is a free, open-source media player for your own library: movies, shows and music '
                 'from local folders and network shares. Everything runs on your devices — no accounts, no cloud, '
                 'no tracking. Licensed under the Mozilla Public License 2.0.',
-                style: theme.textTheme.bodyLarge?.copyWith(color: KColors.textSecondary),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: KColors.textSecondary,
+                ),
               ),
             ),
             const SizedBox(height: 8),
-            SelectableText(kRepoUrl, style: theme.textTheme.bodySmall?.copyWith(color: KColors.accentSoft)),
+            SelectableText(
+              kRepoUrl,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: KColors.accentSoft,
+              ),
+            ),
             const SizedBox(height: 24),
             Align(
               alignment: Alignment.centerLeft,
@@ -51,8 +70,12 @@ class AboutScreen extends StatelessWidget {
                   context: context,
                   applicationName: kAppName,
                   applicationVersion: kAppVersion,
-                  applicationIcon: const Padding(padding: EdgeInsets.all(12), child: KinoluneLogo(size: 48, showName: false)),
-                  applicationLegalese: 'Mozilla Public License 2.0. $kTmdbNotice',
+                  applicationIcon: const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: KinoluneLogo(size: 48, showName: false),
+                  ),
+                  applicationLegalese:
+                      'Mozilla Public License 2.0. $kTmdbNotice',
                 ),
               ),
             ),
@@ -83,23 +106,43 @@ class TmdbAttribution extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: KColors.stroke),
         ),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(border: Border.all(color: Colors.white54), borderRadius: BorderRadius.circular(6)),
-            child: Text('TMDB', style: theme.textTheme.titleSmall?.copyWith(letterSpacing: 1.5)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Metadata and images', style: theme.textTheme.titleMedium),
-              const SizedBox(height: 4),
-              Text(kTmdbNotice, style: theme.textTheme.bodySmall),
-              const SizedBox(height: 4),
-              SelectableText(kTmdbUrl, style: theme.textTheme.bodySmall?.copyWith(color: KColors.accentSoft)),
-            ]),
-          ),
-        ]),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white54),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'TMDB',
+                style: theme.textTheme.titleSmall?.copyWith(letterSpacing: 1.5),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Metadata and images',
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(kTmdbNotice, style: theme.textTheme.bodySmall),
+                  const SizedBox(height: 4),
+                  SelectableText(
+                    kTmdbUrl,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: KColors.accentSoft,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

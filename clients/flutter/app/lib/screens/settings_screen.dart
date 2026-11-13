@@ -28,40 +28,55 @@ class SettingsScreen extends StatelessWidget {
             alignment: Alignment.topLeft,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                _Section(
-                  title: 'Sources',
-                  subtitle: 'Folders and network shares $kAppName scans for movies, shows and music.',
-                  children: [
-                    if (services.sources.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text('No sources yet.', style: Theme.of(context).textTheme.bodySmall),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Section(
+                    title: 'Sources',
+                    subtitle:
+                        'Folders and network shares $kAppName scans for movies, shows and music.',
+                    children: [
+                      if (services.sources.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            'No sources yet.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      for (final s in services.sources) _SourceTile(source: s),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: KButton(
+                          label: 'Add source',
+                          icon: Icons.add,
+                          primary: services.sources.isEmpty,
+                          onPressed: () => showAddSourceDialog(context),
+                        ),
                       ),
-                    for (final s in services.sources) _SourceTile(source: s),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: KButton(
-                        label: 'Add source',
-                        icon: Icons.add,
-                        primary: services.sources.isEmpty,
-                        onPressed: () => showAddSourceDialog(context),
-                      ),
-                    ),
-                  ],
-                ),
-                const _ScanSection(),
-                const _TmdbSection(),
-                _Section(title: 'About', children: [
-                  _NavTile(
-                    icon: Icons.info_outline,
-                    title: 'About $kAppName',
-                    subtitle: 'Version $kAppVersion · licences · TMDB attribution',
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AboutScreen())),
+                    ],
                   ),
-                ]),
-              ]),
+                  const _ScanSection(),
+                  const _TmdbSection(),
+                  _Section(
+                    title: 'About',
+                    children: [
+                      _NavTile(
+                        icon: Icons.info_outline,
+                        title: 'About $kAppName',
+                        subtitle:
+                            'Version $kAppVersion · licences · TMDB attribution',
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const AboutScreen(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -91,15 +106,18 @@ class _Section extends StatelessWidget {
             borderRadius: BorderRadius.circular(d.panelRadius * .75),
             border: Border.all(color: KColors.stroke),
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(title, style: theme.textTheme.titleLarge),
-            if (subtitle != null) ...[
-              const SizedBox(height: 2),
-              Text(subtitle!, style: theme.textTheme.bodySmall),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(title, style: theme.textTheme.titleLarge),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(subtitle!, style: theme.textTheme.bodySmall),
+              ],
+              const SizedBox(height: 12),
+              ...children,
             ],
-            const SizedBox(height: 12),
-            ...children,
-          ]),
+          ),
         ),
       ),
     );
@@ -107,7 +125,13 @@ class _Section extends StatelessWidget {
 }
 
 class _NavTile extends StatelessWidget {
-  const _NavTile({required this.icon, required this.title, this.subtitle, this.onTap, this.trailing});
+  const _NavTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.onTap,
+    this.trailing,
+  });
 
   final IconData icon;
   final String title;
@@ -127,18 +151,37 @@ class _NavTile extends StatelessWidget {
       builder: (context, focused) => AnimatedContainer(
         duration: KMotion.focus,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        color: focused ? Colors.white.withValues(alpha: .09) : Colors.transparent,
-        child: Row(children: [
-          Icon(icon, color: KColors.textSecondary),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: theme.textTheme.titleMedium),
-              if (subtitle != null) Text(subtitle!, style: theme.textTheme.labelSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-            ]),
-          ),
-          trailing ?? (onTap != null ? const Icon(Icons.chevron_right, color: KColors.textTertiary) : const SizedBox.shrink()),
-        ]),
+        color: focused
+            ? Colors.white.withValues(alpha: .09)
+            : Colors.transparent,
+        child: Row(
+          children: [
+            Icon(icon, color: KColors.textSecondary),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.titleMedium),
+                  if (subtitle != null)
+                    Text(
+                      subtitle!,
+                      style: theme.textTheme.labelSmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            trailing ??
+                (onTap != null
+                    ? const Icon(
+                        Icons.chevron_right,
+                        color: KColors.textTertiary,
+                      )
+                    : const SizedBox.shrink()),
+          ],
+        ),
       ),
     );
   }
@@ -156,32 +199,48 @@ class _SourceTile extends StatelessWidget {
     return _NavTile(
       icon: smb ? Icons.lan_outlined : Icons.folder_outlined,
       title: source.name + (smb ? '  (SMB beta)' : ''),
-      subtitle: [source.path, if (source.username != null) 'as ${source.username}'].join('  ·  '),
-      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-        IconButton(
-          tooltip: 'Scan this source',
-          onPressed: services.scanning ? null : () => services.scan(sourceId: source.id),
-          icon: const Icon(Icons.refresh),
-        ),
-        IconButton(
-          tooltip: 'Remove source',
-          onPressed: () async {
-            final ok = await showDialog<bool>(
-              context: context,
-              builder: (c) => AlertDialog(
-                title: const Text('Remove source?'),
-                content: Text('“${source.name}” and its titles will be removed from the library. Files are not touched.'),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
-                  FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Remove')),
-                ],
-              ),
-            );
-            if (ok == true) await services.removeSource(source.id);
-          },
-          icon: const Icon(Icons.delete_outline),
-        ),
-      ]),
+      subtitle: [
+        source.path,
+        if (source.username != null) 'as ${source.username}',
+      ].join('  ·  '),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Scan this source',
+            onPressed: services.scanning
+                ? null
+                : () => services.scan(sourceId: source.id),
+            icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            tooltip: 'Remove source',
+            onPressed: () async {
+              final ok = await showDialog<bool>(
+                context: context,
+                builder: (c) => AlertDialog(
+                  title: const Text('Remove source?'),
+                  content: Text(
+                    '“${source.name}” and its titles will be removed from the library. Files are not touched.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(c, false),
+                      child: const Text('Cancel'),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(c, true),
+                      child: const Text('Remove'),
+                    ),
+                  ],
+                ),
+              );
+              if (ok == true) await services.removeSource(source.id);
+            },
+            icon: const Icon(Icons.delete_outline),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -208,15 +267,19 @@ class _ScanSection extends StatelessWidget {
       title: 'Library',
       subtitle: 'Scanning finds new files, recognises titles from file names and fetches posters.',
       children: [
-        Row(children: [
-          KButton(
-            label: services.scanning ? 'Scanning…' : 'Scan now',
-            icon: Icons.sync,
-            onPressed: services.scanning || services.sources.isEmpty ? null : () => services.scan(),
-          ),
-          const SizedBox(width: 16),
-          Expanded(child: Text(status, style: theme.textTheme.bodySmall)),
-        ]),
+        Row(
+          children: [
+            KButton(
+              label: services.scanning ? 'Scanning…' : 'Scan now',
+              icon: Icons.sync,
+              onPressed: services.scanning || services.sources.isEmpty
+                  ? null
+                  : () => services.scan(),
+            ),
+            const SizedBox(width: 16),
+            Expanded(child: Text(status, style: theme.textTheme.bodySmall)),
+          ],
+        ),
         if (p != null && !p.done) ...[
           const SizedBox(height: 12),
           ClipRRect(
@@ -228,7 +291,12 @@ class _ScanSection extends StatelessWidget {
           ),
           if (p.currentPath != null) ...[
             const SizedBox(height: 6),
-            Text(p.currentPath!, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.labelSmall),
+            Text(
+              p.currentPath!,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelSmall,
+            ),
           ],
         ],
       ],
@@ -269,36 +337,54 @@ class _TmdbSectionState extends State<_TmdbSection> {
     final theme = Theme.of(context);
     return _Section(
       title: 'Metadata (TMDB)',
-      subtitle: 'Posters, backdrops and descriptions come from The Movie Database. '
+      subtitle:
+          'Posters, backdrops and descriptions come from The Movie Database. '
           'Without a key $kAppName still works with titles recognised from file names.',
       children: [
-        Row(children: [
-          Expanded(
-            child: TextField(
-              controller: _key,
-              obscureText: _obscure,
-              decoration: InputDecoration(
-                labelText: 'TMDB API key (v3) or read access token',
-                suffixIcon: IconButton(
-                  tooltip: _obscure ? 'Show' : 'Hide',
-                  onPressed: () => setState(() => _obscure = !_obscure),
-                  icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _key,
+                obscureText: _obscure,
+                decoration: InputDecoration(
+                  labelText: 'TMDB API key (v3) or read access token',
+                  suffixIcon: IconButton(
+                    tooltip: _obscure ? 'Show' : 'Hide',
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                    icon: Icon(
+                      _obscure
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          KButton(
-            label: 'Save',
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.maybeOf(context);
-              await Services.read(context).setTmdbKey(_key.text);
-              messenger?.showSnackBar(SnackBar(content: Text(_key.text.trim().isEmpty ? 'TMDB key removed' : 'TMDB key saved')));
-            },
-          ),
-        ]),
+            const SizedBox(width: 12),
+            KButton(
+              label: 'Save',
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.maybeOf(context);
+                await Services.read(context).setTmdbKey(_key.text);
+                messenger?.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      _key.text.trim().isEmpty
+                          ? 'TMDB key removed'
+                          : 'TMDB key saved',
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
-        Text('Get a free key at themoviedb.org → Settings → API. $kTmdbNotice', style: theme.textTheme.labelSmall),
+        Text(
+          'Get a free key at themoviedb.org: Settings > API. $kTmdbNotice',
+          style: theme.textTheme.labelSmall,
+        ),
       ],
     );
   }

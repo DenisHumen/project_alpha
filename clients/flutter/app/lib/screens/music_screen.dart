@@ -37,76 +37,114 @@ class _MusicScreenState extends State<MusicScreen> {
       builder: (context, snap) {
         final tracks = snap.data ?? const <LibraryItem>[];
         final albums = groupAlbums(tracks);
-        return CustomScrollView(clipBehavior: Clip.none, slivers: [
-          SliverToBoxAdapter(
-            child: PageTitle(
-              'Music',
-              trailing: tracks.isEmpty
-                  ? null
-                  : KButton(
-                      label: 'Shuffle all',
-                      icon: Icons.shuffle,
-                      onPressed: () {
-                        final list = [...tracks]..shuffle();
-                        playTracks(context, list, 0);
-                      },
-                    ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(d.pageInsets.left, 0, d.pageInsets.right, 20),
-              child: FocusTraversalGroup(
-                child: Row(children: [
-                  FilterPill(label: 'Albums (${albums.length})', selected: _albums, onTap: () => setState(() => _albums = true)),
-                  const SizedBox(width: 8),
-                  FilterPill(label: 'Tracks (${tracks.length})', selected: !_albums, onTap: () => setState(() => _albums = false)),
-                ]),
+        return CustomScrollView(
+          clipBehavior: Clip.none,
+          slivers: [
+            SliverToBoxAdapter(
+              child: PageTitle(
+                'Music',
+                trailing: tracks.isEmpty
+                    ? null
+                    : KButton(
+                        label: 'Shuffle all',
+                        icon: Icons.shuffle,
+                        onPressed: () {
+                          final list = [...tracks]..shuffle();
+                          playTracks(context, list, 0);
+                        },
+                      ),
               ),
             ),
-          ),
-          if (tracks.isEmpty)
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: EmptyState(icon: Icons.library_music_outlined, title: 'No music yet', message: 'Folders with audio files are picked up by the scan.'),
-            )
-          else if (_albums)
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(d.pageInsets.left, 0, d.pageInsets.right, d.pageInsets.bottom + 90),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: d.albumWidth + d.gap,
-                  mainAxisSpacing: 18,
-                  crossAxisSpacing: d.gap,
-                  childAspectRatio: d.albumWidth / (d.albumWidth + 46),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  d.pageInsets.left,
+                  0,
+                  d.pageInsets.right,
+                  20,
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => LayoutBuilder(
-                    builder: (context, c) => AlbumCard(
-                      width: c.maxWidth,
-                      seed: albums[i].artSeed,
-                      title: albums[i].title,
-                      subtitle: albums[i].artist,
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => AlbumScreen(album: albums[i]))),
-                    ),
+                child: FocusTraversalGroup(
+                  child: Row(
+                    children: [
+                      FilterPill(
+                        label: 'Albums (${albums.length})',
+                        selected: _albums,
+                        onTap: () => setState(() => _albums = true),
+                      ),
+                      const SizedBox(width: 8),
+                      FilterPill(
+                        label: 'Tracks (${tracks.length})',
+                        selected: !_albums,
+                        onTap: () => setState(() => _albums = false),
+                      ),
+                    ],
                   ),
-                  childCount: albums.length,
-                ),
-              ),
-            )
-          else
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(d.pageInsets.left, 0, d.pageInsets.right, d.pageInsets.bottom + 90),
-              sliver: SliverList.builder(
-                itemCount: tracks.length,
-                itemBuilder: (context, i) => TrackTile(
-                  track: tracks[i],
-                  showArt: true,
-                  onTap: () => playTracks(context, tracks, i),
                 ),
               ),
             ),
-        ]);
+            if (tracks.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(
+                  icon: Icons.library_music_outlined,
+                  title: 'No music yet',
+                  message:
+                      'Folders with audio files are picked up by the scan.',
+                ),
+              )
+            else if (_albums)
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  d.pageInsets.left,
+                  0,
+                  d.pageInsets.right,
+                  d.pageInsets.bottom + 90,
+                ),
+                sliver: SliverGrid(
+                  gridDelegate: CardGridDelegate(
+                    minItemWidth: d.albumWidth,
+                    mainSpacing: 18,
+                    crossSpacing: d.gap,
+                    artAspect: 1,
+                    extraHeight: cardCaptionHeight(d),
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) => LayoutBuilder(
+                      builder: (context, c) => AlbumCard(
+                        width: c.maxWidth,
+                        seed: albums[i].artSeed,
+                        title: albums[i].title,
+                        subtitle: albums[i].artist,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => AlbumScreen(album: albums[i]),
+                          ),
+                        ),
+                      ),
+                    ),
+                    childCount: albums.length,
+                  ),
+                ),
+              )
+            else
+              SliverPadding(
+                padding: EdgeInsets.fromLTRB(
+                  d.pageInsets.left,
+                  0,
+                  d.pageInsets.right,
+                  d.pageInsets.bottom + 90,
+                ),
+                sliver: SliverList.builder(
+                  itemCount: tracks.length,
+                  itemBuilder: (context, i) => TrackTile(
+                    track: tracks[i],
+                    showArt: true,
+                    onTap: () => playTracks(context, tracks, i),
+                  ),
+                ),
+              ),
+          ],
+        );
       },
     );
   }
@@ -126,30 +164,55 @@ class AlbumScreen extends StatelessWidget {
     final header = [
       ClipRRect(
         borderRadius: BorderRadius.circular(d.cardRadius),
-        child: SizedBox.square(dimension: art, child: GeneratedArt(seed: album.artSeed, style: ArtStyle.album)),
+        child: SizedBox.square(
+          dimension: art,
+          child: GeneratedArt(seed: album.artSeed, style: ArtStyle.album),
+        ),
       ),
       SizedBox(width: 28, height: 20),
       Flexible(
         child: Column(
-          crossAxisAlignment: d.isPhone ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          crossAxisAlignment: d.isPhone
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('ALBUM', style: theme.textTheme.labelSmall),
-            Text(album.title, style: theme.textTheme.displayMedium, textAlign: d.isPhone ? TextAlign.center : TextAlign.start),
+            Text(
+              album.title,
+              style: theme.textTheme.displayMedium,
+              textAlign: d.isPhone ? TextAlign.center : TextAlign.start,
+            ),
             const SizedBox(height: 6),
             Text(
-              [album.artist, if (album.year != null) '${album.year}', '${album.tracks.length} tracks', formatRuntime(total)].join('  ·  '),
+              [
+                album.artist,
+                if (album.year != null) '${album.year}',
+                '${album.tracks.length} tracks',
+                formatRuntime(total),
+              ].join('  ·  '),
               style: theme.textTheme.labelMedium,
             ),
             const SizedBox(height: 18),
-            Wrap(spacing: 12, runSpacing: 12, children: [
-              KButton(label: 'Play', icon: Icons.play_arrow_rounded, primary: true, autofocus: !d.isPhone, onPressed: () => playTracks(context, album.tracks, 0)),
-              KButton(
-                label: 'Shuffle',
-                icon: Icons.shuffle,
-                onPressed: () => playTracks(context, [...album.tracks]..shuffle(), 0),
-              ),
-            ]),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                KButton(
+                  label: 'Play',
+                  icon: Icons.play_arrow_rounded,
+                  primary: true,
+                  autofocus: !d.isPhone,
+                  onPressed: () => playTracks(context, album.tracks, 0),
+                ),
+                KButton(
+                  label: 'Shuffle',
+                  icon: Icons.shuffle,
+                  onPressed: () =>
+                      playTracks(context, [...album.tracks]..shuffle(), 0),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -157,12 +220,21 @@ class AlbumScreen extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: EdgeInsets.fromLTRB(d.pageInsets.left, d.pageInsets.top, d.pageInsets.right, d.pageInsets.bottom + 90),
+          padding: EdgeInsets.fromLTRB(
+            d.pageInsets.left,
+            d.pageInsets.top,
+            d.pageInsets.right,
+            d.pageInsets.bottom + 90,
+          ),
           children: [
             if (!d.isTv)
               Align(
                 alignment: Alignment.centerLeft,
-                child: IconButton(tooltip: 'Back', onPressed: () => Navigator.of(context).maybePop(), icon: const Icon(Icons.arrow_back)),
+                child: IconButton(
+                  tooltip: 'Back',
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.arrow_back),
+                ),
               ),
             if (d.isPhone)
               Column(children: header)
@@ -170,7 +242,10 @@ class AlbumScreen extends StatelessWidget {
               Row(crossAxisAlignment: CrossAxisAlignment.end, children: header),
             const SizedBox(height: 24),
             for (var i = 0; i < album.tracks.length; i++)
-              TrackTile(track: album.tracks[i], onTap: () => playTracks(context, album.tracks, i)),
+              TrackTile(
+                track: album.tracks[i],
+                onTap: () => playTracks(context, album.tracks, i),
+              ),
           ],
         ),
       ),
@@ -179,7 +254,12 @@ class AlbumScreen extends StatelessWidget {
 }
 
 class TrackTile extends StatelessWidget {
-  const TrackTile({super.key, required this.track, required this.onTap, this.showArt = false});
+  const TrackTile({
+    super.key,
+    required this.track,
+    required this.onTap,
+    this.showArt = false,
+  });
 
   final LibraryItem track;
   final VoidCallback onTap;
@@ -201,28 +281,67 @@ class TrackTile extends StatelessWidget {
           builder: (context, focused) => AnimatedContainer(
             duration: KMotion.focus,
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            color: focused ? Colors.white.withValues(alpha: .09) : Colors.transparent,
-            child: Row(children: [
-              SizedBox(
-                width: showArt ? 44 : 28,
-                child: showArt
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: SizedBox.square(dimension: 40, child: GeneratedArt(seed: albumSeedFor(track), style: ArtStyle.album)),
-                      )
-                    : playing
-                        ? const Icon(Icons.graphic_eq, color: KColors.accent, size: 18)
-                        : Text('${track.episode ?? ''}', style: theme.textTheme.labelMedium),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(track.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleMedium?.copyWith(color: playing ? KColors.accentSoft : null)),
-                  Text([track.artist, if (showArt) track.album].whereType<String>().join(' · '), maxLines: 1, style: theme.textTheme.labelSmall),
-                ]),
-              ),
-              Text(track.durationMs == null ? '' : formatClock(track.durationMs!), style: theme.textTheme.labelSmall),
-            ]),
+            color: focused
+                ? Colors.white.withValues(alpha: .09)
+                : Colors.transparent,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: showArt ? 44 : 28,
+                  child: showArt
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: SizedBox.square(
+                            dimension: 40,
+                            child: GeneratedArt(
+                              seed: albumSeedFor(track),
+                              style: ArtStyle.album,
+                            ),
+                          ),
+                        )
+                      : playing
+                      ? const Icon(
+                          Icons.graphic_eq,
+                          color: KColors.accent,
+                          size: 18,
+                        )
+                      : Text(
+                          '${track.episode ?? ''}',
+                          style: theme.textTheme.labelMedium,
+                        ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        track.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: playing ? KColors.accentSoft : null,
+                        ),
+                      ),
+                      Text(
+                        [
+                          track.artist,
+                          if (showArt) track.album,
+                        ].whereType<String>().join(' · '),
+                        maxLines: 1,
+                        style: theme.textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  track.durationMs == null
+                      ? ''
+                      : formatClock(track.durationMs!),
+                  style: theme.textTheme.labelSmall,
+                ),
+              ],
+            ),
           ),
         );
       },
