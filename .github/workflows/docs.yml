@@ -7,17 +7,6 @@ name: Docs
 
 on:
   workflow_dispatch:
-  pull_request:
-    # CI on PRs runs once when the PR is opened or marked ready (not on every
-    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
-    types: [opened, reopened, ready_for_review]
-    paths:
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "**/Cargo.toml"
-      - "docs/dev/**"
-      - "docs/justfile"
-      - ".github/workflows/docs.yml"
   push:
     branches: [main]
     paths:
@@ -31,6 +20,7 @@ permissions:
 
 jobs:
   crate-graph:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

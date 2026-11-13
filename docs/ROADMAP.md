@@ -317,7 +317,7 @@ project_alpha/
   - Что: tokio-runtime в ядре, init/shutdown/foreground/background, каталоги данных по платформам (на tvOS — Application Support и Caches), колбэк-интерфейсы платформы, настройки (KV в SQLite, миграции, экспорт и импорт).
   - deps: CORE-001, CORE-005 · size: M · parallel: no · веха: M0 · ref: 02 §4, 04 §1.4 п.5
   - done when: тесты жизненного цикла; повторный init после shutdown работает; настройки переживают перезапуск.
-- [ ] **CORE-007** `pa-secrets`: хранилище секретов
+- [x] **CORE-007** `pa-secrets`: хранилище секретов
   - Что: трейт SecretStore. Десктоп — крейт `keyring` (DPAPI, Keychain, Secret Service; без них — зашифрованный файл и предупреждение). Мобильные и tvOS — UniFFI-колбэк в Keychain (`AfterFirstUnlock`) и Android Keystore + Tink. Маскирование секретов в логах.
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 04 §5.1
   - done when: интеграционные тесты на Linux, Windows и macOS; на Android и iOS — instrumented-тест и XCTest.
@@ -349,6 +349,10 @@ project_alpha/
   - Что: загрузка подписанного JSON из публичного репо (`config/`, через GitHub Pages или raw), проверка подписи minisign встроенным ключом, ETag, кэш, откат на встроенную копию, флаги kill-switch.
   - deps: CORE-006 · size: S · parallel: yes · веха: M2 · ref: S §3 (Twitch), 06 §2.6
   - done when: тесты: неверная подпись отклоняется; офлайн берётся последняя валидная копия.
+- [ ] **CORE-015** Платформенные хранилища секретов: Android Keystore и Apple Keychain
+  - Что: реализации колбэка `PlatformSecretStore` из CORE-007 — Android (Keystore-ключ + Tink AEAD поверх приватного DataStore) и iOS/iPadOS/tvOS (Keychain, `kSecAttrAccessibleAfterFirstUnlock`); вызов `secrets_open` при старте приложения; доступ к секретам из Flutter (`pa_core` через FRB) на мобильных.
+  - deps: CORE-007 · size: M · parallel: yes · веха: M1 · ref: 04 §5.1, docs/dev/secrets.md
+  - done when: instrumented-тест на эмуляторе Android и XCTest на симуляторе iOS: запись, чтение, перезапись, удаление, переживает перезапуск процесса.
 
 ### 3.4. NET — источники, сетевые протоколы, Plex/Jellyfin/Emby
 
@@ -384,10 +388,10 @@ project_alpha/
   - Что: FFmpeg `AVIOContext` (read/seek) и mpv `stream_cb` (C ABI) поверх ByteSource.
   - deps: NET-001, PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §4
   - done when: тест: libavformat открывает MKV с WebDAV через адаптер; mpv играет `pa://<id>`.
-- [ ] **NET-009** mDNS/DNS-SD обнаружение
+- [x] **NET-009** mDNS/DNS-SD обнаружение
   - Что: `mdns-sd` для `_smb._tcp`, `_webdav._tcp`, `_nfs._tcp`, `_projectalpha._tcp`; на iOS и tvOS — NWBrowser через колбэк; Info.plist (`NSLocalNetworkUsageDescription`, `NSBonjourServices`); Android MulticastLock.
-  - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 02 §4, 04 §1.6
-  - done when: тестовый Samba с Avahi находится на Linux, Android и iOS-симуляторе.
+  - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 02 §4, 04 §1.6, ADR-0019
+  - done when: тестовый Samba с Avahi находится на Linux, Android и iOS-симуляторе. Сделано в ядре (`pa-discovery`, колбэки `PlatformBrowser` и `MulticastLock`), проверено на Linux; обвязка и проверка на Android и iOS — NET-020.
 - [ ] **NET-010** WS-Discovery, NetBIOS, Plex GDM, Jellyfin UDP
   - Что: обнаружение Windows-шар (WS-Discovery, NetBIOS NS), Plex (UDP 32414), Jellyfin (UDP 7359); multicast на Apple — только после выдачи entitlement (PKG-012).
   - deps: NET-009 · size: M · parallel: yes · веха: M4 · ref: 02 §4, 04 §1.6
@@ -428,6 +432,11 @@ project_alpha/
   - Что: копирование файла через pa-jobs с докачкой по offset; на iOS для SMB/NFS — только в foreground или `BGProcessingTask`; Android — WorkManager + foreground service `dataSync`; на tvOS загрузок нет.
   - deps: NET-001, CORE-011 · size: M · parallel: yes · веха: M4 · ref: 04 §1.9, 02 §4
   - done when: загрузка 4 ГБ с SMB докачивается после обрыва сети; прогресс приходит в UI.
+
+- [ ] **NET-020** Обвязка обнаружения в LAN на Android и Apple
+  - Что: Android — `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`) как реализация `pa_discovery::MulticastLock`; iOS и tvOS — `NWBrowser` как `PlatformBrowser`, `Info.plist` (`NSLocalNetworkUsageDescription`, `NSBonjourServices` из `bonjour_services()`); экспорт через FFI.
+  - deps: NET-009, CORE-002 · size: S · parallel: yes · веха: M1 · ref: ADR-0019, 02 §4
+  - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе.
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
@@ -471,7 +480,7 @@ project_alpha/
   - Что: Smart Groups (несколько файлов одного Work: 4K, 1080p, Director's Cut) и версия по умолчанию; коллекции TMDB и пользовательские [P1]; избранное и закрепление на Home; плейлисты видео [P1].
   - deps: LIB-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5
   - done when: два файла одного фильма показываются одной карточкой с выбором версии.
-- [ ] **LIB-011** Прогресс, история, «Продолжить», Up Next
+- [x] **LIB-011** Прогресс, история, «Продолжить», Up Next
   - Что: запись PlaybackItem, правило «в процессе» (от 2–3 % до 90–95 %, пороги настраиваются), «просмотрено» монотонно, запрос ряда «Продолжить» по `updated_at`, следующий эпизод для Up Next, «Убрать из ряда».
   - deps: LIB-001 · size: M · parallel: yes · веха: M1 · ref: 01 §2.7
   - done when: тесты порогов и Up Next на границе сезонов и для спешлов.
@@ -530,7 +539,7 @@ project_alpha/
   - Что: по `docs/legal/anime-mappings.md` — в бандле только производная база из anime-offline-database (ODbL, с атрибуцией, сама под ODbL, воспроизводимая сборка `data/anime-mappings/build.sh`); Anime-Lists XML и Fribb `anime-list-full.json` (без лицензии) не встраиваются и не зеркалятся — приложение скачивает их с upstream прямо на устройство (зашитые URL, ETag, не чаще раза в сутки, проверка целостности и SHA-256, локальный кэш, атомарная замена); слияние слоёв только в памяти устройства; резервный форк — только для anime-offline-database.
   - deps: REPO-001, LEGAL-003 · size: M · parallel: yes · веха: M2 · ref: S §3, 03 §3.2, §9 п.3
   - done when: офлайн-тест маппинга AniDB ↔ TVDB ↔ TMDB на рукописных фикстурах (без копий Anime-Lists/Fribb); обновление применяется атомарно; в репозитории и бандле нет данных без лицензии.
-- [ ] **META-009** Трейт Provider и клиент TMDB
+- [x] **META-009** Трейт Provider и клиент TMDB
   - Что: сетевой слой вне sans-IO ядра; TMDB: поиск, детали, переводы ru-RU, альтернативные названия, episode groups, external ids, изображения, коллекции; rate limit, ProviderCache с TTL; ключ проекта по умолчанию (по DEC-008) и поле «свой ключ».
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 03 §3.1, §4.7, S §3
   - done when: тесты на записанных ответах; 429 от TMDB обрабатывается backoff-ом; атрибуция TMDB выводится в UI-016.
@@ -605,8 +614,8 @@ project_alpha/
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
-- [ ] **PLAY-002** LGPL-сборка libmpv
-  - Что: mpv с `-Dgpl=false`, libplacebo, libass, libdovi (MIT); для Linux, Windows и macOS, а также Android (fallback-движок).
+- [x] **PLAY-002** LGPL-сборка libmpv
+  - Что: mpv с `-Dgpl=false`, libplacebo, libass (libdovi — PLAY-014; подключение в Android-APK — PLAY-013); для Linux, Windows и macOS, а также Android (fallback-движок).
   - deps: PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §2.2, §3.1
   - done when: `mpv_client_api_version` доступен; в выводе конфигурации нет GPL.
 - [x] **PLAY-003** Контракт `PlayerEngine` и выбор движка
@@ -649,6 +658,14 @@ project_alpha/
   - Что: Cast sender на Android и iOS (только в флейворах без ограничений F-Droid — Cast SDK проприетарный); AirPlay нативно на Apple; на Cast отдаётся HLS от сервера или файл через прокси.
   - deps: PLAY-003 · size: M · parallel: yes · веха: M5 · ref: 01 §1.5
   - done when: воспроизведение на Chromecast и Apple TV по AirPlay с синхронизацией прогресса.
+- [ ] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
+  - Что: локальная копия `media_kit_libs_android_video` через `dependency_overrides`: Java-обвязка остаётся, скачивание готовых jar убирается; `jniLibs` наполняются `tools/mpv/bundle.sh android` из артефактов `libmpv-android-*` (PLAY-002); `check-native-licences.sh` проверяет APK.
+  - deps: PLAY-002 · size: S · parallel: yes · веха: M1 · ref: tools/mpv/README.md
+  - done when: release-APK содержит только наши LGPL `libmpv.so`/FFmpeg, видео воспроизводится на устройстве, проверка лицензий зелёная.
+- [ ] **PLAY-014** libdovi в сборке libmpv
+  - Что: libdovi (MIT, Rust, cargo-c) для всех таргетов `tools/mpv`, libplacebo с `-Dlibdovi=enabled`; сейчас DV-reshaping идёт встроенным кодом libplacebo.
+  - deps: PLAY-002 · size: M · parallel: yes · веха: M2 · ref: 02 §2.2
+  - done when: `BUILDINFO.txt` показывает libdovi на всех таргетах, гейт лицензий зелёный.
 
 ### 3.8. PLAY-AND — плеер Android и Android TV
 
@@ -935,7 +952,7 @@ project_alpha/
   - Что: гибридные логические часы, `op_id` (UUIDv7), операции (progress.upsert, watched/unwatch, favorite, rating, плейлисты, folder_rule, настройки без секретов, избранное Twitch); LWW по полю, «просмотрено» монотонно; outbox в SQLite с идемпотентностью и ретраями.
   - deps: CORE-005, LIB-001 · size: M · parallel: no · веха: M3 · ref: 04 §1.8
   - done when: property-тест (proptest): применение операций в любом порядке даёт одно состояние.
-- [ ] **SYNC-002** Протокол синхронизации
+- [x] **SYNC-002** Протокол синхронизации
   - Что: `docs/api/sync-protocol.md`; сообщения hello{device_id, cursor}, pb.update, pb.takeover, op, ack, change, pull; версионированный непрозрачный payload (готовность к E2E); одинаков для P2P, хаба на сервере и iroh.
   - deps: SYNC-001 · size: M · parallel: no · веха: M3 · ref: 04 §1.8.1
   - done when: спецификация и тесты кодека сообщений; совместимость версий ±1.
@@ -952,7 +969,7 @@ project_alpha/
   - deps: SYNC-001, CORE-007 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: отозванное устройство больше не может подключиться (тест).
 - [ ] **SYNC-006** P2P-транспорт в LAN и выбор хаба
-  - Что: mDNS `_projectalpha-sync._tcp`, WebSocket между устройствами, шифрование (Noise или TLS с ключами из pairing); хабом становится любое включённое устройство (приоритет: сервер, десктоп, ТВ, телефон).
+  - Что: mDNS `_alpha-sync._tcp` (ADR-0019; `_projectalpha-sync` длиннее 15 символов RFC 6763), WebSocket между устройствами, шифрование (Noise или TLS с ключами из pairing); хабом становится любое включённое устройство (приоритет: сервер, десктоп, ТВ, телефон).
   - deps: SYNC-002, SYNC-005, NET-009 · size: L · parallel: yes · веха: M3 · ref: S §2
   - done when: три устройства в LAN сходятся; при выключении хаба выбирается новый меньше чем за 10 с.
 - [ ] **SYNC-007** Синхронизация через хранилище
@@ -1732,8 +1749,8 @@ project_alpha/
 | DEC | 8 | SYNC | 12 |
 | REPO | 13 | SRV | 18 |
 | CI | 12 | MUS | 15 |
-| CORE | 14 | TWI | 22 |
-| NET | 19 | DIST | 27 |
+| CORE | 15 | TWI | 22 |
+| NET | 20 | DIST | 27 |
 | LIB | 15 | DSN | 15 |
 | META | 25 | PKG | 17 |
 | PLAY | 12 | QA | 11 |
@@ -1741,4 +1758,4 @@ project_alpha/
 | PLAY-DSK | 8 | LEGAL | 10 |
 | PLAY-APL | 12 | SITE | 6 |
 | UI | 22 | COMM | 6 |
-| TV | 13 | **Всего** | **349** (341 задача + 8 решений владельца) |
+| TV | 13 | **Всего** | **350** (342 задачи + 8 решений владельца) |

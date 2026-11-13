@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-discovery"
+version = "0.1.0"
+description = "LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = ["mdns"]
+# Pure-Rust mDNS responder and browser (mdns-sd). Without it the crate only
+# has the model, the registry and the platform-browser backend (iOS/tvOS).
+mdns = ["dep:mdns-sd"]
+
+[dependencies]
+mdns-sd = { workspace = true, optional = true }
+thiserror.workspace = true

@@ -1,0 +1,31 @@
+From: project_alpha contributors
+Subject: [PATCH] meson: unversioned libmpv.so on Android
+
+Android installs only unversioned lib*.so files from an APK, and media_kit
+opens "libmpv.so" by name. Without a version the SONAME is "libmpv.so" too,
+so the library can be dropped into jniLibs as is. Other platforms are
+unchanged. Not sent upstream yet.
+
+--- a/meson.build
++++ b/meson.build
+@@ -1838,11 +1838,18 @@
+ minor = client_h_define.split('|')[1].strip('() ')
+ client_api_version = major + '.' + minor + '.0'
+
++# Android packages only unversioned lib*.so files into an APK, so the
++# library must not get a versioned SONAME (libmpv.so.2) there.
++libmpv_kwargs = {}
++if not features['android']
++    libmpv_kwargs += {'version': client_api_version}
++endif
+ libmpv = library('mpv', sources, dependencies: dependencies, gnu_symbol_visibility: 'hidden',
+                  include_directories: incdir_public,
+                  link_args: cc.get_supported_link_arguments(['-Wl,-Bsymbolic']),
+-                 version: client_api_version, install: get_option('libmpv'),
+-                 build_by_default: get_option('libmpv'))
++                 install: get_option('libmpv'),
++                 build_by_default: get_option('libmpv'),
++                 kwargs: libmpv_kwargs)
+
+
+ if get_option('libmpv')

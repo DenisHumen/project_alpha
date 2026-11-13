@@ -9,10 +9,15 @@
 //!   same ops gives the same state.
 //! - [`outbox`]: the SQLite outbox with idempotent enqueue and retries.
 //! - [`Replica`]: ties them together for one device.
+//! - [`proto`]: the wire protocol (`docs/api/sync-protocol.md`): handshake
+//!   with version negotiation, `pb.update`/`pb.takeover` for instant resume,
+//!   op exchange with opaque versioned payloads, acks and journal cursors.
+//! - [`library`]: `Replica` as the sync sink of `pa_library::progress`
+//!   (LIB-011) and writing received progress ops into the library.
 //!
-//! Transports (LAN P2P, journal in a shared folder, the user's own server)
-//! and the wire protocol are SYNC-002 and later; they move [`outbox::encode`]
-//! payloads and call [`Replica::receive`].
+//! Transports (LAN P2P, journal in a shared folder, the user's own server,
+//! iroh) are later tasks; they move [`proto`] frames and call
+//! [`Replica::receive`].
 //!
 //! ```
 //! use pa_model::{MediaKey, MediaKind};
@@ -38,8 +43,10 @@
 //! ```
 
 pub mod hlc;
+pub mod library;
 pub mod op;
 pub mod outbox;
+pub mod proto;
 mod state;
 
 pub use hlc::{Hlc, HlcClock};
@@ -57,10 +64,19 @@ pub enum Error {
     /// A peer's clock is too far ahead ([`hlc::MAX_DRIFT_MS`]).
     #[error("remote clock {remote_ms} ms is too far ahead of local {local_ms} ms")]
     ClockDrift { remote_ms: u64, local_ms: u64 },
+    /// No protocol version in common (`(min, max)` of each side).
+    #[error("no common protocol version: local {local:?}, remote {remote:?}")]
+    Incompatible {
+        local: (u16, u16),
+        remote: (u16, u16),
+    },
     #[error(transparent)]
     Sqlite(#[from] rusqlite::Error),
     #[error(transparent)]
     Json(#[from] serde_json::Error),
+    /// Writing a received change into the library failed.
+    #[error(transparent)]
+    Library(#[from] pa_library::Error),
 }
 
 /// Sync state of one device: its clock and the merged state. The state is
