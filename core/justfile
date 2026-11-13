@@ -1,7 +1,41 @@
 # SPDX-License-Identifier: MPL-2.0
 # `core` module: Rust core: core/crates/pa-*.
-# Owned by the CORE workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+# Owned by the CORE workstream (docs/ROADMAP.md §0.4).
 
-# Placeholder until the area gets real recipes
-info:
-    @echo "core: no recipes yet (CORE, see docs/ROADMAP.md)"
+set working-directory := '..'
+
+# Output of `just core bindings`. Generated code is never committed (ADR-0001).
+bindings_dir := 'target/bindings'
+
+lib_file := if os() == 'macos' { 'libpa_ffi.dylib' } else if os() == 'windows' { 'pa_ffi.dll' } else { 'libpa_ffi.so' }
+
+smoke_dir := 'target/ffi-smoke'
+
+# Run the pa-ffi tests (Rust side of the FFI boundary)
+test-ffi:
+    cargo test -p pa-ffi
+
+# Generate Kotlin and Swift bindings for pa-ffi into target/bindings/{kotlin,swift}
+bindings: (bindings-for 'kotlin') (bindings-for 'swift')
+
+# Generate bindings for one language (kotlin | swift) from the host cdylib
+bindings-for language:
+    cargo build -p pa-ffi --lib
+    rm -rf {{ bindings_dir }}/{{ language }}
+    cargo run -q -p pa-ffi --features cli --bin uniffi-bindgen -- \
+        generate --library target/debug/{{ lib_file }} --no-format \
+        --language {{ language }} --out-dir {{ bindings_dir }}/{{ language }}
+    @echo "{{ language }} bindings: {{ bindings_dir }}/{{ language }}"
+
+# Call core_version() from Kotlin on the JVM via JNA (needs JDK 21 and `gradle` on PATH)
+smoke-jvm: (bindings-for 'kotlin')
+    cd core/crates/pa-ffi/jvm-smoke && gradle test --console=plain
+
+# Call core_version() from Swift on the host (needs `swiftc`; Linux or macOS)
+smoke-swift: (bindings-for 'swift')
+    mkdir -p {{ smoke_dir }}
+    swiftc -module-name PACore \
+        -Xcc -fmodule-map-file={{ bindings_dir }}/swift/PACoreFFI.modulemap -I {{ bindings_dir }}/swift \
+        {{ bindings_dir }}/swift/PACore.swift core/crates/pa-ffi/swift-smoke/main.swift \
+        -L target/debug -lpa_ffi -o {{ smoke_dir }}/swift-smoke
+    LD_LIBRARY_PATH=target/debug DYLD_LIBRARY_PATH=target/debug {{ smoke_dir }}/swift-smoke

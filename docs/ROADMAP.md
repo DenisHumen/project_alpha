@@ -293,7 +293,7 @@ project_alpha/
 
 ### 3.3. CORE — ядро на Rust, FFI, общие сервисы
 
-- [ ] **CORE-001** `pa-ffi`: каркас UniFFI
+- [x] **CORE-001** `pa-ffi`: каркас UniFFI
   - Что: крейт `pa-ffi` с UniFFI proc-macro, функция `core_version()`, генерация Kotlin и Swift через `just bindings` (сгенерированное не коммитится, кроме требований Xcode).
   - deps: REPO-001 · size: S · parallel: no · веха: M0 · ref: 02 §1.4, 04 §1.3
   - done when: unit-тест FFI, биндинги Kotlin и Swift генерируются в CI.
