@@ -145,7 +145,11 @@ impl Config {
             Some(dir) => {
                 let dir = std::path::absolute(dir)
                     .map_err(|e| Error::Config(format!("data_dir: {e}")))?;
-                Ok(PlatformDirs::new(dir.clone(), dir.clone(), dir.join("cache")))
+                Ok(PlatformDirs::new(
+                    dir.clone(),
+                    dir.clone(),
+                    dir.join("cache"),
+                ))
             }
             None => Ok(PlatformDirs::platform_default(
                 Platform::current(),

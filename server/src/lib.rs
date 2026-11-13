@@ -112,10 +112,8 @@ impl Library {
     /// Moves the WAL into the main file so a stopped server leaves one
     /// self-contained database (backup = copy of the file).
     pub async fn checkpoint(&self) -> Result<(), pa_library::rusqlite::Error> {
-        self.with(|conn| {
-            conn.query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |_| Ok(()))
-        })
-        .await
+        self.with(|conn| conn.query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |_| Ok(())))
+            .await
     }
 }
 
@@ -164,7 +162,10 @@ impl Server {
 
     /// Serves until `shutdown` resolves, then waits for in-flight requests
     /// and checkpoints the database.
-    pub async fn run(self, shutdown: impl Future<Output = ()> + Send + 'static) -> Result<(), Error> {
+    pub async fn run(
+        self,
+        shutdown: impl Future<Output = ()> + Send + 'static,
+    ) -> Result<(), Error> {
         let addr = self.local_addr()?;
         tracing::info!(%addr, version = VERSION, "listening");
         let app = http::router(self.library.clone());
