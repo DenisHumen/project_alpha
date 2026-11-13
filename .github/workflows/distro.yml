@@ -10,15 +10,14 @@ name: distro
 
 on:
   pull_request:
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
     paths:
       - "distro/**"
       - ".github/workflows/distro.yml"
   push:
-    branches: [main]
     tags: ["os-v*"]
-    paths:
-      - "distro/**"
-      - ".github/workflows/distro.yml"
   workflow_dispatch:
     inputs:
       promote:

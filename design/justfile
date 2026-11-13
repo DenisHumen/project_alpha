@@ -16,7 +16,7 @@ check:
     npm test
 
 # Regenerate all derived files (Dart tokens, icon code/catalog, type specimen)
-build: tokens icons
+build: tokens icons brand
     npm run fonts:specimen
 
 # Dart tokens for Flutter (design/flutter/pa_design/lib/src/tokens.g.dart)
@@ -37,3 +37,11 @@ icons:
 # Download Inter (SHA-256 pinned) into fonts/files and flutter/pa_design/fonts
 fonts *args:
     node scripts/fonts-fetch.mjs {{args}}
+
+# Brand assets (DSN-006): app icons, TV banner, favicon, lockups, placeholder PNGs from SVG masters
+brand:
+    npm run brand:build
+
+# Re-outline the wordmark from Inter Display SemiBold (only when the wordmark changes)
+brand-wordmark font:
+    node scripts/brand-wordmark.mjs --font {{font}}

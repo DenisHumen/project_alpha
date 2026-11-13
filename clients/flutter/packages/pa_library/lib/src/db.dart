@@ -82,17 +82,22 @@ CREATE TABLE IF NOT EXISTS settings (
 /// Drops expired TMDB cache entries and TMDB-derived fields older than
 /// [tmdbDataMaxAge] (they are re-fetched on the next scan).
 void purgeExpiredTmdbData(Database db, DateTime now) {
-  final cacheCutoff = now.subtract(TmdbClient.maxCacheAge).millisecondsSinceEpoch;
+  final cacheCutoff = now
+      .subtract(TmdbClient.maxCacheAge)
+      .millisecondsSinceEpoch;
   db.execute('DELETE FROM tmdb_cache WHERE fetched_at < ?', [cacheCutoff]);
   final cutoff = now.subtract(tmdbDataMaxAge).millisecondsSinceEpoch;
-  db.execute('''
+  db.execute(
+    '''
 UPDATE items SET
   overview = NULL,
   poster_url = local_poster,
   backdrop_url = NULL,
   original_title = NULL,
   meta_fetched_at = NULL
-WHERE meta_fetched_at IS NOT NULL AND meta_fetched_at < ?''', [cutoff]);
+WHERE meta_fetched_at IS NOT NULL AND meta_fetched_at < ?''',
+    [cutoff],
+  );
 }
 
 class SqliteTmdbCache implements TmdbCache {
@@ -103,52 +108,57 @@ class SqliteTmdbCache implements TmdbCache {
   String? get(String key, Duration maxAge) {
     final cutoff = DateTime.now().subtract(maxAge).millisecondsSinceEpoch;
     final r = db.select(
-        'SELECT body FROM tmdb_cache WHERE key = ? AND fetched_at >= ?', [key, cutoff]);
+      'SELECT body FROM tmdb_cache WHERE key = ? AND fetched_at >= ?',
+      [key, cutoff],
+    );
     return r.isEmpty ? null : r.first['body'] as String;
   }
 
   @override
   void put(String key, String body) {
     db.execute(
-        'INSERT OR REPLACE INTO tmdb_cache(key, body, fetched_at) VALUES (?, ?, ?)',
-        [key, body, DateTime.now().millisecondsSinceEpoch]);
+      'INSERT OR REPLACE INTO tmdb_cache(key, body, fetched_at) VALUES (?, ?, ?)',
+      [key, body, DateTime.now().millisecondsSinceEpoch],
+    );
   }
 }
 
 LibraryItem itemFromRow(Row r) => LibraryItem(
-      id: r['id'] as String,
-      kind: ItemKind.values.byName(r['kind'] as String),
-      title: r['title'] as String,
-      originalTitle: r['original_title'] as String?,
-      year: r['year'] as int?,
-      overview: r['overview'] as String?,
-      posterUrl: r['poster_url'] as String?,
-      backdropUrl: r['backdrop_url'] as String?,
-      showId: r['show_id'] as String?,
-      season: r['season'] as int?,
-      episode: r['episode'] as int?,
-      artist: r['artist'] as String?,
-      album: r['album'] as String?,
-      trackNumber: r['track_number'] as int?,
-      filePath: r['file_path'] as String,
-      durationMs: r['duration_ms'] as int?,
-      matchConfidence: (r['match_confidence'] as num?)?.toDouble(),
-      tmdbId: r['tmdb_id'] as int?,
-      addedAt: DateTime.fromMillisecondsSinceEpoch(r['added_at'] as int),
-    );
+  id: r['id'] as String,
+  kind: ItemKind.values.byName(r['kind'] as String),
+  title: r['title'] as String,
+  originalTitle: r['original_title'] as String?,
+  year: r['year'] as int?,
+  overview: r['overview'] as String?,
+  posterUrl: r['poster_url'] as String?,
+  backdropUrl: r['backdrop_url'] as String?,
+  showId: r['show_id'] as String?,
+  season: r['season'] as int?,
+  episode: r['episode'] as int?,
+  artist: r['artist'] as String?,
+  album: r['album'] as String?,
+  trackNumber: r['track_number'] as int?,
+  filePath: r['file_path'] as String,
+  durationMs: r['duration_ms'] as int?,
+  matchConfidence: (r['match_confidence'] as num?)?.toDouble(),
+  tmdbId: r['tmdb_id'] as int?,
+  addedAt: DateTime.fromMillisecondsSinceEpoch(r['added_at'] as int),
+);
 
 Progress progressFromRow(Row r, {String prefix = ''}) => Progress(
-      itemId: r['${prefix}item_id'] as String,
-      positionMs: r['${prefix}position_ms'] as int,
-      durationMs: r['${prefix}duration_ms'] as int,
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(r['${prefix}updated_at'] as int),
-      watched: (r['${prefix}watched'] as int) != 0,
-    );
+  itemId: r['${prefix}item_id'] as String,
+  positionMs: r['${prefix}position_ms'] as int,
+  durationMs: r['${prefix}duration_ms'] as int,
+  updatedAt: DateTime.fromMillisecondsSinceEpoch(
+    r['${prefix}updated_at'] as int,
+  ),
+  watched: (r['${prefix}watched'] as int) != 0,
+);
 
 MediaSource sourceFromRow(Row r) => MediaSource(
-      id: r['id'] as String,
-      kind: SourceKind.values.byName(r['kind'] as String),
-      name: r['name'] as String,
-      path: r['path'] as String,
-      username: r['username'] as String?,
-    );
+  id: r['id'] as String,
+  kind: SourceKind.values.byName(r['kind'] as String),
+  name: r['name'] as String,
+  path: r['path'] as String,
+  username: r['username'] as String?,
+);

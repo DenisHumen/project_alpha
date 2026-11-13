@@ -7,13 +7,44 @@ import 'package:path/path.dart' as p;
 enum MediaType { video, audio }
 
 const Set<String> videoExtensions = {
-  '.mkv', '.mp4', '.m4v', '.avi', '.mov', '.wmv', '.mpg', '.mpeg', '.ts',
-  '.m2ts', '.mts', '.webm', '.flv', '.ogv', '.3gp', '.rmvb', '.divx', '.asf',
+  '.mkv',
+  '.mp4',
+  '.m4v',
+  '.avi',
+  '.mov',
+  '.wmv',
+  '.mpg',
+  '.mpeg',
+  '.ts',
+  '.m2ts',
+  '.mts',
+  '.webm',
+  '.flv',
+  '.ogv',
+  '.3gp',
+  '.rmvb',
+  '.divx',
+  '.asf',
 };
 
 const Set<String> audioExtensions = {
-  '.mp3', '.flac', '.m4a', '.aac', '.ogg', '.oga', '.opus', '.wav', '.wma',
-  '.aiff', '.aif', '.ape', '.wv', '.dsf', '.dff', '.mka', '.alac',
+  '.mp3',
+  '.flac',
+  '.m4a',
+  '.aac',
+  '.ogg',
+  '.oga',
+  '.opus',
+  '.wav',
+  '.wma',
+  '.aiff',
+  '.aif',
+  '.ape',
+  '.wv',
+  '.dsf',
+  '.dff',
+  '.mka',
+  '.alac',
 };
 
 /// Folder names skipped entirely (lower case).
@@ -28,7 +59,11 @@ const Set<String> ignoredFolders = {
   // disc structures (not supported in 0.1)
   'bdmv', 'video_ts', 'audio_ts', 'certificate',
   // NAS / OS service folders
-  '@eadir', '#recycle', '#snapshot', r'$recycle.bin', 'system volume information',
+  '@eadir',
+  '#recycle',
+  '#snapshot',
+  r'$recycle.bin',
+  'system volume information',
   'lost+found', '.@__thumb', '@recycle', '.trash', '.trashes',
 };
 

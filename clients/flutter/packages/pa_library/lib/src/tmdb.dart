@@ -58,7 +58,10 @@ class TmdbSearchResult {
     this.popularity = 0,
   });
 
-  factory TmdbSearchResult.fromJson(Map<String, dynamic> j, {required bool tv}) {
+  factory TmdbSearchResult.fromJson(
+    Map<String, dynamic> j, {
+    required bool tv,
+  }) {
     final date = (tv ? j['first_air_date'] : j['release_date']) as String?;
     return TmdbSearchResult(
       id: (j['id'] as num).toInt(),
@@ -87,23 +90,30 @@ class TmdbEpisode {
   final String? overview;
   final String? stillPath;
   final int? runtimeMin;
-  const TmdbEpisode(this.season, this.episode,
-      {this.name, this.overview, this.stillPath, this.runtimeMin});
+  const TmdbEpisode(
+    this.season,
+    this.episode, {
+    this.name,
+    this.overview,
+    this.stillPath,
+    this.runtimeMin,
+  });
 
   factory TmdbEpisode.fromJson(Map<String, dynamic> j) => TmdbEpisode(
-        (j['season_number'] as num).toInt(),
-        (j['episode_number'] as num).toInt(),
-        name: _nonEmpty(j['name'] as String?),
-        overview: _nonEmpty(j['overview'] as String?),
-        stillPath: j['still_path'] as String?,
-        runtimeMin: (j['runtime'] as num?)?.toInt(),
-      );
+    (j['season_number'] as num).toInt(),
+    (j['episode_number'] as num).toInt(),
+    name: _nonEmpty(j['name'] as String?),
+    overview: _nonEmpty(j['overview'] as String?),
+    stillPath: j['still_path'] as String?,
+    runtimeMin: (j['runtime'] as num?)?.toInt(),
+  );
 
   String? get stillUrl => tmdbImageUrl(stillPath, 'w780');
 }
 
-int? _yearOf(String? date) =>
-    (date != null && date.length >= 4) ? int.tryParse(date.substring(0, 4)) : null;
+int? _yearOf(String? date) => (date != null && date.length >= 4)
+    ? int.tryParse(date.substring(0, 4))
+    : null;
 String? _nonEmpty(String? s) => (s == null || s.trim().isEmpty) ? null : s;
 
 /// A scored match.
@@ -132,34 +142,44 @@ class TmdbClient {
   /// v4 "API Read Access Token" (a JWT) vs v3 api_key.
   bool get _isBearer => apiKey.length > 40 && apiKey.contains('.');
 
-  Future<Map<String, dynamic>> _get(String path, Map<String, String> query) async {
-    final q = <String, String>{
-      'language': ?language,
-      ...query,
-    };
-    final cacheKey = Uri(path: path, queryParameters: q.isEmpty ? null : q).toString();
+  Future<Map<String, dynamic>> _get(
+    String path,
+    Map<String, String> query,
+  ) async {
+    final q = <String, String>{'language': ?language, ...query};
+    final cacheKey = Uri(
+      path: path,
+      queryParameters: q.isEmpty ? null : q,
+    ).toString();
     final cached = cache?.get(cacheKey, maxCacheAge);
     if (cached != null) return jsonDecode(cached) as Map<String, dynamic>;
 
-    final uri = baseUri.resolve(path).replace(queryParameters: {
-      ...q,
-      if (!_isBearer) 'api_key': apiKey,
-    });
+    final uri = baseUri
+        .resolve(path)
+        .replace(queryParameters: {...q, if (!_isBearer) 'api_key': apiKey});
     final headers = {
       'Accept': 'application/json',
       if (_isBearer) 'Authorization': 'Bearer $apiKey',
     };
-    for (var attempt = 0;; attempt++) {
-      final res = await _http.get(uri, headers: headers).timeout(const Duration(seconds: 20));
+    for (var attempt = 0; ; attempt++) {
+      final res = await _http
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 20));
       if (res.statusCode == 429 && attempt < 3) {
-        final wait = int.tryParse(res.headers['retry-after'] ?? '') ?? (attempt + 1);
-        await Future<void>.delayed(Duration(milliseconds: (wait.clamp(0, 10)) * 1000));
+        final wait =
+            int.tryParse(res.headers['retry-after'] ?? '') ?? (attempt + 1);
+        await Future<void>.delayed(
+          Duration(milliseconds: (wait.clamp(0, 10)) * 1000),
+        );
         continue;
       }
       if (res.statusCode != 200) {
         String msg = 'HTTP ${res.statusCode}';
         try {
-          msg = (jsonDecode(res.body) as Map<String, dynamic>)['status_message'] as String? ?? msg;
+          msg =
+              (jsonDecode(res.body) as Map<String, dynamic>)['status_message']
+                  as String? ??
+              msg;
         } catch (_) {}
         throw TmdbException(msg, res.statusCode);
       }
@@ -178,7 +198,7 @@ class TmdbClient {
     });
     return [
       for (final r in (j['results'] as List? ?? const []))
-        TmdbSearchResult.fromJson(r as Map<String, dynamic>, tv: false)
+        TmdbSearchResult.fromJson(r as Map<String, dynamic>, tv: false),
     ];
   }
 
@@ -190,7 +210,7 @@ class TmdbClient {
     });
     return [
       for (final r in (j['results'] as List? ?? const []))
-        TmdbSearchResult.fromJson(r as Map<String, dynamic>, tv: true)
+        TmdbSearchResult.fromJson(r as Map<String, dynamic>, tv: true),
     ];
   }
 
@@ -203,7 +223,8 @@ class TmdbClient {
   Future<TmdbEpisode?> episode(int tvId, int season, int episode) async {
     try {
       return TmdbEpisode.fromJson(
-          await _get('tv/$tvId/season/$season/episode/$episode', const {}));
+        await _get('tv/$tvId/season/$season/episode/$episode', const {}),
+      );
     } on TmdbException catch (e) {
       if (e.statusCode == 404) return null;
       rethrow;
@@ -212,8 +233,12 @@ class TmdbClient {
 
   /// Searches and scores candidates; tries the year-filtered search first,
   /// then without the year, then the alternative title.
-  Future<TmdbMatch?> findBest(String title,
-      {int? year, String? altTitle, required bool tv}) async {
+  Future<TmdbMatch?> findBest(
+    String title, {
+    int? year,
+    String? altTitle,
+    required bool tv,
+  }) async {
     Future<List<TmdbSearchResult>> search(String q, int? y) =>
         tv ? searchTv(q, year: y) : searchMovie(q, year: y);
 
@@ -241,7 +266,12 @@ class TmdbClient {
 }
 
 /// Scores a search result against the parsed title(s) and year (0..1).
-double scoreMatch(TmdbSearchResult r, List<String> titles, int? year, {int rank = 0}) {
+double scoreMatch(
+  TmdbSearchResult r,
+  List<String> titles,
+  int? year, {
+  int rank = 0,
+}) {
   var sim = 0.0;
   for (final t in titles) {
     final a = normalizeTitle(t);

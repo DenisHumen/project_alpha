@@ -26,10 +26,14 @@ publish = false
 
 # One line per dependency, sorted alphabetically. Crates use `dep.workspace = true`.
 [workspace.dependencies]
+dirs = "7.0"
 quick-xml = "0.42"
 refinery = { version = "0.10", default-features = false, features = ["rusqlite", "int8-versions"] }
-rusqlite = { version = "0.40", features = ["bundled"] }
+rusqlite = { version = "0.42", features = ["bundled"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 sha2 = "0.11"
+tempfile = "3.27"
+thiserror = "2.0.21"
+tokio = { version = "1.54", default-features = false }
 uniffi = { version = "0.32.2", default-features = false }

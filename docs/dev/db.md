@@ -2,7 +2,7 @@
 
 # База медиатеки (SQLite), схема v1
 
-Схема принадлежит крейту [`pa-library`](../../core/crates/pa-library) (`LIB-001`). Одна и та же схема используется клиентами (режим A, база на устройстве) и медиасервером (режим B). Решение и альтернативы — [ADR-0013](../adr/0013-library-sqlite-schema-refinery.md); модель данных — [03 §5](../research/03-metadata-recognition.md#5-модель-данных); устройство ядра — [04 §1.3–1.5](../research/04-backend-architecture-billing.md).
+Схема принадлежит крейту [`pa-library`](../../core/crates/pa-library) (`LIB-001`). Одна и та же схема используется клиентами (режим A, база на устройстве) и медиасервером (режим B). Решение и альтернативы — [ADR-0013](../adr/0016-library-sqlite-schema-refinery.md); модель данных — [03 §5](../research/03-metadata-recognition.md#5-модель-данных); устройство ядра — [04 §1.3–1.5](../research/04-backend-architecture-billing.md).
 
 Источник истины — SQL-файлы в [`core/crates/pa-library/migrations/`](../../core/crates/pa-library/migrations). Этот документ описывает смысл таблиц; тест `every_table_is_documented` падает, если у таблицы нет раздела здесь.
 
