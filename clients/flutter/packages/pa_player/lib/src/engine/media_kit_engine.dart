@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import 'dart:async';
+import 'dart:io' show File, Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -9,7 +10,19 @@ import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'player_engine.dart';
 
 /// Initialises libmpv bindings. Call once in `main()` before `runApp`.
-void ensurePaPlayerInitialized() => mk.MediaKit.ensureInitialized();
+void ensurePaPlayerInitialized() =>
+    mk.MediaKit.ensureInitialized(libmpv: bundledLibmpvPath());
+
+/// The LGPL libmpv shipped inside the Linux bundle (`lib/libmpv.so.2`, put
+/// there by tools/mpv/bundle.sh, PLAY-002), or null to let media_kit search
+/// (LIBMPV_LIBRARY_PATH, then the system). Opening it by path keeps a system
+/// libmpv from being loaded next to the bundled one.
+String? bundledLibmpvPath() {
+  if (kIsWeb || !Platform.isLinux) return null;
+  if (Platform.environment['LIBMPV_LIBRARY_PATH'] != null) return null;
+  final path = '${File(Platform.resolvedExecutable).parent.path}/lib/libmpv.so.2';
+  return File(path).existsSync() ? path : null;
+}
 
 /// [PlayerEngine] on media_kit / libmpv (ADR-0012).
 class MediaKitEngine implements PlayerEngine {

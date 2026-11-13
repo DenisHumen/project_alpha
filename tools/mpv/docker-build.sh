@@ -21,6 +21,11 @@ case "$target" in
         image="pa-mpv-builder-ndk-$ANDROID_NDK_VERSION"
         build_args=(--build-arg "ANDROID_NDK_VERSION=$ANDROID_NDK_VERSION")
         ;;
+    windows-*)
+        # Same base as tools/ffmpeg/docker (newer mingw-w64 headers, see Dockerfile).
+        image=pa-mpv-builder-mingw
+        build_args=(--build-arg "BASE_IMAGE=debian:trixie-slim@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad")
+        ;;
     macos-*)
         echo "Apple targets need macOS + Xcode: run tools/mpv/build.sh $target on a Mac" >&2
         exit 1

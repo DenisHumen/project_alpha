@@ -12,7 +12,11 @@
 #   docker build -t pa-mpv-builder tools/mpv/docker
 #   docker build --build-arg ANDROID_NDK_VERSION=r28c -t pa-mpv-builder-ndk tools/mpv/docker
 
-FROM ubuntu:24.04@sha256:2198e4c65076e9cb0b3d695219df667c0e3b0072da64ca3c2648aca17dcecaf5
+# Windows cross builds use the FFmpeg image's Debian trixie base instead
+# (docker-build.sh passes BASE_IMAGE): FFmpeg's D3D12VA needs mingw-w64 >= 12
+# headers, Ubuntu 24.04 ships 11; glibc does not matter for Windows DLLs.
+ARG BASE_IMAGE=ubuntu:24.04@sha256:2198e4c65076e9cb0b3d695219df667c0e3b0072da64ca3c2648aca17dcecaf5
+FROM ${BASE_IMAGE}
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         bash ca-certificates curl xz-utils bzip2 unzip patch file binutils \
