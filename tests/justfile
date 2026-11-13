@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# `tests` module: e2e tests and fixtures.
+# Owned by the QA workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+
+# Placeholder until the area gets real recipes
+info:
+    @echo "tests: no recipes yet (QA, see docs/ROADMAP.md)"

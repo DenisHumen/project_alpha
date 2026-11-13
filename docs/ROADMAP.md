@@ -187,7 +187,7 @@ project_alpha/
 
 ### 3.1. REPO — репозиторий и governance
 
-- [ ] **REPO-001** Каркас монорепо
+- [x] **REPO-001** Каркас монорепо
   - Что: каталоги по §0.4; корневой `Cargo.toml` (workspace, `members` по глобу, `[workspace.dependencies]`), `rust-toolchain.toml`, `.editorconfig`, `.gitignore`, `.gitattributes` (LFS для `design/**`, `tests/media/**`), корневой `justfile` только с `mod`-строками, `.env.example`.
   - deps: — · size: S · parallel: no · веха: M0 · ref: S §7, 04 §4.1
   - done when: `just --list` показывает модули; `cargo metadata` проходит на пустом workspace; `git lfs track` настроен.
@@ -1298,7 +1298,7 @@ project_alpha/
 
 ### 3.18. DSN — дизайн-система и ассеты
 
-- [ ] **DSN-001** Инструмент и структура `design/`
+- [x] **DSN-001** Инструмент и структура `design/`
   - Что: выбор Figma или Penpot (для open source рекомендуется Penpot; источник правды — JSON в git, а не файл макетов); каталоги tokens, icons/svg, brand, illustrations, motion, placeholders; `LICENSES.md` для шрифтов и иконок; Git LFS.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: 01 §5.1–5.2
   - done when: ADR о дизайн-инструменте; структура создана.
@@ -1479,7 +1479,7 @@ project_alpha/
 
 ### 3.21. DOC — документация и ADR
 
-- [ ] **DOC-001** Базовый набор ADR
+- [x] **DOC-001** Базовый набор ADR
   - Что: `docs/adr/0000-template.md` и ADR 0001 (Rust-ядро, UniFFI и FRB), 0002 (Flutter и SwiftUI для tvOS), 0003 (нативные поверхности и движки плеера), 0004 (без серверов проекта; схемы синхронизации), 0005 (лицензия и DCO, по DEC-002), 0006 (раскладка монорепо и владение каталогами), 0007 (флейворы store и full).
   - deps: — · size: M · parallel: yes · веха: M0 · ref: S §3, §5–7, CLAUDE.md
   - done when: ADR 0001–0007 в статусе «принят» (0005 — после DEC-002).
@@ -1526,11 +1526,11 @@ project_alpha/
   - Что: некоммерческий open source с добровольными донатами и публикацией в сторах — запросить письменное подтверждение условий и атрибуции.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: S §5, 03 §3.1
   - done when: письменный ответ сохранён в `docs/legal/`.
-- [ ] **LEGAL-002** Таблица условий провайдеров
+- [x] **LEGAL-002** Таблица условий провайдеров
   - Что: AniDB (регистрация UDP и HTTP клиента), AniList, Shikimori, OpenSubtitles, Fanart.tv, MusicBrainz, AcoustID, LRCLIB, Trakt (client secret в open source), TVDB, 7TV, BTTV, FFZ; что разрешено с ключом проекта и что только с ключом пользователя.
   - deps: — · size: M · parallel: yes · веха: M1 · ref: 03 §3, §3.5, 06 §3.2
   - done when: `docs/legal/providers.md`; регистрации клиентов (AniDB, Twitch dev, OpenSubtitles) выполнены владельцем.
-- [ ] **LEGAL-003** Лицензии данных маппингов аниме
+- [x] **LEGAL-003** Лицензии данных маппингов аниме
   - Что: Anime-Lists и Fribb — лицензия не указана: открыть issue с запросом; anime-offline-database (ODbL, share-alike) — условия встраивания в бандл.
   - deps: — · size: S · parallel: yes · веха: M1 · ref: 03 §3.2, §4.7
   - done when: решение по каждому источнику записано; META-008 опирается на него.
@@ -1538,7 +1538,7 @@ project_alpha/
   - Что: консультация по E-AC-3, TrueHD, DTS-HD, софтверному декодированию HEVC и RPM Fusion в образе; правила для бейджей без логотипов.
   - deps: — · size: M · parallel: yes · веха: M4 · ref: 02 §3.2, 05 §7
   - done when: заключение в `docs/legal/`; передано в DEC-005.
-- [ ] **LEGAL-005** Проверка названия и товарных знаков
+- [x] **LEGAL-005** Проверка названия и товарных знаков
   - Что: поиск конфликтов (EUIPO, USPTO, WIPO), свободные домены и хэндлы; без «Infuse», «Fedora» и «Twitch» в названии.
   - deps: — · size: S · parallel: yes · веха: M0 · ref: S §5, §11.4, 06 §1.5
   - done when: короткий список из 3–5 чистых имён передан в DEC-004.
@@ -1546,7 +1546,7 @@ project_alpha/
   - Что: заключение по воспроизведению через GQL и загрузкам (только full), тексты предупреждений; регистрация приложения в dev-консоли Twitch (публичный client_id).
   - deps: — · size: M · parallel: yes · веха: M7 · ref: 06 §1.5, §2.6
   - done when: заключение в `docs/legal/`; client_id выдан.
-- [ ] **LEGAL-007** Политика конфиденциальности
+- [x] **LEGAL-007** Политика конфиденциальности
   - Что: проект данные не собирает; перечень запросов, которые устройство делает напрямую (TMDB, Twitch, OpenSubtitles и т. д.); crash-отчёты — только по opt-in и вручную; версии для сторов и сайта.
   - deps: — · size: S · parallel: yes · веха: M1 · ref: S §5, 04 §5.4
   - done when: страница опубликована; ссылки из приложения и сторов.

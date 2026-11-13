@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# `packaging` module: packages and installers.
+# Owned by the PKG workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+
+# Placeholder until the area gets real recipes
+info:
+    @echo "packaging: no recipes yet (PKG, see docs/ROADMAP.md)"

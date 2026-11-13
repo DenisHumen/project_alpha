@@ -1,0 +1,22 @@
+{
+  "$description": "Semantic tokens: roles referenced by platform code. Skeleton from DSN-001; the full set (bg/base, text/*, accent, accent/live, focus/*, badge/*, scrim, glass/*, motion/*) is DSN-002.",
+  "bg": {
+    "$type": "color",
+    "base": { "$value": "{color.neutral.950}", "$description": "Default app background (dark theme first, 01 §4.1)." }
+  },
+  "text": {
+    "$type": "color",
+    "primary": { "$value": "{color.neutral.50}" }
+  },
+  "accent": {
+    "$type": "color",
+    "default": { "$value": "{color.brand.500}" },
+    "live": { "$value": "{color.red.500}" }
+  },
+  "focus": {
+    "scale": { "$type": "number", "$value": "{number.scale-110}" }
+  },
+  "motion": {
+    "focus": { "$type": "duration", "$value": "{duration.fast}" }
+  }
+}

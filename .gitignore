@@ -6,3 +6,7 @@ node_modules/
 target/
 .idea/
 .vscode/
+
+# Local secrets (template: .env.example)
+.env.local
+.env.*.local

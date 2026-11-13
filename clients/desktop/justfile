@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# `desktop` module: native libmpv host.
+# Owned by the PLAY-DSK workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+
+# Placeholder until the area gets real recipes
+info:
+    @echo "desktop: no recipes yet (PLAY-DSK, see docs/ROADMAP.md)"
