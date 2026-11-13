@@ -609,7 +609,7 @@ project_alpha/
   - Что: mpv с `-Dgpl=false`, libplacebo, libass, libdovi (MIT); для Linux, Windows и macOS, а также Android (fallback-движок).
   - deps: PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §2.2, §3.1
   - done when: `mpv_client_api_version` доступен; в выводе конфигурации нет GPL.
-- [ ] **PLAY-003** Контракт `PlayerEngine` и выбор движка
+- [x] **PLAY-003** Контракт `PlayerEngine` и выбор движка
   - Что: `pa-playback`: open(source, startPos), дорожки, seek, скорость, события, статистика; capability-матрица (контейнеры, кодеки, HDR) и логика Auto (Android: Media3 → libmpv; Apple: AVFoundation → свой → MPVKit) с ручным переопределением; mock-движок для UI-тестов.
   - deps: CORE-005, CORE-006 · size: M · parallel: no · веха: M1 · ref: 02 §2.8
   - done when: контракт задокументирован; mock проходит общий набор тестов движка.

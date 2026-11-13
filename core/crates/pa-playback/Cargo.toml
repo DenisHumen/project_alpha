@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-playback"
+version = "0.1.0"
+description = "PlayerEngine contract, capability matrix and Auto engine selection, mock engine and engine contract tests (PLAY-003)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# No runtime and no FFI dependency: platform engines (Media3, libmpv,
+# AVFoundation, the own Apple engine) implement the contract in Kotlin, Swift
+# or Dart; pa-ffi / pa-frb export these types when a platform task needs them.
+[dependencies]
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
