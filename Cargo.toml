@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Single Cargo workspace for the Rust core, the media server and Rust tools.
+# Hot-file rules: docs/ROADMAP.md §0.5.
+#
+# Members are globs, so adding a crate under `core/crates/` or `tools/crates/`
+# does not touch this file. Cargo cannot glob directories without a
+# `Cargo.toml`, so non-Rust tools stay outside `tools/crates/`, and the
+# `.gitkeep` files keep the globs non-empty while there are no crates yet.
+# The `server` member is added by the task that creates `server/Cargo.toml`.
+
+[workspace]
+resolver = "3"
+members = [
+    "core/crates/*",
+    "tools/crates/*",
+]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.99"
+license = "MPL-2.0"
+repository = "https://github.com/DenisHumen/project_alpha"
+publish = false
+
+# One line per dependency, sorted alphabetically. Crates use `dep.workspace = true`.
+[workspace.dependencies]

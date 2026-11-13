@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MPL-2.0
+
+# Normalize line endings; Windows scripts keep CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Git LFS: binary design assets only. Text under design/ (tokens *.json,
+# icons *.svg, docs, recipes) stays in regular git for diffs and CI tools.
+design/**/*.png filter=lfs diff=lfs merge=lfs -text
+design/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+design/**/*.webp filter=lfs diff=lfs merge=lfs -text
+design/**/*.avif filter=lfs diff=lfs merge=lfs -text
+design/**/*.psd filter=lfs diff=lfs merge=lfs -text
+design/**/*.kra filter=lfs diff=lfs merge=lfs -text
+design/**/*.blend filter=lfs diff=lfs merge=lfs -text
+design/**/*.icon filter=lfs diff=lfs merge=lfs -text
+design/**/*.riv filter=lfs diff=lfs merge=lfs -text
+design/**/*.lottie filter=lfs diff=lfs merge=lfs -text
+design/**/*.penpot filter=lfs diff=lfs merge=lfs -text
+design/**/*.fig filter=lfs diff=lfs merge=lfs -text
+design/**/*.ttf filter=lfs diff=lfs merge=lfs -text
+design/**/*.otf filter=lfs diff=lfs merge=lfs -text
+design/**/*.woff2 filter=lfs diff=lfs merge=lfs -text
+
+# Git LFS: test media (everything except docs and placeholders).
+tests/media/** filter=lfs diff=lfs merge=lfs -text
+tests/media/**/*.md !filter !diff !merge text
+tests/media/**/.gitkeep !filter !diff !merge text
+
+# Generated/lock files: no textual diff noise in reviews.
+Cargo.lock linguist-generated=true

@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# `core` module: Rust core: core/crates/pa-*.
+# Owned by the CORE workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+
+# Placeholder until the area gets real recipes
+info:
+    @echo "core: no recipes yet (CORE, see docs/ROADMAP.md)"

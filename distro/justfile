@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# `distro` module: NAS OS.
+# Owned by the DIST workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+
+# Placeholder until the area gets real recipes
+info:
+    @echo "distro: no recipes yet (DIST, see docs/ROADMAP.md)"
