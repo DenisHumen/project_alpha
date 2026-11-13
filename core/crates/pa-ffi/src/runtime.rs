@@ -104,6 +104,9 @@ impl PlatformHost for HostAdapter {
 }
 
 /// Error of a core lifecycle or settings call.
+///
+/// Fields are never named `message`: in Kotlin the error extends `Throwable`,
+/// whose `message` property would clash.
 #[derive(Debug, thiserror::Error, uniffi::Error)]
 pub enum CoreError {
     /// `core_init` while the core is running.
@@ -113,10 +116,10 @@ pub enum CoreError {
     #[error("the core is not initialized")]
     NotInitialized,
     /// Directories are missing, relative or cannot be created.
-    #[error("data directories: {message}")]
+    #[error("data directories: {details}")]
     Dirs {
         /// Details for logs.
-        message: String,
+        details: String,
     },
     /// The settings key is empty, too long or not `[a-z0-9._-]`.
     #[error("invalid settings key {key:?}")]
@@ -125,16 +128,16 @@ pub enum CoreError {
         key: String,
     },
     /// A value or an import document is not valid.
-    #[error("invalid settings data: {message}")]
+    #[error("invalid settings data: {details}")]
     InvalidSettingsData {
         /// Details for logs.
-        message: String,
+        details: String,
     },
     /// Database or runtime failure.
-    #[error("internal error: {message}")]
+    #[error("internal error: {details}")]
     Internal {
         /// Details for logs.
-        message: String,
+        details: String,
     },
 }
 
@@ -146,11 +149,11 @@ impl From<RuntimeError> for CoreError {
             RuntimeError::DirsRequired { .. }
             | RuntimeError::RelativeDir { .. }
             | RuntimeError::CreateDir { .. } => Self::Dirs {
-                message: err.to_string(),
+                details: err.to_string(),
             },
             RuntimeError::Settings(err) => err.into(),
             other => Self::Internal {
-                message: other.to_string(),
+                details: other.to_string(),
             },
         }
     }
@@ -162,10 +165,10 @@ impl From<SettingsError> for CoreError {
             SettingsError::InvalidKey(key) => Self::InvalidSettingsKey { key },
             SettingsError::Closed => Self::NotInitialized,
             SettingsError::InvalidExport(_) | SettingsError::Json(_) => Self::InvalidSettingsData {
-                message: err.to_string(),
+                details: err.to_string(),
             },
             other => Self::Internal {
-                message: other.to_string(),
+                details: other.to_string(),
             },
         }
     }
