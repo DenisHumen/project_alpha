@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: MPL-2.0
 //
-// Adaptive navigation (01 §2, contract "Навигация"):
-// * desktop / wide windows — sidebar;
-// * phone — bottom tabs (Settings behind a gear on Home);
+// Adaptive navigation (UI-002; 01 §2.5–2.6, §4.3, §4.10 п.4). The chrome
+// follows the window size class (breakpoints.dart), not the device:
+// * compact (< 600) — bottom tabs «Home · Library · Twitch · Music ·
+//   Search»; Library holds Movies and TV Shows, profile and settings sit
+//   behind the avatar on Home;
+// * medium (< 1024) — rail (narrow sidebar);
+// * expanded and large — full sidebar;
 // * Android TV — top menu, D-pad focus; moving focus along the menu switches
 //   the section (tvOS tab bar behaviour), Back goes up to the menu, then Home.
+// The Twitch section is hidden unless enabled in Settings.
 
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
@@ -19,14 +24,18 @@ import '../screens/search_screen.dart';
 import '../screens/settings_screen.dart';
 import '../integration/library.dart';
 import '../services/app_services.dart';
+import '../screens/twitch_screen.dart';
+import '../platform/form_factor.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/focusable.dart';
 import '../widgets/logo.dart';
+import 'breakpoints.dart';
 
 enum Section {
   home(Icons.home_outlined, Icons.home_rounded),
   movies(Icons.movie_outlined, Icons.movie_rounded),
   shows(Icons.tv_outlined, Icons.tv_rounded),
+  twitch(Icons.live_tv_outlined, Icons.live_tv_rounded),
   music(Icons.library_music_outlined, Icons.library_music_rounded),
   search(Icons.search, Icons.search),
   settings(Icons.settings_outlined, Icons.settings_rounded);
@@ -39,6 +48,7 @@ enum Section {
     home => l.navHome,
     movies => l.navMovies,
     shows => l.navShows,
+    twitch => l.navTwitch,
     music => l.navMusic,
     search => l.navSearch,
     settings => l.navSettings,
@@ -66,19 +76,68 @@ class AppShellState extends State<AppShell> {
     for (final s in Section.values) s: FocusNode(debugLabel: 'menu-${s.name}'),
   };
 
+  Section _lastLibrary = Section.movies;
+  AppServices? _services;
+  bool _showTwitch = false;
+
   Section get section => _section;
 
+  /// Whether the Twitch section is in the navigation (Settings toggle).
+  bool get showTwitch => _showTwitch;
+
+  /// Sections of the sidebar, rail and TV menu, in order.
+  List<Section> get menuSections => [
+    Section.home,
+    Section.movies,
+    Section.shows,
+    if (_showTwitch) Section.twitch,
+    Section.music,
+    Section.search,
+    Section.settings,
+  ];
+
   void select(Section s) {
+    if (s == Section.twitch && !_showTwitch) s = Section.home;
     if (s == _section) {
       // Re-selecting a section pops it to its root.
       _navKeys[s]!.currentState?.popUntil((r) => r.isFirst);
     }
+    if (s == Section.movies || s == Section.shows) _lastLibrary = s;
     setState(() => _section = s);
+  }
+
+  /// The phone Library tab: the last of Movies / TV Shows that was open.
+  void selectLibrary() => select(
+    _section == Section.movies || _section == Section.shows
+        ? _section
+        : _lastLibrary,
+  );
+
+  void _onShowTwitch() {
+    final show = _services!.showTwitch.value;
+    if (show == _showTwitch) return;
+    setState(() {
+      _showTwitch = show;
+      if (!show && _section == Section.twitch) _section = Section.home;
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final services = Services.of(context);
+    if (!identical(services, _services)) {
+      _services?.showTwitch.removeListener(_onShowTwitch);
+      _services = services..showTwitch.addListener(_onShowTwitch);
+      _showTwitch = services.showTwitch.value;
+      if (!_showTwitch && _section == Section.twitch) _section = Section.home;
+    }
   }
 
   @override
   void initState() {
     super.initState();
+    if (_section == Section.shows) _lastLibrary = Section.shows;
     // Nested navigators grab focus for their first route; on TV the menu tab
     // must own the initial focus instead.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -90,6 +149,7 @@ class AppShellState extends State<AppShell> {
 
   @override
   void dispose() {
+    _services?.showTwitch.removeListener(_onShowTwitch);
     for (final f in _menuFocus.values) {
       f.dispose();
     }
@@ -104,6 +164,7 @@ class AppShellState extends State<AppShell> {
     ),
     Section.movies => const LibraryGridScreen(kind: ItemKind.movie),
     Section.shows => const LibraryGridScreen(kind: ItemKind.show),
+    Section.twitch => const TwitchScreen(),
     Section.music => const MusicScreen(),
     Section.search => const SearchScreen(),
     Section.settings => const SettingsScreen(),
@@ -131,10 +192,10 @@ class AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
-    final width = MediaQuery.sizeOf(context).width;
-    final useSidebar = d.isDesktop || (d.isPhone && width >= 840);
+    final size = WindowSize.of(context);
+    final layout = NavLayout.resolve(FormFactorScope.of(context), size);
 
-    final content = IndexedStack(
+    final stack = IndexedStack(
       index: _section.index,
       children: [
         for (final s in Section.values)
@@ -150,19 +211,22 @@ class AppShellState extends State<AppShell> {
           ),
       ],
     );
+    final content = NavLayoutScope(layout: layout, child: stack);
 
     final canExit =
         _section == Section.home &&
         !_nestedCanPop &&
         !(d.isTv && !_menuFocus[Section.home]!.hasFocus);
-    final Widget body;
-    if (d.isTv) {
-      body = _TvLayout(shell: this, content: content);
-    } else if (useSidebar) {
-      body = _SidebarLayout(shell: this, content: content);
-    } else {
-      body = _PhoneLayout(shell: this, content: content);
-    }
+    final Widget body = switch (layout) {
+      NavLayout.topMenu => _TvLayout(shell: this, content: content),
+      NavLayout.sidebar => _SidebarLayout(
+        shell: this,
+        content: content,
+        width: size == WindowSize.large ? 264 : 232,
+      ),
+      NavLayout.rail => _RailLayout(shell: this, content: content),
+      NavLayout.tabs => _PhoneLayout(shell: this, content: content),
+    };
     return PopScope(
       canPop: canExit,
       onPopInvokedWithResult: (didPop, _) {
@@ -241,21 +305,62 @@ class _MiniPlayer extends StatelessWidget {
 
 // ---------------------------------------------------------------- desktop
 
-class _SidebarLayout extends StatelessWidget {
-  const _SidebarLayout({required this.shell, required this.content});
+/// Library scan progress at the bottom of the sidebar and the rail.
+class _ScanProgress extends StatelessWidget {
+  const _ScanProgress({this.compact = false});
 
-  final AppShellState shell;
-  final Widget content;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final services = Services.of(context);
-    final theme = Theme.of(context);
+    if (!services.scanning) return const SizedBox.shrink();
+    final total = services.scanProgress?.total ?? 0;
+    final bar = LinearProgressIndicator(
+      value: total == 0 ? null : services.scanProgress!.processed / total,
+    );
+    if (compact) {
+      return Tooltip(
+        message: context.l10n.shellScanningLibrary,
+        child: Padding(padding: const EdgeInsets.all(16), child: bar),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n.shellScanningLibrary,
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
+          const SizedBox(height: 8),
+          bar,
+        ],
+      ),
+    );
+  }
+}
+
+class _SidebarLayout extends StatelessWidget {
+  const _SidebarLayout({
+    required this.shell,
+    required this.content,
+    this.width = 232,
+  });
+
+  final AppShellState shell;
+  final Widget content;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
+      key: const ValueKey('nav-sidebar'),
       body: Row(
         children: [
           Container(
-            width: 232,
+            width: width,
             decoration: BoxDecoration(
               color: KColors.bgElevated,
               border: Border(right: BorderSide(color: KColors.stroke)),
@@ -270,7 +375,7 @@ class _SidebarLayout extends StatelessWidget {
                       padding: EdgeInsets.fromLTRB(20, 22, 20, 26),
                       child: KinoluneLogo(size: 30),
                     ),
-                    for (final s in Section.values) ...[
+                    for (final s in shell.menuSections) ...[
                       if (s == Section.search) const SizedBox(height: 18),
                       _SidebarItem(
                         section: s,
@@ -279,26 +384,7 @@ class _SidebarLayout extends StatelessWidget {
                       ),
                     ],
                     const Spacer(),
-                    if (services.scanning)
-                      Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              context.l10n.shellScanningLibrary,
-                              style: theme.textTheme.labelMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(
-                              value: (services.scanProgress?.total ?? 0) == 0
-                                  ? null
-                                  : services.scanProgress!.processed /
-                                        services.scanProgress!.total!,
-                            ),
-                          ],
-                        ),
-                      ),
+                    const _ScanProgress(),
                   ],
                 ),
               ),
@@ -376,6 +462,146 @@ class _SidebarItem extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------- rail
+
+/// Medium windows (tablet in portrait, narrow desktop window): icons with
+/// short labels in a narrow column.
+class _RailLayout extends StatelessWidget {
+  const _RailLayout({required this.shell, required this.content});
+
+  final AppShellState shell;
+  final Widget content;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      key: const ValueKey('nav-rail'),
+      body: Row(
+        children: [
+          Container(
+            width: 88,
+            decoration: BoxDecoration(
+              color: KColors.bgElevated,
+              border: Border(right: BorderSide(color: KColors.stroke)),
+            ),
+            child: SafeArea(
+              right: false,
+              child: FocusTraversalGroup(
+                child: Column(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(0, 20, 0, 18),
+                      child: KinoluneLogo(size: 32, showName: false),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            for (final s in shell.menuSections) ...[
+                              if (s == Section.search)
+                                const SizedBox(height: 14),
+                              _RailItem(
+                                section: s,
+                                selected: shell.section == s,
+                                onTap: () => shell.select(s),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    const _ScanProgress(compact: true),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(child: content),
+                const Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  child: Center(child: _MiniPlayer()),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RailItem extends StatelessWidget {
+  const _RailItem({
+    required this.section,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Section section;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l = context.l10n;
+    final label = section == Section.shows
+        ? l.navShowsShort
+        : section.label(l);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      child: KFocusable(
+        onActivate: onTap,
+        focusScale: 1.0,
+        light: false,
+        radius: 12,
+        semanticLabel: section.label(l),
+        builder: (context, hovered) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            children: [
+              AnimatedContainer(
+                duration: KMotion.focus,
+                width: 56,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? Colors.white.withValues(alpha: .14)
+                      : hovered
+                      ? Colors.white.withValues(alpha: .06)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  selected ? section.selectedIcon : section.icon,
+                  size: 22,
+                  color: selected ? KColors.accentSoft : KColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? Colors.white : KColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------- phone
 
 class _PhoneLayout extends StatelessWidget {
@@ -384,18 +610,22 @@ class _PhoneLayout extends StatelessWidget {
   final AppShellState shell;
   final Widget content;
 
-  static const _tabs = [
-    Section.home,
-    Section.movies,
-    Section.shows,
-    Section.music,
-    Section.search,
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final idx = _tabs.indexOf(shell.section);
-    // Settings has no tab (it sits behind the gear on Home). NavigationBar
+    final l = context.l10n;
+    // Section.movies stands for the Library tab (Movies and TV Shows).
+    final tabs = [
+      Section.home,
+      Section.movies,
+      if (shell.showTwitch) Section.twitch,
+      Section.music,
+      Section.search,
+    ];
+    final current = shell.section == Section.shows
+        ? Section.movies
+        : shell.section;
+    final idx = tabs.indexOf(current);
+    // Settings has no tab (it sits behind the avatar on Home). NavigationBar
     // always marks some index as selected, so with no matching tab every
     // destination is drawn in the unselected style (UI-023).
     final none = idx < 0;
@@ -404,16 +634,27 @@ class _PhoneLayout extends StatelessWidget {
     Widget bar = NavigationBar(
       selectedIndex: none ? 0 : idx,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      onDestinationSelected: (i) => shell.select(_tabs[i]),
+      onDestinationSelected: (i) => tabs[i] == Section.movies
+          ? shell.selectLibrary()
+          : shell.select(tabs[i]),
       destinations: [
-        for (final s in _tabs)
-          NavigationDestination(
-            icon: Icon(s.icon),
-            selectedIcon: Icon(none ? s.icon : s.selectedIcon),
-            label: s == Section.shows
-                ? context.l10n.navShowsShort
-                : s.label(context.l10n),
-          ),
+        for (final s in tabs)
+          if (s == Section.movies)
+            NavigationDestination(
+              icon: const Icon(Icons.video_library_outlined),
+              selectedIcon: Icon(
+                none
+                    ? Icons.video_library_outlined
+                    : Icons.video_library_rounded,
+              ),
+              label: l.navLibrary,
+            )
+          else
+            NavigationDestination(
+              icon: Icon(s.icon),
+              selectedIcon: Icon(none ? s.icon : s.selectedIcon),
+              label: s.label(l),
+            ),
       ],
     );
     if (none) {
@@ -433,6 +674,7 @@ class _PhoneLayout extends StatelessWidget {
       );
     }
     return Scaffold(
+      key: const ValueKey('nav-tabs'),
       body: Stack(
         children: [
           Positioned.fill(child: content),
@@ -441,10 +683,14 @@ class _PhoneLayout extends StatelessWidget {
               right: 8,
               top: MediaQuery.paddingOf(context).top + 4,
               child: IconButton(
-                tooltip: context.l10n.navSettings,
-                style: IconButton.styleFrom(backgroundColor: Colors.black38),
+                tooltip: l.navProfile,
                 onPressed: () => shell.select(Section.settings),
-                icon: const Icon(Icons.settings_outlined),
+                icon: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: KColors.bgElevated2,
+                  foregroundColor: KColors.textPrimary,
+                  child: const Icon(Icons.person_rounded, size: 20),
+                ),
               ),
             ),
           const Positioned(left: 8, right: 8, bottom: 8, child: _MiniPlayer()),
@@ -467,6 +713,7 @@ class _TvLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = KDensity.of(context);
     return Scaffold(
+      key: const ValueKey('nav-top-menu'),
       body: Column(
         children: [
           Padding(
@@ -481,12 +728,8 @@ class _TvLayout extends StatelessWidget {
                 children: [
                   const KinoluneLogo(size: 26),
                   const SizedBox(width: 36),
-                  for (final s in const [
-                    Section.home,
-                    Section.movies,
-                    Section.shows,
-                    Section.music,
-                  ]) ...[
+                  for (final s in shell.menuSections)
+                    if (s != Section.search && s != Section.settings) ...[
                     _TvTab(shell: shell, section: s),
                     const SizedBox(width: 6),
                   ],

@@ -21,10 +21,16 @@
   "navMusic": "Музыка",
   "navSearch": "Поиск",
   "navSettings": "Настройки",
+  "navLibrary": "Библиотека",
+  "navTwitch": "Twitch",
+  "navProfile": "Профиль и настройки",
 
   "appLibmpvMissing": "Для воспроизведения видео нужна библиотека mpv, но она не найдена. Установите её менеджером пакетов: «sudo apt install libmpv2» (Debian, Ubuntu), «sudo dnf install mpv-libs» (Fedora) или «sudo pacman -S mpv» (Arch), затем перезапустите {appName}.",
 
   "shellScanningLibrary": "Сканирование медиатеки…",
+
+  "twitchComingTitle": "Twitch скоро появится",
+  "twitchComingMessage": "Трансляции и видео Twitch появятся здесь в следующих версиях. Скрыть этот раздел можно в настройках.",
 
   "homeEmptyTitle": "Медиатека пуста",
   "homeEmptyMessage": "Добавьте папку или сетевую папку в настройках и запустите сканирование.",
@@ -139,6 +145,9 @@
   "settingsLanguageSystem": "Как в системе",
   "settingsLanguageEnglish": "English",
   "settingsLanguageRussian": "Русский",
+  "settingsNavigationTitle": "Навигация",
+  "settingsShowTwitch": "Показывать Twitch",
+  "settingsShowTwitchSubtitle": "Добавляет раздел Twitch в нижние вкладки и боковую панель.",
   "settingsLanguagePseudo": "Псевдолокаль (отладка)",
   "settingsAboutTitle": "О программе",
   "settingsAboutApp": "О программе {appName}",

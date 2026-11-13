@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import '../integration/library.dart';
 import '../l10n/l10n.dart';
 import '../services/app_services.dart';
+import '../shell/app_shell.dart';
+import '../shell/breakpoints.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/cards.dart';
 import '../widgets/focusable.dart';
@@ -52,6 +54,9 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
     final d = KDensity.of(context);
     final l = context.l10n;
     final movies = widget.kind == ItemKind.movie;
+    // The phone tab bar has one Library tab for Movies and TV Shows (UI-002);
+    // the switch between them lives in the page header.
+    final libraryTab = NavLayout.of(context) == NavLayout.tabs;
     String filterLabel(int f) => switch (f) {
       _filterAll => l.libraryFilterAll,
       _filterInProgress => l.libraryFilterInProgress,
@@ -96,7 +101,7 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
             slivers: [
               SliverToBoxAdapter(
                 child: PageTitle(
-                  movies ? l.navMovies : l.navShows,
+                  libraryTab ? l.navLibrary : (movies ? l.navMovies : l.navShows),
                   trailing: Text(
                     movies
                         ? l.libraryMovieCount(all.length)
@@ -105,6 +110,18 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
                   ),
                 ),
               ),
+              if (libraryTab)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      d.pageInsets.left,
+                      0,
+                      d.pageInsets.right,
+                      12,
+                    ),
+                    child: _LibraryKindSwitch(movies: movies),
+                  ),
+                ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
@@ -182,6 +199,38 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Movies / TV Shows switch under the phone Library tab.
+class _LibraryKindSwitch extends StatelessWidget {
+  const _LibraryKindSwitch({required this.movies});
+
+  final bool movies;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    final shell = context.findAncestorStateOfType<AppShellState>();
+    return FocusTraversalGroup(
+      child: Row(
+        children: [
+          FilterPill(
+            icon: Icons.movie_outlined,
+            label: l.navMovies,
+            selected: movies,
+            onTap: () => shell?.select(Section.movies),
+          ),
+          const SizedBox(width: 8),
+          FilterPill(
+            icon: Icons.tv_outlined,
+            label: l.navShows,
+            selected: !movies,
+            onTap: () => shell?.select(Section.shows),
+          ),
+        ],
       ),
     );
   }
