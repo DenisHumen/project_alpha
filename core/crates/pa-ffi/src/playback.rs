@@ -242,9 +242,8 @@ impl pa_playback::PlayerEngine for ForeignEngine {
         self.0.kind()
     }
     fn set_listener(&self, listener: Option<Arc<dyn pa_playback::EngineListener>>) {
-        self.0.set_listener(
-            listener.map(|l| Arc::new(CoreListener(l)) as Arc<dyn EngineListener>),
-        );
+        self.0
+            .set_listener(listener.map(|l| Arc::new(CoreListener(l)) as Arc<dyn EngineListener>));
     }
     fn state(&self) -> EngineState {
         self.0.state()
@@ -336,7 +335,10 @@ impl Harness for HarnessBridge {
 /// Names of the contract cases, in order.
 #[uniffi::export]
 pub fn player_engine_contract_cases() -> Vec<String> {
-    contract::CASES.iter().map(|(n, _)| (*n).to_owned()).collect()
+    contract::CASES
+        .iter()
+        .map(|(n, _)| (*n).to_owned())
+        .collect()
 }
 
 /// Runs one contract case against the engine of `harness`.
