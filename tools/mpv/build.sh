@@ -59,6 +59,7 @@ install_licenses() {
     cp "$SRC_DIR/libplacebo/LICENSE" "$dst/libplacebo-LICENSE"
     cp "$SRC_DIR/libplacebo/3rdparty/fast_float/LICENSE-MIT" "$dst/fast_float-LICENSE-MIT"
     cp "$SRC_DIR/libplacebo/3rdparty/glad/LICENSE" "$dst/glad-LICENSE"
+    cp "$SRC_DIR/libplacebo/3rdparty/Vulkan-Headers/LICENSE.md" "$dst/Vulkan-Headers-LICENSE.md"
     cp "$SRC_DIR/ffmpeg/COPYING.LGPLv2.1" "$dst/ffmpeg-COPYING.LGPLv2.1"
     cp "$SRC_DIR/ffmpeg/LICENSE.md" "$dst/ffmpeg-LICENSE.md"
     cp "$SRC_DIR/dav1d/COPYING" "$dst/dav1d-COPYING"

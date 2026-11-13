@@ -119,10 +119,12 @@ build_libplacebo() {
     src="$(mpv_unpack libplacebo "$SRC_DIR")"
     third="$src/3rdparty"
     # Submodules missing from the archive: unpack the pinned tarballs in place.
-    for pkg in glad jinja markupsafe fast_float; do
+    local dir
+    for pkg in glad jinja markupsafe fast_float vulkan_headers; do
         file="$(fetch "$pkg")"
-        rm -rf "${third:?}/$pkg"; mkdir -p "$third/$pkg"
-        tar -xf "$file" -C "$third/$pkg" --strip-components=1
+        dir="$pkg"; [ "$pkg" = vulkan_headers ] && dir=Vulkan-Headers
+        rm -rf "${third:?}/$dir"; mkdir -p "$third/$dir"
+        tar -xf "$file" -C "$third/$dir" --strip-components=1
     done
     # OpenGL only: that is what the libmpv render API (media_kit) uses. Vulkan
     # and D3D11 need shaderc/glslang and come with the native HDR output

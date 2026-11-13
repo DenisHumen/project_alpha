@@ -43,6 +43,14 @@ FAST_FLOAT_URL="https://github.com/fastfloat/fast_float/archive/v${FAST_FLOAT_VE
 FAST_FLOAT_SHA256=4bfabb5979716995090ce68dce83f88f99629bc17ae280eae79311c5340143e1
 FAST_FLOAT_LICENSE="MIT OR Apache-2.0 OR BSL-1.0"
 
+# Vulkan headers: libplacebo always compiles src/vulkan/stubs.c, which includes
+# <vulkan/vulkan.h>, even with -Dvulkan=disabled. Headers only (declarations),
+# pinned to the submodule commit of libplacebo v7.387.0 (Vulkan 1.4.345).
+VULKAN_HEADERS_VERSION=74d8a6cb930c68ef617b202c3ff3c59d919e086b
+VULKAN_HEADERS_URL="https://github.com/KhronosGroup/Vulkan-Headers/archive/${VULKAN_HEADERS_VERSION}/Vulkan-Headers-${VULKAN_HEADERS_VERSION}.tar.gz"
+VULKAN_HEADERS_SHA256=75967a8288ff16044a86d1af462b96d2e75c435937efb75f2bb4102ab0382f29
+VULKAN_HEADERS_LICENSE="Apache-2.0 OR MIT"
+
 # media_kit's JNI helper (libmediakitandroidhelper.so), loaded by media_kit on
 # Android next to libmpv.so. Built from source here so that the whole Android
 # .so set comes from this recipe and media_kit's prebuilt libmpv is not needed.
@@ -52,4 +60,4 @@ MEDIAKIT_HELPER_SHA256=53ea71476d1cbc9a5d63d4898c6b027af4ccb6525800c7b42e267e612
 MEDIAKIT_HELPER_LICENSE="MIT"
 
 # Packages added by this build (FFmpeg and its deps come from tools/ffmpeg).
-PA_MPV_PACKAGES="glad jinja markupsafe fast_float libplacebo mpv mediakit_helper"
+PA_MPV_PACKAGES="glad jinja markupsafe fast_float vulkan_headers libplacebo mpv mediakit_helper"

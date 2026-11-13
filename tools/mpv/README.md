@@ -17,7 +17,7 @@ media_kit в релизе 0.1 ([ADR-0012](../../docs/adr/0012-release-0-1-player
 
 | Файл | Назначение |
 |---|---|
-| `versions.sh` | Закреплённые версии, URL и SHA-256: mpv, libplacebo, сабмодули libplacebo (glad, jinja2, markupsafe, fast_float), JNI-хелпер media_kit |
+| `versions.sh` | Закреплённые версии, URL и SHA-256: mpv, libplacebo, сабмодули libplacebo (glad, jinja2, markupsafe, fast_float, Vulkan-Headers), JNI-хелпер media_kit |
 | `build.sh` | Точка входа: `list`, `fetch`, `<target>`, `sources` |
 | `lib/mpv.sh` | **Единственное место** с опциями meson для mpv и libplacebo и списком запрещённых (GPL) возможностей |
 | `check-license.sh`, `check_libmpv.c` | Лицензионная проверка: `config.h`, строки в бинарниках, вызов `mpv_client_api_version()` |
@@ -63,7 +63,7 @@ GPL-части mpv (`x11`, `dvdnav`, `cdda`, `dvbin`, `jack`, `oss-audio`, `caca
 (PLAY-DSK-003) потребует Wayland (MIT) и Vulkan — это отдельная задача.
 
 Лицензии компонентов: mpv, libplacebo, FFmpeg, fribidi — LGPL-2.1+; libass — ISC; dav1d — BSD-2;
-harfbuzz — MIT; freetype — FTL; fast_float — MIT/Apache-2.0/BSL-1.0; glad — MIT (генератор),
+harfbuzz — MIT; freetype — FTL; fast_float — MIT/Apache-2.0/BSL-1.0; Vulkan-Headers — Apache-2.0 или MIT (только объявления для заглушек Vulkan); glad — MIT (генератор),
 сгенерированный загрузчик — CC0/Apache-2.0; JNI-хелпер media_kit — MIT. jinja2 и markupsafe
 нужны только во время сборки. Системные библиотеки Linux (libva, libdrm, libEGL, libpulse,
 libasound, zlib) линкуются динамически и не входят в артефакт.
