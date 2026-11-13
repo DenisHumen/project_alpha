@@ -11,12 +11,13 @@ publish.workspace = true
 
 [lib]
 name = "pa_frb"
-# cdylib: Android, Linux, Windows; staticlib: Apple (cargokit); lib: Rust tests.
+# cdylib: Android, Linux, Windows; staticlib: Apple; lib: Rust tests.
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge.workspace = true
 pa-ffi = { path = "../pa-ffi" }
+pa-recognition = { path = "../pa-recognition" }
 
 [lints.rust]
 # Emitted by the flutter_rust_bridge macros.

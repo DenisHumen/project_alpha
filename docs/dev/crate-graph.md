@@ -24,6 +24,7 @@ flowchart LR
   end
   pa_eval --> pa_recognition_eval
   pa_frb --> pa_ffi
+  pa_frb --> pa_recognition
 ```
 
 | Крейт | Каталог | Внешних зависимостей | Описание |

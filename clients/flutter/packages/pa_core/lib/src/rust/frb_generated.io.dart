@@ -4,6 +4,7 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/events.dart';
+import 'api/recognition.dart';
 import 'api/version.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -29,7 +30,100 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  AirDate dco_decode_air_date(dynamic raw);
+
+  @protected
+  bool dco_decode_bool(dynamic raw);
+
+  @protected
+  AirDate dco_decode_box_autoadd_air_date(dynamic raw);
+
+  @protected
+  DiscKind dco_decode_box_autoadd_disc_kind(dynamic raw);
+
+  @protected
+  EpisodeKind dco_decode_box_autoadd_episode_kind(dynamic raw);
+
+  @protected
+  ExtraKind dco_decode_box_autoadd_extra_kind(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_16(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  DiscKind dco_decode_disc_kind(dynamic raw);
+
+  @protected
+  EpisodeKind dco_decode_episode_kind(dynamic raw);
+
+  @protected
+  EpisodeNumber dco_decode_episode_number(dynamic raw);
+
+  @protected
+  ExtraKind dco_decode_extra_kind(dynamic raw);
+
+  @protected
+  double dco_decode_f_32(dynamic raw);
+
+  @protected
+  FilenameHypothesis dco_decode_filename_hypothesis(dynamic raw);
+
+  @protected
+  FilenameParse dco_decode_filename_parse(dynamic raw);
+
+  @protected
+  int dco_decode_i_32(dynamic raw);
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<EpisodeNumber> dco_decode_list_episode_number(dynamic raw);
+
+  @protected
+  List<FilenameHypothesis> dco_decode_list_filename_hypothesis(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  MediaHint dco_decode_media_hint(dynamic raw);
+
+  @protected
+  String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  AirDate? dco_decode_opt_box_autoadd_air_date(dynamic raw);
+
+  @protected
+  DiscKind? dco_decode_opt_box_autoadd_disc_kind(dynamic raw);
+
+  @protected
+  EpisodeKind? dco_decode_opt_box_autoadd_episode_kind(dynamic raw);
+
+  @protected
+  ExtraKind? dco_decode_opt_box_autoadd_extra_kind(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_16(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  ParsedName dco_decode_parsed_name(dynamic raw);
+
+  @protected
+  int dco_decode_u_16(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -52,7 +146,110 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  AirDate sse_decode_air_date(SseDeserializer deserializer);
+
+  @protected
+  bool sse_decode_bool(SseDeserializer deserializer);
+
+  @protected
+  AirDate sse_decode_box_autoadd_air_date(SseDeserializer deserializer);
+
+  @protected
+  DiscKind sse_decode_box_autoadd_disc_kind(SseDeserializer deserializer);
+
+  @protected
+  EpisodeKind sse_decode_box_autoadd_episode_kind(SseDeserializer deserializer);
+
+  @protected
+  ExtraKind sse_decode_box_autoadd_extra_kind(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_16(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  DiscKind sse_decode_disc_kind(SseDeserializer deserializer);
+
+  @protected
+  EpisodeKind sse_decode_episode_kind(SseDeserializer deserializer);
+
+  @protected
+  EpisodeNumber sse_decode_episode_number(SseDeserializer deserializer);
+
+  @protected
+  ExtraKind sse_decode_extra_kind(SseDeserializer deserializer);
+
+  @protected
+  double sse_decode_f_32(SseDeserializer deserializer);
+
+  @protected
+  FilenameHypothesis sse_decode_filename_hypothesis(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  FilenameParse sse_decode_filename_parse(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_i_32(SseDeserializer deserializer);
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<EpisodeNumber> sse_decode_list_episode_number(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<FilenameHypothesis> sse_decode_list_filename_hypothesis(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  MediaHint sse_decode_media_hint(SseDeserializer deserializer);
+
+  @protected
+  String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  AirDate? sse_decode_opt_box_autoadd_air_date(SseDeserializer deserializer);
+
+  @protected
+  DiscKind? sse_decode_opt_box_autoadd_disc_kind(SseDeserializer deserializer);
+
+  @protected
+  EpisodeKind? sse_decode_opt_box_autoadd_episode_kind(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  ExtraKind? sse_decode_opt_box_autoadd_extra_kind(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  ParsedName sse_decode_parsed_name(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_u_16(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -62,12 +259,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_decode_unit(SseDeserializer deserializer);
-
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
-
-  @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
   void sse_encode_AnyhowException(
@@ -85,10 +276,133 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_air_date(AirDate self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_air_date(AirDate self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_disc_kind(
+    DiscKind self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_episode_kind(
+    EpisodeKind self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_extra_kind(
+    ExtraKind self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_disc_kind(DiscKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_episode_kind(EpisodeKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_episode_number(EpisodeNumber self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_extra_kind(ExtraKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_f_32(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_filename_hypothesis(
+    FilenameHypothesis self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_filename_parse(FilenameParse self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_episode_number(
+    List<EpisodeNumber> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_filename_hypothesis(
+    List<FilenameHypothesis> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_media_hint(MediaHint self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_air_date(
+    AirDate? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_disc_kind(
+    DiscKind? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_episode_kind(
+    EpisodeKind? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_extra_kind(
+    ExtraKind? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_16(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_u_8(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_parsed_name(ParsedName self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_u_16(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
@@ -98,12 +412,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
 }
 
 // Section: wire_class

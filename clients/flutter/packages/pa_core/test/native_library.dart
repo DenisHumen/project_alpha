@@ -32,7 +32,9 @@ ExternalLibrary openBuiltCoreLibrary() {
           .whereType<File>()
           .where((f) => f.uri.pathSegments.last == _libraryFileName)
           // Skip cargo's intermediate copy in target/<triple>/<mode>/deps.
-          .where((f) => !f.parent.path.endsWith('${Platform.pathSeparator}deps')),
+          .where(
+            (f) => !f.parent.path.endsWith('${Platform.pathSeparator}deps'),
+          ),
     );
   }
   if (candidates.isEmpty) {

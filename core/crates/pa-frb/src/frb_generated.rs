@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1580044676;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1215098229;
 
 // Section: executor
 
@@ -76,6 +76,35 @@ fn wire__crate__api__version__core_version_impl(
         },
     )
 }
+fn wire__crate__api__recognition__filename_parser_version_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "filename_parser_version",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Ok::<_, ()>(crate::api::recognition::filename_parser_version())?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__version__init_app_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -106,6 +135,88 @@ fn wire__crate__api__version__init_app_impl(
                     })?;
                     std::result::Result::Ok(output_ok)
                 })())
+            }
+        },
+    )
+}
+fn wire__crate__api__recognition__parse_filename_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "parse_filename",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok =
+                            Ok::<_, ()>(crate::api::recognition::parse_filename(api_path).await)?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__recognition__parse_filename_with_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "parse_filename_with",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_path = <String>::sse_decode(&mut deserializer);
+            let api_max_hypotheses = <u32>::sse_decode(&mut deserializer);
+            let api_use_folders = <bool>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, ()>(
+                    (move || async move {
+                        let output_ok = Ok::<_, ()>(
+                            crate::api::recognition::parse_filename_with(
+                                api_path,
+                                api_max_hypotheses,
+                                api_use_folders,
+                            )
+                            .await,
+                        )?;
+                        std::result::Result::Ok(output_ok)
+                    })()
+                    .await,
+                )
             }
         },
     )
@@ -179,6 +290,175 @@ impl SseDecode for String {
     }
 }
 
+impl SseDecode for crate::api::recognition::AirDate {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_year = <u16>::sse_decode(deserializer);
+        let mut var_month = <u8>::sse_decode(deserializer);
+        let mut var_day = <u8>::sse_decode(deserializer);
+        return crate::api::recognition::AirDate {
+            year: var_year,
+            month: var_month,
+            day: var_day,
+        };
+    }
+}
+
+impl SseDecode for bool {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u8().unwrap() != 0
+    }
+}
+
+impl SseDecode for crate::api::recognition::DiscKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::recognition::DiscKind::Bdmv,
+            1 => crate::api::recognition::DiscKind::VideoTs,
+            2 => crate::api::recognition::DiscKind::Iso,
+            _ => unreachable!("Invalid variant for DiscKind: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::recognition::EpisodeKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::recognition::EpisodeKind::Regular,
+            1 => crate::api::recognition::EpisodeKind::Special,
+            2 => crate::api::recognition::EpisodeKind::Ova,
+            3 => crate::api::recognition::EpisodeKind::Ona,
+            4 => crate::api::recognition::EpisodeKind::Recap,
+            5 => crate::api::recognition::EpisodeKind::Ncop,
+            6 => crate::api::recognition::EpisodeKind::Nced,
+            7 => crate::api::recognition::EpisodeKind::Sp,
+            _ => unreachable!("Invalid variant for EpisodeKind: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for crate::api::recognition::EpisodeNumber {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_number = <u32>::sse_decode(deserializer);
+        let mut var_fraction = <Option<u8>>::sse_decode(deserializer);
+        return crate::api::recognition::EpisodeNumber {
+            number: var_number,
+            fraction: var_fraction,
+        };
+    }
+}
+
+impl SseDecode for crate::api::recognition::ExtraKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::recognition::ExtraKind::Trailer,
+            1 => crate::api::recognition::ExtraKind::Teaser,
+            2 => crate::api::recognition::ExtraKind::Featurette,
+            3 => crate::api::recognition::ExtraKind::BehindTheScenes,
+            4 => crate::api::recognition::ExtraKind::DeletedScene,
+            5 => crate::api::recognition::ExtraKind::Interview,
+            6 => crate::api::recognition::ExtraKind::Short,
+            7 => crate::api::recognition::ExtraKind::Scene,
+            8 => crate::api::recognition::ExtraKind::Opening,
+            9 => crate::api::recognition::ExtraKind::Ending,
+            10 => crate::api::recognition::ExtraKind::Menu,
+            11 => crate::api::recognition::ExtraKind::Preview,
+            12 => crate::api::recognition::ExtraKind::Sample,
+            13 => crate::api::recognition::ExtraKind::Other,
+            _ => unreachable!("Invalid variant for ExtraKind: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for f32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_f32::<NativeEndian>().unwrap()
+    }
+}
+
+impl SseDecode for crate::api::recognition::FilenameHypothesis {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_parsed = <crate::api::recognition::ParsedName>::sse_decode(deserializer);
+        let mut var_weight = <f32>::sse_decode(deserializer);
+        let mut var_reasons = <Vec<String>>::sse_decode(deserializer);
+        return crate::api::recognition::FilenameHypothesis {
+            parsed: var_parsed,
+            weight: var_weight,
+            reasons: var_reasons,
+        };
+    }
+}
+
+impl SseDecode for crate::api::recognition::FilenameParse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_parserVersion = <String>::sse_decode(deserializer);
+        let mut var_hypotheses =
+            <Vec<crate::api::recognition::FilenameHypothesis>>::sse_decode(deserializer);
+        return crate::api::recognition::FilenameParse {
+            parser_version: var_parserVersion,
+            hypotheses: var_hypotheses,
+        };
+    }
+}
+
+impl SseDecode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
+    }
+}
+
+impl SseDecode for Vec<String> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<String>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::recognition::EpisodeNumber> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::recognition::EpisodeNumber>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::recognition::FilenameHypothesis> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = Vec::with_capacity(len_ as usize);
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::recognition::FilenameHypothesis>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -188,6 +468,186 @@ impl SseDecode for Vec<u8> {
             ans_.push(<u8>::sse_decode(deserializer));
         }
         return ans_;
+    }
+}
+
+impl SseDecode for crate::api::recognition::MediaHint {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut inner = <i32>::sse_decode(deserializer);
+        return match inner {
+            0 => crate::api::recognition::MediaHint::Unknown,
+            1 => crate::api::recognition::MediaHint::Movie,
+            2 => crate::api::recognition::MediaHint::Episode,
+            3 => crate::api::recognition::MediaHint::Extra,
+            _ => unreachable!("Invalid variant for MediaHint: {}", inner),
+        };
+    }
+}
+
+impl SseDecode for Option<String> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<String>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::recognition::AirDate> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::recognition::AirDate>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::recognition::DiscKind> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::recognition::DiscKind>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::recognition::EpisodeKind> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::recognition::EpisodeKind>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::api::recognition::ExtraKind> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::recognition::ExtraKind>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u16> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u16>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u32>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<u8> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<u8>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for crate::api::recognition::ParsedName {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <Option<String>>::sse_decode(deserializer);
+        let mut var_altTitles = <Vec<String>>::sse_decode(deserializer);
+        let mut var_episodeTitle = <Option<String>>::sse_decode(deserializer);
+        let mut var_year = <Option<u16>>::sse_decode(deserializer);
+        let mut var_season = <Option<u32>>::sse_decode(deserializer);
+        let mut var_episodes =
+            <Vec<crate::api::recognition::EpisodeNumber>>::sse_decode(deserializer);
+        let mut var_absolute =
+            <Vec<crate::api::recognition::EpisodeNumber>>::sse_decode(deserializer);
+        let mut var_episodeKind =
+            <Option<crate::api::recognition::EpisodeKind>>::sse_decode(deserializer);
+        let mut var_date = <Option<crate::api::recognition::AirDate>>::sse_decode(deserializer);
+        let mut var_part_ = <Option<u32>>::sse_decode(deserializer);
+        let mut var_releaseGroup = <Option<String>>::sse_decode(deserializer);
+        let mut var_dubStudio = <Option<String>>::sse_decode(deserializer);
+        let mut var_crc32 = <Option<String>>::sse_decode(deserializer);
+        let mut var_version = <Option<u32>>::sse_decode(deserializer);
+        let mut var_resolution = <Option<String>>::sse_decode(deserializer);
+        let mut var_source = <Option<String>>::sse_decode(deserializer);
+        let mut var_videoCodec = <Option<String>>::sse_decode(deserializer);
+        let mut var_audioCodec = <Option<String>>::sse_decode(deserializer);
+        let mut var_hdr = <Option<String>>::sse_decode(deserializer);
+        let mut var_edition = <Option<String>>::sse_decode(deserializer);
+        let mut var_languages = <Vec<String>>::sse_decode(deserializer);
+        let mut var_other = <Vec<String>>::sse_decode(deserializer);
+        let mut var_extra = <Option<crate::api::recognition::ExtraKind>>::sse_decode(deserializer);
+        let mut var_disc = <Option<crate::api::recognition::DiscKind>>::sse_decode(deserializer);
+        let mut var_container = <Option<String>>::sse_decode(deserializer);
+        let mut var_media = <crate::api::recognition::MediaHint>::sse_decode(deserializer);
+        let mut var_animeHint = <bool>::sse_decode(deserializer);
+        return crate::api::recognition::ParsedName {
+            title: var_title,
+            alt_titles: var_altTitles,
+            episode_title: var_episodeTitle,
+            year: var_year,
+            season: var_season,
+            episodes: var_episodes,
+            absolute: var_absolute,
+            episode_kind: var_episodeKind,
+            date: var_date,
+            part: var_part_,
+            release_group: var_releaseGroup,
+            dub_studio: var_dubStudio,
+            crc32: var_crc32,
+            version: var_version,
+            resolution: var_resolution,
+            source: var_source,
+            video_codec: var_videoCodec,
+            audio_codec: var_audioCodec,
+            hdr: var_hdr,
+            edition: var_edition,
+            languages: var_languages,
+            other: var_other,
+            extra: var_extra,
+            disc: var_disc,
+            container: var_container,
+            media: var_media,
+            anime_hint: var_animeHint,
+        };
+    }
+}
+
+impl SseDecode for u16 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        deserializer.cursor.read_u16::<NativeEndian>().unwrap()
     }
 }
 
@@ -210,20 +670,6 @@ impl SseDecode for () {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
 }
 
-impl SseDecode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_i32::<NativeEndian>().unwrap()
-    }
-}
-
-impl SseDecode for bool {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        deserializer.cursor.read_u8().unwrap() != 0
-    }
-}
-
 fn pde_ffi_dispatcher_primary_impl(
     func_id: i32,
     port: flutter_rust_bridge::for_generated::MessagePort,
@@ -233,8 +679,15 @@ fn pde_ffi_dispatcher_primary_impl(
 ) {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        2 => wire__crate__api__version__init_app_impl(port, ptr, rust_vec_len, data_len),
-        3 => wire__crate__api__events__tick_stream_impl(port, ptr, rust_vec_len, data_len),
+        3 => wire__crate__api__version__init_app_impl(port, ptr, rust_vec_len, data_len),
+        4 => wire__crate__api__recognition__parse_filename_impl(port, ptr, rust_vec_len, data_len),
+        5 => wire__crate__api__recognition__parse_filename_with_impl(
+            port,
+            ptr,
+            rust_vec_len,
+            data_len,
+        ),
+        6 => wire__crate__api__events__tick_stream_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -248,11 +701,252 @@ fn pde_ffi_dispatcher_sync_impl(
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
         1 => wire__crate__api__version__core_version_impl(ptr, rust_vec_len, data_len),
+        2 => {
+            wire__crate__api__recognition__filename_parser_version_impl(ptr, rust_vec_len, data_len)
+        }
         _ => unreachable!(),
     }
 }
 
 // Section: rust2dart
+
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::AirDate {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.year.into_into_dart().into_dart(),
+            self.month.into_into_dart().into_dart(),
+            self.day.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::AirDate
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::AirDate>
+    for crate::api::recognition::AirDate
+{
+    fn into_into_dart(self) -> crate::api::recognition::AirDate {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::DiscKind {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Bdmv => 0.into_dart(),
+            Self::VideoTs => 1.into_dart(),
+            Self::Iso => 2.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::DiscKind
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::DiscKind>
+    for crate::api::recognition::DiscKind
+{
+    fn into_into_dart(self) -> crate::api::recognition::DiscKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::EpisodeKind {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Regular => 0.into_dart(),
+            Self::Special => 1.into_dart(),
+            Self::Ova => 2.into_dart(),
+            Self::Ona => 3.into_dart(),
+            Self::Recap => 4.into_dart(),
+            Self::Ncop => 5.into_dart(),
+            Self::Nced => 6.into_dart(),
+            Self::Sp => 7.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::EpisodeKind
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::EpisodeKind>
+    for crate::api::recognition::EpisodeKind
+{
+    fn into_into_dart(self) -> crate::api::recognition::EpisodeKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::EpisodeNumber {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.number.into_into_dart().into_dart(),
+            self.fraction.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::EpisodeNumber
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::EpisodeNumber>
+    for crate::api::recognition::EpisodeNumber
+{
+    fn into_into_dart(self) -> crate::api::recognition::EpisodeNumber {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::ExtraKind {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Trailer => 0.into_dart(),
+            Self::Teaser => 1.into_dart(),
+            Self::Featurette => 2.into_dart(),
+            Self::BehindTheScenes => 3.into_dart(),
+            Self::DeletedScene => 4.into_dart(),
+            Self::Interview => 5.into_dart(),
+            Self::Short => 6.into_dart(),
+            Self::Scene => 7.into_dart(),
+            Self::Opening => 8.into_dart(),
+            Self::Ending => 9.into_dart(),
+            Self::Menu => 10.into_dart(),
+            Self::Preview => 11.into_dart(),
+            Self::Sample => 12.into_dart(),
+            Self::Other => 13.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::ExtraKind
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::ExtraKind>
+    for crate::api::recognition::ExtraKind
+{
+    fn into_into_dart(self) -> crate::api::recognition::ExtraKind {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::FilenameHypothesis {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.parsed.into_into_dart().into_dart(),
+            self.weight.into_into_dart().into_dart(),
+            self.reasons.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::FilenameHypothesis
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::FilenameHypothesis>
+    for crate::api::recognition::FilenameHypothesis
+{
+    fn into_into_dart(self) -> crate::api::recognition::FilenameHypothesis {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::FilenameParse {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.parser_version.into_into_dart().into_dart(),
+            self.hypotheses.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::FilenameParse
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::FilenameParse>
+    for crate::api::recognition::FilenameParse
+{
+    fn into_into_dart(self) -> crate::api::recognition::FilenameParse {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::MediaHint {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        match self {
+            Self::Unknown => 0.into_dart(),
+            Self::Movie => 1.into_dart(),
+            Self::Episode => 2.into_dart(),
+            Self::Extra => 3.into_dart(),
+            _ => unreachable!(),
+        }
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::MediaHint
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::MediaHint>
+    for crate::api::recognition::MediaHint
+{
+    fn into_into_dart(self) -> crate::api::recognition::MediaHint {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::recognition::ParsedName {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.alt_titles.into_into_dart().into_dart(),
+            self.episode_title.into_into_dart().into_dart(),
+            self.year.into_into_dart().into_dart(),
+            self.season.into_into_dart().into_dart(),
+            self.episodes.into_into_dart().into_dart(),
+            self.absolute.into_into_dart().into_dart(),
+            self.episode_kind.into_into_dart().into_dart(),
+            self.date.into_into_dart().into_dart(),
+            self.part.into_into_dart().into_dart(),
+            self.release_group.into_into_dart().into_dart(),
+            self.dub_studio.into_into_dart().into_dart(),
+            self.crc32.into_into_dart().into_dart(),
+            self.version.into_into_dart().into_dart(),
+            self.resolution.into_into_dart().into_dart(),
+            self.source.into_into_dart().into_dart(),
+            self.video_codec.into_into_dart().into_dart(),
+            self.audio_codec.into_into_dart().into_dart(),
+            self.hdr.into_into_dart().into_dart(),
+            self.edition.into_into_dart().into_dart(),
+            self.languages.into_into_dart().into_dart(),
+            self.other.into_into_dart().into_dart(),
+            self.extra.into_into_dart().into_dart(),
+            self.disc.into_into_dart().into_dart(),
+            self.container.into_into_dart().into_dart(),
+            self.media.into_into_dart().into_dart(),
+            self.anime_hint.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::recognition::ParsedName
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::recognition::ParsedName>
+    for crate::api::recognition::ParsedName
+{
+    fn into_into_dart(self) -> crate::api::recognition::ParsedName {
+        self
+    }
+}
 
 impl SseEncode for flutter_rust_bridge::for_generated::anyhow::Error {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -275,6 +969,158 @@ impl SseEncode for String {
     }
 }
 
+impl SseEncode for crate::api::recognition::AirDate {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u16>::sse_encode(self.year, serializer);
+        <u8>::sse_encode(self.month, serializer);
+        <u8>::sse_encode(self.day, serializer);
+    }
+}
+
+impl SseEncode for bool {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u8(self as _).unwrap();
+    }
+}
+
+impl SseEncode for crate::api::recognition::DiscKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::recognition::DiscKind::Bdmv => 0,
+                crate::api::recognition::DiscKind::VideoTs => 1,
+                crate::api::recognition::DiscKind::Iso => 2,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::recognition::EpisodeKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::recognition::EpisodeKind::Regular => 0,
+                crate::api::recognition::EpisodeKind::Special => 1,
+                crate::api::recognition::EpisodeKind::Ova => 2,
+                crate::api::recognition::EpisodeKind::Ona => 3,
+                crate::api::recognition::EpisodeKind::Recap => 4,
+                crate::api::recognition::EpisodeKind::Ncop => 5,
+                crate::api::recognition::EpisodeKind::Nced => 6,
+                crate::api::recognition::EpisodeKind::Sp => 7,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for crate::api::recognition::EpisodeNumber {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <u32>::sse_encode(self.number, serializer);
+        <Option<u8>>::sse_encode(self.fraction, serializer);
+    }
+}
+
+impl SseEncode for crate::api::recognition::ExtraKind {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::recognition::ExtraKind::Trailer => 0,
+                crate::api::recognition::ExtraKind::Teaser => 1,
+                crate::api::recognition::ExtraKind::Featurette => 2,
+                crate::api::recognition::ExtraKind::BehindTheScenes => 3,
+                crate::api::recognition::ExtraKind::DeletedScene => 4,
+                crate::api::recognition::ExtraKind::Interview => 5,
+                crate::api::recognition::ExtraKind::Short => 6,
+                crate::api::recognition::ExtraKind::Scene => 7,
+                crate::api::recognition::ExtraKind::Opening => 8,
+                crate::api::recognition::ExtraKind::Ending => 9,
+                crate::api::recognition::ExtraKind::Menu => 10,
+                crate::api::recognition::ExtraKind::Preview => 11,
+                crate::api::recognition::ExtraKind::Sample => 12,
+                crate::api::recognition::ExtraKind::Other => 13,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for f32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_f32::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for crate::api::recognition::FilenameHypothesis {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::recognition::ParsedName>::sse_encode(self.parsed, serializer);
+        <f32>::sse_encode(self.weight, serializer);
+        <Vec<String>>::sse_encode(self.reasons, serializer);
+    }
+}
+
+impl SseEncode for crate::api::recognition::FilenameParse {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.parser_version, serializer);
+        <Vec<crate::api::recognition::FilenameHypothesis>>::sse_encode(self.hypotheses, serializer);
+    }
+}
+
+impl SseEncode for i32 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
+    }
+}
+
+impl SseEncode for Vec<String> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <String>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::recognition::EpisodeNumber> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::recognition::EpisodeNumber>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::recognition::FilenameHypothesis> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::recognition::FilenameHypothesis>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -282,6 +1128,144 @@ impl SseEncode for Vec<u8> {
         for item in self {
             <u8>::sse_encode(item, serializer);
         }
+    }
+}
+
+impl SseEncode for crate::api::recognition::MediaHint {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(
+            match self {
+                crate::api::recognition::MediaHint::Unknown => 0,
+                crate::api::recognition::MediaHint::Movie => 1,
+                crate::api::recognition::MediaHint::Episode => 2,
+                crate::api::recognition::MediaHint::Extra => 3,
+                _ => {
+                    unimplemented!("");
+                }
+            },
+            serializer,
+        );
+    }
+}
+
+impl SseEncode for Option<String> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <String>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::recognition::AirDate> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::recognition::AirDate>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::recognition::DiscKind> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::recognition::DiscKind>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::recognition::EpisodeKind> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::recognition::EpisodeKind>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::api::recognition::ExtraKind> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::recognition::ExtraKind>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u16> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u16>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u32> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u32>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<u8> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <u8>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for crate::api::recognition::ParsedName {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.title, serializer);
+        <Vec<String>>::sse_encode(self.alt_titles, serializer);
+        <Option<String>>::sse_encode(self.episode_title, serializer);
+        <Option<u16>>::sse_encode(self.year, serializer);
+        <Option<u32>>::sse_encode(self.season, serializer);
+        <Vec<crate::api::recognition::EpisodeNumber>>::sse_encode(self.episodes, serializer);
+        <Vec<crate::api::recognition::EpisodeNumber>>::sse_encode(self.absolute, serializer);
+        <Option<crate::api::recognition::EpisodeKind>>::sse_encode(self.episode_kind, serializer);
+        <Option<crate::api::recognition::AirDate>>::sse_encode(self.date, serializer);
+        <Option<u32>>::sse_encode(self.part, serializer);
+        <Option<String>>::sse_encode(self.release_group, serializer);
+        <Option<String>>::sse_encode(self.dub_studio, serializer);
+        <Option<String>>::sse_encode(self.crc32, serializer);
+        <Option<u32>>::sse_encode(self.version, serializer);
+        <Option<String>>::sse_encode(self.resolution, serializer);
+        <Option<String>>::sse_encode(self.source, serializer);
+        <Option<String>>::sse_encode(self.video_codec, serializer);
+        <Option<String>>::sse_encode(self.audio_codec, serializer);
+        <Option<String>>::sse_encode(self.hdr, serializer);
+        <Option<String>>::sse_encode(self.edition, serializer);
+        <Vec<String>>::sse_encode(self.languages, serializer);
+        <Vec<String>>::sse_encode(self.other, serializer);
+        <Option<crate::api::recognition::ExtraKind>>::sse_encode(self.extra, serializer);
+        <Option<crate::api::recognition::DiscKind>>::sse_encode(self.disc, serializer);
+        <Option<String>>::sse_encode(self.container, serializer);
+        <crate::api::recognition::MediaHint>::sse_encode(self.media, serializer);
+        <bool>::sse_encode(self.anime_hint, serializer);
+    }
+}
+
+impl SseEncode for u16 {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        serializer.cursor.write_u16::<NativeEndian>(self).unwrap();
     }
 }
 
@@ -302,20 +1286,6 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
-}
-
-impl SseEncode for i32 {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_i32::<NativeEndian>(self).unwrap();
-    }
-}
-
-impl SseEncode for bool {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        serializer.cursor.write_u8(self as _).unwrap();
-    }
 }
 
 #[cfg(not(target_family = "wasm"))]
