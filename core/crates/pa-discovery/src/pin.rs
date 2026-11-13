@@ -81,7 +81,7 @@ impl FromStr for Fingerprint {
             return Err(err());
         }
         let mut out = [0u8; 32];
-        for (byte, pair) in out.iter_mut().zip(hex.chunks_exact(2)) {
+        for (byte, pair) in out.iter_mut().zip(hex.as_chunks::<2>().0) {
             let hi = (pair[0] as char).to_digit(16).ok_or_else(err)?;
             let lo = (pair[1] as char).to_digit(16).ok_or_else(err)?;
             *byte = (hi * 16 + lo) as u8;
