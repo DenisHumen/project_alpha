@@ -431,7 +431,7 @@ project_alpha/
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
-- [ ] **LIB-001** Схема SQLite v1 и миграции
+- [x] **LIB-001** Схема SQLite v1 и миграции
   - Что: File, FileGroup, FileGroupMember, Work, ExternalId, Title, Season, Episode, EpisodeMapping, AnimeEntry, Match, MatchCandidate, FolderRule, DisplayPreference, ProviderCache, Profile, Progress, Favorite, Collection, Playlist, jobs; WAL, foreign keys; refinery-миграции; одна схема для клиента и сервера.
   - deps: CORE-005 · size: M · parallel: no · веха: M1 · ref: 03 §5, 04 §1.3, §1.5
   - done when: миграция с нуля проходит; тест целостности FK; схема задокументирована в `docs/dev/db.md`.
