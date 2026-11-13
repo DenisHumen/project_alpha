@@ -197,7 +197,10 @@ fn outbox_is_idempotent_and_retries_with_backoff() {
     assert_eq!(due.iter().map(|p| &p.op).collect::<Vec<_>>(), [&a, &b]);
 
     // `a` fails twice: 1 s, then 2 s.
-    assert_eq!(outbox::fail(&conn, a.op_id, T0, "offline").unwrap(), Some(1));
+    assert_eq!(
+        outbox::fail(&conn, a.op_id, T0, "offline").unwrap(),
+        Some(1)
+    );
     assert_eq!(outbox::due(&conn, T0, 10).unwrap().len(), 1);
     assert_eq!(outbox::next_attempt_at(&conn).unwrap(), Some(T0));
     let retry = outbox::due(&conn, T0 + 1_000, 10).unwrap();

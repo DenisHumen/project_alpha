@@ -95,7 +95,12 @@ pub fn ack(conn: &Connection, op_id: OpId) -> Result<bool, Error> {
 
 /// Records a failed send and schedules the next attempt. Returns the new
 /// attempt count, or `None` if the op is not queued.
-pub fn fail(conn: &Connection, op_id: OpId, now_ms: i64, error: &str) -> Result<Option<u32>, Error> {
+pub fn fail(
+    conn: &Connection,
+    op_id: OpId,
+    now_ms: i64,
+    error: &str,
+) -> Result<Option<u32>, Error> {
     let id = op_id.to_string();
     let attempts: Option<u32> = conn
         .query_row(
@@ -110,23 +115,29 @@ pub fn fail(conn: &Connection, op_id: OpId, now_ms: i64, error: &str) -> Result<
     conn.execute(
         "UPDATE sync_outbox SET attempts = ?2, next_attempt_at_ms = ?3, last_error = ?4
          WHERE op_id = ?1",
-        params![id, attempts, now_ms.saturating_add(backoff_ms(attempts)), error],
+        params![
+            id,
+            attempts,
+            now_ms.saturating_add(backoff_ms(attempts)),
+            error
+        ],
     )?;
     Ok(Some(attempts))
 }
 
 /// Number of queued ops.
 pub fn len(conn: &Connection) -> Result<u64, Error> {
-    Ok(conn.query_row("SELECT count(*) FROM sync_outbox", [], |r| r.get(0))?)
+    let n: i64 = conn.query_row("SELECT count(*) FROM sync_outbox", [], |r| r.get(0))?;
+    Ok(n.unsigned_abs())
 }
 
 /// Time of the earliest pending attempt, to schedule the next send.
 pub fn next_attempt_at(conn: &Connection) -> Result<Option<i64>, Error> {
-    Ok(conn.query_row(
-        "SELECT min(next_attempt_at_ms) FROM sync_outbox",
-        [],
-        |r| r.get(0),
-    )?)
+    Ok(
+        conn.query_row("SELECT min(next_attempt_at_ms) FROM sync_outbox", [], |r| {
+            r.get(0)
+        })?,
+    )
 }
 
 #[cfg(test)]
@@ -139,7 +150,8 @@ mod tests {
         assert_eq!(backoff_ms(1), 1_000);
         assert_eq!(backoff_ms(2), 2_000);
         assert_eq!(backoff_ms(4), 8_000);
-        assert_eq!(backoff_ms(9), BACKOFF_MAX_MS);
+        assert_eq!(backoff_ms(9), 256_000);
+        assert_eq!(backoff_ms(10), BACKOFF_MAX_MS);
         assert_eq!(backoff_ms(u32::MAX), BACKOFF_MAX_MS);
     }
 }

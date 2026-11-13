@@ -63,9 +63,8 @@ fn body() -> impl Strategy<Value = OpBody> {
                 items,
             }
         ),
-        ("rule-[12]", proptest::option::of("[0-9]")).prop_map(|(rule_key, rule)| {
-            OpBody::FolderRule { rule_key, rule }
-        }),
+        ("rule-[12]", proptest::option::of("[0-9]"))
+            .prop_map(|(rule_key, rule)| OpBody::FolderRule { rule_key, rule }),
         ("player\\.[ab]", proptest::option::of("[0-9]"))
             .prop_map(|(key, value)| OpBody::Setting { key, value }),
         (p, "[12]", any::<bool>()).prop_map(|(profile, channel_id, followed)| {
