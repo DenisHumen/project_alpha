@@ -1,0 +1,10 @@
+{
+  "status": 200,
+  "body": {
+    "device_code": "fakeDeviceCode0000000000000000000000000",
+    "expires_in": 1800,
+    "interval": 5,
+    "user_code": "TESTCODE",
+    "verification_uri": "https://www.twitch.tv/activate?public=true&device-code=TESTCODE"
+  }
+}
