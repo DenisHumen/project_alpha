@@ -16,6 +16,7 @@ flowchart LR
     pa_discovery["pa-discovery"]
     pa_ffi["pa-ffi"]
     pa_frb["pa-frb"]
+    pa_jobs["pa-jobs"]
     pa_library["pa-library"]
     pa_metadata["pa-metadata"]
     pa_model["pa-model"]
@@ -43,6 +44,7 @@ flowchart LR
   pa_ffi --> pa_secrets
   pa_frb --> pa_ffi
   pa_frb --> pa_recognition
+  pa_jobs --> pa_library
   pa_library --> pa_model
   pa_library --> pa_recognition
   pa_metadata --> pa_recognition
@@ -70,6 +72,7 @@ flowchart LR
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
 | `pa-frb` | `core/crates/pa-frb` | 1 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |
+| `pa-jobs` | `core/crates/pa-jobs` | 2 | Persistent job queue of the core: priorities, per-type concurrency limits, retries with backoff, pause and cancel, progress events, survives restart (CORE-011) |
 | `pa-library` | `core/crates/pa-library` | 1 | Media library storage: SQLite schema v1, embedded migrations, connection setup (LIB-001); progress, Continue watching and Up Next (LIB-011); music library (MUS-001); Twitch data model (TWI-007); FTS5 search (LIB-008) |
 | `pa-metadata` | `core/crates/pa-metadata` | 5 | Metadata provider clients outside the sans-IO core: TMDB, AniList, Shikimori, rate limiting, ProviderCache (META-009, META-010) |
 | `pa-model` | `core/crates/pa-model` | 1 | Domain types of the project_alpha core: media entities, sync keys, playback state |
