@@ -72,14 +72,19 @@ fn server_and_share_found_and_lost_on_loopback() {
     let rx = discovery.subscribe();
     discovery.browse([ServiceKind::Server, ServiceKind::Smb]).unwrap();
 
-    let found = wait_for(&rx, |e| matches!(e, DiscoveryEvent::Found(s) if s.kind == ServiceKind::Server));
-    let DiscoveryEvent::Found(svc) = found else { unreachable!() };
+    // Both arrive in any order.
+    let mut found = Vec::new();
+    while found.len() < 2 {
+        if let DiscoveryEvent::Found(s) = wait_for(&rx, |e| matches!(e, DiscoveryEvent::Found(_))) {
+            found.push(s);
+        }
+    }
+    let svc = found.iter().find(|s| s.kind == ServiceKind::Server).expect("server found");
     assert_eq!(svc.instance, "Home server");
     assert_eq!(svc.port, 8096);
     assert_eq!(svc.server_txt().unwrap(), server_txt);
     assert!(svc.addresses.iter().any(std::net::IpAddr::is_loopback), "{:?}", svc.addresses);
 
-    wait_for(&rx, |e| matches!(e, DiscoveryEvent::Found(s) if s.kind == ServiceKind::Smb));
     let smb = discovery.services_of(ServiceKind::Smb);
     assert_eq!(smb.len(), 1);
     assert_eq!(smb[0].instance, "Living room NAS");
