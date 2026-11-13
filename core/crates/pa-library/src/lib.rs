@@ -3,7 +3,8 @@
 //!
 //! One SQLite schema for clients and the media server (docs/dev/db.md,
 //! ADR-0013). This crate owns the schema, its migrations and the connection
-//! setup; queries are added by the LIB tasks that need them.
+//! setup; queries are added by the LIB tasks that need them: [`progress`]
+//! (playback state, history, "Continue watching", Up Next; LIB-011).
 //!
 //! ```
 //! let conn = pa_library::open_in_memory().unwrap();
@@ -14,6 +15,7 @@
 //! ```
 
 mod migrations;
+pub mod progress;
 
 use std::fmt;
 use std::path::Path;
@@ -34,10 +36,16 @@ pub const BUSY_TIMEOUT: Duration = Duration::from_secs(5);
 /// [`is_legacy_v0`] and docs/dev/db.md §"Переход с pa_library v0".
 pub const LEGACY_V0_TABLES: [&str; 5] = ["items", "progress", "settings", "sources", "tmdb_cache"];
 
-/// Error opening or migrating a library database.
+/// Error of the library: opening, migrating or querying the database.
 #[derive(Debug)]
 pub enum Error {
     Sqlite(rusqlite::Error),
+    /// An argument or a stored value is not acceptable (unknown profile,
+    /// invalid media key, bad thresholds).
+    Invalid(&'static str),
+    /// The sync sink ([`progress::ProgressSink`]) failed; the local change
+    /// was rolled back.
+    Sync(Box<dyn std::error::Error + Send + Sync>),
     /// An applied migration was edited: its checksum no longer matches the
     /// history. Never edit an applied file; add a new migration.
     ChecksumMismatch {
@@ -64,6 +72,8 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Sqlite(e) => write!(f, "sqlite: {e}"),
+            Self::Invalid(what) => write!(f, "invalid {what}"),
+            Self::Sync(e) => write!(f, "sync: {e}"),
             Self::ChecksumMismatch { version } => {
                 write!(
                     f,
@@ -90,6 +100,7 @@ impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             Self::Sqlite(e) => Some(e),
+            Self::Sync(e) => Some(e.as_ref()),
             _ => None,
         }
     }
