@@ -140,7 +140,9 @@ Linux; `libmpv.so` на Android; `libmpv-2.dll` на Windows; `Mpv.framework/Mpv
    Он кладёт `libmpv.so.2` и `libav*/libsw*` в `bundle/lib/`, лицензии и `BUILDINFO.txt` — в
    `bundle/licenses/libmpv/`, и ставит `RUNPATH=$ORIGIN` у `libmedia_kit_video_plugin.so`
    (нужен `patchelf`), чтобы плагин взял libmpv из бандла, а не из системы. У самой `libmpv.so.2`
-   `RUNPATH=$ORIGIN` задан при сборке — FFmpeg находится рядом.
+   `RUNPATH=$ORIGIN` задан при сборке, у библиотек FFmpeg его ставит `bundle.sh` — всё находится рядом.
+   В `mpv.pc` артефакта нет `Requires.private` (libass, libplacebo и libdisplay-info вшиты в
+   libmpv и в артефакт не входят), поэтому `pkg-config mpv` работает без `-dev`-пакетов.
 3. Dart-сторона должна открыть **ту же** библиотеку, иначе при установленной системной `libmpv`
    по имени `libmpv.so` загрузится вторая копия. Достаточно одного из двух:
    `MediaKit.ensureInitialized(libmpv: '<каталог исполняемого файла>/lib/libmpv.so.2')` в `pa_player`
@@ -157,13 +159,14 @@ Linux; `libmpv.so` на Android; `libmpv-2.dll` на Windows; `Mpv.framework/Mpv
 media_kit на Android вызывает `av_jni_set_java_vm` из `libavcodec.so` — с отдельным FFmpeg патч
 media_kit `mpv_lavc_set_java_vm` не нужен.
 
-Замена: `tools/mpv/bundle.sh android <модуль>/src/main/jniLibs <libmpv-android-arm64-v8a> …` и
-отказ от jar-файлов `media_kit_libs_android_video`. Java-часть этого пакета (регистрация плагина и
-`MediaKitAndroidHelper`) нужна, поэтому проще всего — локальная копия пакета через
-`dependency_overrides` в `pubspec.yaml` приложения, у которой вместо задачи `downloadDependencies`
-в `src/main/jniLibs` лежит наш набор. Это делает R01-PLAYER/R01-REL; гейт
-`packaging/app/android/check-native-licences.sh` затем видит в APK `libmpv.so` с `-Dgpl=false` и
-FFmpeg `LGPL version 2.1 or later`.
+Замена (PLAY-013): приложение подключает локальную копию пакета
+[`clients/flutter/packages/media_kit_libs_android_video`](../../clients/flutter/packages/media_kit_libs_android_video/README.md)
+через `dependency_overrides` — Java-часть (регистрация плагина и `MediaKitAndroidHelper`) та же, задачи
+`downloadDependencies` нет, а `src/main/jniLibs` наполняет
+`tools/mpv/bundle.sh android <пакет>/android/src/main/jniLibs <libmpv-android-arm64-v8a> …`.
+Релиз (`release-app.yml`) делает это сам; гейт `packaging/app/android/check-native-licences.sh`
+пропускает APK, только если в каждом ABI лежит этот набор, `libmpv.so` собран с `-Dgpl=false` без
+вшитого FFmpeg, а FFmpeg — `LGPL version 2.1 or later`.
 
 ### Windows и macOS
 
@@ -191,8 +194,16 @@ CI — [`.github/workflows/libmpv.yml`](../../.github/workflows/libmpv.yml) (PR 
 
 - Результаты кэшируются по хэшу обоих рецептов и тулчейна; при попадании в кэш сборка
   пропускается, лицензионная проверка выполняется всё равно. Артефакты `libmpv-<target>` хранятся 7 дней.
-- Не проверено: воспроизведение на реальном Android-устройстве и в собранном приложении,
-  DLL на реальной Windows. Это делают R01-PLAYER/R01-REL и PLAY-AND-007.
+- `release-app.yml` вызывает этот workflow (`workflow_call`, `release: true`) и кладёт артефакты в
+  APK и Linux-бандл (PLAY-013); push в `main` прогревает кэш, который читают сборки по тегу.
+- PLAY-013 проверено на сервере сборки: release-APK (split и universal) с нашим набором проходят
+  гейт лицензий; Linux-бандл и AppImage собраны с `PKG_CONFIG_PATH` на артефакт (Ubuntu 24.04),
+  плагин media_kit_video берёт `lib/libmpv.so.2` из бандла. На эмуляторе Android 14 (x86_64)
+  пример `pa_player` загрузил наши `libmpv.so`/JNI-хелпер и открыл MKV (H.264 1280×720,
+  `VideoOutputManager.setSurfaceSize 1280 720`), после чего упал сам процесс эмулятора
+  (swiftshader/guest GPU на сервере без дисплея).
+- Не проверено: воспроизведение на реальном Android-устройстве, DLL на реальной Windows
+  (PLAY-AND-007).
 - Не сделано: libdovi (Rust, MIT) — нужен cargo-c под все таргеты; DV P5 обрабатывает встроенная
   реализация libplacebo, FFmpeg 9 сам разбирает RPU. iOS/tvOS не собираются: там MPVKit и
   нативный движок (ADR-0003).
