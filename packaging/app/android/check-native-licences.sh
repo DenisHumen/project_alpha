@@ -15,18 +15,21 @@
 #     linked in statically (that is the upstream LGPL-3.0 build);
 #   - an ABI directory with libmpv.so holds the whole tools/mpv set:
 #     libmpv.so, libav{codec,filter,format,util}.so, libsw{resample,scale}.so,
-#     libmediakitandroidhelper.so; FFmpeg/mpv libraries outside it are rejected.
+#     libmediakitandroidhelper.so (plus the optional libavdevice.so that the
+#     FFmpeg build also installs); other FFmpeg/mpv libraries are rejected.
 # Anything else fails the release. A Markdown summary goes to <report.md>
 # (every native library per APK and ABI); the last line on stdout is
 # "libmpv=yes" when every APK and ABI carries the set, otherwise "libmpv=no".
 set -euo pipefail
 
-[ $# -ge 2 ] || { sed -n '4,22p' "$0" >&2; exit 2; }
+[ $# -ge 2 ] || { sed -n '4,23p' "$0" >&2; exit 2; }
 report="$1"; shift
 
 # Keep in sync with tools/mpv/bundle.sh and
 # clients/flutter/packages/media_kit_libs_android_video/android/build.gradle.
 MPV_SET="libmpv.so libavcodec.so libavfilter.so libavformat.so libavutil.so libswresample.so libswscale.so libmediakitandroidhelper.so"
+# Built by tools/mpv too, not needed by libmpv, tolerated.
+MPV_OPTIONAL="libavdevice.so"
 # Names that may only appear as part of that set.
 MPV_SET_RE='^lib(mpv|av[a-z]*|sw[a-z]*|postproc|mediakitandroidhelper)\.so$'
 
@@ -70,7 +73,7 @@ PY
         fi
         for lib in $libs; do
             if printf '%s\n' "$lib" | grep -Eq "$MPV_SET_RE"; then
-                case " $MPV_SET " in
+                case " $MPV_SET $MPV_OPTIONAL " in
                     *" $lib "*) ;;
                     *) bad "$apk:lib/$abi/$lib is an FFmpeg/mpv library outside the tools/mpv set" ;;
                 esac
