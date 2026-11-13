@@ -84,7 +84,12 @@ impl Registry {
 
     /// Forgets every instance of `kind` (its browse stopped).
     pub fn clear_kind(&mut self, kind: ServiceKind) -> Vec<DiscoveryEvent> {
-        let keys: Vec<_> = self.services.keys().filter(|(k, _)| *k == kind).cloned().collect();
+        let keys: Vec<_> = self
+            .services
+            .keys()
+            .filter(|(k, _)| *k == kind)
+            .cloned()
+            .collect();
         keys.into_iter()
             .filter_map(|key| self.services.remove(&key))
             .map(|old| DiscoveryEvent::Lost {
@@ -106,7 +111,8 @@ impl Registry {
 
     /// The server with TXT `id` = `id`, if visible.
     pub fn server_by_id(&self, id: &str) -> Option<&DiscoveredService> {
-        self.services_of(ServiceKind::Server).find(|s| s.id() == Some(id))
+        self.services_of(ServiceKind::Server)
+            .find(|s| s.id() == Some(id))
     }
 }
 
@@ -116,21 +122,40 @@ mod tests {
     use crate::service::Txt;
     use std::net::IpAddr;
 
-    fn svc(kind: ServiceKind, name: &str, port: u16, ip: &str, id: Option<&str>) -> DiscoveredService {
+    fn svc(
+        kind: ServiceKind,
+        name: &str,
+        port: u16,
+        ip: &str,
+        id: Option<&str>,
+    ) -> DiscoveredService {
         let txt = Txt::from_pairs(id.map(|i| ("id", i)));
-        DiscoveredService::new(kind, name, "host.local.", port, [ip.parse::<IpAddr>().unwrap()], txt)
+        DiscoveredService::new(
+            kind,
+            name,
+            "host.local.",
+            port,
+            [ip.parse::<IpAddr>().unwrap()],
+            txt,
+        )
     }
 
     #[test]
     fn found_duplicate_updated_lost() {
         let mut r = Registry::new();
         let a = svc(ServiceKind::Smb, "NAS", 445, "10.0.0.2", None);
-        assert_eq!(r.apply(RawEvent::Resolved(a.clone())), Some(DiscoveryEvent::Found(a.clone())));
+        assert_eq!(
+            r.apply(RawEvent::Resolved(a.clone())),
+            Some(DiscoveryEvent::Found(a.clone()))
+        );
         // Re-announcement with the same data is silent.
         assert_eq!(r.apply(RawEvent::Resolved(a.clone())), None);
         // Same instance, other letter case, new address: an update.
         let b = svc(ServiceKind::Smb, "nas", 445, "10.0.0.3", None);
-        assert_eq!(r.apply(RawEvent::Resolved(b.clone())), Some(DiscoveryEvent::Updated(b)));
+        assert_eq!(
+            r.apply(RawEvent::Resolved(b.clone())),
+            Some(DiscoveryEvent::Updated(b))
+        );
         assert_eq!(r.services().count(), 1);
         assert_eq!(
             r.apply(RawEvent::Removed {
@@ -155,8 +180,20 @@ mod tests {
     #[test]
     fn same_name_different_kinds_are_distinct() {
         let mut r = Registry::new();
-        r.apply(RawEvent::Resolved(svc(ServiceKind::Smb, "NAS", 445, "10.0.0.2", None)));
-        r.apply(RawEvent::Resolved(svc(ServiceKind::Nfs, "NAS", 2049, "10.0.0.2", None)));
+        r.apply(RawEvent::Resolved(svc(
+            ServiceKind::Smb,
+            "NAS",
+            445,
+            "10.0.0.2",
+            None,
+        )));
+        r.apply(RawEvent::Resolved(svc(
+            ServiceKind::Nfs,
+            "NAS",
+            2049,
+            "10.0.0.2",
+            None,
+        )));
         assert_eq!(r.services().count(), 2);
         assert_eq!(r.services_of(ServiceKind::Nfs).count(), 1);
     }
@@ -165,7 +202,13 @@ mod tests {
     fn ignores_own_id() {
         let mut r = Registry::new().with_ignored_ids(["me"]);
         assert_eq!(
-            r.apply(RawEvent::Resolved(svc(ServiceKind::SyncPeer, "Me", 7000, "10.0.0.2", Some("me")))),
+            r.apply(RawEvent::Resolved(svc(
+                ServiceKind::SyncPeer,
+                "Me",
+                7000,
+                "10.0.0.2",
+                Some("me")
+            ))),
             None
         );
         let other = svc(ServiceKind::Server, "Srv", 8096, "10.0.0.9", Some("srv-1"));
@@ -177,12 +220,36 @@ mod tests {
     #[test]
     fn clear_kind_reports_lost() {
         let mut r = Registry::new();
-        r.apply(RawEvent::Resolved(svc(ServiceKind::Smb, "A", 445, "10.0.0.2", None)));
-        r.apply(RawEvent::Resolved(svc(ServiceKind::Smb, "B", 445, "10.0.0.3", None)));
-        r.apply(RawEvent::Resolved(svc(ServiceKind::Nfs, "C", 2049, "10.0.0.4", None)));
+        r.apply(RawEvent::Resolved(svc(
+            ServiceKind::Smb,
+            "A",
+            445,
+            "10.0.0.2",
+            None,
+        )));
+        r.apply(RawEvent::Resolved(svc(
+            ServiceKind::Smb,
+            "B",
+            445,
+            "10.0.0.3",
+            None,
+        )));
+        r.apply(RawEvent::Resolved(svc(
+            ServiceKind::Nfs,
+            "C",
+            2049,
+            "10.0.0.4",
+            None,
+        )));
         let lost = r.clear_kind(ServiceKind::Smb);
         assert_eq!(lost.len(), 2);
-        assert!(lost.iter().all(|e| matches!(e, DiscoveryEvent::Lost { kind: ServiceKind::Smb, .. })));
+        assert!(lost.iter().all(|e| matches!(
+            e,
+            DiscoveryEvent::Lost {
+                kind: ServiceKind::Smb,
+                ..
+            }
+        )));
         assert_eq!(r.services().count(), 1);
     }
 }

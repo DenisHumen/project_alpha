@@ -27,7 +27,9 @@ impl Txt {
 
     /// Builds a TXT record from pairs; the first occurrence of a key wins
     /// (RFC 6763 §6.4), keys are lowercased, empty keys are dropped.
-    pub fn from_pairs<K: AsRef<str>, V: AsRef<str>>(pairs: impl IntoIterator<Item = (K, V)>) -> Self {
+    pub fn from_pairs<K: AsRef<str>, V: AsRef<str>>(
+        pairs: impl IntoIterator<Item = (K, V)>,
+    ) -> Self {
         let mut map = BTreeMap::new();
         for (k, v) in pairs {
             let key = k.as_ref().trim().to_ascii_lowercase();
@@ -43,7 +45,9 @@ impl Txt {
     /// them); `None` is a boolean attribute.
     pub fn from_raw<K: AsRef<str>>(pairs: impl IntoIterator<Item = (K, Option<Vec<u8>>)>) -> Self {
         Self::from_pairs(pairs.into_iter().map(|(k, v)| {
-            let v = v.map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
+            let v = v
+                .map(|b| String::from_utf8_lossy(&b).into_owned())
+                .unwrap_or_default();
             (k, v)
         }))
     }
@@ -121,7 +125,11 @@ impl DiscoveredService {
 
     /// Full DNS-SD name, escaped: `Living room NAS._smb._tcp.local.`.
     pub fn fullname(&self) -> String {
-        format!("{}.{}", escape_instance(&self.instance), self.kind.service_type_local())
+        format!(
+            "{}.{}",
+            escape_instance(&self.instance),
+            self.kind.service_type_local()
+        )
     }
 
     /// Best address to connect to.
@@ -165,7 +173,11 @@ impl DiscoveredService {
         } else {
             format!(":{}", self.port)
         };
-        let path = if self.kind == ServiceKind::Smb { "/".to_owned() } else { self.path() };
+        let path = if self.kind == ServiceKind::Smb {
+            "/".to_owned()
+        } else {
+            self.path()
+        };
         Some(format!("{scheme}://{host}{port}{path}"))
     }
 
@@ -201,7 +213,10 @@ pub enum TxtError {
 
 fn parse_u32(txt: &Txt, key: &'static str) -> Result<u32, TxtError> {
     let v = txt.non_empty(key).ok_or(TxtError::Missing(key))?;
-    v.parse().map_err(|_| TxtError::Invalid { key, value: v.to_owned() })
+    v.parse().map_err(|_| TxtError::Invalid {
+        key,
+        value: v.to_owned(),
+    })
 }
 
 fn check_txtvers(txt: &Txt) -> Result<(), TxtError> {
@@ -235,7 +250,10 @@ impl ServerTxt {
     pub fn from_txt(txt: &Txt) -> Result<Self, TxtError> {
         check_txtvers(txt)?;
         Ok(Self {
-            id: txt.non_empty("id").ok_or(TxtError::Missing("id"))?.to_owned(),
+            id: txt
+                .non_empty("id")
+                .ok_or(TxtError::Missing("id"))?
+                .to_owned(),
             api_version: parse_u32(txt, "v")?,
             name: txt.non_empty("name").map(str::to_owned),
             fingerprint: txt.non_empty("fp").map(str::to_owned),
@@ -319,9 +337,14 @@ impl PeerTxt {
     pub fn from_txt(txt: &Txt) -> Result<Self, TxtError> {
         check_txtvers(txt)?;
         Ok(Self {
-            id: txt.non_empty("id").ok_or(TxtError::Missing("id"))?.to_owned(),
+            id: txt
+                .non_empty("id")
+                .ok_or(TxtError::Missing("id"))?
+                .to_owned(),
             protocol_version: parse_u32(txt, "v")?,
-            device_class: txt.non_empty("dev").map_or(DeviceClass::Other, DeviceClass::parse),
+            device_class: txt
+                .non_empty("dev")
+                .map_or(DeviceClass::Other, DeviceClass::parse),
             name: txt.non_empty("name").map(str::to_owned),
             fingerprint: txt.non_empty("fp").map(str::to_owned),
         })
@@ -442,14 +465,24 @@ mod tests {
             fingerprint: Some("sha256:abcd".into()),
         };
         let pairs = s.to_pairs();
-        assert!(pairs.iter().all(|(k, v)| k.len() + 1 + v.len() <= TXT_ENTRY_MAX));
+        assert!(
+            pairs
+                .iter()
+                .all(|(k, v)| k.len() + 1 + v.len() <= TXT_ENTRY_MAX)
+        );
         assert_eq!(ServerTxt::from_txt(&Txt::from_pairs(pairs)).unwrap(), s);
     }
 
     #[test]
     fn server_txt_errors() {
-        assert_eq!(ServerTxt::from_txt(&txt(&[("v", "1")])), Err(TxtError::Missing("id")));
-        assert_eq!(ServerTxt::from_txt(&txt(&[("id", "x")])), Err(TxtError::Missing("v")));
+        assert_eq!(
+            ServerTxt::from_txt(&txt(&[("v", "1")])),
+            Err(TxtError::Missing("id"))
+        );
+        assert_eq!(
+            ServerTxt::from_txt(&txt(&[("id", "x")])),
+            Err(TxtError::Missing("v"))
+        );
         assert!(matches!(
             ServerTxt::from_txt(&txt(&[("id", "x"), ("v", "one")])),
             Err(TxtError::Invalid { key: "v", .. })
@@ -472,10 +505,15 @@ mod tests {
             name: None,
             fingerprint: None,
         };
-        assert_eq!(PeerTxt::from_txt(&Txt::from_pairs(p.to_pairs())).unwrap(), p);
+        assert_eq!(
+            PeerTxt::from_txt(&Txt::from_pairs(p.to_pairs())).unwrap(),
+            p
+        );
         let q = PeerTxt::from_txt(&txt(&[("id", "x"), ("v", "1"), ("dev", "fridge")])).unwrap();
         assert_eq!(q.device_class, DeviceClass::Other);
-        assert!(DeviceClass::Server < DeviceClass::Desktop && DeviceClass::Tv < DeviceClass::Mobile);
+        assert!(
+            DeviceClass::Server < DeviceClass::Desktop && DeviceClass::Tv < DeviceClass::Mobile
+        );
     }
 
     #[test]
@@ -493,14 +531,22 @@ mod tests {
         let s: Vec<String> = a.iter().map(ToString::to_string).collect();
         assert_eq!(
             s,
-            ["192.168.1.20", "169.254.1.1", "127.0.0.1", "2001:db8::1", "fe80::1", "::1"]
+            [
+                "192.168.1.20",
+                "169.254.1.1",
+                "127.0.0.1",
+                "2001:db8::1",
+                "fe80::1",
+                "::1"
+            ]
         );
     }
 
     #[test]
     fn share_urls() {
         let ip: IpAddr = "192.168.1.5".parse().unwrap();
-        let smb = DiscoveredService::new(ServiceKind::Smb, "NAS", "nas.local.", 445, [ip], Txt::new());
+        let smb =
+            DiscoveredService::new(ServiceKind::Smb, "NAS", "nas.local.", 445, [ip], Txt::new());
         assert_eq!(smb.share_url().unwrap(), "smb://192.168.1.5/");
         let dav = DiscoveredService::new(
             ServiceKind::WebDavs,
@@ -510,13 +556,24 @@ mod tests {
             [ip],
             txt(&[("path", "dav/media")]),
         );
-        assert_eq!(dav.share_url().unwrap(), "https://192.168.1.5:5006/dav/media");
+        assert_eq!(
+            dav.share_url().unwrap(),
+            "https://192.168.1.5:5006/dav/media"
+        );
         let v6: IpAddr = "2001:db8::5".parse().unwrap();
-        let nfs = DiscoveredService::new(ServiceKind::Nfs, "NAS", "", 2049, [v6], txt(&[("path", "/srv")]));
+        let nfs = DiscoveredService::new(
+            ServiceKind::Nfs,
+            "NAS",
+            "",
+            2049,
+            [v6],
+            txt(&[("path", "/srv")]),
+        );
         assert_eq!(nfs.share_url().unwrap(), "nfs://[2001:db8::5]/srv");
         let srv = DiscoveredService::new(ServiceKind::Server, "S", "", 8096, [ip], Txt::new());
         assert_eq!(srv.share_url(), None);
-        let noaddr = DiscoveredService::new(ServiceKind::Smb, "NAS", "nas.local.", 445, [], Txt::new());
+        let noaddr =
+            DiscoveredService::new(ServiceKind::Smb, "NAS", "nas.local.", 445, [], Txt::new());
         assert_eq!(noaddr.share_url(), None);
     }
 
@@ -524,7 +581,10 @@ mod tests {
     fn fullname_escape_and_split() {
         let s = DiscoveredService::new(ServiceKind::Smb, r"My.NAS\1", "", 445, [], Txt::new());
         assert_eq!(s.fullname(), r"My\.NAS\\1._smb._tcp.local.");
-        assert_eq!(split_fullname(&s.fullname()), Some((r"My.NAS\1".to_owned(), ServiceKind::Smb)));
+        assert_eq!(
+            split_fullname(&s.fullname()),
+            Some((r"My.NAS\1".to_owned(), ServiceKind::Smb))
+        );
         // Decimal escapes (Avahi/Bonjour presentation format), UTF-8 bytes.
         assert_eq!(
             split_fullname(r"Caf\195\169\032NAS._smb._tcp.local."),

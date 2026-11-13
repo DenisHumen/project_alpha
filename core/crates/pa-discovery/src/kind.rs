@@ -115,7 +115,10 @@ mod tests {
                 (1..=15).contains(&name.len()),
                 "{kind}: service name {name:?} must be 1..=15 chars"
             );
-            assert!(name.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-'));
+            assert!(
+                name.chars()
+                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+            );
             assert_eq!(
                 kind.service_type_local(),
                 format!("{}.{LOCAL_DOMAIN}", kind.service_type())
@@ -125,8 +128,18 @@ mod tests {
 
     #[test]
     fn parses_common_spellings() {
-        for s in ["_smb._tcp", "_smb._tcp.", "_smb._tcp.local", "_SMB._TCP.local.", " _smb._tcp.local. "] {
-            assert_eq!(ServiceKind::from_service_type(s), Some(ServiceKind::Smb), "{s}");
+        for s in [
+            "_smb._tcp",
+            "_smb._tcp.",
+            "_smb._tcp.local",
+            "_SMB._TCP.local.",
+            " _smb._tcp.local. ",
+        ] {
+            assert_eq!(
+                ServiceKind::from_service_type(s),
+                Some(ServiceKind::Smb),
+                "{s}"
+            );
         }
         assert_eq!(
             ServiceKind::from_service_type("_projectalpha._tcp.local."),
@@ -139,8 +152,14 @@ mod tests {
     #[test]
     fn roundtrip_all() {
         for kind in ServiceKind::ALL {
-            assert_eq!(ServiceKind::from_service_type(kind.service_type()), Some(kind));
-            assert_eq!(ServiceKind::from_service_type(kind.service_type_local()), Some(kind));
+            assert_eq!(
+                ServiceKind::from_service_type(kind.service_type()),
+                Some(kind)
+            );
+            assert_eq!(
+                ServiceKind::from_service_type(kind.service_type_local()),
+                Some(kind)
+            );
             assert_eq!(kind.is_share(), ServiceKind::SHARES.contains(&kind));
         }
     }

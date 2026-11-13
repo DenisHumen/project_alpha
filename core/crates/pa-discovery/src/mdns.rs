@@ -68,10 +68,13 @@ fn mdns_err(e: mdns_sd::Error) -> DiscoveryError {
 }
 
 fn new_daemon(config: &MdnsConfig) -> Result<ServiceDaemon, DiscoveryError> {
-    let daemon = ServiceDaemon::new_with_port(config.port.unwrap_or(MDNS_PORT)).map_err(mdns_err)?;
+    let daemon =
+        ServiceDaemon::new_with_port(config.port.unwrap_or(MDNS_PORT)).map_err(mdns_err)?;
     if config.interfaces == Interfaces::LoopbackOnly {
         daemon.disable_interface(IfKind::All).map_err(mdns_err)?;
-        daemon.enable_interface(IfKind::LoopbackV4).map_err(mdns_err)?;
+        daemon
+            .enable_interface(IfKind::LoopbackV4)
+            .map_err(mdns_err)?;
     }
     Ok(daemon)
 }
@@ -193,7 +196,14 @@ fn convert(kind: ServiceKind, r: &ResolvedService) -> Option<DiscoveredService> 
             .iter()
             .map(|p| (p.key().to_owned(), p.val().map(<[u8]>::to_vec))),
     );
-    Some(DiscoveredService::new(kind, instance, r.host.clone(), r.port, addresses, txt))
+    Some(DiscoveredService::new(
+        kind,
+        instance,
+        r.host.clone(),
+        r.port,
+        addresses,
+        txt,
+    ))
 }
 
 /// A service to announce.
@@ -271,7 +281,11 @@ pub fn host_for_id(id: &str) -> String {
         .take(12)
         .collect::<String>()
         .to_ascii_lowercase();
-    let label = if label.is_empty() { "device".to_owned() } else { label };
+    let label = if label.is_empty() {
+        "device".to_owned()
+    } else {
+        label
+    };
     format!("pa-{label}.local.")
 }
 

@@ -54,9 +54,11 @@ pub use mdns::{
     Advertiser, Announcement, Interfaces, MDNS_PORT, MdnsBackend, MdnsConfig, MulticastLock,
     Registration, host_for_id,
 };
-pub use platform::{PlatformBackend, PlatformBrowser, PlatformService, PlatformSink, bonjour_services};
+pub use platform::{
+    PlatformBackend, PlatformBrowser, PlatformService, PlatformSink, bonjour_services,
+};
 pub use registry::{DiscoveryEvent, RawEvent, Registry};
 pub use service::{
-    DeviceClass, DiscoveredService, LABEL_MAX, PeerTxt, ServerTxt, TXT_ENTRY_MAX, TXT_VERSION,
-    Txt, TxtError, escape_instance, sort_addresses, split_fullname,
+    DeviceClass, DiscoveredService, LABEL_MAX, PeerTxt, ServerTxt, TXT_ENTRY_MAX, TXT_VERSION, Txt,
+    TxtError, escape_instance, sort_addresses, split_fullname,
 };

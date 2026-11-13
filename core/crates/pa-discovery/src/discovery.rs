@@ -37,7 +37,9 @@ pub struct EventSink {
 impl EventSink {
     /// An instance was resolved (first time or again).
     pub fn resolved(&self, service: DiscoveredService) {
-        let _ = self.tx.send(Msg::Raw(self.generation, RawEvent::Resolved(service)));
+        let _ = self
+            .tx
+            .send(Msg::Raw(self.generation, RawEvent::Resolved(service)));
     }
 
     /// An instance went away.
@@ -95,7 +97,10 @@ pub struct Discovery {
 impl Discovery {
     /// Wraps a backend. `own_ids` are TXT ids of this server or device, so
     /// it never "finds" itself.
-    pub fn new<I: Into<String>>(backend: impl Backend, own_ids: impl IntoIterator<Item = I>) -> Self {
+    pub fn new<I: Into<String>>(
+        backend: impl Backend,
+        own_ids: impl IntoIterator<Item = I>,
+    ) -> Self {
         let shared = Arc::new(Mutex::new(Shared {
             registry: Registry::new().with_ignored_ids(own_ids),
             browsing: BTreeMap::new(),
@@ -116,7 +121,10 @@ impl Discovery {
     }
 
     /// Starts browsing `kinds` (already browsed kinds are skipped).
-    pub fn browse(&self, kinds: impl IntoIterator<Item = ServiceKind>) -> Result<(), DiscoveryError> {
+    pub fn browse(
+        &self,
+        kinds: impl IntoIterator<Item = ServiceKind>,
+    ) -> Result<(), DiscoveryError> {
         for kind in kinds {
             let generation = {
                 let mut s = lock(&self.shared);
@@ -169,7 +177,11 @@ impl Discovery {
 
     /// Snapshot of the visible services of one kind.
     pub fn services_of(&self, kind: ServiceKind) -> Vec<DiscoveredService> {
-        lock(&self.shared).registry.services_of(kind).cloned().collect()
+        lock(&self.shared)
+            .registry
+            .services_of(kind)
+            .cloned()
+            .collect()
     }
 
     /// Our server with TXT `id`, if visible (reconnect by identity, not IP).
@@ -179,8 +191,12 @@ impl Discovery {
 
     /// Stops all browsing and the backend. Also done on drop.
     pub fn shutdown(&mut self) {
-        let Some(worker) = self.worker.take() else { return };
-        let kinds: Vec<_> = std::mem::take(&mut lock(&self.shared).browsing).into_keys().collect();
+        let Some(worker) = self.worker.take() else {
+            return;
+        };
+        let kinds: Vec<_> = std::mem::take(&mut lock(&self.shared).browsing)
+            .into_keys()
+            .collect();
         for kind in kinds {
             self.backend.stop(kind);
         }
@@ -223,7 +239,10 @@ fn run(rx: &Receiver<Msg>, shared: &Mutex<Shared>) {
             Msg::Stopped(kind) => lock(shared).registry.clear_kind(kind),
             Msg::Subscribe(tx) => {
                 let snapshot: Vec<_> = lock(shared).registry.services().cloned().collect();
-                if snapshot.into_iter().all(|svc| tx.send(DiscoveryEvent::Found(svc)).is_ok()) {
+                if snapshot
+                    .into_iter()
+                    .all(|svc| tx.send(DiscoveryEvent::Found(svc)).is_ok())
+                {
                     subscribers.push(tx);
                 }
                 continue;
@@ -274,7 +293,13 @@ mod tests {
     impl Mock {
         fn sink(&self, kind: ServiceKind) -> EventSink {
             let s = self.0.lock().unwrap();
-            s.sinks.iter().rev().find(|(k, _)| *k == kind).unwrap().1.clone()
+            s.sinks
+                .iter()
+                .rev()
+                .find(|(k, _)| *k == kind)
+                .unwrap()
+                .1
+                .clone()
         }
     }
 
@@ -368,7 +393,10 @@ mod tests {
         let mock = Mock::default();
         mock.0.lock().unwrap().fail = Some(ServiceKind::Nfs);
         let d = Discovery::new(mock.clone(), Vec::<String>::new());
-        assert!(matches!(d.browse([ServiceKind::Nfs]), Err(DiscoveryError::Platform(_))));
+        assert!(matches!(
+            d.browse([ServiceKind::Nfs]),
+            Err(DiscoveryError::Platform(_))
+        ));
         assert!(d.browsing().is_empty());
     }
 

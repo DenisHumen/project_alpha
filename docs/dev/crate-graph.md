@@ -13,6 +13,7 @@
 flowchart LR
   subgraph g0["core/crates — ядро"]
     pa_anime_mappings["pa-anime-mappings"]
+    pa_discovery["pa-discovery"]
     pa_ffi["pa-ffi"]
     pa_frb["pa-frb"]
     pa_library["pa-library"]
@@ -49,6 +50,7 @@ flowchart LR
 | Крейт | Каталог | Внешних зависимостей | Описание |
 |---|---|---|---|
 | `pa-anime-mappings` | `core/crates/pa-anime-mappings` | 4 | Anime cross-ID and episode mappings: bundled ODbL data plus runtime-downloaded upstream lists (META-008) |
+| `pa-discovery` | `core/crates/pa-discovery` | 2 | LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009) |
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
 | `pa-frb` | `core/crates/pa-frb` | 1 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |

@@ -20,7 +20,10 @@ use pa_discovery::{
 fn private_port() -> u16 {
     // Distinct per test and per run; 5353 is never used here.
     static NEXT: AtomicU32 = AtomicU32::new(0);
-    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().subsec_nanos();
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .subsec_nanos();
     let n = nanos.wrapping_add(NEXT.fetch_add(7919, Ordering::Relaxed)) ^ std::process::id();
     30_000 + u16::try_from(n % 20_000).unwrap()
 }
@@ -33,11 +36,16 @@ fn loopback(port: u16) -> MdnsConfig {
     }
 }
 
-fn wait_for(rx: &Receiver<DiscoveryEvent>, pred: impl Fn(&DiscoveryEvent) -> bool) -> DiscoveryEvent {
+fn wait_for(
+    rx: &Receiver<DiscoveryEvent>,
+    pred: impl Fn(&DiscoveryEvent) -> bool,
+) -> DiscoveryEvent {
     let deadline = Instant::now() + Duration::from_secs(15);
     loop {
         let left = deadline.saturating_duration_since(Instant::now());
-        let ev = rx.recv_timeout(left).expect("expected discovery event in time");
+        let ev = rx
+            .recv_timeout(left)
+            .expect("expected discovery event in time");
         if pred(&ev) {
             return ev;
         }
@@ -70,7 +78,9 @@ fn server_and_share_found_and_lost_on_loopback() {
     let backend = MdnsBackend::with_config(loopback(port)).unwrap();
     let discovery = Discovery::new(backend, Vec::<String>::new());
     let rx = discovery.subscribe();
-    discovery.browse([ServiceKind::Server, ServiceKind::Smb]).unwrap();
+    discovery
+        .browse([ServiceKind::Server, ServiceKind::Smb])
+        .unwrap();
 
     // Both arrive in any order.
     let mut found = Vec::new();
@@ -79,11 +89,18 @@ fn server_and_share_found_and_lost_on_loopback() {
             found.push(s);
         }
     }
-    let svc = found.iter().find(|s| s.kind == ServiceKind::Server).expect("server found");
+    let svc = found
+        .iter()
+        .find(|s| s.kind == ServiceKind::Server)
+        .expect("server found");
     assert_eq!(svc.instance, "Home server");
     assert_eq!(svc.port, 8096);
     assert_eq!(svc.server_txt().unwrap(), server_txt);
-    assert!(svc.addresses.iter().any(std::net::IpAddr::is_loopback), "{:?}", svc.addresses);
+    assert!(
+        svc.addresses.iter().any(std::net::IpAddr::is_loopback),
+        "{:?}",
+        svc.addresses
+    );
 
     let smb = discovery.services_of(ServiceKind::Smb);
     assert_eq!(smb.len(), 1);
@@ -122,14 +139,20 @@ fn own_peer_announcement_is_ignored() {
         device_class: DeviceClass::Tv,
         ..me.clone()
     };
-    let _me = advertiser.announce(&Announcement::peer("My desktop", 7100, &me)).unwrap();
-    let _tv = advertiser.announce(&Announcement::peer("Living room TV", 7101, &other)).unwrap();
+    let _me = advertiser
+        .announce(&Announcement::peer("My desktop", 7100, &me))
+        .unwrap();
+    let _tv = advertiser
+        .announce(&Announcement::peer("Living room TV", 7101, &other))
+        .unwrap();
 
     let discovery = Discovery::new(backend, ["device-me"]);
     let rx = discovery.subscribe();
     discovery.browse([ServiceKind::SyncPeer]).unwrap();
     let ev = wait_for(&rx, |e| matches!(e, DiscoveryEvent::Found(_)));
-    let DiscoveryEvent::Found(svc) = ev else { unreachable!() };
+    let DiscoveryEvent::Found(svc) = ev else {
+        unreachable!()
+    };
     assert_eq!(svc.peer_txt().unwrap().id, "device-tv");
     // Give "me" time to be resolved too; it must stay filtered out.
     std::thread::sleep(Duration::from_millis(1500));
@@ -160,9 +183,14 @@ fn multicast_lock_held_while_browsing() {
         multicast_lock: Some(lock.clone()),
         ..loopback(private_port())
     };
-    let mut discovery = Discovery::new(MdnsBackend::with_config(config).unwrap(), Vec::<String>::new());
+    let mut discovery = Discovery::new(
+        MdnsBackend::with_config(config).unwrap(),
+        Vec::<String>::new(),
+    );
     assert_eq!(lock.held.load(Ordering::SeqCst), 0);
-    discovery.browse([ServiceKind::Smb, ServiceKind::Nfs]).unwrap();
+    discovery
+        .browse([ServiceKind::Smb, ServiceKind::Nfs])
+        .unwrap();
     assert_eq!(lock.held.load(Ordering::SeqCst), 1);
     discovery.stop(ServiceKind::Smb);
     assert_eq!(lock.held.load(Ordering::SeqCst), 1);
@@ -194,9 +222,20 @@ fn lan_smoke() {
     let discovery = Discovery::new(backend, Vec::<String>::new());
     let rx = discovery.subscribe();
     discovery.browse(ServiceKind::ALL).unwrap();
-    wait_for(&rx, |e| matches!(e, DiscoveryEvent::Found(s) if s.instance == "pa-discovery smoke"));
+    wait_for(
+        &rx,
+        |e| matches!(e, DiscoveryEvent::Found(s) if s.instance == "pa-discovery smoke"),
+    );
     std::thread::sleep(Duration::from_secs(5));
     for s in discovery.services() {
-        println!("{} {:?} {}:{} {:?} {:?}", s.kind, s.instance, s.host, s.port, s.addresses, s.share_url());
+        println!(
+            "{} {:?} {}:{} {:?} {:?}",
+            s.kind,
+            s.instance,
+            s.host,
+            s.port,
+            s.addresses,
+            s.share_url()
+        );
     }
 }

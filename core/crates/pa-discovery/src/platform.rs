@@ -149,17 +149,27 @@ mod tests {
     }
 
     impl PlatformBrowser for FakeBrowser {
-        fn start_browse(&self, service_type: String, sink: Arc<PlatformSink>) -> Result<(), String> {
+        fn start_browse(
+            &self,
+            service_type: String,
+            sink: Arc<PlatformSink>,
+        ) -> Result<(), String> {
             if service_type == "_nfs._tcp" {
                 return Err("Local Network access denied".into());
             }
             assert_eq!(sink.service_type(), service_type);
-            self.log.lock().unwrap().push(format!("start {service_type}"));
+            self.log
+                .lock()
+                .unwrap()
+                .push(format!("start {service_type}"));
             self.sinks.lock().unwrap().push(sink);
             Ok(())
         }
         fn stop_browse(&self, service_type: String) {
-            self.log.lock().unwrap().push(format!("stop {service_type}"));
+            self.log
+                .lock()
+                .unwrap()
+                .push(format!("stop {service_type}"));
         }
     }
 
@@ -188,7 +198,9 @@ mod tests {
             ..Default::default()
         });
         let ev = rx.recv_timeout(Duration::from_secs(5)).unwrap();
-        let DiscoveryEvent::Found(svc) = ev else { panic!("{ev:?}") };
+        let DiscoveryEvent::Found(svc) = ev else {
+            panic!("{ev:?}")
+        };
         assert_eq!(svc.server_txt().unwrap().id, "srv-1");
         sink.service_lost("Home server".into());
         assert!(matches!(
