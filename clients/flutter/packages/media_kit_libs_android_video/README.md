@@ -30,7 +30,8 @@ tools/mpv/bundle.sh android \
 `bundle.sh` сначала прогоняет `check-android` (SONAME без версий, зависимости, выравнивание 16 КБ).
 
 В каждом `jniLibs/<abi>/` — ровно набор `libmpv.so`, `libavcodec.so`, `libavfilter.so`,
-`libavformat.so`, `libavutil.so`, `libswresample.so`, `libswscale.so`, `libmediakitandroidhelper.so`.
+`libavformat.so`, `libavutil.so`, `libswresample.so`, `libswscale.so`, `libmediakitandroidhelper.so`
+(плюс `libavdevice.so`, которую ставит сборка FFmpeg; libmpv её не использует).
 
 - **release**: сборка падает, если ни одного ABI нет или набор неполный. Обойти (например, для
   сборки без плеера): `flutter build apk --release -Pkinolune.allowMissingLibmpv=true`.
