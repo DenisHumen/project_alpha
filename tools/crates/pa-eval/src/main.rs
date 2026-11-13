@@ -2,7 +2,8 @@
 //! `pa-eval` CLI.
 //!
 //! ```text
-//! pa-eval run [--recognizer naive|parser|abstain] [--tape TAPE.jsonl] [--threshold X]
+//! pa-eval run [--recognizer naive|parser|abstain|scorer] [--tape TAPE.jsonl] [--threshold X]
+//!             [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--signals OUT.jsonl]
 //!             [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
 //!             CORPUS.jsonl...
 //! pa-eval compare --baseline BASE.json --current CUR.json
@@ -18,6 +19,7 @@ use std::time::Instant;
 
 use pa_eval::provider::{Provider, ProviderError, ProviderRequest};
 use pa_eval::recognizer::{Abstain, Naive, Parser};
+use pa_eval::scorer::{Scorer, SignalLine};
 use pa_eval::{Corpus, DEFAULT_THRESHOLD, Recognizer, ReplayProvider, Report, Tape};
 use serde_json::Value;
 
@@ -39,7 +41,8 @@ impl Provider for MissLog {
 }
 
 const USAGE: &str = "usage:
-  pa-eval run [--recognizer naive|parser|abstain] [--tape TAPE.jsonl] [--threshold X]
+  pa-eval run [--recognizer naive|parser|abstain|scorer] [--tape TAPE.jsonl] [--threshold X]
+              [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--signals OUT.jsonl]
               [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
               CORPUS.jsonl...
   pa-eval compare --baseline BASE.json --current CUR.json
@@ -120,18 +123,29 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
             "--json",
             "--md",
             "--misses",
+            "--anime",
+            "--catalog",
+            "--signals",
         ],
         &["--no-validate"],
     )?;
     if files.is_empty() {
         return Err(USAGE.to_owned());
     }
+    let mut scorer = None;
     let mut recognizer: Box<dyn Recognizer> = match opt(&opts, "--recognizer").unwrap_or("naive") {
         "naive" => Box::new(Naive),
         "parser" => Box::new(Parser),
         "abstain" => Box::new(Abstain),
+        "scorer" => {
+            scorer = Some(Scorer::new(build_index(&opts)?));
+            Box::new(Abstain)
+        }
         other => return Err(format!("unknown recognizer {other}")),
     };
+    if opt(&opts, "--signals").is_some() && scorer.is_none() {
+        return Err("--signals needs --recognizer scorer".to_owned());
+    }
     let threshold = match opt(&opts, "--threshold") {
         Some(t) => t
             .parse::<f64>()
@@ -155,7 +169,24 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
         inner: ReplayProvider::new(tape),
         missed: BTreeSet::new(),
     };
-    let report = pa_eval::run(&corpus, recognizer.as_mut(), &mut provider, threshold);
+    let report = match scorer.as_mut() {
+        Some(s) => pa_eval::run(&corpus, s, &mut provider, threshold),
+        None => pa_eval::run(&corpus, recognizer.as_mut(), &mut provider, threshold),
+    };
+    if let (Some(path), Some(s)) = (opt(&opts, "--signals"), &scorer) {
+        let mut text = String::new();
+        for (seq, file, m) in &s.log {
+            let line = SignalLine {
+                case_id: &corpus.cases[*seq].id,
+                path: file,
+                confidence: m.confidence,
+                signals: &m.signals,
+            };
+            text.push_str(&serde_json::to_string(&line).map_err(|e| e.to_string())?);
+            text.push('\n');
+        }
+        write(path, &text)?;
+    }
     if let Some(path) = opt(&opts, "--misses") {
         let mut text = String::new();
         for key in &provider.missed {
@@ -226,6 +257,20 @@ fn cmd_compare(args: &[String]) -> Result<ExitCode, String> {
     })
 }
 
+/// Title index from `--anime` and `--catalog` options.
+fn build_index(opts: &Opts) -> Result<pa_recognition::title::TitleIndex, String> {
+    use pa_eval::candidates;
+    let mut records = Vec::new();
+    if let Some(path) = opt(opts, "--anime") {
+        let bytes = std::fs::read(path).map_err(|e| format!("{path}: {e}"))?;
+        records.extend(candidates::load_anime(&bytes).map_err(|e| format!("{path}: {e}"))?);
+    }
+    for (_, path) in opts.iter().filter(|(k, _)| k == "--catalog") {
+        records.extend(candidates::load_catalog(&read(path)?).map_err(|e| format!("{path}: {e}"))?);
+    }
+    Ok(pa_recognition::title::TitleIndex::from_records(records))
+}
+
 fn cmd_candidates(args: &[String]) -> Result<ExitCode, String> {
     use pa_eval::candidates;
     let (opts, files) = parse(
@@ -245,15 +290,7 @@ fn cmd_candidates(args: &[String]) -> Result<ExitCode, String> {
         None => candidates::DEFAULT_KS.to_vec(),
     };
     let started = Instant::now();
-    let mut records = Vec::new();
-    if let Some(path) = opt(&opts, "--anime") {
-        let bytes = std::fs::read(path).map_err(|e| format!("{path}: {e}"))?;
-        records.extend(candidates::load_anime(&bytes).map_err(|e| format!("{path}: {e}"))?);
-    }
-    for (_, path) in opts.iter().filter(|(k, _)| k == "--catalog") {
-        records.extend(candidates::load_catalog(&read(path)?).map_err(|e| format!("{path}: {e}"))?);
-    }
-    let index = pa_recognition::title::TitleIndex::from_records(records);
+    let index = build_index(&opts)?;
     let built = started.elapsed();
 
     let docs = files

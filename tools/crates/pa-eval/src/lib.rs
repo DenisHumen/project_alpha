@@ -7,7 +7,8 @@
 //! ([`metrics`]) → JSON and Markdown report, regression comparison against a
 //! stored baseline ([`report`]). Methodology: research 03 §6.2.
 //! [`candidates`] measures candidate recall@k of the local title index
-//! (META-007) without any provider calls.
+//! (META-007) without any provider calls; [`scorer`] adapts the scorer v0
+//! (META-026) to [`Recognizer`].
 
 pub mod candidates;
 pub mod corpus;
@@ -15,6 +16,7 @@ pub mod metrics;
 pub mod provider;
 pub mod recognizer;
 pub mod report;
+pub mod scorer;
 
 pub use corpus::{CaseInput, Corpus};
 pub use metrics::{ItemOutcome, Metrics};
