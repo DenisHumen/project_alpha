@@ -6,7 +6,8 @@
 #
 # Safe for PRs from forks: `pull_request` only, read-only token, no secrets,
 # every third-party action pinned to a full commit SHA, Flutter pinned below.
-# Projects are discovered automatically: any pubspec.yaml under clients/flutter.
+# Projects are discovered automatically: any pubspec.yaml under clients/flutter
+# and design/flutter (pa_design). Design fonts are fetched before any Flutter step.
 #
 # `flutter-green` is the single required check: it passes when every job passed
 # or was skipped because there is no Flutter project yet.
@@ -17,12 +18,18 @@ on:
   pull_request:
     paths:
       - "clients/flutter/**"
+      - "design/flutter/**"
+      - "design/fonts/**"
+      - "design/scripts/fonts-fetch.mjs"
       - "packaging/app/**"
       - ".github/workflows/flutter.yml"
   push:
     branches: [main]
     paths:
       - "clients/flutter/**"
+      - "design/flutter/**"
+      - "design/fonts/**"
+      - "design/scripts/fonts-fetch.mjs"
       - "packaging/app/**"
       - ".github/workflows/flutter.yml"
   merge_group:
@@ -56,7 +63,10 @@ jobs:
       - name: Find pubspec.yaml files
         id: find
         run: |
-          projects=$(find clients/flutter -name pubspec.yaml \
+          # pa_design is included because the app depends on it; its heavier
+          # token/icon checks stay in design.yml.
+          roots=(); for d in clients/flutter design/flutter; do [ -d "$d" ] && roots+=("$d"); done
+          projects=$(find "${roots[@]}" -name pubspec.yaml \
               -not -path '*/.*' -not -path '*/build/*' -not -path '*/example/*' \
               -printf '%h\n' | sort | jq -R . | jq -cs .)
           {
@@ -83,6 +93,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch design fonts (pinned SHA-256)
+        run: |
+          # pa_design ships Inter outside git; the app and package need it to build.
+          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
@@ -118,6 +135,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libmpv-dev
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch design fonts (pinned SHA-256)
+        run: |
+          # pa_design ships Inter outside git; the app and package need it to build.
+          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
@@ -145,6 +169,13 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch design fonts (pinned SHA-256)
+        run: |
+          # pa_design ships Inter outside git; the app and package need it to build.
+          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
