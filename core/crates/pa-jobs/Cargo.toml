@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-jobs"
+version = "0.1.0"
+description = "Persistent job queue of the core: priorities, per-type concurrency limits, retries with backoff, pause and cancel, progress events, survives restart (CORE-011)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+pa-library = { path = "../pa-library" }
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+tempfile.workspace = true

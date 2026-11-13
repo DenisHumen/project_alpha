@@ -333,7 +333,7 @@ project_alpha/
   - Что: Flutter (Android, iOS, iPadOS, macOS, Windows, Linux) и tvOS (TV-001) показывают `core_version()` и собираются в CI.
   - deps: CORE-002, CORE-003, CORE-004, UI-001, TV-001, CI-004, CI-005, CI-007 · size: S · parallel: yes · веха: M0 · ref: S §9 этап 0, 04 §6 п.1
   - done when: скриншоты со всех платформ в PR; все job CI зелёные.
-- [ ] **CORE-011** `pa-jobs`: персистентная очередь задач
+- [x] **CORE-011** `pa-jobs`: персистентная очередь задач
   - Что: таблица `jobs`, состояния queued → waiting_resources → running → paused/retrying → done/failed/cancelled, приоритеты (live-запись выше всего), лимиты параллельности по типу, backoff, пауза по сети, батарее и Wi-Fi-only, события прогресса.
   - deps: CORE-006, LIB-001 · size: M · parallel: yes · веха: M1 · ref: 04 §1.10
   - done when: задача переживает kill процесса и докачивается; property-тест переходов состояний.
@@ -384,7 +384,7 @@ project_alpha/
   - Что: `127.0.0.1:<port>` со случайным токеном в пути, отдаёт любой ByteSource с поддержкой Range; лимиты соединений; запасной путь для AVPlayer и ExoPlayer.
   - deps: NET-001 · size: S · parallel: yes · веха: M1 · ref: 02 §1.4, 04 §1.2
   - done when: ffprobe и curl читают файл через прокси; запрос без токена получает 403.
-- [ ] **NET-008** Адаптеры ByteSource для FFmpeg и mpv
+- [x] **NET-008** Адаптеры ByteSource для FFmpeg и mpv
   - Что: FFmpeg `AVIOContext` (read/seek) и mpv `stream_cb` (C ABI) поверх ByteSource.
   - deps: NET-001, PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §4
   - done when: тест: libavformat открывает MKV с WebDAV через адаптер; mpv играет `pa://<id>`.
@@ -658,7 +658,7 @@ project_alpha/
   - Что: Cast sender на Android и iOS (только в флейворах без ограничений F-Droid — Cast SDK проприетарный); AirPlay нативно на Apple; на Cast отдаётся HLS от сервера или файл через прокси.
   - deps: PLAY-003 · size: M · parallel: yes · веха: M5 · ref: 01 §1.5
   - done when: воспроизведение на Chromecast и Apple TV по AirPlay с синхронизацией прогресса.
-- [ ] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
+- [x] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
   - Что: локальная копия `media_kit_libs_android_video` через `dependency_overrides`: Java-обвязка остаётся, скачивание готовых jar убирается; `jniLibs` наполняются `tools/mpv/bundle.sh android` из артефактов `libmpv-android-*` (PLAY-002); `check-native-licences.sh` проверяет APK.
   - deps: PLAY-002 · size: S · parallel: yes · веха: M1 · ref: tools/mpv/README.md
   - done when: release-APK содержит только наши LGPL `libmpv.so`/FFmpeg, видео воспроизводится на устройстве, проверка лицензий зелёная.
