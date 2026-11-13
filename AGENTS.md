@@ -43,6 +43,7 @@
 | Rust: линтер | `cargo clippy --workspace --all-targets -- -D warnings` |
 | Rust: тесты | `cargo nextest run --workspace` (нет nextest — `cargo test --workspace`) |
 | Лицензии и SPDX | `reuse lint` |
+| Зависимости Rust: лицензии (ADR-0005), дубликаты, источники, уязвимости | `cargo deny check` (+ `cargo audit`) |
 | Секреты и SPDX в изменённых файлах | `pre-commit run --all-files` |
 
 На общей машине ограничивайте параллелизм: `nice cargo … -j4`.
