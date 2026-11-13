@@ -14,8 +14,8 @@ use std::collections::BTreeSet;
 use std::process::ExitCode;
 use std::time::Instant;
 
-use pa_eval::recognizer::{Abstain, Naive};
 use pa_eval::provider::{Provider, ProviderError, ProviderRequest};
+use pa_eval::recognizer::{Abstain, Naive};
 use pa_eval::{Corpus, DEFAULT_THRESHOLD, Recognizer, ReplayProvider, Report, Tape};
 use serde_json::Value;
 

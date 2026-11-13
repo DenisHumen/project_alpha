@@ -26,7 +26,11 @@ fn corpus_v0_is_valid_and_balanced() {
         .filter(|i| i.severity == Severity::Error)
         .map(ToString::to_string)
         .collect();
-    assert!(errors.is_empty(), "corpus v0 has errors:\n{}", errors.join("\n"));
+    assert!(
+        errors.is_empty(),
+        "corpus v0 has errors:\n{}",
+        errors.join("\n")
+    );
 
     assert!(report.records >= 2000, "only {} records", report.records);
     for cat in validator.categories() {
