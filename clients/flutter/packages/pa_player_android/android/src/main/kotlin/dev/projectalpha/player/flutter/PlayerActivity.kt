@@ -98,8 +98,9 @@ class PlayerActivity : FragmentActivity() {
             engine.closeEngine()
         }
         bridge?.dispose()
-        osdEngine?.let { OsdEngines.release(it) }
+        // The OSD fragment detaches from its engine in super.onDestroy(); destroy the engine only after that.
         super.onDestroy()
+        osdEngine?.let { OsdEngines.release(it) }
     }
 
     companion object {

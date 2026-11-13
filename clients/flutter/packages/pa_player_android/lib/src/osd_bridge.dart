@@ -30,7 +30,8 @@ class EngineUpdate {
 /// Commands follow the `PlayerEngine` contract: they return once accepted;
 /// a rejected one throws [PlatformException] with the `EngineError` kind as
 /// its code (`invalid_state`, `invalid_argument`, `unsupported`, `closed`…).
-/// Results arrive through [updates] and [state].
+/// Results arrive through [updates] and [state]. Create it after
+/// `WidgetsFlutterBinding.ensureInitialized()` (channels need the binding).
 class PlayerOsdBridge {
   PlayerOsdBridge({
     this.commands = const MethodChannel('pa_player_android/osd'),
