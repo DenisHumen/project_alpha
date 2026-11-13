@@ -317,7 +317,7 @@ project_alpha/
   - Что: tokio-runtime в ядре, init/shutdown/foreground/background, каталоги данных по платформам (на tvOS — Application Support и Caches), колбэк-интерфейсы платформы, настройки (KV в SQLite, миграции, экспорт и импорт).
   - deps: CORE-001, CORE-005 · size: M · parallel: no · веха: M0 · ref: 02 §4, 04 §1.4 п.5
   - done when: тесты жизненного цикла; повторный init после shutdown работает; настройки переживают перезапуск.
-- [ ] **CORE-007** `pa-secrets`: хранилище секретов
+- [x] **CORE-007** `pa-secrets`: хранилище секретов
   - Что: трейт SecretStore. Десктоп — крейт `keyring` (DPAPI, Keychain, Secret Service; без них — зашифрованный файл и предупреждение). Мобильные и tvOS — UniFFI-колбэк в Keychain (`AfterFirstUnlock`) и Android Keystore + Tink. Маскирование секретов в логах.
   - deps: CORE-006 · size: M · parallel: yes · веха: M1 · ref: 04 §5.1
   - done when: интеграционные тесты на Linux, Windows и macOS; на Android и iOS — instrumented-тест и XCTest.
@@ -349,6 +349,10 @@ project_alpha/
   - Что: загрузка подписанного JSON из публичного репо (`config/`, через GitHub Pages или raw), проверка подписи minisign встроенным ключом, ETag, кэш, откат на встроенную копию, флаги kill-switch.
   - deps: CORE-006 · size: S · parallel: yes · веха: M2 · ref: S §3 (Twitch), 06 §2.6
   - done when: тесты: неверная подпись отклоняется; офлайн берётся последняя валидная копия.
+- [ ] **CORE-015** Платформенные хранилища секретов: Android Keystore и Apple Keychain
+  - Что: реализации колбэка `PlatformSecretStore` из CORE-007 — Android (Keystore-ключ + Tink AEAD поверх приватного DataStore) и iOS/iPadOS/tvOS (Keychain, `kSecAttrAccessibleAfterFirstUnlock`); вызов `secrets_open` при старте приложения; доступ к секретам из Flutter (`pa_core` через FRB) на мобильных.
+  - deps: CORE-007 · size: M · parallel: yes · веха: M1 · ref: 04 §5.1, docs/dev/secrets.md
+  - done when: instrumented-тест на эмуляторе Android и XCTest на симуляторе iOS: запись, чтение, перезапись, удаление, переживает перезапуск процесса.
 
 ### 3.4. NET — источники, сетевые протоколы, Plex/Jellyfin/Emby
 
@@ -1732,7 +1736,7 @@ project_alpha/
 | DEC | 8 | SYNC | 12 |
 | REPO | 13 | SRV | 18 |
 | CI | 12 | MUS | 15 |
-| CORE | 14 | TWI | 22 |
+| CORE | 15 | TWI | 22 |
 | NET | 19 | DIST | 27 |
 | LIB | 15 | DSN | 15 |
 | META | 25 | PKG | 17 |
@@ -1741,4 +1745,4 @@ project_alpha/
 | PLAY-DSK | 8 | LEGAL | 10 |
 | PLAY-APL | 12 | SITE | 6 |
 | UI | 22 | COMM | 6 |
-| TV | 13 | **Всего** | **349** (341 задача + 8 решений владельца) |
+| TV | 13 | **Всего** | **350** (342 задачи + 8 решений владельца) |

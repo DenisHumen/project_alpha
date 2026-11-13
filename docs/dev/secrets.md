@@ -31,6 +31,35 @@
 
 Окружения, Secrets и OIDC-доверие настраивает владелец (REPO-005 и задачи PKG/DIST). Агенты и контрибьюторы секреты не видят и не заводят.
 
+## Секреты пользователя на устройстве (`pa-secrets`)
+
+Всё выше — секреты проекта и сборок. Секреты пользователя (пароли SMB/WebDAV, токены Twitch и Trakt, свой ключ TMDB) живут только на его устройстве, в системном защищённом хранилище, через крейт [`pa-secrets`](../../core/crates/pa-secrets) (CORE-007, исследование 04 §5.1). В настройки (`pa-runtime`, экспортируются в JSON), в SQLite библиотеки и в логи они не попадают.
+
+| Платформа | Хранилище | Как подключено |
+|---|---|---|
+| macOS | Keychain | `keyring-core` + `apple-native-keyring-store` |
+| Windows | Credential Manager (DPAPI) | `keyring-core` + `windows-native-keyring-store` |
+| Linux, BSD | Secret Service (GNOME Keyring, KWallet, KeePassXC) | `keyring-core` + `zbus-secret-service-keyring-store` (чистый Rust, без OpenSSL) |
+| Android | Android Keystore + Tink | колбэк `PlatformSecretStore` (UniFFI), реализует приложение |
+| iOS, iPadOS, tvOS | Keychain, `kSecAttrAccessibleAfterFirstUnlock` | колбэк `PlatformSecretStore` (UniFFI), реализует приложение |
+
+- **Ключи** — `[A-Za-z0-9._:@-]`, до 128 байт: `source.password:<id источника>`, `twitch.tokens:<user id>`, `trakt.tokens:<id>`, `provider.api_key:tmdb`. Ключ хранится открыто (имя элемента в Keychain), поэтому в нём только внутренние id — без email и логинов.
+- **Значения** — до 1280 байт (предел Credential Manager); в памяти `SecretString` обнуляется при освобождении, `Debug` печатает `***`.
+- **Порядок выбора** (`pa_secrets::open`, в FFI — `secrets_open`): колбэк платформы → системное хранилище → зашифрованный файл. На мобильных без колбэка — ошибка `Unavailable`, файла нет.
+- **Запасной вариант** — только десктоп без хранилища (headless Linux, оконный менеджер без Secret Service): `secrets.enc` в каталоге данных ядра, XChaCha20-Poly1305, ключ — HKDF-SHA256 от случайного `secrets.key` (0600) и `/etc/machine-id`. Это защита от случайного чтения, бэкапов и копирования каталога на другую машину, но **не** от программ того же пользователя. Ядро сообщает `fallback_reason`, приложение показывает предупреждение. Когда хранилище появится, следующий `open` переносит секреты в него и удаляет файл. Повреждённый файл откладывается в `secrets.enc.corrupt`, пароли вводятся заново.
+- **Маскирование в логах:** `pa_secrets::redact` (в FFI — `redact_secrets`) заменяет на `***` все значения, прошедшие через хранилище в этом процессе, поля вида `password=`, `"access_token": "…"`, `api_key=`, заголовки `Bearer …`/`Basic …` и пароль в URL (`smb://user:***@host`). Логгер (CORE-008) прогоняет через неё каждую строку.
+
+**Тесты.** `cargo test -p pa-secrets` проверяет выбор бэкенда, запасной файл и перенос из него. Тест `tests/native.rs` ходит в настоящее хранилище ОС под отдельным именем сервиса и всё за собой удаляет. Он запускается только с `PA_SECRETS_NATIVE_TEST=1` (иначе на машине разработчика запертая связка ключей покажет окно разблокировки и тест зависнет); CI задаёт переменную на macOS и Windows, а на Linux поднимает одноразовый gnome-keyring:
+
+```bash
+# Отдельный XDG_DATA_HOME: ваша настоящая связка ключей не трогается.
+XDG_DATA_HOME="$(mktemp -d)" dbus-run-session -- sh -c \
+  'echo test | gnome-keyring-daemon --unlock --components=secrets >/dev/null; \
+   PA_SECRETS_NATIVE_TEST=1 cargo test -p pa-secrets --test native'
+```
+
+`pa_secrets::open` на десктопе может показать системное окно разблокировки связки ключей и ждать ответа пользователя — вызывайте его не из UI-потока.
+
 ## Проверки
 
 - **Локально:** хук gitleaks из [`.pre-commit-config.yaml`](../../.pre-commit-config.yaml) проверяет индексированные изменения перед коммитом и блокирует коммит с ключом. Включается один раз на клон:

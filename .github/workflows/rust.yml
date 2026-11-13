@@ -125,6 +125,13 @@ jobs:
       # nextest does not run doctests.
       - name: cargo test --doc
         run: cargo test --workspace --all-features --locked --doc
+      # pa-secrets against a real Secret Service: a throwaway gnome-keyring
+      # in its own D-Bus session (no desktop on the runner).
+      - name: pa-secrets with Secret Service
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends gnome-keyring dbus
+          XDG_DATA_HOME="$(mktemp -d)" dbus-run-session -- sh -c 'echo test | gnome-keyring-daemon --unlock --components=secrets >/dev/null && PA_SECRETS_NATIVE_TEST=1 cargo test --locked -p pa-secrets --test native'
 
   # Crates whose behavior depends on the host OS (file systems, paths) also
   # run their tests on Windows and macOS. One `-p` per crate.
@@ -148,7 +155,10 @@ jobs:
         with:
           save-if: ${{ github.ref == 'refs/heads/main' }}
       - name: cargo test
-        run: cargo test --locked -p pa-vfs
+        # pa-secrets: also test the OS keychain (Keychain, Credential Manager).
+        env:
+          PA_SECRETS_NATIVE_TEST: "1"
+        run: cargo test --locked -p pa-vfs -p pa-secrets
 
   all-green:
     name: all-green
