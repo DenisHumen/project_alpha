@@ -27,7 +27,7 @@ use crate::{Error, Result};
 /// Longest device name in bytes.
 pub const MAX_NAME_LEN: usize = 64;
 /// Most records (devices plus revocations) in a roster.
-pub const MAX_RECORDS: usize = 1024;
+pub const MAX_RECORDS: usize = 256;
 
 /// What kind of device a member is (for icons and hub priority).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -660,7 +660,8 @@ mod tests {
         let other = Roster::found(&evil, "Evil", DeviceKind::Phone, 1).unwrap();
         let mut wire: serde_json::Value = serde_json::from_str(&json).unwrap();
         let evil_member: serde_json::Value =
-            serde_json::from_str(&other.to_json()).unwrap()["members"][0].clone();
+            serde_json::from_str::<serde_json::Value>(&other.to_json()).unwrap()["members"][0]
+                .clone();
         wire["members"].as_array_mut().unwrap().push(evil_member);
         assert!(Roster::from_json(&wire.to_string()).is_err());
         assert!(matches!(roster.merge(&other), Err(Error::OtherFamily)));

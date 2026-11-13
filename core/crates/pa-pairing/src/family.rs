@@ -336,10 +336,18 @@ impl Family {
             key_rotated: false,
         };
         if let Some(env) = &update.key
-            && env.epoch > self.key.epoch
+            && env.epoch >= self.key.epoch
         {
-            self.key = env.open(&self.roster, &self.identity)?;
-            report.key_rotated = true;
+            let key = env.open(&self.roster, &self.identity)?;
+            // Two members may rotate at once and make different keys of the
+            // same epoch; everyone keeps the one with the larger hash, so the
+            // family converges as updates spread.
+            let newer = key.epoch > self.key.epoch
+                || (key.epoch == self.key.epoch && key_rank(&key) > key_rank(&self.key));
+            if newer {
+                self.key = key;
+                report.key_rotated = true;
+            }
         }
         Ok(report)
     }
@@ -395,6 +403,12 @@ impl Family {
             Err(e) => Err(e.into()),
         }
     }
+}
+
+fn key_rank(key: &FamilyKey) -> [u8; 32] {
+    let mut t = Transcript::new("kinolune.family-key.rank.v1");
+    t.put(key.expose());
+    codec::sha256(t.bytes())
 }
 
 fn family_key_secret() -> SecretKey {
@@ -458,6 +472,32 @@ mod tests {
         };
         assert!(matches!(pc.apply_update(&roster_only), Err(Error::Revoked(_))));
         assert!(phone.revoke("phone", 5).is_err());
+    }
+
+    #[test]
+    fn concurrent_rotations_converge() {
+        let mut a = Family::found(id("a"), "A", DeviceKind::Phone, 1).unwrap();
+        let b_id = id("b");
+        a.admit("b", "B", DeviceKind::Tv, b_id.public(), 2).unwrap();
+        for (n, name) in ["c", "d"].into_iter().enumerate() {
+            let other = id(name);
+            a.admit(name, name, DeviceKind::Tv, other.public(), 3 + n as u64)
+                .unwrap();
+        }
+        let mut b = Family::new(b_id, a.roster().clone(), a.key().clone()).unwrap();
+        // A revokes C while B revokes D: two different keys of epoch 2.
+        a.revoke("c", 10).unwrap();
+        b.revoke("d", 10).unwrap();
+        assert_eq!(a.key().epoch(), b.key().epoch());
+        assert_ne!(a.key().expose(), b.key().expose());
+        let (to_b, to_a) = (a.update_for("b").unwrap(), b.update_for("a").unwrap());
+        a.apply_update(&to_a).unwrap();
+        b.apply_update(&to_b).unwrap();
+        assert_eq!(a.key().expose(), b.key().expose());
+        for fam in [&a, &b] {
+            assert!(fam.authorize("c").is_err());
+            assert!(fam.authorize("d").is_err());
+        }
     }
 
     #[test]
