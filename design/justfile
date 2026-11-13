@@ -1,7 +1,39 @@
 # SPDX-License-Identifier: MPL-2.0
-# `design` module: design tokens and assets.
-# Owned by the DSN workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+# `design` module: design tokens and assets (DSN workstream, docs/ROADMAP.md §0.4).
+# Requires Node ≥ 20. First run: `just design setup`.
 
-# Placeholder until the area gets real recipes
-info:
-    @echo "design: no recipes yet (DSN, see docs/ROADMAP.md)"
+# List recipes
+default:
+    @just --list design
+
+# Install pinned tooling (svgo, lucide-static) into design/node_modules
+setup:
+    npm ci --ignore-scripts
+
+# Everything CI checks: tokens (DTCG, refs, contrast), icons lint, generated code fresh, unit tests
+check:
+    npm run check
+    npm test
+
+# Regenerate all derived files (Dart tokens, icon code/catalog, type specimen)
+build: tokens icons
+    npm run fonts:specimen
+
+# Dart tokens for Flutter (design/flutter/pa_design/lib/src/tokens.g.dart)
+tokens:
+    npm run tokens:validate
+    npm run tokens:dart
+
+# Print the WCAG contrast table for all text/background pairs
+contrast:
+    npm run tokens:report
+
+# Re-import curated icons from Lucide (after editing icons/manifest.json), lint, generate code
+icons:
+    npm run icons:import
+    npm run icons:lint
+    npm run icons:build
+
+# Download Inter (SHA-256 pinned) into fonts/files and flutter/pa_design/fonts
+fonts *args:
+    node scripts/fonts-fetch.mjs {{args}}
