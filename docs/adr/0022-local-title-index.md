@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
-# ADR-NNNN: Локальный индекс названий — свой индекс в памяти в `pa-recognition`, синонимы anime-offline-database в бандле
+# ADR-0022: Локальный индекс названий — свой индекс в памяти в `pa-recognition`, синонимы anime-offline-database в бандле
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
