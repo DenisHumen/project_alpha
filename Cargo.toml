@@ -26,9 +26,14 @@ publish = false
 
 # One line per dependency, sorted alphabetically. Crates use `dep.workspace = true`.
 [workspace.dependencies]
+apple-native-keyring-store = { version = "1.0.2", default-features = false, features = ["keychain"] }
 axum = { version = "0.8.9", default-features = false }
+chacha20poly1305 = { version = "0.11", default-features = false, features = ["alloc"] }
 dirs = "7.0"
 flutter_rust_bridge = "=2.13.0"
+getrandom = "0.4"
+hkdf = "0.13"
+keyring-core = { version = "1.0.1", default-features = false }
 proptest = "1.12"
 quick-xml = "0.42"
 reqwest = { version = "0.13", default-features = false }
@@ -46,3 +51,6 @@ tracing-subscriber = { version = "0.3.23", default-features = false }
 uniffi = { version = "0.32.2", default-features = false }
 ureq = { version = "3.5", default-features = false, features = ["rustls", "gzip"] }
 uuid = { version = "1.29", default-features = false, features = ["std", "v7"] }
+windows-native-keyring-store = { version = "1.1", default-features = false }
+zbus-secret-service-keyring-store = { version = "1.0.1", default-features = false, features = ["rt-async-io-crypto-rust"] }
+zeroize = "1.9"

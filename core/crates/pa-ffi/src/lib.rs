@@ -11,7 +11,9 @@
 uniffi::setup_scaffolding!();
 
 mod runtime;
+mod secrets;
 mod version;
 
 pub use runtime::*;
+pub use secrets::*;
 pub use version::core_version;
