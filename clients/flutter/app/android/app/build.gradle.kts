@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "app.kinolune"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler_android needs API 37 to compile against.
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
