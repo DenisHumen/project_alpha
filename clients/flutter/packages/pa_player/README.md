@@ -88,3 +88,18 @@ safe_local_storage, uri_parser (MIT/BSD). Всё совместимо с MPL-2.0
 ```bash
 flutter analyze && flutter test   # без libmpv: FakePlayerEngine
 ```
+
+## Проверка на Linux без дисплея
+
+Сборка Linux требует `libmpv-dev`, `libepoxy-dev`, `libgtk-3-dev`, `clang`, `cmake`, `ninja-build`, а также `make` и
+C-компилятор `cc`: `media_kit_libs_linux` собирает статический mimalloc (MIT) через `make`. В образе спайка
+PLAY-DSK-001 `make`/`gcc` нет — их нужно доустановить (R01-REL: добавить в CI).
+
+```bash
+# в образе spikes/desktop-player/docker (sway, grim, libmpv); /media — тестовые клипы ffmpeg
+bash tool/headless-check.sh /media/clip.mp4 /media/a.flac /media/b.m4a /media/a.opus /media/a.mp3 /media/a.wav
+```
+
+Результат (Ubuntu 26.04, libmpv 0.41, headless sway): видео стартует с 5 с (resume), `onProgress` приходит,
+OSD скрывается через 4 с; очередь FLAC → ALAC → Opus проигрывается подряд в реальном времени (через 10 с — 1,9 с
+третьего трека, без пауз между файлами).
