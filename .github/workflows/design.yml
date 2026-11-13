@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Design system checks (DSN-002, DSN-004, DSN-005):
+#   - tokens: DTCG structure, references, WCAG AA contrast, generated Dart is fresh;
+#   - icons: SVG linter, generated Flutter/Apple code is fresh;
+#   - pa_design Flutter package: fonts fetched with SHA-256 check, analyze + test.
+# Fix locally with `just design check` / `just design build`.
+# Safe for forks: pull_request only, read-only token, actions pinned to SHAs.
+
+name: Design
+
+on:
+  pull_request:
+    paths:
+      - "design/**"
+      - ".github/workflows/design.yml"
+  push:
+    branches: [main]
+    paths:
+      - "design/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tokens-icons:
+    name: Tokens and icons
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: design
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: design/package-lock.json
+      - run: npm ci --ignore-scripts
+      - name: Validate tokens, contrast, icons; generated code is up to date
+        run: npm run check
+      - name: Unit tests
+        run: npm test
+
+  flutter-package:
+    name: pa_design (Flutter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch fonts (pinned SHA-256)
+        run: node design/scripts/fonts-fetch.mjs
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+      - name: Analyze and test
+        working-directory: design/flutter/pa_design
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
