@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:pa_library/src/music_tags.dart';
@@ -112,6 +113,33 @@ void main() {
       expect(t.artist, 'Daft Punk');
       expect(t.title, 'One More Time');
       expect(t.album, isNull);
+    });
+    test('ID3v2 tags win over the path', () {
+      List<int> frame(String id, String text) {
+        final data = [0x03, ...utf8.encode(text)]; // UTF-8 encoding byte
+        final n = data.length;
+        return [...ascii.encode(id), n >> 24, (n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff, 0, 0, ...data];
+      }
+
+      final frames = [
+        ...frame('TIT2', 'Группа крови'),
+        ...frame('TPE1', 'Кино'),
+        ...frame('TALB', 'Группа крови'),
+        ...frame('TRCK', '1/11'),
+      ];
+      final size = frames.length;
+      final header = [
+        ...ascii.encode('ID3'), 4, 0, 0, // v2.4
+        (size >> 21) & 0x7f, (size >> 14) & 0x7f, (size >> 7) & 0x7f, size & 0x7f,
+      ];
+      final f = File(p.join(tmp.path, 'x', 'y', 'track01.mp3'));
+      f.parent.createSync(recursive: true);
+      f.writeAsBytesSync([...header, ...frames, ...List.filled(256, 0)]);
+      final t = trackInfo(f.path, root: tmp.path);
+      expect(t.title, 'Группа крови');
+      expect(t.artist, 'Кино');
+      expect(t.album, 'Группа крови');
+      expect(t.trackNumber, 1);
     });
     test('unreadable tags fall back to the path', () {
       touch(tmp.path, 'Artist/Album/02 - Track.mp3');
