@@ -6,7 +6,8 @@
 
 use std::collections::HashSet;
 use std::net::SocketAddr;
-use std::sync::atomic::{AtomicU32, Ordering};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use pa_discovery::{
@@ -244,6 +245,7 @@ async fn three_devices_converge_and_replace_a_lost_hub() {
     .await;
     let failover = lost.elapsed();
     assert!(failover < Duration::from_secs(10), "failover took {failover:?}");
+    eprintln!("closed hub replaced in {failover:?}");
 
     // Writes keep flowing through the new hub.
     let late = phone.record(progress(4, 4_000));
