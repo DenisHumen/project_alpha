@@ -185,8 +185,12 @@ build_android_helper() {
 write_mpv_link_file() { # <file>
     local args="$T_LDFLAGS"
     case "$T_OS" in
-        # The library looks for the FFmpeg libraries next to itself.
-        linux) args="$args -Wl,-rpath,\$ORIGIN" ;;
+        # The library looks for the FFmpeg libraries next to itself. The C++
+        # runtime for libplacebo's C++ parts (its static .pc does not list it):
+        # system libstdc++ on Linux, static on MinGW, libc++ on macOS.
+        linux) args="$args -Wl,-rpath,\$ORIGIN -Wl,--no-undefined -lstdc++" ;;
+        windows) args="$args -Wl,-Bstatic -lstdc++ -Wl,-Bdynamic" ;;
+        darwin) args="$args -lc++" ;;
         # Unresolved symbols must fail the link, not the dlopen() on a phone.
         # libplacebo has C++ parts: link the NDK's static libc++ into libmpv.
         android) args="$args -Wl,--no-undefined -lc++_static -lc++abi" ;;
