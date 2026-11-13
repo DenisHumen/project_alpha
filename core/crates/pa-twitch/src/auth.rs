@@ -37,7 +37,7 @@ use std::future::Future;
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use pa_secrets::{SecretKey, SecretStore, SecretString, forget_known, redact, register_known};
+use pa_secrets::{SecretKey, SecretStore, SecretString, redact, register_known};
 use serde::{Deserialize, Serialize};
 
 use crate::client::{AccessToken, ClientId, HelixClient};
@@ -218,11 +218,6 @@ impl Tokens {
     fn register(&self) {
         register_known(&SecretString::new(self.access.secret()));
         register_known(&self.refresh);
-    }
-
-    fn forget(&self) {
-        forget_known(&SecretString::new(self.access.secret()));
-        forget_known(&self.refresh);
     }
 }
 
@@ -443,12 +438,13 @@ impl TwitchAuth {
         let token: TokenResponse = decode(&response, "token")?;
         let access = AccessToken::new(token.access_token);
         // Who signed in: the token endpoint does not say, `validate` does.
-        let validation = self.validate_token(&access).await?.ok_or_else(|| {
-            AuthError::Twitch {
+        let validation = self
+            .validate_token(&access)
+            .await?
+            .ok_or_else(|| AuthError::Twitch {
                 status: 401,
                 message: "the new token was rejected".to_owned(),
-            }
-        })?;
+            })?;
         let tokens = Tokens {
             access,
             refresh: SecretString::new(token.refresh_token),
@@ -663,15 +659,13 @@ impl TwitchAuth {
     }
 
     fn replace(&self, tokens: Option<Tokens>) {
-        let new = tokens.clone();
-        let old = std::mem::replace(&mut self.lock().tokens, tokens);
-        // Forget first: a restore of the same tokens must stay registered.
-        if let Some(old) = old {
-            old.forget();
-        }
-        if let Some(new) = new {
+        // Replaced and signed-out tokens stay registered with `redact`: a
+        // revoked token in a log line is still a token. One pair per ~4 h
+        // refresh is a negligible amount of memory.
+        if let Some(new) = &tokens {
             new.register();
         }
+        self.lock().tokens = tokens;
     }
 
     fn current(&self) -> AuthResult<Tokens> {
@@ -694,11 +688,7 @@ impl TwitchAuth {
     }
 
     fn url(&self, path: &str) -> String {
-        format!(
-            "{}/{}",
-            self.config.id_base_url.trim_end_matches('/'),
-            path
-        )
+        format!("{}/{}", self.config.id_base_url.trim_end_matches('/'), path)
     }
 
     /// Form POST; secrets go in the body, never in the URL.
@@ -754,7 +744,8 @@ fn is_success(response: &HttpResponse) -> bool {
 
 fn decode<T: serde::de::DeserializeOwned>(response: &HttpResponse, what: &str) -> AuthResult<T> {
     // serde messages may quote the body: never let a token through.
-    serde_json::from_slice(&response.body).map_err(|e| AuthError::Decode(redact(&format!("{what}: {e}"))))
+    serde_json::from_slice(&response.body)
+        .map_err(|e| AuthError::Decode(redact(&format!("{what}: {e}"))))
 }
 
 fn error_text(response: &HttpResponse) -> String {

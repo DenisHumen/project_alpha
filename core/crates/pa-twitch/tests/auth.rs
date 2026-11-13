@@ -122,7 +122,11 @@ async fn device_code_flow_signs_in_and_stores_tokens_per_device() {
 
     let device = h.auth.start_device_login().await.unwrap();
     assert_eq!(device.user_code, "TESTCODE");
-    assert!(device.verification_uri.starts_with("https://www.twitch.tv/activate"));
+    assert!(
+        device
+            .verification_uri
+            .starts_with("https://www.twitch.tv/activate")
+    );
     assert_eq!(device.interval, Duration::from_secs(5));
 
     let account = h.auth.complete_device_login(device).await.unwrap();
@@ -154,7 +158,9 @@ async fn device_code_flow_signs_in_and_stores_tokens_per_device() {
         format!("client_id={CLIENT_ID}&scopes=user%3Aread%3Afollows%20user%3Aread%3Achat")
     );
     assert!(bodies[1].contains(&format!("device_code={DEVICE_CODE}")));
-    assert!(bodies[1].contains("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code"));
+    assert!(
+        bodies[1].contains("grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code")
+    );
     assert!(bodies.iter().all(|b| !b.contains("secret")));
     assert_eq!(
         requests[4].header("authorization"),
@@ -356,7 +362,10 @@ async fn sign_out_revokes_and_deletes_even_offline() {
     h.restored().await;
     h.transport.push_fixture(fx!("revoke"));
     h.auth.sign_out().await.unwrap();
-    assert_eq!(h.transport.requests()[0].url, "https://id.test/oauth2/revoke");
+    assert_eq!(
+        h.transport.requests()[0].url,
+        "https://id.test/oauth2/revoke"
+    );
     assert_eq!(
         h.bodies(),
         [format!("client_id={CLIENT_ID}&token={ACCESS_1}")]
@@ -402,7 +411,10 @@ async fn tokens_never_show_up_in_debug_output_or_logs() {
     // registered with it.
     let line = format!("helix call with {ACCESS_1} after refresh {REFRESH_1}");
     let masked = redact(&line);
-    assert!(!masked.contains(ACCESS_1) && !masked.contains(REFRESH_1), "{masked}");
+    assert!(
+        !masked.contains(ACCESS_1) && !masked.contains(REFRESH_1),
+        "{masked}"
+    );
 }
 
 #[tokio::test]
