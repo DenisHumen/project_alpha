@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-metadata"
+version = "0.1.0"
+description = "Metadata provider clients outside the sans-IO core: TMDB client, rate limiting, ProviderCache (META-009)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = ["http"]
+# Live HTTPS transport (ureq + rustls/ring + webpki-roots). Without it the
+# crate still builds with any injected `HttpTransport` (tests, replay).
+http = ["dep:ureq"]
+
+[dependencies]
+pa-recognition = { path = "../pa-recognition" }
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+ureq = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile.workspace = true

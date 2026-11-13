@@ -49,6 +49,7 @@ env:
 
 jobs:
   bindings:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: FRB bindings up to date
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -75,6 +76,7 @@ jobs:
         run: just core frb-check
 
   linux:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Linux example + integration test
     runs-on: ubuntu-24.04
     timeout-minutes: 40
@@ -104,6 +106,7 @@ jobs:
         run: xvfb-run -a flutter test integration_test -d linux
 
   android:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Android example APK
     runs-on: ubuntu-24.04
     timeout-minutes: 45
