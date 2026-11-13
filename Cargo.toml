@@ -7,12 +7,12 @@
 # does not touch this file. Cargo cannot glob directories without a
 # `Cargo.toml`, so non-Rust tools stay outside `tools/crates/`, and the
 # `.gitkeep` files keep the globs non-empty while there are no crates yet.
-# The `server` member is added by the task that creates `server/Cargo.toml`.
 
 [workspace]
 resolver = "3"
 members = [
     "core/crates/*",
+    "server",
     "tools/crates/*",
     "tools/recognition-eval",
 ]
@@ -26,8 +26,10 @@ publish = false
 
 # One line per dependency, sorted alphabetically. Crates use `dep.workspace = true`.
 [workspace.dependencies]
+axum = { version = "0.8.9", default-features = false }
 dirs = "7.0"
 flutter_rust_bridge = "=2.13.0"
+proptest = "1.12"
 quick-xml = "0.42"
 reqwest = { version = "0.13", default-features = false }
 rusqlite = { version = "0.42", features = ["bundled"] }
@@ -38,4 +40,8 @@ sha2 = "0.11"
 tempfile = "3.27"
 thiserror = "2.0.21"
 tokio = { version = "1.54", default-features = false }
+toml = "1.2"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", default-features = false }
 uniffi = { version = "0.32.2", default-features = false }
+uuid = { version = "1.29", default-features = false, features = ["std", "v7"] }

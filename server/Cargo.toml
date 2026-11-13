@@ -1,0 +1,33 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-server"
+version = "0.1.0"
+description = "Kinolune media server (mode B): axum HTTP on top of the core crates"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# Binary name follows the NAS OS layout (ADR-0010: /usr/lib/alpha-media).
+[[bin]]
+name = "alpha-media"
+path = "src/main.rs"
+
+# No TLS yet. When it arrives (SRV-004) it is rustls only: openssl is banned
+# by deny.toml.
+[dependencies]
+axum = { workspace = true, features = ["http1", "json", "tokio"] }
+pa-library = { path = "../core/crates/pa-library" }
+pa-runtime = { path = "../core/crates/pa-runtime" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "net", "rt", "signal", "sync", "time"] }
+toml.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["ansi", "env-filter", "fmt", "json", "std"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["io-util", "rt-multi-thread"] }
