@@ -2241,6 +2241,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-jobs"
+version = "0.1.0"
+dependencies = [
+ "pa-library",
+ "proptest",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "pa-library"
 version = "0.1.0"
 dependencies = [

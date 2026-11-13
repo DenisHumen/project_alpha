@@ -333,7 +333,7 @@ project_alpha/
   - Что: Flutter (Android, iOS, iPadOS, macOS, Windows, Linux) и tvOS (TV-001) показывают `core_version()` и собираются в CI.
   - deps: CORE-002, CORE-003, CORE-004, UI-001, TV-001, CI-004, CI-005, CI-007 · size: S · parallel: yes · веха: M0 · ref: S §9 этап 0, 04 §6 п.1
   - done when: скриншоты со всех платформ в PR; все job CI зелёные.
-- [ ] **CORE-011** `pa-jobs`: персистентная очередь задач
+- [x] **CORE-011** `pa-jobs`: персистентная очередь задач
   - Что: таблица `jobs`, состояния queued → waiting_resources → running → paused/retrying → done/failed/cancelled, приоритеты (live-запись выше всего), лимиты параллельности по типу, backoff, пауза по сети, батарее и Wi-Fi-only, события прогресса.
   - deps: CORE-006, LIB-001 · size: M · parallel: yes · веха: M1 · ref: 04 §1.10
   - done when: задача переживает kill процесса и докачивается; property-тест переходов состояний.
