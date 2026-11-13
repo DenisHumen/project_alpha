@@ -1,0 +1,51 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "id": "AwkwardHelplessSalamanderSwiftRage",
+        "url": "https://clips.twitch.tv/AwkwardHelplessSalamanderSwiftRage",
+        "embed_url": "https://clips.twitch.tv/embed?clip=AwkwardHelplessSalamanderSwiftRage",
+        "broadcaster_id": "1001",
+        "broadcaster_name": "Pixel_Fox",
+        "creator_id": "2001",
+        "creator_name": "viewer_a",
+        "video_id": "2200000001",
+        "game_id": "1229",
+        "language": "en",
+        "title": "the BLJ",
+        "view_count": 10,
+        "created_at": "2026-11-13T18:30:00Z",
+        "thumbnail_url": "https://clips-media-assets2.twitch.tv/clip-preview-480x272.jpg",
+        "duration": 28.4,
+        "vod_offset": 5400,
+        "is_featured": true
+      },
+      {
+        "id": "FreshClipStillProcessing",
+        "url": "https://clips.twitch.tv/FreshClipStillProcessing",
+        "embed_url": "https://clips.twitch.tv/embed?clip=FreshClipStillProcessing",
+        "broadcaster_id": "1001",
+        "broadcaster_name": "Pixel_Fox",
+        "creator_id": "2002",
+        "creator_name": "viewer_b",
+        "video_id": "",
+        "game_id": "1229",
+        "language": "en",
+        "title": "just now",
+        "view_count": 1,
+        "created_at": "2026-11-14T17:40:00Z",
+        "thumbnail_url": "https://clips-media-assets2.twitch.tv/clip2-preview-480x272.jpg",
+        "duration": 15,
+        "vod_offset": null,
+        "is_featured": false
+      }
+    ],
+    "pagination": {}
+  }
+}

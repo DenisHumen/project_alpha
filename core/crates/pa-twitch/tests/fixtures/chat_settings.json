@@ -1,0 +1,24 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "broadcaster_id": "1001",
+        "slow_mode": true,
+        "slow_mode_wait_time": 30,
+        "follower_mode": true,
+        "follower_mode_duration": 0,
+        "subscriber_mode": false,
+        "emote_mode": false,
+        "unique_chat_mode": false,
+        "non_moderator_chat_delay": null,
+        "non_moderator_chat_delay_duration": null
+      }
+    ]
+  }
+}

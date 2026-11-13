@@ -1,0 +1,18 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "id": "1229",
+        "name": "Super Mario 64",
+        "box_art_url": "https://static-cdn.jtvnw.net/ttv-boxart/1229-52x72.jpg"
+      }
+    ],
+    "pagination": {}
+  }
+}
