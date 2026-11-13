@@ -14,6 +14,7 @@ resolver = "3"
 members = [
     "core/crates/*",
     "tools/crates/*",
+    "tools/recognition-eval",
 ]
 
 [workspace.package]
