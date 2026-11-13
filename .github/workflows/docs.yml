@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: MPL-2.0
+# Documentation checks (DOC-003): the generated crate graph in
+# docs/dev/crate-graph.md must match the Cargo workspace.
+# Fix locally with `just docs::crate-graph`.
+
+name: Docs
+
+on:
+  pull_request:
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "**/Cargo.toml"
+      - "docs/dev/**"
+      - "docs/justfile"
+      - ".github/workflows/docs.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "**/Cargo.toml"
+      - "docs/dev/**"
+
+permissions:
+  contents: read
+
+jobs:
+  crate-graph:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # rustup on the runner installs the toolchain pinned in rust-toolchain.toml.
+      - name: Check docs/dev/crate-graph.md is up to date
+        run: python3 docs/dev/scripts/crate_graph.py --check

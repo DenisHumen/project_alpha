@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: MPL-2.0
+# `docs` module: documentation helpers.
+# Owned by the DOC workstream (docs/ROADMAP.md §0.4).
+
+# Regenerate the workspace crate graph in docs/dev/crate-graph.md
+[working-directory: '..']
+crate-graph:
+    python3 docs/dev/scripts/crate_graph.py
+
+# Fail if docs/dev/crate-graph.md is stale (CI: .github/workflows/docs.yml)
+[working-directory: '..']
+crate-graph-check:
+    python3 docs/dev/scripts/crate_graph.py --check
