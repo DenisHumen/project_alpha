@@ -29,6 +29,7 @@
 | [0021](0021-anime-providers-graphql-post.md) | Аниме-провайдеры AniList и Shikimori: GraphQL `POST` в общем транспорте, общий конвейер запросов | Предложен | META-010 |
 | [0022](0022-local-title-index.md) | Локальный индекс названий: свой индекс в памяти в `pa-recognition`, синонимы anime-offline-database в бандле | Предложен | META-007 |
 | [0023](0023-tvos-xcodegen-project.md) | Xcode-проект tvOS-приложения генерируется XcodeGen из `project.yml` | Предложен | TV-001 |
+| [NNNN](NNNN-pa-jobs-persistent-queue.md) | Очередь задач `pa-jobs`: таблица `jobs` в базе медиатеки, блокирующие обработчики на потоках | Предложен | CORE-011 |
 
 ## Запланированные ADR
 
