@@ -138,8 +138,6 @@ export async function generate() {
 
 // ignore_for_file: constant_identifier_names, lines_longer_than_80_chars
 
-import 'dart:ui' show FontFeature, FontVariation;
-
 import 'package:flutter/widgets.dart';
 
 /// Transition token (DTCG \`transition\`).
