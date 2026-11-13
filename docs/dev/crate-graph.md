@@ -35,6 +35,7 @@ flowchart LR
     pa_eval["pa-eval"]
     pa_recognition_eval["pa-recognition-eval"]
   end
+  pa_eval --> pa_anime_mappings
   pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
   pa_ffi --> pa_runtime
@@ -43,6 +44,7 @@ flowchart LR
   pa_frb --> pa_recognition
   pa_library --> pa_model
   pa_metadata --> pa_recognition
+  pa_recognition --> pa_anime_mappings
   pa_scanner --> pa_library
   pa_scanner -. dev .-> pa_model
   pa_scanner --> pa_vfs
@@ -67,7 +69,7 @@ flowchart LR
 | `pa-metadata` | `core/crates/pa-metadata` | 5 | Metadata provider clients outside the sans-IO core: TMDB, AniList, Shikimori, rate limiting, ProviderCache (META-009, META-010) |
 | `pa-model` | `core/crates/pa-model` | 1 | Domain types of the project_alpha core: media entities, sync keys, playback state |
 | `pa-playback` | `core/crates/pa-playback` | 2 | PlayerEngine contract, capability matrix and Auto engine selection, mock engine and engine contract tests (PLAY-003) |
-| `pa-recognition` | `core/crates/pa-recognition` | 2 | Media recognition core (sans-IO): filename parser with N-best hypotheses, Provider boundary |
+| `pa-recognition` | `core/crates/pa-recognition` | 3 | Media recognition core (sans-IO): filename parser with N-best hypotheses, title normalization and local title index, Provider boundary |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |
 | `pa-scanner` | `core/crates/pa-scanner` | 1 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003); music tags and index (MUS-001) |

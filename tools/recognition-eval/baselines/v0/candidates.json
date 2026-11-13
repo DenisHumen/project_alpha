@@ -1,0 +1,645 @@
+{
+  "parser_version": "0.2.0",
+  "index_records": 38724,
+  "index_titles": 220155,
+  "sources": [
+    "train.jsonl",
+    "dev.jsonl"
+  ],
+  "ks": [
+    1,
+    3,
+    5,
+    10
+  ],
+  "depth": 50,
+  "overall": {
+    "items": 3857,
+    "found": [
+      2985,
+      3684,
+      3743,
+      3838
+    ],
+    "recall": [
+      0.7739175525019445,
+      0.9551464869069225,
+      0.9704433497536946,
+      0.9950738916256158
+    ],
+    "mrr": 0.8636166565839896
+  },
+  "per_split": {
+    "dev": {
+      "items": 844,
+      "found": [
+        667,
+        842,
+        842,
+        842
+      ],
+      "recall": [
+        0.7902843601895735,
+        0.9976303317535545,
+        0.9976303317535545,
+        0.9976303317535545
+      ],
+      "mrr": 0.8830963665086877
+    },
+    "train": {
+      "items": 3013,
+      "found": [
+        2318,
+        2842,
+        2901,
+        2996
+      ],
+      "recall": [
+        0.7693328908065051,
+        0.943245934284766,
+        0.9628277464321274,
+        0.9943577829405907
+      ],
+      "mrr": 0.8581600103256243
+    }
+  },
+  "per_category": {
+    "A1": {
+      "items": 456,
+      "found": [
+        166,
+        370,
+        404,
+        456
+      ],
+      "recall": [
+        0.36403508771929827,
+        0.8114035087719298,
+        0.8859649122807017,
+        1.0
+      ],
+      "mrr": 0.589465852130325
+    },
+    "A10": {
+      "items": 513,
+      "found": [
+        462,
+        492,
+        499,
+        499
+      ],
+      "recall": [
+        0.9005847953216374,
+        0.9590643274853801,
+        0.9727095516569201,
+        0.9727095516569201
+      ],
+      "mrr": 0.9315464587394412
+    },
+    "A11": {
+      "items": 236,
+      "found": [
+        219,
+        236,
+        236,
+        236
+      ],
+      "recall": [
+        0.9279661016949152,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.9639830508474576
+    },
+    "A12": {
+      "items": 86,
+      "found": [
+        82,
+        86,
+        86,
+        86
+      ],
+      "recall": [
+        0.9534883720930233,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.9767441860465116
+    },
+    "A13": {
+      "items": 169,
+      "found": [
+        167,
+        169,
+        169,
+        169
+      ],
+      "recall": [
+        0.9881656804733728,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.9940828402366864
+    },
+    "A14": {
+      "items": 848,
+      "found": [
+        753,
+        842,
+        842,
+        842
+      ],
+      "recall": [
+        0.8879716981132075,
+        0.9929245283018868,
+        0.9929245283018868,
+        0.9929245283018868
+      ],
+      "mrr": 0.9369103773584903
+    },
+    "A15": {
+      "items": 501,
+      "found": [
+        472,
+        495,
+        496,
+        501
+      ],
+      "recall": [
+        0.9421157684630739,
+        0.9880239520958084,
+        0.9900199600798403,
+        1.0
+      ],
+      "mrr": 0.9657066818743464
+    },
+    "A16": {
+      "items": 608,
+      "found": [
+        160,
+        543,
+        574,
+        608
+      ],
+      "recall": [
+        0.2631578947368421,
+        0.8930921052631579,
+        0.944078947368421,
+        1.0
+      ],
+      "mrr": 0.5607103696741842
+    },
+    "A17": {
+      "items": 476,
+      "found": [
+        460,
+        465,
+        465,
+        465
+      ],
+      "recall": [
+        0.9663865546218487,
+        0.976890756302521,
+        0.976890756302521,
+        0.976890756302521
+      ],
+      "mrr": 0.9716386554621849
+    },
+    "A2": {
+      "items": 810,
+      "found": [
+        178,
+        669,
+        720,
+        805
+      ],
+      "recall": [
+        0.21975308641975308,
+        0.825925925925926,
+        0.8888888888888888,
+        0.9938271604938271
+      ],
+      "mrr": 0.5164084852047789
+    },
+    "A3": {
+      "items": 333,
+      "found": [
+        3,
+        232,
+        266,
+        333
+      ],
+      "recall": [
+        0.009009009009009009,
+        0.6966966966966966,
+        0.7987987987987988,
+        1.0
+      ],
+      "mrr": 0.35407669574336165
+    },
+    "A4": {
+      "items": 405,
+      "found": [
+        343,
+        395,
+        395,
+        405
+      ],
+      "recall": [
+        0.8469135802469135,
+        0.9753086419753086,
+        0.9753086419753086,
+        1.0
+      ],
+      "mrr": 0.9142269253380363
+    },
+    "A5": {
+      "items": 247,
+      "found": [
+        236,
+        247,
+        247,
+        247
+      ],
+      "recall": [
+        0.9554655870445344,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.9777327935222672
+    },
+    "A6": {
+      "items": 2357,
+      "found": [
+        1794,
+        2217,
+        2268,
+        2349
+      ],
+      "recall": [
+        0.7611370386084005,
+        0.9406024607551973,
+        0.962240135765804,
+        0.996605854900297
+      ],
+      "mrr": 0.8521279067418228
+    },
+    "A7": {
+      "items": 656,
+      "found": [
+        614,
+        653,
+        653,
+        653
+      ],
+      "recall": [
+        0.9359756097560976,
+        0.9954268292682927,
+        0.9954268292682927,
+        0.9954268292682927
+      ],
+      "mrr": 0.9654471544715447
+    },
+    "A8": {
+      "items": 205,
+      "found": [
+        140,
+        204,
+        205,
+        205
+      ],
+      "recall": [
+        0.6829268292682927,
+        0.9951219512195122,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.8367479674796748
+    },
+    "A9": {
+      "items": 216,
+      "found": [
+        200,
+        216,
+        216,
+        216
+      ],
+      "recall": [
+        0.9259259259259259,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.9629629629629629
+    }
+  },
+  "per_kind": {
+    "anime": {
+      "items": 2278,
+      "found": [
+        1530,
+        2116,
+        2167,
+        2262
+      ],
+      "recall": [
+        0.6716417910447762,
+        0.9288849868305531,
+        0.9512730465320457,
+        0.9929762949956101
+      ],
+      "mrr": 0.7984574675641393
+    },
+    "movie": {
+      "items": 952,
+      "found": [
+        880,
+        941,
+        949,
+        949
+      ],
+      "recall": [
+        0.9243697478991597,
+        0.9884453781512605,
+        0.9968487394957983,
+        0.9968487394957983
+      ],
+      "mrr": 0.9570203081232495
+    },
+    "show": {
+      "items": 627,
+      "found": [
+        575,
+        627,
+        627,
+        627
+      ],
+      "recall": [
+        0.9170653907496013,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.9585326953748007
+    }
+  },
+  "per_role": {
+    "extra": {
+      "items": 279,
+      "found": [
+        237,
+        260,
+        267,
+        267
+      ],
+      "recall": [
+        0.8494623655913979,
+        0.931899641577061,
+        0.956989247311828,
+        0.956989247311828
+      ],
+      "mrr": 0.893847072879331
+    },
+    "main": {
+      "items": 3377,
+      "found": [
+        2552,
+        3225,
+        3277,
+        3372
+      ],
+      "recall": [
+        0.755700325732899,
+        0.9549896357713947,
+        0.9703879182706544,
+        0.9985193959135327
+      ],
+      "mrr": 0.8540379363669285
+    },
+    "part": {
+      "items": 169,
+      "found": [
+        167,
+        169,
+        169,
+        169
+      ],
+      "recall": [
+        0.9881656804733728,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "mrr": 0.9940828402366864
+    },
+    "sample": {
+      "items": 32,
+      "found": [
+        29,
+        30,
+        30,
+        30
+      ],
+      "recall": [
+        0.90625,
+        0.9375,
+        0.9375,
+        0.9375
+      ],
+      "mrr": 0.921875
+    }
+  },
+  "misses": [
+    {
+      "case_id": "v0-a10-1612-031",
+      "path": "Movies/1612 (2007)/sample.mkv",
+      "expected": "1612",
+      "query": []
+    },
+    {
+      "case_id": "v0-a10-1612-038",
+      "path": "Movies/1612 (2007)/Behind The Scenes/On Set.mkv",
+      "expected": "1612",
+      "query": [
+        "On Set"
+      ],
+      "top": "Tsukio"
+    },
+    {
+      "case_id": "v0-a10-1612-038",
+      "path": "Movies/1612 (2007)/sample.mkv",
+      "expected": "1612",
+      "query": []
+    },
+    {
+      "case_id": "v0-a10-bleach-memories-of-nobody-061",
+      "path": "Аниме/Фильмы/Extras/Trailer 2.mkv",
+      "expected": "Bleach Movie 1: Memories of Nobody",
+      "query": [
+        "Trailer 2",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a10-evangelion-2-0-you-can-not-advance-004",
+      "path": "Movies/Anime/Extras/Trailer 3.mkv",
+      "expected": "Evangelion Movie 2: Ha",
+      "query": [
+        "Trailer 3",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a10-hotaru-no-haka-108",
+      "path": "Anime/Movies/Extras/Trailer 3.mkv",
+      "expected": "Hotaru no Haka",
+      "query": [
+        "Trailer 3",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a10-kaze-tachinu-071",
+      "path": "Аниме/Фильмы/Extras/Trailer 1.mkv",
+      "expected": "Kaze Tachinu",
+      "query": [
+        "Trailer 1",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a10-perfect-blue-050",
+      "path": "Movies/Anime/Extras/Trailer 1.mkv",
+      "expected": "Perfect Blue",
+      "query": [
+        "Trailer 1",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a10-sennen-joyuu-042",
+      "path": "Аниме/Фильмы/Extras/Trailer 3.mkv",
+      "expected": "Sennen Joyuu",
+      "query": [
+        "Trailer 3",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a14-byousoku-5-centimeter-011",
+      "path": "Anime/Movies/Extras/Trailer 3.mkv",
+      "expected": "Byousoku 5 Centimeter",
+      "query": [
+        "Trailer 3",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a14-evangelion-3-0-1-0-thrice-upon-a-time-002",
+      "path": "Anime Movies/Extras/Trailer 3.mkv",
+      "expected": "Shin Evangelion Movie:||",
+      "query": [
+        "Trailer 3",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a17-tonari-no-totoro-110",
+      "path": "Anime/Movies/Extras/Trailer 3.mkv",
+      "expected": "Tonari no Totoro",
+      "query": [
+        "Trailer 3",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a2-kimetsu-no-yaiba-hashira-geiko-hen-035",
+      "path": "Anime/Kimetsu no Yaiba/Season 4/[Kaleido-subs] Kimetsu no Yaiba - 03 [WEB 720p HEVC 10bit AAC][D385F4E8].mkv",
+      "expected": "Kimetsu no Yaiba: Hashira Geiko-hen",
+      "query": [
+        "Kimetsu no Yaiba",
+        "Kimetsu no Yaiba - 03"
+      ],
+      "top": "Kimetsu no Yaiba",
+      "rank": 11
+    },
+    {
+      "case_id": "v0-a2-kimetsu-no-yaiba-hashira-geiko-hen-035",
+      "path": "Anime/Kimetsu no Yaiba/Season 4/[Kaleido-subs] Kimetsu no Yaiba - 04 [WEB 720p HEVC 10bit AAC][6ADC0D36].mkv",
+      "expected": "Kimetsu no Yaiba: Hashira Geiko-hen",
+      "query": [
+        "Kimetsu no Yaiba",
+        "Kimetsu no Yaiba - 04"
+      ],
+      "top": "Kimetsu no Yaiba",
+      "rank": 11
+    },
+    {
+      "case_id": "v0-a2-kimetsu-no-yaiba-hashira-geiko-hen-035",
+      "path": "Anime/Kimetsu no Yaiba/Season 4/[Kaleido-subs] Kimetsu no Yaiba - 05 [WEB 720p HEVC 10bit AAC][CB437BB2].mkv",
+      "expected": "Kimetsu no Yaiba: Hashira Geiko-hen",
+      "query": [
+        "Kimetsu no Yaiba",
+        "Kimetsu no Yaiba - 05"
+      ],
+      "top": "Kimetsu no Yaiba",
+      "rank": 11
+    },
+    {
+      "case_id": "v0-a2-kimetsu-no-yaiba-hashira-geiko-hen-083",
+      "path": "Anime/Kimetsu no Yaiba/Season 4/Kimetsu no Yaiba - 06 [1080p].mkv",
+      "expected": "Kimetsu no Yaiba: Hashira Geiko-hen",
+      "query": [
+        "Kimetsu no Yaiba",
+        "Kimetsu no Yaiba - 06"
+      ],
+      "top": "Kimetsu no Yaiba",
+      "rank": 11
+    },
+    {
+      "case_id": "v0-a2-kimetsu-no-yaiba-hashira-geiko-hen-083",
+      "path": "Anime/Kimetsu no Yaiba/Season 4/Kimetsu no Yaiba - 07 [1080p].mkv",
+      "expected": "Kimetsu no Yaiba: Hashira Geiko-hen",
+      "query": [
+        "Kimetsu no Yaiba",
+        "Kimetsu no Yaiba - 07"
+      ],
+      "top": "Kimetsu no Yaiba",
+      "rank": 11
+    },
+    {
+      "case_id": "v0-a10-sen-to-chihiro-no-kamikakushi-089",
+      "path": "Anime/Movies/Extras/Trailer 3.mkv",
+      "expected": "Sen to Chihiro no Kamikakushi",
+      "query": [
+        "Trailer 3",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    },
+    {
+      "case_id": "v0-a17-sen-to-chihiro-no-kamikakushi-033",
+      "path": "Anime/Movies/Extras/Trailer 2.mkv",
+      "expected": "Sen to Chihiro no Kamikakushi",
+      "query": [
+        "Trailer 2",
+        "Trailer"
+      ],
+      "top": "Uchuu"
+    }
+  ],
+  "misses_total": 19
+}

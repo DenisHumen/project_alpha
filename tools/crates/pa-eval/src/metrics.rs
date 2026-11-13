@@ -162,7 +162,8 @@ fn find_prediction<'p>(
         .max_by(|a, b| a.confidence.total_cmp(&b.confidence))
 }
 
-fn ids_match(truth: &Ids, guess: &Ids) -> bool {
+/// Same work: at least one shared id namespace, and all shared namespaces agree.
+pub fn ids_match(truth: &Ids, guess: &Ids) -> bool {
     let guess: BTreeMap<_, _> = guess.pairs().into_iter().collect();
     let mut shared = 0;
     for (ns, value) in truth.pairs() {

@@ -30,3 +30,16 @@ python3 "$here/tape.py" "$misses" > "$out/tmdb-search.tape.jsonl"
     --json "$out/naive.json" --md "$out/naive.md" "$corpus"/*.jsonl
 "$bin/pa-eval" run --recognizer naive --tape "$out/tmdb-search.tape.jsonl" --threshold 0.8 \
     --json "$out/naive-t080.json" --md "$out/naive-t080.md" "$corpus"/*.jsonl
+
+# META-007: candidate recall of the local title index, no provider calls.
+# Needs the bundled anime-offline-database (data/anime-mappings/build.sh).
+python3 "$here/catalog.py" > "$out/title-catalog.jsonl"
+aod="${AOD_BUNDLE:-$root/data/anime-mappings/dist/anime-offline-ids.jsonl}"
+if [ -f "$aod" ]; then
+    "$bin/pa-eval" candidates --anime "$aod" --catalog "$out/title-catalog.jsonl" \
+        --json "$out/candidates.json" --md "$out/candidates.md" "$corpus/train.jsonl" "$corpus/dev.jsonl"
+    "$bin/pa-eval" candidates --anime "$aod" --catalog "$out/title-catalog.jsonl" \
+        --json "$out/candidates-test.json" --md "$out/candidates-test.md" "$corpus/test.jsonl"
+else
+    echo "skipping candidate reports: $aod not found (run data/anime-mappings/build.sh)" >&2
+fi

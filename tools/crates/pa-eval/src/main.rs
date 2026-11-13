@@ -7,6 +7,8 @@
 //!             CORPUS.jsonl...
 //! pa-eval compare --baseline BASE.json --current CUR.json
 //!             [--max-silent-regression-pp 0.2] [--md OUT.md]
+//! pa-eval candidates [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--k 1,3,5,10]
+//!             [--no-validate] [--json OUT.json] [--md OUT.md] CORPUS.jsonl...
 //! ```
 //! Exit code: 0 ok, 1 regression (compare), 2 usage, I/O or invalid input.
 
@@ -41,13 +43,16 @@ const USAGE: &str = "usage:
               [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
               CORPUS.jsonl...
   pa-eval compare --baseline BASE.json --current CUR.json
-              [--max-silent-regression-pp 0.2] [--md OUT.md]";
+              [--max-silent-regression-pp 0.2] [--md OUT.md]
+  pa-eval candidates [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--k 1,3,5,10]
+              [--no-validate] [--json OUT.json] [--md OUT.md] CORPUS.jsonl...";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let result = match args.first().map(String::as_str) {
         Some("run") => cmd_run(&args[1..]),
         Some("compare") => cmd_compare(&args[1..]),
+        Some("candidates") => cmd_candidates(&args[1..]),
         Some("-h" | "--help") => {
             println!("{USAGE}");
             return ExitCode::SUCCESS;
@@ -219,4 +224,66 @@ fn cmd_compare(args: &[String]) -> Result<ExitCode, String> {
         eprintln!("silent-error regression in: {}", cmp.regressions.join(", "));
         ExitCode::from(1)
     })
+}
+
+fn cmd_candidates(args: &[String]) -> Result<ExitCode, String> {
+    use pa_eval::candidates;
+    let (opts, files) = parse(
+        args,
+        &["--anime", "--catalog", "--k", "--json", "--md"],
+        &["--no-validate"],
+    )?;
+    if files.is_empty() {
+        return Err(USAGE.to_owned());
+    }
+    let ks: Vec<usize> = match opt(&opts, "--k") {
+        Some(list) => list
+            .split(',')
+            .map(|k| k.trim().parse::<usize>().ok().filter(|k| *k > 0))
+            .collect::<Option<_>>()
+            .ok_or("--k must be a comma-separated list of positive integers")?,
+        None => candidates::DEFAULT_KS.to_vec(),
+    };
+    let started = Instant::now();
+    let mut records = Vec::new();
+    if let Some(path) = opt(&opts, "--anime") {
+        let bytes = std::fs::read(path).map_err(|e| format!("{path}: {e}"))?;
+        records.extend(candidates::load_anime(&bytes).map_err(|e| format!("{path}: {e}"))?);
+    }
+    for (_, path) in opts.iter().filter(|(k, _)| k == "--catalog") {
+        records.extend(candidates::load_catalog(&read(path)?).map_err(|e| format!("{path}: {e}"))?);
+    }
+    let index = pa_recognition::title::TitleIndex::from_records(records);
+    let built = started.elapsed();
+
+    let docs = files
+        .iter()
+        .map(|f| Ok((f.clone(), read(f)?)))
+        .collect::<Result<Vec<_>, String>>()?;
+    let corpus = Corpus::load(&docs, opt(&opts, "--no-validate").is_none())?;
+    let started = Instant::now();
+    let report = candidates::evaluate(&corpus, &index, &ks);
+    let elapsed = started.elapsed();
+    eprintln!(
+        "pa-eval: index {} records / {} titles built in {:.3} s; {} units searched in {:.3} s \
+         ({:.3} ms each; wall time is not part of the report)",
+        index.len(),
+        index.title_count(),
+        built.as_secs_f64(),
+        report.overall.items,
+        elapsed.as_secs_f64(),
+        elapsed.as_secs_f64() * 1000.0 / report.overall.items.max(1) as f64,
+    );
+    let json = opt(&opts, "--json");
+    let md = opt(&opts, "--md");
+    if let Some(path) = json {
+        write(path, &report.to_json())?;
+    }
+    if let Some(path) = md {
+        write(path, &report.to_markdown())?;
+    }
+    if json.is_none() && md.is_none() {
+        print!("{}", report.to_markdown());
+    }
+    Ok(ExitCode::SUCCESS)
 }

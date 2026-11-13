@@ -20,6 +20,17 @@ cargo run -p pa-eval -- compare --baseline baselines/main.json --current report.
 
 Опции `run`: `--recognizer naive|parser|abstain` (по умолчанию `naive`; `parser` — разбор имён парсером `pa-recognition` без поиска работы), `--tape FILE`, `--misses FILE` (записать запросы, которых нет на кассете, — по ним строится кассета), `--threshold X` (порог авто, по умолчанию 0.9), `--no-validate` (не проверять корпус валидатором META-001). Код выхода: 0 — ок, 1 — регресс (`compare`), 2 — ошибка аргументов, ввода-вывода или невалидный корпус.
 
+## Кандидаты (META-007)
+
+```bash
+# recall@k локального индекса названий, без провайдеров
+cargo run -p pa-eval -- candidates --anime data/anime-mappings/dist/anime-offline-ids.jsonl \
+    --catalog tools/recognition-eval/baselines/v0/title-catalog.jsonl \
+    --json candidates.json --md candidates.md corpus/train.jsonl corpus/dev.jsonl
+```
+
+Опции `candidates`: `--anime FILE` (встроенная база anime-offline-database — бандл `anime-offline-ids.jsonl` или исходный JSONL), `--catalog FILE` (можно несколько; JSONL записей `pa_recognition::title::TitleRecord`, например кэш TMDB), `--k 1,3,5,10`, `--no-validate`. Элемент — размеченный файл, у работы которого есть внешние ID; найден на `k`, если в топ-k есть запись с той же работой (то же правило совпадения ID, что у метрик идентификации). Отчёт: recall@k и MRR в целом, по сплитам, категориям, типам работ и ролям файлов, плюс список промахов.
+
 ## Как подключить распознаватель
 
 Раннер вызывает трейт `pa_eval::Recognizer`:
