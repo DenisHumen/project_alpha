@@ -52,6 +52,10 @@ distro/tests/vm-switch-rollback.sh          # ~10 минут; KEEP=1 — ост�
 5. `bootc rollback` → v1;
 6. `bootc switch` на v2 **по digest**, затем обратно на тег `:dev`; `bootc upgrade --check` снова отслеживает тег (нужно для поэтапной раскатки, DIST-012).
 
+### Результат (2026-11-13)
+
+Сценарий пройден целиком (`ALL STEPS PASSED`) на хосте Ubuntu с docker 29 и QEMU 10.2 (KVM, SeaBIOS, 2 vCPU, 3 GiB): базовый образ bootc 1.17.1, SELinux в VM — `Enforcing`. Все 6 шагов, включая переход на digest и возврат на тег. `smartd` в VM неактивен — у virtio-диска нет SMART, на железе это нормальная работа; в проверку сервисов он не входит.
+
 ### Почему именно так
 
 - **Диск** пишется `bootc install to-disk --generic-image --via-loopback` из контейнера базового образа с `--privileged --pid=host -v /dev:/dev`. Нужны loop-устройства, `mkfs` и монтирование, поэтому **rootless podman не подходит**; docker из группы `docker` — подходит.
