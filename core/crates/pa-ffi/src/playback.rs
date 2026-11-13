@@ -563,7 +563,9 @@ pub trait PlayerEngine: Send + Sync {
     /// Replaces the listener; `None` removes it.
     fn set_listener(&self, listener: Option<Arc<dyn EngineListener>>);
     fn state(&self) -> EngineState;
-    fn open(&self, request: OpenRequest) -> Result<(), EngineError>;
+    /// `open` of the core contract. Named `open_media` because UniFFI
+    /// escapes the Swift keyword `open` into the C header of foreign traits.
+    fn open_media(&self, request: OpenRequest) -> Result<(), EngineError>;
     fn play(&self) -> Result<(), EngineError>;
     fn pause(&self) -> Result<(), EngineError>;
     fn seek(&self, position_ms: u64) -> Result<(), EngineError>;
@@ -651,7 +653,7 @@ impl pb::PlayerEngine for ForeignEngine {
     }
 
     fn open(&self, request: pb::OpenRequest) -> Result<(), pb::EngineError> {
-        Ok(self.0.open(request.into())?)
+        Ok(self.0.open_media(request.into())?)
     }
 
     fn play(&self) -> Result<(), pb::EngineError> {
@@ -725,7 +727,7 @@ impl PlayerEngine for CoreEngine {
         self.0.state().into()
     }
 
-    fn open(&self, request: OpenRequest) -> Result<(), EngineError> {
+    fn open_media(&self, request: OpenRequest) -> Result<(), EngineError> {
         Ok(self.0.open(request.into())?)
     }
 

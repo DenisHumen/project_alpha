@@ -454,7 +454,7 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
         sync { fold.state() }
     }
 
-    public func open(request: OpenRequest) throws {
+    public func openMedia(request: OpenRequest) throws {
         try sync {
             try checkAlive()
             guard Int(request.index) < request.items.count else {

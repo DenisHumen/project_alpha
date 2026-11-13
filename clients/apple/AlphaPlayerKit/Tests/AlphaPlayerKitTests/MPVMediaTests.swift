@@ -31,7 +31,7 @@ final class MPVMediaTests: XCTestCase {
             let name = file.path.replacingOccurrences(of: dir.path + "/", with: "")
             let engine = try MPVEngine(configuration: .headless)
             defer { try? engine.close() }
-            try engine.open(request: OpenRequest(
+            try engine.openMedia(request: OpenRequest(
                 items: [MediaSource(uri: file.absoluteString, title: nil)], index: 0, startPositionMs: 0, play: true
             ))
             engine.settle(timeout: 20)
