@@ -305,7 +305,7 @@ project_alpha/
   - Что: `tools/bindings/build-xcframework.sh` (ios, ios-sim, tvos, tvos-sim, macos universal), binary target и Swift-обёртка UniFFI.
   - deps: CORE-001 · size: M · parallel: yes · веха: M0 · ref: 02 §1.4, 04 §4.4
   - done when: XCTest на симуляторах iOS и tvOS вызывает `core_version()`.
-- [ ] **CORE-004** Android: AAR `pa-core-android`
+- [x] **CORE-004** Android: AAR `pa-core-android`
   - Что: cargo-ndk → jniLibs (arm64-v8a, armeabi-v7a, x86_64), Gradle-модуль с UniFFI Kotlin.
   - deps: CORE-001 · size: S · parallel: yes · веха: M0 · ref: 02 §1.4
   - done when: instrumented-тест на эмуляторе вызывает ядро.
