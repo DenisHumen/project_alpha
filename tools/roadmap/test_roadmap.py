@@ -94,6 +94,14 @@ class LintTest(unittest.TestCase):
         errs = self.errors(text)
         self.assertTrue(any("ticked but dependency CORE-001" in e for e in errs), errs)
 
+    def test_owner_ticked_early_is_warning(self):
+        text = section(
+            "DEC", task("DEC-001"), task("DEC-002", "DEC-001", mark="x", extra=" (owner)")
+        )
+        tasks, report = roadmap.lint(text)
+        self.assertEqual(report.errors, [])
+        self.assertTrue(any("decision taken early" in w for w in report.warnings))
+
     def test_milestone_ordering(self):
         text = section("CORE", task("CORE-001", milestone=2), task("CORE-002", "CORE-001"))
         errs = self.errors(text)

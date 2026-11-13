@@ -224,7 +224,12 @@ def lint(text: str) -> tuple[list[Task], Report]:
             elif by_id[dep].cancelled:
                 report.error(t.line, f"{t.id}: depends on cancelled task {dep}")
             elif t.done and not by_id[dep].done:
-                report.error(t.line, f"{t.id} is ticked but dependency {dep} is open")
+                msg = f"{t.id} is ticked but dependency {dep} is open"
+                # The owner may decide ahead of the research a decision waits for.
+                if t.owner:
+                    report.warn(t.line, msg + " (owner decision taken early)")
+                else:
+                    report.error(t.line, msg)
         for dep in t.deps:
             d = by_id.get(dep)
             if (
