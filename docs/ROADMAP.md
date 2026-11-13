@@ -112,7 +112,7 @@ project_alpha/
 
 | Файл | Правило |
 |---|---|
-| `Cargo.toml` (корень) | `members` задан глобом (`core/crates/*`, `server`, `tools/*`), поэтому новый крейт корень не трогает. Новая зависимость — одна строка в `[workspace.dependencies]`, по алфавиту. Конфликт решать объединением строк |
+| `Cargo.toml` (корень) | `members`: глобы `core/crates/*`, `tools/crates/*` и явные пути (`tools/recognition-eval`; `server` добавляется задачей, создающей `server/Cargo.toml`). Новый крейт в `core/crates/` или `tools/crates/` корень не трогает, крейт в другом месте — добавляет одну строку в `members`. Новая зависимость — одна строка в `[workspace.dependencies]`, по алфавиту. Конфликт решать объединением строк |
 | `Cargo.lock` | Не править руками. При конфликте взять версию `main` и выполнить `cargo check --workspace` |
 | `justfile` (корень) | Только строки `mod <area> '<path>/justfile'`. Рецепты — в justfile своей области |
 | `core/crates/pa-ffi/src/lib.rs` | Каждый домен экспортируется своим модулем `src/<domain>.rs`. В `lib.rs` добавляется одна строка `mod` |
@@ -581,7 +581,7 @@ project_alpha/
 
 ### 3.7. PLAY — общий плеерный слой
 
-- [x] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов
+- [ ] **PLAY-001** LGPL-сборка FFmpeg для всех таргетов (Linux и Windows готовы; Android и Apple ждут CI на macOS/NDK)
   - Что: скрипты `tools/ffmpeg/`: shared, `--disable-gpl --disable-nonfree`, dav1d, libass, hwaccel (videotoolbox, mediacodec, d3d11va, vaapi); энкодеры — только нужные (aac, ac3); исходники и патчи публикуются; проверка `avutil_license()`.
   - deps: — · size: L · parallel: yes · веха: M0 · ref: 02 §3.1
   - done when: артефакты для Linux, Windows, macOS, iOS, tvOS и Android собираются; лицензия «LGPL version 2.1 or later».
