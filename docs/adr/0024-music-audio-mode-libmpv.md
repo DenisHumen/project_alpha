@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 
-# ADR-NNNN: Музыка v1 — libmpv в аудиорежиме, ReplayGain из тегов файла, проверка gapless по сэмплам
+# ADR-0024: Музыка v1 — libmpv в аудиорежиме, ReplayGain из тегов файла, проверка gapless по сэмплам
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
