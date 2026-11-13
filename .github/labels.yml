@@ -1,0 +1,190 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Labels as code (REPO-006). Synced to GitHub by .github/workflows/labels.yml
+# on every push to main that changes this file. Add or rename labels here,
+# not in the GitHub UI. To rename, set `from_name` to the old name.
+# Labels that exist on GitHub but are missing here are kept (skip-delete).
+
+# --- Type and triage ---
+- name: bug
+  color: "d73a4a"
+  description: "Что-то работает не так / Something isn't working"
+- name: enhancement
+  color: "a2eeef"
+  description: "Новая функция или улучшение / New feature or request"
+- name: playback
+  color: "e99695"
+  description: "Проблема воспроизведения / Playback issue"
+- name: recognition
+  color: "c5def5"
+  description: "Неверное распознавание медиа / Wrong media match"
+- name: documentation
+  color: "0075ca"
+  description: "Документация / Documentation"
+- name: question
+  color: "d876e3"
+  description: "Вопрос / Further information is requested"
+- name: triage
+  color: "fbca04"
+  description: "Ждёт разбора мейнтейнером / Needs maintainer triage"
+- name: security
+  color: "b60205"
+  description: "Безопасность (уязвимости — только приватно, см. SECURITY.md)"
+- name: conduct
+  color: "5319e7"
+  description: "Кодекс поведения / Code of conduct"
+- name: dependencies
+  color: "0366d6"
+  description: "Обновление зависимостей / Dependency updates"
+- name: duplicate
+  color: "cfd3d7"
+  description: "Дубликат / This issue or pull request already exists"
+- name: invalid
+  color: "e4e669"
+  description: "Некорректно / This doesn't seem right"
+- name: wontfix
+  color: "ffffff"
+  description: "Не будет сделано / This will not be worked on"
+- name: accessibility
+  color: "7057ff"
+  description: "Доступность / Accessibility"
+- name: good first issue
+  color: "7057ff"
+  description: "Подходит для первого вклада / Good for newcomers"
+- name: help wanted
+  color: "008672"
+  description: "Нужна помощь / Extra attention is needed"
+- name: owner
+  color: "000000"
+  description: "Только владелец: аккаунты, деньги, юр. вопросы, публикация"
+- name: blocked
+  color: "b60205"
+  description: "Ждёт решения владельца (DEC-00N) или зависимости"
+
+# --- Workstreams (docs/ROADMAP.md §0.3 p.3, §0.4) ---
+- name: "ws:repo"
+  color: "1d76db"
+  description: "Workstream REPO: репозиторий и процессы"
+- name: "ws:ci"
+  color: "1d76db"
+  description: "Workstream CI: сборка и проверки"
+- name: "ws:core"
+  color: "1d76db"
+  description: "Workstream CORE: Rust-ядро"
+- name: "ws:net"
+  color: "1d76db"
+  description: "Workstream NET: сетевые источники (SMB, NFS, WebDAV)"
+- name: "ws:lib"
+  color: "1d76db"
+  description: "Workstream LIB: библиотека и сканер"
+- name: "ws:meta"
+  color: "1d76db"
+  description: "Workstream META: распознавание и метаданные"
+- name: "ws:play"
+  color: "1d76db"
+  description: "Workstream PLAY: общий плеер, FFmpeg"
+- name: "ws:play-and"
+  color: "1d76db"
+  description: "Workstream PLAY-AND: плеер Android"
+- name: "ws:play-apl"
+  color: "1d76db"
+  description: "Workstream PLAY-APL: плеер Apple"
+- name: "ws:play-dsk"
+  color: "1d76db"
+  description: "Workstream PLAY-DSK: плеер desktop (libmpv)"
+- name: "ws:ui"
+  color: "1d76db"
+  description: "Workstream UI: Flutter-приложение"
+- name: "ws:tv"
+  color: "1d76db"
+  description: "Workstream TV: Android TV и tvOS"
+- name: "ws:sync"
+  color: "1d76db"
+  description: "Workstream SYNC: синхронизация без облака"
+- name: "ws:srv"
+  color: "1d76db"
+  description: "Workstream SRV: медиасервер"
+- name: "ws:mus"
+  color: "1d76db"
+  description: "Workstream MUS: музыкальный плеер"
+- name: "ws:twi"
+  color: "1d76db"
+  description: "Workstream TWI: клиент Twitch"
+- name: "ws:dist"
+  color: "1d76db"
+  description: "Workstream DIST: NAS-ОС"
+- name: "ws:dsn"
+  color: "1d76db"
+  description: "Workstream DSN: дизайн-система"
+- name: "ws:pkg"
+  color: "1d76db"
+  description: "Workstream PKG: упаковка и сторы"
+- name: "ws:qa"
+  color: "1d76db"
+  description: "Workstream QA: тесты и тестовые медиа"
+- name: "ws:docs"
+  color: "1d76db"
+  description: "Workstream DOC: документация и ADR"
+- name: "ws:legal"
+  color: "1d76db"
+  description: "Workstream LEGAL: лицензии и юридические вопросы"
+- name: "ws:site"
+  color: "1d76db"
+  description: "Workstream SITE: сайт"
+- name: "ws:comm"
+  color: "1d76db"
+  description: "Workstream COMM: сообщество и донаты"
+
+# --- Milestones (docs/ROADMAP.md) ---
+- name: M0
+  color: "bfdadc"
+  description: "Веха M0"
+- name: M1
+  color: "bfdadc"
+  description: "Веха M1"
+- name: M2
+  color: "bfdadc"
+  description: "Веха M2"
+- name: M3
+  color: "bfdadc"
+  description: "Веха M3"
+- name: M4
+  color: "bfdadc"
+  description: "Веха M4"
+- name: M5
+  color: "bfdadc"
+  description: "Веха M5"
+- name: M6
+  color: "bfdadc"
+  description: "Веха M6"
+- name: M7
+  color: "bfdadc"
+  description: "Веха M7"
+- name: M8
+  color: "bfdadc"
+  description: "Веха M8"
+- name: M9
+  color: "bfdadc"
+  description: "Веха M9"
+- name: M10
+  color: "bfdadc"
+  description: "Веха M10"
+
+# --- Size (docs/ROADMAP.md §0.1) ---
+- name: "size:S"
+  color: "c2e0c6"
+  description: "До 1 дня"
+- name: "size:M"
+  color: "fef2c0"
+  description: "До 1 недели"
+- name: "size:L"
+  color: "f9d0c4"
+  description: "Больше недели (эпик, лучше разбить)"
+
+# --- Build flavor (ADR-0007) ---
+- name: "flavor:store"
+  color: "d4c5f9"
+  description: "Только store-сборки"
+- name: "flavor:full"
+  color: "d4c5f9"
+  description: "Только full-сборки"
