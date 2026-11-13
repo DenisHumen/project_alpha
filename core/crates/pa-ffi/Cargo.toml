@@ -19,6 +19,7 @@ crate-type = ["lib", "cdylib", "staticlib"]
 cli = ["uniffi/cli", "uniffi/cargo-metadata"]
 
 [dependencies]
+pa-playback = { path = "../pa-playback" }
 pa-runtime = { path = "../pa-runtime" }
 pa-secrets = { path = "../pa-secrets" }
 serde_json.workspace = true
