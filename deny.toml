@@ -53,6 +53,13 @@ allow = [
 confidence-threshold = 0.93
 # Our own crates are checked too: they must stay MPL-2.0.
 unused-allowed-license = "allow"
+# Per-crate exceptions for non-code licences of bundled data.
+exceptions = [
+    # Mozilla CA root certificates (data) used by rustls-platform-verifier
+    # as a fallback trust store (reqwest in pa-twitch, TWI-001).
+    # CDLA-Permissive-2.0 is a permissive data licence without copyleft.
+    { crate = "webpki-root-certs", allow = ["CDLA-Permissive-2.0"] },
+]
 
 [licenses.private]
 ignore = false

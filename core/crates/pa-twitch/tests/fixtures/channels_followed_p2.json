@@ -1,0 +1,26 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "total": 3,
+    "data": [
+      {
+        "broadcaster_id": "1002",
+        "broadcaster_login": "quiet_owl",
+        "broadcaster_name": "Quiet_Owl",
+        "followed_at": "2023-05-11T12:30:00Z"
+      },
+      {
+        "broadcaster_id": "1001",
+        "broadcaster_login": "pixel_fox",
+        "broadcaster_name": "Pixel_Fox",
+        "followed_at": "2022-02-01T09:00:00Z"
+      }
+    ],
+    "pagination": {}
+  }
+}

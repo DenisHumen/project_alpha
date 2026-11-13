@@ -1,0 +1,35 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "id": "40952121085",
+        "user_id": "1001",
+        "user_login": "pixel_fox",
+        "user_name": "Pixel_Fox",
+        "game_id": "1229",
+        "game_name": "Super Mario 64",
+        "type": "live",
+        "title": "120 star any% - PB attempts",
+        "viewer_count": 4120,
+        "started_at": "2026-11-14T17:02:11Z",
+        "language": "en",
+        "thumbnail_url": "https://static-cdn.jtvnw.net/previews-ttv/live_user_pixel_fox-{width}x{height}.jpg",
+        "tag_ids": [],
+        "tags": [
+          "English",
+          "Speedrun"
+        ],
+        "is_mature": false
+      }
+    ],
+    "pagination": {
+      "cursor": "eyJiIjp7IkN1cnNvciI6IjEifX0"
+    }
+  }
+}

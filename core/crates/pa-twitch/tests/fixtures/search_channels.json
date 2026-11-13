@@ -1,0 +1,46 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "broadcaster_language": "en",
+        "broadcaster_login": "pixel_fox",
+        "display_name": "Pixel_Fox",
+        "game_id": "1229",
+        "game_name": "Super Mario 64",
+        "id": "1001",
+        "is_live": true,
+        "tag_ids": [],
+        "tags": [
+          "English",
+          "Speedrun"
+        ],
+        "thumbnail_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/pixel_fox-profile_image-300x300.png",
+        "title": "120 star any% - PB attempts",
+        "started_at": "2026-11-14T17:02:11Z"
+      },
+      {
+        "broadcaster_language": "en",
+        "broadcaster_login": "pixel_fox_vods",
+        "display_name": "pixel_fox_vods",
+        "game_id": "",
+        "game_name": "",
+        "id": "1009",
+        "is_live": false,
+        "tag_ids": [],
+        "tags": [],
+        "thumbnail_url": "https://static-cdn.jtvnw.net/jtv_user_pictures/pixel_fox_vods-profile_image-300x300.png",
+        "title": "",
+        "started_at": ""
+      }
+    ],
+    "pagination": {
+      "cursor": "Mg=="
+    }
+  }
+}

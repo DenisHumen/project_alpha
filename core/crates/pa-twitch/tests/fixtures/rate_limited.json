@@ -1,0 +1,13 @@
+{
+  "status": 429,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "0",
+    "Ratelimit-Reset": "1800000005"
+  },
+  "body": {
+    "error": "Too Many Requests",
+    "status": 429,
+    "message": ""
+  }
+}

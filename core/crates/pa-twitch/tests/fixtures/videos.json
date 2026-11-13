@@ -1,0 +1,58 @@
+{
+  "status": 200,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "data": [
+      {
+        "id": "2200000001",
+        "stream_id": "40952000001",
+        "user_id": "1001",
+        "user_login": "pixel_fox",
+        "user_name": "Pixel_Fox",
+        "title": "Yesterday: 70 star practice",
+        "description": "",
+        "created_at": "2026-11-13T17:00:00Z",
+        "published_at": "2026-11-13T17:00:00Z",
+        "url": "https://www.twitch.tv/videos/2200000001",
+        "thumbnail_url": "https://static-cdn.jtvnw.net/cf_vods/d1m7jfoe9zdc1j/abc_pixel_fox/thumb/thumb0-%{width}x%{height}.jpg",
+        "viewable": "public",
+        "view_count": 1520,
+        "language": "en",
+        "type": "archive",
+        "duration": "3h8m33s",
+        "muted_segments": [
+          {
+            "duration": 30,
+            "offset": 120
+          }
+        ]
+      },
+      {
+        "id": "2200000002",
+        "stream_id": null,
+        "user_id": "1001",
+        "user_login": "pixel_fox",
+        "user_name": "Pixel_Fox",
+        "title": "Best of October",
+        "description": "Highlights",
+        "created_at": "2026-11-01T10:00:00Z",
+        "published_at": "2026-11-01T10:05:00Z",
+        "url": "https://www.twitch.tv/videos/2200000002",
+        "thumbnail_url": "",
+        "viewable": "public",
+        "view_count": 310,
+        "language": "en",
+        "type": "highlight",
+        "duration": "52m4s",
+        "muted_segments": null
+      }
+    ],
+    "pagination": {
+      "cursor": "eyJiIjpudWxsLCJhIjoiMTUwMzQ0MTc3NjQyNDQyMjAwMCJ9"
+    }
+  }
+}

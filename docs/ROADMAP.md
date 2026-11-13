@@ -439,7 +439,7 @@ project_alpha/
   - Что: правило «обратная совместимость на одну версию» (нужно для отката сервера и дистрибутива), фикстуры БД всех прошлых версий, тест «новая БД + старый код читает».
   - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: 05 §4.2 п.6
   - done when: CI прогоняет миграции на фикстурах всех выпущенных версий.
-- [ ] **LIB-003** `pa-scanner`: поверхностный инкрементальный скан
+- [x] **LIB-003** `pa-scanner`: поверхностный инкрементальный скан
   - Что: обход через Vfs, запись (path, size, mtime), сравнение для инкрементального прохода, мягкое удаление пропавших с grace-периодом, события прогресса, отмена.
   - deps: LIB-001, NET-001 · size: M · parallel: no · веха: M1 · ref: 04 §1.4
   - done when: 10 000 файлов на Samba в CI сканируются меньше 60 с; повторный скан без изменений — меньше 10 с.
@@ -609,7 +609,7 @@ project_alpha/
   - Что: mpv с `-Dgpl=false`, libplacebo, libass, libdovi (MIT); для Linux, Windows и macOS, а также Android (fallback-движок).
   - deps: PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §2.2, §3.1
   - done when: `mpv_client_api_version` доступен; в выводе конфигурации нет GPL.
-- [ ] **PLAY-003** Контракт `PlayerEngine` и выбор движка
+- [x] **PLAY-003** Контракт `PlayerEngine` и выбор движка
   - Что: `pa-playback`: open(source, startPos), дорожки, seek, скорость, события, статистика; capability-матрица (контейнеры, кодеки, HDR) и логика Auto (Android: Media3 → libmpv; Apple: AVFoundation → свой → MPVKit) с ручным переопределением; mock-движок для UI-тестов.
   - deps: CORE-005, CORE-006 · size: M · parallel: no · веха: M1 · ref: 02 §2.8
   - done when: контракт задокументирован; mock проходит общий набор тестов движка.
@@ -931,7 +931,7 @@ project_alpha/
 
 ### 3.13. SYNC — синхронизация без облака
 
-- [ ] **SYNC-001** `pa-sync`: модель, HLC, LWW и outbox
+- [x] **SYNC-001** `pa-sync`: модель, HLC, LWW и outbox
   - Что: гибридные логические часы, `op_id` (UUIDv7), операции (progress.upsert, watched/unwatch, favorite, rating, плейлисты, folder_rule, настройки без секретов, избранное Twitch); LWW по полю, «просмотрено» монотонно; outbox в SQLite с идемпотентностью и ретраями.
   - deps: CORE-005, LIB-001 · size: M · parallel: no · веха: M3 · ref: 04 §1.8
   - done when: property-тест (proptest): применение операций в любом порядке даёт одно состояние.
@@ -982,7 +982,7 @@ project_alpha/
 
 ### 3.14. SRV — медиасервер (режим B)
 
-- [ ] **SRV-001** Каркас сервера
+- [x] **SRV-001** Каркас сервера
   - Что: `server/` на axum и tokio, конфиг, SQLite WAL через pa-library (тот же код, что в клиенте), `/health`, graceful shutdown, структурные логи.
   - deps: LIB-001, CORE-006 · size: M · parallel: no · веха: M4 · ref: 04 §1.5
   - done when: сервер стартует с пустой БД; интеграционный тест `/health`.
@@ -1120,7 +1120,7 @@ project_alpha/
 
 ### 3.16. TWI — Twitch
 
-- [ ] **TWI-001** `pa-twitch`: клиент Helix
+- [x] **TWI-001** `pa-twitch`: клиент Helix
   - Что: users, channels/followed, streams/followed, streams, channels, videos, clips, games и games/top, search, schedule, chat emotes, badges, color, settings; token bucket по заголовкам `Ratelimit-*`; курсорная пагинация с дедупликацией.
   - deps: CORE-006 · size: M · parallel: yes · веха: M7 · ref: 06 §1.1, §1.4
   - done when: тесты на записанных ответах; 429 обрабатывается корректно.

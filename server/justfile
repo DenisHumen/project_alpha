@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: MPL-2.0
-# `server` module: media server.
-# Owned by the SRV workstream (docs/ROADMAP.md §0.4); its tasks replace this placeholder.
+# `server` module: media server (crate `pa-server`, binary `alpha-media`).
+# Owned by the SRV workstream (docs/ROADMAP.md §0.4).
 
-# Placeholder until the area gets real recipes
-info:
-    @echo "server: no recipes yet (SRV, see docs/ROADMAP.md)"
+# Build, lint and test the server crate
+check:
+    cargo clippy -p pa-server --all-targets -- -D warnings
+    cargo test -p pa-server
+
+# Run the server with a local state directory (args go to alpha-media)
+run *args:
+    ALPHA_MEDIA_DATA_DIR="${ALPHA_MEDIA_DATA_DIR:-target/alpha-media}" cargo run -p pa-server -- {{args}}

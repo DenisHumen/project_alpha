@@ -1,0 +1,13 @@
+{
+  "status": 404,
+  "headers": {
+    "Ratelimit-Limit": "800",
+    "Ratelimit-Remaining": "799",
+    "Ratelimit-Reset": "1800000060"
+  },
+  "body": {
+    "error": "Not Found",
+    "status": 404,
+    "message": "segments were either all deleted or not found"
+  }
+}

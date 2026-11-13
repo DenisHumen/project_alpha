@@ -86,7 +86,7 @@ jobs:
         run: |
           work="$RUNNER_TEMP/canary"
           mkdir -p "$work"
-          cp -r Cargo.toml Cargo.lock deny.toml rust-toolchain.toml core tools "$work/"
+          cp -r Cargo.toml Cargo.lock deny.toml rust-toolchain.toml core server tools "$work/"
           cd "$work"
           mkdir -p core/crates/gpl-canary/src
           : > core/crates/gpl-canary/src/lib.rs

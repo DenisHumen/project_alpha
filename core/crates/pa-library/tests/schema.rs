@@ -34,6 +34,7 @@ const TABLES: &[&str] = &[
     "provider_cache",
     "seasons",
     "sources",
+    "sync_outbox",
     "titles",
     "works",
 ];
@@ -373,6 +374,8 @@ fn build_graph(conn: &Connection) -> Graph {
             VALUES (80, 0, 'mb:recording:b1a9c0e9-d987-4042-ae91-78d6a3267d69', {now});
         INSERT INTO jobs (id, type, owner_profile_id, created_at_ms, updated_at_ms)
             VALUES (90, 'library_scan', 2, {now}, {now});
+        INSERT INTO sync_outbox (op_id, op, payload, hlc, next_attempt_at_ms, created_at_ms)
+            VALUES ('0190f5b8-7d2c-7cc0-8a4e-2b7d6f1e9a10', 'watched', '{{}}', '1.0@dev-a', {now}, {now});
         "
     ))
     .unwrap();
