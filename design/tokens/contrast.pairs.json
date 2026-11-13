@@ -1,0 +1,32 @@
+{
+  "$comment": "Text/background pairs checked by scripts/validate-tokens.mjs for every theme (DSN-002; CI gate is DSN-003). bg is a stack of semantic colour tokens, top first; translucent stacks are composited over each colour in `backdrops` (worst cases for artwork: pure black and pure white). min: 4.5 = WCAG AA normal text, 3 = large text / non-text UI (WCAG 1.4.11) / inactive text.",
+  "pairs": [
+    { "fg": "text.primary", "bg": ["bg.base"], "min": 4.5 },
+    { "fg": "text.primary", "bg": ["bg.elevated"], "min": 4.5 },
+    { "fg": "text.primary", "bg": ["bg.elevated-2"], "min": 4.5 },
+    { "fg": "text.primary", "bg": ["bg.selected", "bg.elevated"], "min": 4.5 },
+    { "fg": "text.secondary", "bg": ["bg.base"], "min": 4.5 },
+    { "fg": "text.secondary", "bg": ["bg.elevated"], "min": 4.5 },
+    { "fg": "text.secondary", "bg": ["bg.elevated-2"], "min": 4.5 },
+    { "fg": "text.tertiary", "bg": ["bg.base"], "min": 3, "note": "inactive text, WCAG 1.4.3 exempt; kept legible" },
+    { "fg": "text.link", "bg": ["bg.base"], "min": 4.5 },
+    { "fg": "text.link", "bg": ["bg.elevated"], "min": 4.5 },
+    { "fg": "text.on-accent", "bg": ["accent.default"], "min": 4.5 },
+    { "fg": "text.on-accent", "bg": ["accent.pressed"], "min": 4.5 },
+    { "fg": "text.primary", "bg": ["accent.subtle"], "min": 4.5 },
+    { "fg": "text.on-live", "bg": ["accent.live"], "min": 4.5 },
+    { "fg": "focus.label", "bg": ["focus.fill"], "min": 4.5 },
+    { "fg": "focus.ring", "bg": ["bg.base"], "min": 3, "note": "non-text focus indicator" },
+    { "fg": "status.success", "bg": ["bg.base"], "min": 4.5 },
+    { "fg": "status.warning", "bg": ["bg.base"], "min": 4.5 },
+    { "fg": "status.danger", "bg": ["bg.base"], "min": 4.5 },
+    { "fg": "state.watched", "bg": ["bg.base"], "min": 3, "note": "progress fill, non-text" },
+    { "fg": "text.primary", "bg": ["glass.thin.fallback"], "backdrops": ["#000000", "#ffffff"], "min": 4.5 },
+    { "fg": "text.primary", "bg": ["glass.regular.fallback"], "backdrops": ["#000000", "#ffffff"], "min": 4.5 },
+    { "fg": "text.secondary", "bg": ["glass.regular.fallback"], "backdrops": ["#000000", "#ffffff"], "min": 4.5 },
+    { "fg": "text.primary", "bg": ["glass.thick.fallback"], "backdrops": ["#000000", "#ffffff"], "min": 4.5 },
+    { "fg": "text.on-scrim", "bg": ["scrim.bottom-strong"], "backdrops": ["#ffffff"], "min": 4.5, "note": "text over the darkest scrim stop on white artwork" },
+    { "fg": "badge.label", "bg": ["badge.fill"], "backdrops": ["#000000", "#ffffff"], "min": 4.5 },
+    { "fg": "badge.border", "bg": ["badge.fill"], "backdrops": ["#000000", "#ffffff"], "min": 3, "note": "badge outline, non-text" }
+  ]
+}

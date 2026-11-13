@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: MPL-2.0
+name: pa_design
+description: Kinolune design system for Flutter — generated tokens, icons and the Inter font (DSN-002/004/005).
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+# Font binaries are not committed: run `just design fonts` (or
+# `node design/scripts/fonts-fetch.mjs`) before building — it downloads Inter,
+# verifies SHA-256 and copies the files into fonts/ here.
+flutter:
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: fonts/InterVariable.ttf
+        - asset: fonts/InterVariable-Italic.ttf
+          style: italic

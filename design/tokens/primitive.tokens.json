@@ -1,42 +1,323 @@
 {
-  "$description": "Primitive tokens: raw values. Skeleton from DSN-001; full values are DSN-002 (01 §4.3–4.7). Do not reference from platform code.",
+  "$description": "Primitive tokens (DSN-002): raw palette and scales. Platform code must NOT reference these directly — use semantic/component tokens. Values follow docs/research/01-product-ux-design.md §4.3–4.7.",
   "color": {
     "$type": "color",
-    "neutral": {
-      "0": { "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000" } },
-      "50": { "$value": { "colorSpace": "srgb", "components": [0.98, 0.98, 0.98], "hex": "#fafafa" } },
-      "950": { "$value": { "colorSpace": "srgb", "components": [0.039, 0.039, 0.043], "hex": "#0a0a0b" }, "$description": "Placeholder; real palette in DSN-002." },
-      "1000": { "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff" } }
+    "black": {
+      "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000" }
     },
-    "brand": {
-      "500": { "$value": { "colorSpace": "srgb", "components": [0.231, 0.51, 0.965], "hex": "#3b82f6" }, "$description": "Placeholder accent; brand colour is decided in DSN-006." }
+    "white": {
+      "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff" }
+    },
+    "gray": {
+      "50": {
+        "$value": { "colorSpace": "srgb", "components": [0.961, 0.961, 0.969], "hex": "#f5f5f7" }
+      },
+      "100": {
+        "$value": { "colorSpace": "srgb", "components": [0.922, 0.922, 0.937], "hex": "#ebebef" }
+      },
+      "200": {
+        "$value": { "colorSpace": "srgb", "components": [0.851, 0.851, 0.875], "hex": "#d9d9df" }
+      },
+      "300": {
+        "$value": { "colorSpace": "srgb", "components": [0.745, 0.745, 0.78], "hex": "#bebec7" }
+      },
+      "400": {
+        "$value": { "colorSpace": "srgb", "components": [0.612, 0.612, 0.655], "hex": "#9c9ca7" }
+      },
+      "500": {
+        "$value": { "colorSpace": "srgb", "components": [0.471, 0.471, 0.518], "hex": "#787884" }
+      },
+      "600": {
+        "$value": { "colorSpace": "srgb", "components": [0.357, 0.357, 0.4], "hex": "#5b5b66" }
+      },
+      "700": {
+        "$value": { "colorSpace": "srgb", "components": [0.243, 0.243, 0.278], "hex": "#3e3e47" }
+      },
+      "800": {
+        "$value": { "colorSpace": "srgb", "components": [0.165, 0.165, 0.196], "hex": "#2a2a32" }
+      },
+      "850": {
+        "$value": { "colorSpace": "srgb", "components": [0.118, 0.118, 0.145], "hex": "#1e1e25" }
+      },
+      "900": {
+        "$value": { "colorSpace": "srgb", "components": [0.086, 0.086, 0.11], "hex": "#16161c" }
+      },
+      "950": {
+        "$value": { "colorSpace": "srgb", "components": [0.043, 0.043, 0.059], "hex": "#0b0b0f" }
+      },
+      "$description": "Neutral ramp with a slight cool tint; 950 is the default dark background (01 §4.5)."
+    },
+    "white-alpha": {
+      "4": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.04 }
+      },
+      "8": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.08 }
+      },
+      "12": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.12 }
+      },
+      "16": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.16 }
+      },
+      "24": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.24 }
+      },
+      "38": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.38 }
+      },
+      "45": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.45 }
+      },
+      "55": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.55 }
+      },
+      "64": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.64 }
+      },
+      "85": {
+        "$value": { "colorSpace": "srgb", "components": [1, 1, 1], "hex": "#ffffff", "alpha": 0.85 }
+      },
+      "$description": "White with opacity N % — text and glass tints on dark surfaces."
+    },
+    "black-alpha": {
+      "4": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.04 }
+      },
+      "8": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.08 }
+      },
+      "12": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.12 }
+      },
+      "16": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.16 }
+      },
+      "24": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.24 }
+      },
+      "38": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.38 }
+      },
+      "45": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.45 }
+      },
+      "55": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.55 }
+      },
+      "64": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.64 }
+      },
+      "85": {
+        "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "hex": "#000000", "alpha": 0.85 }
+      },
+      "$description": "Black with opacity N % — text on light surfaces, scrims, shadows."
+    },
+    "blue": {
+      "100": {
+        "$value": { "colorSpace": "srgb", "components": [0.863, 0.922, 1], "hex": "#dcebff" }
+      },
+      "200": {
+        "$value": { "colorSpace": "srgb", "components": [0.71, 0.835, 1], "hex": "#b5d5ff" }
+      },
+      "300": {
+        "$value": { "colorSpace": "srgb", "components": [0.525, 0.729, 1], "hex": "#86baff" }
+      },
+      "400": {
+        "$value": { "colorSpace": "srgb", "components": [0.353, 0.62, 1], "hex": "#5a9eff" }
+      },
+      "500": {
+        "$value": { "colorSpace": "srgb", "components": [0.184, 0.502, 0.961], "hex": "#2f80f5" }
+      },
+      "600": {
+        "$value": { "colorSpace": "srgb", "components": [0.118, 0.4, 0.839], "hex": "#1e66d6" }
+      },
+      "700": {
+        "$value": { "colorSpace": "srgb", "components": [0.086, 0.314, 0.671], "hex": "#1650ab" }
+      },
+      "800": {
+        "$value": { "colorSpace": "srgb", "components": [0.071, 0.243, 0.518], "hex": "#123e84" }
+      },
+      "$description": "Interim brand accent (\"cinema blue\"). Deliberately not the purple-orange of Infuse. The final brand hue is DSN-006; changing this ramp re-themes everything."
     },
     "red": {
-      "500": { "$value": { "colorSpace": "srgb", "components": [0.937, 0.267, 0.267], "hex": "#ef4444" }, "$description": "Placeholder for the LIVE accent." }
+      "300": {
+        "$value": { "colorSpace": "srgb", "components": [1, 0.541, 0.561], "hex": "#ff8a8f" }
+      },
+      "400": {
+        "$value": { "colorSpace": "srgb", "components": [1, 0.361, 0.392], "hex": "#ff5c64" }
+      },
+      "500": {
+        "$value": { "colorSpace": "srgb", "components": [0.91, 0.196, 0.247], "hex": "#e8323f" }
+      },
+      "600": {
+        "$value": { "colorSpace": "srgb", "components": [0.784, 0.125, 0.18], "hex": "#c8202e" }
+      },
+      "700": {
+        "$value": { "colorSpace": "srgb", "components": [0.62, 0.094, 0.141], "hex": "#9e1824" }
+      },
+      "$description": "Reserved for the LIVE status (accent/live) and destructive actions."
+    },
+    "green": {
+      "300": {
+        "$value": { "colorSpace": "srgb", "components": [0.494, 0.886, 0.627], "hex": "#7ee2a0" }
+      },
+      "400": {
+        "$value": { "colorSpace": "srgb", "components": [0.271, 0.812, 0.471], "hex": "#45cf78" }
+      },
+      "500": {
+        "$value": { "colorSpace": "srgb", "components": [0.133, 0.702, 0.361], "hex": "#22b35c" }
+      },
+      "600": {
+        "$value": { "colorSpace": "srgb", "components": [0.09, 0.541, 0.275], "hex": "#178a46" }
+      },
+      "700": {
+        "$value": { "colorSpace": "srgb", "components": [0.063, 0.42, 0.212], "hex": "#106b36" }
+      },
+      "$description": "Success / connected."
+    },
+    "amber": {
+      "300": {
+        "$value": { "colorSpace": "srgb", "components": [1, 0.824, 0.478], "hex": "#ffd27a" }
+      },
+      "400": {
+        "$value": { "colorSpace": "srgb", "components": [1, 0.745, 0.271], "hex": "#ffbe45" }
+      },
+      "500": {
+        "$value": { "colorSpace": "srgb", "components": [0.961, 0.639, 0.059], "hex": "#f5a30f" }
+      },
+      "600": {
+        "$value": { "colorSpace": "srgb", "components": [0.78, 0.498, 0], "hex": "#c77f00" }
+      },
+      "700": {
+        "$value": { "colorSpace": "srgb", "components": [0.561, 0.357, 0], "hex": "#8f5b00" }
+      },
+      "$description": "Warning."
     }
   },
   "space": {
-    "$type": "dimension",
+    "0": { "$value": { "value": 0, "unit": "px" } },
+    "2": { "$value": { "value": 2, "unit": "px" } },
     "4": { "$value": { "value": 4, "unit": "px" } },
     "8": { "$value": { "value": 8, "unit": "px" } },
+    "12": { "$value": { "value": 12, "unit": "px" } },
     "16": { "$value": { "value": 16, "unit": "px" } },
+    "20": { "$value": { "value": 20, "unit": "px" } },
     "24": { "$value": { "value": 24, "unit": "px" } },
-    "48": { "$value": { "value": 48, "unit": "px" } }
+    "32": { "$value": { "value": 32, "unit": "px" } },
+    "40": { "$value": { "value": 40, "unit": "px" } },
+    "48": { "$value": { "value": 48, "unit": "px" } },
+    "60": { "$value": { "value": 60, "unit": "px" } },
+    "64": { "$value": { "value": 64, "unit": "px" } },
+    "80": { "$value": { "value": 80, "unit": "px" } },
+    "100": { "$value": { "value": 100, "unit": "px" } },
+    "$type": "dimension",
+    "$description": "4 pt base unit; scale 0–100 (01 §4.3). 1 px = 1 pt; on TV 1 pt = 1 px at 1920×1080."
   },
   "radius": {
     "$type": "dimension",
+    "none": { "$value": { "value": 0, "unit": "px" } },
+    "xs": { "$value": { "value": 4, "unit": "px" } },
     "sm": { "$value": { "value": 8, "unit": "px" } },
     "md": { "$value": { "value": 12, "unit": "px" } },
-    "full": { "$value": { "value": 9999, "unit": "px" } }
+    "lg": { "$value": { "value": 16, "unit": "px" } },
+    "xl": { "$value": { "value": 24, "unit": "px" } },
+    "2xl": { "$value": { "value": 32, "unit": "px" } },
+    "full": { "$value": { "value": 9999, "unit": "px" }, "$description": "Capsule: platforms clamp to half the height." }
+  },
+  "size": {
+    "1": { "$value": { "value": 1, "unit": "px" } },
+    "2": { "$value": { "value": 2, "unit": "px" } },
+    "3": { "$value": { "value": 3, "unit": "px" } },
+    "4": { "$value": { "value": 4, "unit": "px" } },
+    "8": { "$value": { "value": 8, "unit": "px" } },
+    "16": { "$value": { "value": 16, "unit": "px" } },
+    "20": { "$value": { "value": 20, "unit": "px" } },
+    "24": { "$value": { "value": 24, "unit": "px" } },
+    "28": { "$value": { "value": 28, "unit": "px" } },
+    "32": { "$value": { "value": 32, "unit": "px" } },
+    "36": { "$value": { "value": 36, "unit": "px" } },
+    "44": { "$value": { "value": 44, "unit": "px" } },
+    "48": { "$value": { "value": 48, "unit": "px" } },
+    "56": { "$value": { "value": 56, "unit": "px" } },
+    "64": { "$value": { "value": 64, "unit": "px" } },
+    "66": { "$value": { "value": 66, "unit": "px" } },
+    "80": { "$value": { "value": 80, "unit": "px" } },
+    "86": { "$value": { "value": 86, "unit": "px" } },
+    "100": { "$value": { "value": 100, "unit": "px" } },
+    "140": { "$value": { "value": 140, "unit": "px" } },
+    "160": { "$value": { "value": 160, "unit": "px" } },
+    "184": { "$value": { "value": 184, "unit": "px" } },
+    "217": { "$value": { "value": 217, "unit": "px" } },
+    "260": { "$value": { "value": 260, "unit": "px" } },
+    "320": { "$value": { "value": 320, "unit": "px" } },
+    "410": { "$value": { "value": 410, "unit": "px" } },
+    "560": { "$value": { "value": 560, "unit": "px" } },
+    "$type": "dimension",
+    "$description": "Fixed sizes used by component/density tokens."
+  },
+  "blur": {
+    "$type": "dimension",
+    "$description": "Background blur radius for glass materials (01 §4.6: 30–60 px).",
+    "sm": { "$value": { "value": 30, "unit": "px" } },
+    "md": { "$value": { "value": 45, "unit": "px" } },
+    "lg": { "$value": { "value": 60, "unit": "px" } }
+  },
+  "font": {
+    "family": {
+      "$type": "fontFamily",
+      "sans": {
+        "$value": ["Inter", "system-ui", "sans-serif"],
+        "$description": "Brand UI font for non-Apple platforms: Inter Variable (OFL-1.1, DSN-005). Apple platforms map this to the system font (SF) at generation time (DSN-003); SF files are never shipped."
+      }
+    },
+    "weight": {
+      "$type": "fontWeight",
+      "regular": { "$value": 400 },
+      "medium": { "$value": 500 },
+      "semibold": { "$value": 600 },
+      "bold": { "$value": 700 }
+    }
   },
   "duration": {
-    "$type": "duration",
-    "fast": { "$value": { "value": 150, "unit": "ms" } },
-    "base": { "$value": { "value": 250, "unit": "ms" } }
+    "0": { "$value": { "value": 0, "unit": "ms" } },
+    "100": { "$value": { "value": 100, "unit": "ms" } },
+    "150": { "$value": { "value": 150, "unit": "ms" } },
+    "200": { "$value": { "value": 200, "unit": "ms" } },
+    "250": { "$value": { "value": 250, "unit": "ms" } },
+    "300": { "$value": { "value": 300, "unit": "ms" } },
+    "400": { "$value": { "value": 400, "unit": "ms" } },
+    "700": { "$value": { "value": 700, "unit": "ms" } },
+    "4000": { "$value": { "value": 4000, "unit": "ms" } },
+    "8000": { "$value": { "value": 8000, "unit": "ms" } },
+    "$type": "duration"
+  },
+  "easing": {
+    "$type": "cubicBezier",
+    "linear": { "$value": [0, 0, 1, 1] },
+    "standard": { "$value": [0.2, 0.8, 0.2, 1], "$description": "Page push/pop (01 §4.7)." },
+    "ease-out": { "$value": [0, 0, 0.2, 1] },
+    "ease-in": { "$value": [0.4, 0, 1, 1] },
+    "ease-in-out": { "$value": [0.4, 0, 0.2, 1] }
   },
   "number": {
     "$type": "number",
+    "$description": "Unitless factors: scales, opacities, ratios.",
+    "scale-097": { "$value": 0.97 },
     "scale-100": { "$value": 1 },
-    "scale-110": { "$value": 1.1 }
+    "scale-102": { "$value": 1.02 },
+    "scale-104": { "$value": 1.04 },
+    "scale-105": { "$value": 1.05 },
+    "scale-108": { "$value": 1.08 },
+    "scale-110": { "$value": 1.1 },
+    "opacity-000": { "$value": 0 },
+    "opacity-025": { "$value": 0.25 },
+    "opacity-045": { "$value": 0.45 },
+    "opacity-060": { "$value": 0.6 },
+    "saturate-120": { "$value": 1.2 },
+    "saturate-130": { "$value": 1.3 },
+    "saturate-140": { "$value": 1.4 },
+    "damping-080": { "$value": 0.8 },
+    "angle-006": { "$value": 6, "$description": "Degrees." }
   }
 }
