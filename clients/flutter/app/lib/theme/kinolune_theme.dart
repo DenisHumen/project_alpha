@@ -123,6 +123,15 @@ class KDensity {
   bool get isPhone => formFactor == FormFactor.phone;
   bool get isDesktop => formFactor == FormFactor.desktop;
 
+  /// Top padding of a shell page: [pageInsets] plus the system inset above
+  /// the page (status bar and display cutout when Android draws edge to
+  /// edge, the notch on iOS). Inside a [SafeArea] and on desktop and TV the
+  /// system inset is zero, so only [pageInsets] remains. Page headers and
+  /// heroes use this instead of `pageInsets.top`; backdrops still bleed
+  /// under the status bar.
+  double safeTop(BuildContext context) =>
+      pageInsets.top + MediaQuery.paddingOf(context).top;
+
   static KDensity of(BuildContext context) =>
       forFactor(FormFactorScope.of(context));
 

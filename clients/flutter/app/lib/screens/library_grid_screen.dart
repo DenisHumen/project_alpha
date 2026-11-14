@@ -358,7 +358,7 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
         Positioned.fill(child: scroll),
         Positioned(
           right: 4,
-          top: d.pageInsets.top + 56,
+          top: d.safeTop(context) + 56,
           bottom: d.pageInsets.bottom + 16,
           child: ExcludeFocus(
             child: AlphabetScrubber(

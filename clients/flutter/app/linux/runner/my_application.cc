@@ -1,6 +1,9 @@
 #include "my_application.h"
 
 #include <flutter_linux/flutter_linux.h>
+#ifdef GDK_WINDOWING_X11
+#include <gdk/gdkx.h>
+#endif
 
 #include "flutter/generated_plugin_registrant.h"
 
@@ -16,13 +19,46 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
+// Default window size. Under a window manager the window opens at 1280x800
+// and the user resizes, maximizes or fullscreens it. Without one (a bare X
+// session on an HTPC, a kiosk, Xvfb) nothing can resize it, and
+// gtk_window_fullscreen() (the player's fullscreen button) is a no-op, so the
+// app and its player would stay in a 1280x800 corner of a larger screen: the
+// window fills the monitor's work area instead.
+static void set_initial_size(GtkWindow* window) {
+  gint width = 1280;
+  gint height = 800;
+#ifdef GDK_WINDOWING_X11
+  GdkDisplay* display = gdk_display_get_default();
+  GdkScreen* screen = gdk_screen_get_default();
+  if (GDK_IS_X11_DISPLAY(display) && screen != nullptr &&
+      !gdk_x11_screen_supports_net_wm_hint(
+          screen, gdk_atom_intern_static_string("_NET_WM_STATE_FULLSCREEN"))) {
+    GdkMonitor* monitor = gdk_display_get_primary_monitor(display);
+    if (monitor == nullptr && gdk_display_get_n_monitors(display) > 0) {
+      monitor = gdk_display_get_monitor(display, 0);
+    }
+    if (monitor != nullptr) {
+      GdkRectangle area;
+      gdk_monitor_get_workarea(monitor, &area);
+      if (area.width > 0 && area.height > 0) {
+        width = area.width;
+        height = area.height;
+        gtk_window_move(window, area.x, area.y);
+      }
+    }
+  }
+#endif
+  gtk_window_set_default_size(window, width, height);
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
 
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
-  gtk_window_set_default_size(window, 1280, 800);
+  set_initial_size(window);
 
   // If you want to use a header bar, uncomment the following lines.
   // Header bars are commonly used in GNOME based desktop environments and
