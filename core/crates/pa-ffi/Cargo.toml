@@ -23,6 +23,8 @@ full = ["pa-flavor/full"]
 cli = ["uniffi/cli", "uniffi/cargo-metadata"]
 
 [dependencies]
+# Platform backend only (NWBrowser on iOS and tvOS, NET-020): no mdns-sd sockets in the app.
+pa-discovery = { path = "../pa-discovery", default-features = false }
 pa-flavor = { path = "../pa-flavor" }
 pa-playback = { path = "../pa-playback" }
 pa-runtime = { path = "../pa-runtime" }

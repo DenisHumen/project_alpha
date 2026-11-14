@@ -10,6 +10,8 @@ class DiscoveredSource {
     required this.host,
     this.port,
     this.path,
+    this.url,
+    this.secure = true,
   });
 
   final SourceType type;
@@ -21,14 +23,22 @@ class DiscoveredSource {
 
   /// Path from the TXT record (WebDAV `path=`), if any.
   final String? path;
+
+  /// Address to connect to, built by the core from the IP address
+  /// (`smb://192.168.1.2/`, `http://192.168.1.2:8080/dav`): `.local` names
+  /// do not resolve everywhere (Android). Null before the address is known.
+  final String? url;
+
+  /// WebDAV over HTTPS (`_webdavs._tcp`) rather than HTTP (`_webdav._tcp`).
+  final bool secure;
 }
 
 /// LAN discovery of shares (SMB, WebDAV, NFS) for the add flow.
 ///
-/// Hook for `pa-discovery` (NET-009, mDNS/DNS-SD): the crate is not exposed
-/// through pa_core yet, so the app runs with [NoSourceDiscovery] and the add
-/// flow hides the "On this network" section. A pa_core-backed
-/// implementation plugs in through `AppServices(discovery: …)`.
+/// `pa-discovery` (NET-009, mDNS/DNS-SD) through pa_core is
+/// `CoreSourceDiscovery` (NET-020, core_discovery.dart). Without the Rust
+/// core the app runs with [NoSourceDiscovery] and the add flow hides the
+/// "On this network" section.
 abstract class SourceDiscovery {
   /// False hides the "On this network" section.
   bool get supported;

@@ -30,12 +30,24 @@ Future<String> syncDeviceName(FormFactor formFactor) async {
   };
 }
 
-/// Android drops multicast on Wi-Fi without a `MulticastLock`; mDNS of LAN
-/// sync needs it while sync runs. No-op elsewhere.
-Future<void> holdMulticastLock(bool hold) async {
-  if (!Platform.isAndroid) return;
+/// Who holds the Android multicast lock now (LAN sync, discovery).
+final _multicastHolders = <String>{};
+
+/// Android drops multicast on Wi-Fi without a `MulticastLock`; mDNS needs
+/// it while LAN sync runs (UI-019) and while sources are discovered
+/// (NET-020). Each [holder] holds or releases its own claim; the platform
+/// lock is held while anyone holds a claim. No-op elsewhere.
+Future<void> holdMulticastLock(bool hold, {String holder = 'sync'}) async {
+  final before = _multicastHolders.isNotEmpty;
+  if (hold) {
+    _multicastHolders.add(holder);
+  } else {
+    _multicastHolders.remove(holder);
+  }
+  final after = _multicastHolders.isNotEmpty;
+  if (before == after || !Platform.isAndroid) return;
   try {
-    await _channel.invokeMethod<void>('multicastLock', hold);
+    await _channel.invokeMethod<void>('multicastLock', after);
   } on PlatformException {
     // Older builds: sync still works through the QR address.
   } on MissingPluginException {

@@ -300,6 +300,51 @@ void main() {
       expect(host.controller!.text, 'nas.local');
     });
 
+    testWidgets('discovered shares prefill the address the core built', (
+      tester,
+    ) async {
+      // NET-020: the core's URL uses the IP (`.local` does not resolve on
+      // Android); plain `_webdav._tcp` is HTTP.
+      await _openAdd(
+        tester,
+        discovery: const StaticSourceDiscovery([
+          DiscoveredSource(
+            type: SourceType.smb,
+            name: 'Samba box',
+            host: 'samba.local',
+            port: 4450,
+            url: 'smb://192.168.1.20:4450/',
+          ),
+          DiscoveredSource(
+            type: SourceType.webdav,
+            name: 'DAV box',
+            host: 'dav.local',
+            port: 8080,
+            path: '/dav',
+            secure: false,
+          ),
+        ]),
+      );
+      await _pick(tester, 'Samba box');
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const ValueKey('source-host')))
+            .controller!
+            .text,
+        '192.168.1.20:4450',
+      );
+      await tester.tap(find.byTooltip(en.commonBack));
+      await settle(tester, 4);
+      await _pick(tester, 'DAV box');
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const ValueKey('source-url')))
+            .controller!
+            .text,
+        'http://dav.local:8080/dav',
+      );
+    });
+
     testWidgets('folder form validates the path', (tester) async {
       final services = await _openAdd(tester);
       await _pick(tester, en.sourcesTypeLocal);

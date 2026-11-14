@@ -42,6 +42,23 @@ targets:
         group: Design
     dependencies:
       - package: PACore
+    # NET-020 (ADR-0019): Bonjour through NWBrowser needs the Local Network
+    # usage text and every DNS-SD type the core browses, i.e. the list of
+    # `bonjourServices()` (pa-ffi); a Rust test in pa-ffi and TVAppTests
+    # check that the two agree. XcodeGen writes Info.plist from these keys,
+    # Xcode merges in the INFOPLIST_KEY_* settings below.
+    info:
+      path: Info.plist
+      properties:
+        NSLocalNetworkUsageDescription: Kinolune looks for media servers and shared folders on your local network.
+        NSBonjourServices:
+          - _projectalpha._tcp
+          - _alpha-sync._tcp
+          - _alpha-pair._tcp
+          - _smb._tcp
+          - _webdav._tcp
+          - _webdavs._tcp
+          - _nfs._tcp
     settings:
       base:
         PRODUCT_NAME: TVApp

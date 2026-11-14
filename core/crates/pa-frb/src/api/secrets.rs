@@ -199,7 +199,7 @@ impl Wake for Unpark {
 }
 
 /// Polls `future` on this thread until it is ready or `timeout` passes.
-fn block_on_timeout<F: Future>(future: F, timeout: Duration) -> Option<F::Output> {
+pub(crate) fn block_on_timeout<F: Future>(future: F, timeout: Duration) -> Option<F::Output> {
     let deadline = Instant::now() + timeout;
     let waker = Waker::from(Arc::new(Unpark(thread::current())));
     let mut cx = Context::from_waker(&waker);

@@ -433,10 +433,10 @@ project_alpha/
   - deps: NET-001, CORE-011 · size: M · parallel: yes · веха: M4 · ref: 04 §1.9, 02 §4
   - done when: загрузка 4 ГБ с SMB докачивается после обрыва сети; прогресс приходит в UI.
 
-- [ ] **NET-020** Обвязка обнаружения в LAN на Android и Apple
+- [x] **NET-020** Обвязка обнаружения в LAN на Android и Apple
   - Что: Android — `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`) как реализация `pa_discovery::MulticastLock`; iOS и tvOS — `NWBrowser` как `PlatformBrowser`, `Info.plist` (`NSLocalNetworkUsageDescription`, `NSBonjourServices` из `bonjour_services()`); экспорт через FFI.
   - deps: NET-009, CORE-002 · size: S · parallel: yes · веха: M1 · ref: ADR-0019, 02 §4
-  - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе.
+  - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе. Сделано: `CoreDiscovery` в pa-frb (поток списков, `MulticastLock` через Dart), «В этой сети» в добавлении источника; `LanDiscovery` + `PlatformBrowser` в pa-ffi, `NWBrowserPlatformBrowser` в PACore, `Info.plist` tvOS. Samba с Avahi в Docker найден на Linux (Rust и UI на настоящем ядре); эмулятор Android находит SMB-хосты LAN, но не docker-сеть (SLIRP); на macOS и симуляторах iOS и tvOS (CI) `NWBrowser` находит `_webdav._tcp`, опубликованный `NWListener`.
 - [ ] **NET-021** SMB: скорость на каналах с потерями
   - Что: адаптивное число соединений и размер окна prefetch по измеренной скорости и RTT в `pa-vfs-smb`; профиль замера, близкий к реальному Wi-Fi (потери исправляет канальный уровень), плюс прежний netem-профиль.
   - deps: NET-003 · size: M · parallel: yes · веха: M2 · ref: ADR-0033

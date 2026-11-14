@@ -117,14 +117,27 @@ class _AddSourceDialogState extends State<AddSourceDialog> {
   }
 }
 
-class _KindChooser extends StatelessWidget {
+class _KindChooser extends StatefulWidget {
   const _KindChooser({required this.onPick});
 
   final void Function(SourceType type, [DiscoveredSource? found]) onPick;
 
   @override
+  State<_KindChooser> createState() => _KindChooserState();
+}
+
+class _KindChooserState extends State<_KindChooser> {
+  /// One subscription while the chooser is shown: LAN browsing runs as
+  /// long as someone listens (NET-020), so rebuilds must not restart it.
+  Stream<List<DiscoveredSource>>? _found;
+
+  void onPick(SourceType type, [DiscoveredSource? found]) =>
+      widget.onPick(type, found);
+
+  @override
   Widget build(BuildContext context) {
     final services = Services.read(context);
+    final discovered = _found ??= services.discovery.watch();
     final manager = services.sourceManager;
     final l = context.l10n;
     final theme = Theme.of(context);
@@ -152,7 +165,7 @@ class _KindChooser extends StatelessWidget {
               if (services.discovery.supported) ...[
                 _Header(l.sourcesAddDiscovered),
                 StreamBuilder<List<DiscoveredSource>>(
-                  stream: services.discovery.watch(),
+                  stream: discovered,
                   builder: (context, snap) {
                     final found = [
                       for (final d in snap.data ?? const <DiscoveredSource>[])
@@ -401,11 +414,14 @@ class _SourceFormState extends State<SourceForm> {
       }
     } else if (d != null) {
       _name.text = d.name;
+      // The core's URL is built from the IP address (NET-020); the host
+      // name is the fallback.
       if (d.type == SourceType.smb) {
-        _host.text = d.host;
+        _host.text = splitSmb(d.url ?? '')?.host ?? d.host;
       } else if (d.type == SourceType.webdav) {
         final port = d.port == null ? '' : ':${d.port}';
-        _url.text = 'https://${d.host}$port${d.path ?? '/'}';
+        final scheme = d.secure ? 'https' : 'http';
+        _url.text = d.url ?? '$scheme://${d.host}$port${d.path ?? '/'}';
       }
     }
     for (final c in [_host, _share, _subfolder, _url, _folder]) {

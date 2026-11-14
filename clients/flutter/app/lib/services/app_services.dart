@@ -55,8 +55,8 @@ class AppServices extends ChangeNotifier {
   /// the reduced v0 one ([LibrarySourceManager]).
   final SourceManager sourceManager;
 
-  /// LAN discovery for the add flow (hook; off until pa-discovery is in
-  /// pa_core).
+  /// LAN discovery for the add flow: `CoreSourceDiscovery` on the Rust
+  /// core (NET-020), off on the v0 fallback.
   final SourceDiscovery discovery;
 
   /// Pairing and LAN sync with the user's other devices (UI-019).
