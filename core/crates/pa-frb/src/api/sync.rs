@@ -11,6 +11,7 @@
 //! Every method may block on the network or the secret store, so only the
 //! plain getters are `#[frb(sync)]`.
 
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -74,6 +75,13 @@ pub struct CoreSyncConfig {
     /// Name of this device shown on the others.
     pub device_name: String,
     pub device_class: CoreDeviceClass,
+    /// Keep the device keys in an encrypted file store in this folder
+    /// instead of the app's secret store (tests; two instances in one
+    /// process need two identities).
+    pub secrets_dir: Option<String>,
+    /// Listen on 127.0.0.1 without mDNS (tests: devices are introduced
+    /// with [`CoreSync::peer_up`]).
+    pub loopback: bool,
 }
 
 /// A device of the family.
@@ -227,9 +235,19 @@ impl CoreSync {
     /// [`start`](Self::start) (syncs if paired), [`invite`](Self::invite)
     /// or [`join`](Self::join).
     pub fn open(library: &CoreLibrary, config: CoreSyncConfig) -> SyncResult<CoreSync> {
-        let store = match crate::api::secrets::opened_store() {
-            Some(opened) => opened.store,
-            None => {
+        let own_store = match &config.secrets_dir {
+            Some(dir) => Some(
+                pa_secrets::EncryptedFileStore::open(dir).map_err(|e| CoreSyncError {
+                    code: "secrets".into(),
+                    message: e.to_string(),
+                })?,
+            ),
+            None => None,
+        };
+        let store: Arc<dyn pa_secrets::SecretStore> = match (own_store, crate::api::secrets::opened_store()) {
+            (Some(own), _) => Arc::new(own),
+            (None, Some(opened)) => opened.store,
+            (None, None) => {
                 crate::api::secrets::secrets_open_default(Some(config.data_dir.clone())).map_err(
                     |e| CoreSyncError {
                         code: "secrets".into(),
@@ -245,11 +263,15 @@ impl CoreSync {
             }
         };
         let class: DeviceClass = config.device_class.into();
-        let service_config = ServiceConfig::new(
+        let mut service_config = ServiceConfig::new(
             PathBuf::from(&config.data_dir),
             config.device_name.trim(),
             class,
         );
+        if config.loopback {
+            service_config.bind_ip = IpAddr::V4(Ipv4Addr::LOCALHOST);
+            service_config.mdns = None;
+        }
         let service = Arc::new(SyncService::open(
             service_config,
             store,
@@ -297,6 +319,28 @@ impl CoreSync {
     /// Stops sync (until [`start`](Self::start)).
     pub fn stop(&self) {
         self.service.stop();
+    }
+
+    /// `host:port` of the running sync node, if any.
+    #[frb(sync)]
+    pub fn sync_addr(&self) -> Option<String> {
+        self.service.sync_addr().map(|a| a.to_string())
+    }
+
+    /// A device at a known `host:port` (when mDNS cannot see it; tests).
+    #[frb(sync)]
+    pub fn peer_up(
+        &self,
+        device_id: String,
+        device_class: CoreDeviceClass,
+        addr: String,
+    ) -> SyncResult<()> {
+        let addr: SocketAddr = addr.parse().map_err(|_| CoreSyncError {
+            code: "invalid".into(),
+            message: "address is not host:port".into(),
+        })?;
+        self.service.peer_up(&device_id, device_class.into(), addr);
+        Ok(())
     }
 
     /// Sends queued changes now.
