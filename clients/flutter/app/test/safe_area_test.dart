@@ -31,7 +31,9 @@ double _headerTop(WidgetTester t, Section s) {
     expect(texts, findsWidgets);
     return texts
         .evaluate()
-        .map((e) => (e.renderObject! as RenderBox).localToGlobal(Offset.zero).dy)
+        .map(
+          (e) => (e.renderObject! as RenderBox).localToGlobal(Offset.zero).dy,
+        )
         .reduce((a, b) => a < b ? a : b);
   }
   final title = find.descendant(
@@ -83,9 +85,7 @@ void main() {
 
   testWidgets('desktop without insets keeps its page padding', (t) async {
     setSurface(t, const Size(1280, 800));
-    await t.pumpWidget(
-      testApp(await demoServices(), section: Section.movies),
-    );
+    await t.pumpWidget(testApp(await demoServices(), section: Section.movies));
     await settle(t);
     final top = KDensity.desktop.pageInsets.top;
     final title = find.descendant(
