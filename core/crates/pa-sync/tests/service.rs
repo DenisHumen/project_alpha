@@ -196,7 +196,10 @@ fn pair_by_qr_then_progress_and_watched_sync() {
     let qr_wrong = invite
         .qr
         .replace(&format!("c={}", invite.code), &format!("c={wrong}"));
-    assert_eq!(phone.service.join(&qr_wrong).unwrap_err().code, "wrong_code");
+    assert_eq!(
+        phone.service.join(&qr_wrong).unwrap_err().code,
+        "wrong_code"
+    );
     assert!(pc.service.invite_addr().is_some());
 
     let inviter = phone.service.join(&invite.qr).unwrap();
@@ -221,9 +224,11 @@ fn pair_by_qr_then_progress_and_watched_sync() {
     );
 
     introduce(&pc, &phone);
-    wait("phone links to the desktop hub", Duration::from_secs(10), || {
-        phone.service.hub().as_deref() == Some(pc.service.device_id())
-    });
+    wait(
+        "phone links to the desktop hub",
+        Duration::from_secs(10),
+        || phone.service.hub().as_deref() == Some(pc.service.device_id()),
+    );
     wait("both online", Duration::from_secs(5), || {
         pc.service.devices().iter().all(|d| d.online)
             && phone.service.devices().iter().all(|d| d.online)
@@ -233,9 +238,11 @@ fn pair_by_qr_then_progress_and_watched_sync() {
     let phone_events = phone.service.subscribe();
     pc.library.play(&movie(603), 1_200_000);
     pc.service.flush();
-    wait("progress reaches the phone", Duration::from_secs(10), || {
-        phone.library.position(&movie(603)) == Some((1_200_000, false))
-    });
+    wait(
+        "progress reaches the phone",
+        Duration::from_secs(10),
+        || phone.library.position(&movie(603)) == Some((1_200_000, false)),
+    );
     assert!(
         phone_events
             .try_iter()
@@ -244,9 +251,11 @@ fn pair_by_qr_then_progress_and_watched_sync() {
     // …and the other way round, with "watched" past 95 %.
     phone.library.play(&movie(604), 5_900_000);
     phone.service.flush();
-    wait("watched reaches the desktop", Duration::from_secs(10), || {
-        pc.library.position(&movie(604)) == Some((5_900_000, true))
-    });
+    wait(
+        "watched reaches the desktop",
+        Duration::from_secs(10),
+        || pc.library.position(&movie(604)) == Some((5_900_000, true)),
+    );
     // The phone's ops were acknowledged by its hub.
     wait("outbox drained", Duration::from_secs(5), || {
         let conn = phone.library.conn.lock().unwrap();

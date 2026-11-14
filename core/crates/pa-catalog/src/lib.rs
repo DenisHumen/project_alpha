@@ -67,13 +67,13 @@ pub use items::{Item, ItemKind, ItemRef};
 pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
 pub use pa_metadata;
 pub use pa_scanner::CancelToken;
+pub use pa_sync;
 pub use progress::{ContinueItem, ItemProgress};
 pub use query::{
     AlphabetEntry, FacetValue, Facets, FolderEntry, HdrFilter, ItemPage, LibraryFilter,
     LibraryQuery, LibrarySort, Resolution, SmartShelf, SortField, ViewPrefs, WatchState,
 };
 pub use scan::{RescanReport, ScanPhase, ScanUpdate};
-pub use pa_sync;
 pub use sources::Source;
 
 /// Device id written with local progress changes until profiles and

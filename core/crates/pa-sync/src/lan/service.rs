@@ -455,7 +455,14 @@ fn default_route_ip() -> Option<IpAddr> {
 
 /// A DNS-SD instance name: the device name and a short id, ≤ 63 bytes.
 fn instance_name(name: &str, device_id: &str) -> String {
-    let short: String = device_id.chars().rev().take(6).collect::<Vec<_>>().into_iter().rev().collect();
+    let short: String = device_id
+        .chars()
+        .rev()
+        .take(6)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
     let mut base: String = name
         .chars()
         .filter(|c| !c.is_control() && *c != '.')
@@ -596,7 +603,10 @@ impl Inner {
         let weak = Arc::downgrade(self);
         let tasks = vec![
             AbortOnDrop(tokio::spawn(event_loop(weak.clone(), events))),
-            AbortOnDrop(tokio::spawn(flush_loop(weak.clone(), Arc::downgrade(&node)))),
+            AbortOnDrop(tokio::spawn(flush_loop(
+                weak.clone(),
+                Arc::downgrade(&node),
+            ))),
         ];
         let mut announcement = None;
         if let Some(mdns) = self.mdns() {
@@ -694,12 +704,8 @@ impl Inner {
                 .map_err(|e| pa_pairing::Error::Io(std::io::Error::other(e.message)))?;
             Ok(welcome)
         });
-        let (host, events) = PairHost::start(
-            SocketAddr::new(self.config.bind_ip, 0),
-            invitation,
-            admit,
-        )
-        .await?;
+        let (host, events) =
+            PairHost::start(SocketAddr::new(self.config.bind_ip, 0), invitation, admit).await?;
         let port = host.local_addr().port();
         let ip = self
             .config
@@ -752,7 +758,10 @@ impl Inner {
         let (code, inviter_key, addr) = if input.starts_with(QR_PREFIX) {
             let qr = QrInvite::parse(input)
                 .map_err(|_| ServiceError::new("invalid_code", "not a pairing QR code"))?;
-            let addr = qr.addr.as_deref().and_then(|a| a.parse::<SocketAddr>().ok());
+            let addr = qr
+                .addr
+                .as_deref()
+                .and_then(|a| a.parse::<SocketAddr>().ok());
             (qr.code, Some(qr.inviter), addr)
         } else {
             let code = PairingCode::parse(input)
@@ -897,10 +906,7 @@ impl Inner {
     }
 }
 
-async fn event_loop(
-    weak: Weak<Inner>,
-    mut events: tokio::sync::mpsc::UnboundedReceiver<LanEvent>,
-) {
+async fn event_loop(weak: Weak<Inner>, mut events: tokio::sync::mpsc::UnboundedReceiver<LanEvent>) {
     while let Some(event) = events.recv().await {
         let Some(inner) = weak.upgrade() else { return };
         match event {

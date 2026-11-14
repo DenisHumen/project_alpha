@@ -236,32 +236,34 @@ impl CoreSync {
     /// or [`join`](Self::join).
     pub fn open(library: &CoreLibrary, config: CoreSyncConfig) -> SyncResult<CoreSync> {
         let own_store = match &config.secrets_dir {
-            Some(dir) => Some(
-                pa_secrets::EncryptedFileStore::open(dir).map_err(|e| CoreSyncError {
-                    code: "secrets".into(),
-                    message: e.to_string(),
-                })?,
-            ),
+            Some(dir) => {
+                Some(
+                    pa_secrets::EncryptedFileStore::open(dir).map_err(|e| CoreSyncError {
+                        code: "secrets".into(),
+                        message: e.to_string(),
+                    })?,
+                )
+            }
             None => None,
         };
-        let store: Arc<dyn pa_secrets::SecretStore> = match (own_store, crate::api::secrets::opened_store()) {
-            (Some(own), _) => Arc::new(own),
-            (None, Some(opened)) => opened.store,
-            (None, None) => {
-                crate::api::secrets::secrets_open_default(Some(config.data_dir.clone())).map_err(
-                    |e| CoreSyncError {
-                        code: "secrets".into(),
-                        message: e.message,
-                    },
-                )?;
-                crate::api::secrets::opened_store()
-                    .map(|o| o.store)
-                    .ok_or_else(|| CoreSyncError {
-                        code: "secrets".into(),
-                        message: "the secret store did not open".into(),
-                    })?
-            }
-        };
+        let store: Arc<dyn pa_secrets::SecretStore> =
+            match (own_store, crate::api::secrets::opened_store()) {
+                (Some(own), _) => Arc::new(own),
+                (None, Some(opened)) => opened.store,
+                (None, None) => {
+                    crate::api::secrets::secrets_open_default(Some(config.data_dir.clone()))
+                        .map_err(|e| CoreSyncError {
+                            code: "secrets".into(),
+                            message: e.message,
+                        })?;
+                    crate::api::secrets::opened_store()
+                        .map(|o| o.store)
+                        .ok_or_else(|| CoreSyncError {
+                            code: "secrets".into(),
+                            message: "the secret store did not open".into(),
+                        })?
+                }
+            };
         let class: DeviceClass = config.device_class.into();
         let mut service_config = ServiceConfig::new(
             PathBuf::from(&config.data_dir),

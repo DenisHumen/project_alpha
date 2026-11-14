@@ -56,7 +56,11 @@ fn device(name: &str, class: DeviceClass) -> Device {
     let root = dir.path().join("media");
     // The same files on both devices: same fingerprints, same `file:` keys.
     media(&root, "Movies/The Matrix 1999.mkv", 2);
-    media(&root, "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv", 3);
+    media(
+        &root,
+        "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv",
+        3,
+    );
     let catalog = Arc::new(Catalog::open(dir.path().join("db/library.db")).unwrap());
     catalog
         .add_source(None, "local", "Media", root.to_str().unwrap(), None)
@@ -92,7 +96,10 @@ fn matrix(cat: &Catalog) -> ItemRef {
 fn wait(what: &str, mut ok: impl FnMut() -> bool) {
     let start = Instant::now();
     while !ok() {
-        assert!(start.elapsed() < Duration::from_secs(15), "timed out: {what}");
+        assert!(
+            start.elapsed() < Duration::from_secs(15),
+            "timed out: {what}"
+        );
         std::thread::sleep(Duration::from_millis(50));
     }
 }

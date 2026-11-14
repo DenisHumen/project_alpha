@@ -17,8 +17,8 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
-use pa_pairing::pair::{Invitation, Inviter, JoinRequest, Joined, Joiner, PairMessage, code};
 use pa_pairing::pair::PairingCode;
+use pa_pairing::pair::{Invitation, Inviter, JoinRequest, Joined, Joiner, PairMessage, code};
 use pa_pairing::{DeviceIdentity, DeviceKind};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::{TcpListener, TcpStream};
@@ -78,7 +78,13 @@ impl PairHost {
         let acceptor = TlsAcceptor::from(Arc::new(tls::server_config()?));
         let invitation = Arc::new(Mutex::new(Some(invitation)));
         let (tx, rx) = mpsc::unbounded_channel();
-        let task = tokio::spawn(serve(listener, acceptor, Arc::clone(&invitation), admit, tx));
+        let task = tokio::spawn(serve(
+            listener,
+            acceptor,
+            Arc::clone(&invitation),
+            admit,
+            tx,
+        ));
         Ok((
             Self {
                 local_addr,
