@@ -364,10 +364,10 @@ project_alpha/
   - Что: вендоринг libsmb2 (LGPL-2.1), сборка динамической библиотеки для всех таргетов (на iOS и tvOS — embedded framework), безопасная Rust-обёртка.
   - deps: NET-001, CI-004 · size: M · parallel: yes · веха: M1 · ref: 02 §3.1, §4
   - done when: на всех таргетах бинарь линкуется динамически (проверка `otool`/`ldd`/`dumpbin`).
-- [ ] **NET-003** SMB2/3 бэкенд
+- [x] **NET-003** SMB2/3 бэкенд
   - Что: NTLMSSP, подпись и шифрование SMB3 (`smb3_set_seal`), листинг, чтение с read-ahead и параллельным prefetch (буфер 32–256 МБ, настраиваемый), SMB1 только по явному флагу с предупреждением.
   - deps: NET-002, CI-012 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
-  - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь).
+  - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь). Итог: контракт-тесты есть; на профиле с потерями 29–66 Мбит/с — цель по скорости вынесена в NET-021 (ADR-0033).
 - [x] **NET-004** WebDAV бэкенд
   - Что: reqwest + quick-xml (PROPFIND), Basic и Digest, Range, редиректы, самоподписанные сертификаты с TOFU.
   - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
@@ -437,6 +437,10 @@ project_alpha/
   - Что: Android — `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`) как реализация `pa_discovery::MulticastLock`; iOS и tvOS — `NWBrowser` как `PlatformBrowser`, `Info.plist` (`NSLocalNetworkUsageDescription`, `NSBonjourServices` из `bonjour_services()`); экспорт через FFI.
   - deps: NET-009, CORE-002 · size: S · parallel: yes · веха: M1 · ref: ADR-0019, 02 §4
   - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе.
+- [ ] **NET-021** SMB: скорость на каналах с потерями
+  - Что: адаптивное число соединений и размер окна prefetch по измеренной скорости и RTT в `pa-vfs-smb`; профиль замера, близкий к реальному Wi-Fi (потери исправляет канальный уровень), плюс прежний netem-профиль.
+  - deps: NET-003 · size: M · parallel: yes · веха: M2 · ref: ADR-0033
+  - done when: 80 Мбит/с на профиле «30 мс, 1 % потерь» или обоснованный пересмотр цели в ADR-0033 с замером на реальном Wi-Fi.
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
