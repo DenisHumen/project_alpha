@@ -16,6 +16,7 @@ flowchart LR
     pa_catalog["pa-catalog"]
     pa_discovery["pa-discovery"]
     pa_ffi["pa-ffi"]
+    pa_flavor["pa-flavor"]
     pa_frb["pa-frb"]
     pa_imagecache["pa-imagecache"]
     pa_jobs["pa-jobs"]
@@ -66,12 +67,14 @@ flowchart LR
   pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
   pa_eval --> pa_scanner
+  pa_ffi --> pa_flavor
   pa_ffi --> pa_playback
   pa_ffi --> pa_runtime
   pa_ffi --> pa_secrets
   pa_frb --> pa_catalog
   pa_frb --> pa_discovery
   pa_frb --> pa_ffi
+  pa_frb --> pa_flavor
   pa_frb --> pa_imagecache
   pa_frb --> pa_proxy
   pa_frb --> pa_recognition
@@ -112,6 +115,8 @@ flowchart LR
   pa_sync --> pa_pairing
   pa_sync -. dev .-> pa_secrets
   pa_sync --> pa_secrets
+  pa_twitch -. build .-> pa_flavor
+  pa_twitch --> pa_flavor
   pa_twitch --> pa_remote_config
   pa_twitch --> pa_secrets
   pa_twitch -. dev .-> pa_twitch
@@ -131,6 +136,7 @@ flowchart LR
 | `pa-discovery` | `core/crates/pa-discovery` | 4 | LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009) |
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
+| `pa-flavor` | `core/crates/pa-flavor` | 0 | Build flavors store and full (ADR-0007, CORE-013): cargo features, the workspace-wide Rust cfg and the runtime flavor query |
 | `pa-frb` | `core/crates/pa-frb` | 2 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |
 | `pa-imagecache` | `core/crates/pa-imagecache` | 3 | Disk LRU cache of provider artwork (posters, backdrops, stills) with provider size variants and offline use (LIB-013) |
 | `pa-jobs` | `core/crates/pa-jobs` | 2 | Persistent job queue of the core: priorities, per-type concurrency limits, retries with backoff, pause and cancel, progress events, survives restart (CORE-011) |
