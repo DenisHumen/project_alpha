@@ -13,4 +13,5 @@ export 'package:pa_player/pa_player.dart'
         PaPlayerStrings,
         PlayerEngine,
         PlayerEngineFactory,
+        UpNextItem,
         ensurePaPlayerInitialized;

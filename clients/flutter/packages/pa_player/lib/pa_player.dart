@@ -20,3 +20,4 @@ export 'src/ui/tokens.dart' show PaTokens, formatDuration;
 export 'src/video/osd_controller.dart';
 export 'src/video/player_screen.dart';
 export 'src/video/progress_reporter.dart';
+export 'src/video/up_next.dart';

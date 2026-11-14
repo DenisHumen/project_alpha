@@ -12,6 +12,8 @@
 //!   (Android: Media3 → libmpv; Apple: AVFoundation → own engine → MPVKit)
 //!   with a manual override.
 //! - [`contract`]: the test suite every engine must pass; the mock passes it.
+//! - [`session`]: the playback session over an engine (PLAY-005): resume or
+//!   start over, progress saves, Up Next with a countdown.
 //!
 //! Types follow the `pa-model` rules (plain records and enums, milliseconds
 //! as `u64`, serde), so `pa-ffi` and `pa-frb` can export them as they are.
@@ -22,6 +24,7 @@ pub mod contract;
 mod engine;
 mod mock;
 mod select;
+pub mod session;
 
 pub use caps::{
     AudioCodec, Container, DynamicRange, EngineCapabilities, EngineKind, MediaProfile, Platform,
@@ -36,4 +39,8 @@ pub use engine::{
 pub use mock::{MockEngine, MockMedia};
 pub use select::{
     EnginePreference, Evaluation, Limitation, SelectError, Selection, evaluate, select_engine,
+};
+pub use session::{
+    PlaybackSession, ProgressSave, SaveReason, SessionAction, SessionConfig, SessionError,
+    StartMode, UpNext, start_position,
 };

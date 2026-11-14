@@ -11,6 +11,8 @@ export 'package:pa_library/pa_library.dart'
         MediaSource,
         SourceKind,
         Progress,
+        nextEpisodeIn,
+        resumePositionMs,
         RustLibrary,
         ScanProgress,
         ScanPhase,

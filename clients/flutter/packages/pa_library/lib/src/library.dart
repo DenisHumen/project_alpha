@@ -13,6 +13,7 @@ import 'db.dart';
 import 'models.dart';
 import 'music_tags.dart';
 import 'parser/filename_parser.dart';
+import 'playback_session.dart';
 import 'scanner.dart';
 import 'smb.dart';
 import 'tmdb.dart';
@@ -78,6 +79,10 @@ abstract class Library {
 
   Future<LibraryItem?> item(String id);
   Future<Progress?> progress(String itemId);
+
+  /// Up Next: the episode that follows episode [itemId] in its show
+  /// ([nextEpisodeIn]); null for the last one and for anything else.
+  Future<LibraryItem?> nextEpisode(String itemId);
 
   /// Case-insensitive search over movies, shows, episodes and tracks.
   Future<List<LibraryItem>> search(String query, {int limit = 100});
@@ -957,6 +962,19 @@ ORDER BY p.updated_at DESC LIMIT 50''',
   Future<LibraryItem?> item(String id) async {
     final r = _items('id = ?', [id]);
     return r.isEmpty ? null : r.first;
+  }
+
+  @override
+  Future<LibraryItem?> nextEpisode(String itemId) async {
+    final current = await item(itemId);
+    final showId = current?.showId;
+    if (current == null || current.kind != ItemKind.episode || showId == null) {
+      return null;
+    }
+    return nextEpisodeIn(
+      _items("kind = 'episode' AND show_id = ?", [showId]),
+      current,
+    );
   }
 
   @override
