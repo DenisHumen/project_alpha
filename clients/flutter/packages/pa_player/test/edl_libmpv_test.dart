@@ -43,11 +43,13 @@ List<String> _colours(int from, int to) => [
     '-f',
     'lavfi',
     '-i',
-    'color=c=${_blocks[i]}:s=64x48:r=10:d=$_block',
+    'color=c=${_blocks[i]}:s=160x120:r=10:d=$_block',
   ],
   '-filter_complex',
   '${[for (var i = 0; i < to - from; i++) '[$i:v]'].join()}'
-      'concat=n=${to - from}:v=1:a=0[v]',
+      // Noise: a solid colour compresses to a few KiB, too small to cut
+      // like a VOB; the centre pixel keeps its colour.
+      'concat=n=${to - from}:v=1:a=0,noise=alls=12:allf=t+u[v]',
   '-map',
   '[v]',
 ];
