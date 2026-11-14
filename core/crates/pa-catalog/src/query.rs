@@ -18,12 +18,13 @@
 //!
 //! Titles sort by [`sort_key`]: case-insensitive for every script, `ё` as
 //! `е`, leading English articles and punctuation skipped, numbers in
-//! natural order (`Part 2` before `Part 10`). The key is the SQL function
-//! `pa_sort_key`, registered on the catalog connection.
+//! natural order (`Part 2` before `Part 10`). SQLite selects the matching
+//! works; they are ordered here, so the key works for every script without
+//! an ICU build of SQLite.
 
+use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
-use pa_library::rusqlite::functions::FunctionFlags;
 use pa_library::rusqlite::types::Value;
 use pa_library::rusqlite::{Connection, params_from_iter};
 use pa_library::views;
@@ -408,20 +409,6 @@ fn index_letter(key: &str) -> String {
     }
 }
 
-/// Registers `pa_sort_key(text)` on a connection.
-pub(crate) fn register_functions(conn: &Connection) -> Result<(), Error> {
-    conn.create_scalar_function(
-        "pa_sort_key",
-        1,
-        FunctionFlags::SQLITE_UTF8 | FunctionFlags::SQLITE_DETERMINISTIC,
-        |ctx| {
-            let title: Option<String> = ctx.get(0)?;
-            Ok(title.map(|t| sort_key(&t)))
-        },
-    )?;
-    Ok(())
-}
-
 // ---------------------------------------------------------------------------
 // SQL
 
@@ -519,9 +506,13 @@ impl Sql {
     }
 }
 
-/// `SELECT w.id, <columns> ... GROUP BY w.id` for a query.
-/// `order` is appended verbatim.
-fn grouped(query: &LibraryQuery, columns: &str, order: Option<&str>) -> Result<Sql, Error> {
+/// `SELECT w.id, w.title, w.year, <sort value>` of the works matching a
+/// query, one row per work, unordered.
+///
+/// File-level filters and the added / duration sorts join every present
+/// file and group by work; otherwise a work only needs one present file
+/// (`EXISTS`), which is cheaper.
+fn matching(query: &LibraryQuery) -> Result<Sql, Error> {
     let f = &query.filter;
     let mut sql = Sql {
         text: String::new(),
@@ -543,34 +534,42 @@ fn grouped(query: &LibraryQuery, columns: &str, order: Option<&str>) -> Result<S
              AND g.name COLLATE NOCASE IN ({names}))"
         ));
     }
+    let mut file_conds: Vec<String> = Vec::new();
     if !f.sources.is_empty() {
         let ids = sql.bind_list(&f.sources);
-        conds.push(format!("f.source_id IN ({ids})"));
+        file_conds.push(format!("f.source_id IN ({ids})"));
     }
     if !f.resolutions.is_empty() {
-        let slugs: Vec<&str> = f.resolutions.iter().map(|r| r.as_str()).collect();
-        let marks = sql.bind_list(&slugs.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>());
-        conds.push(format!("{RESOLUTION_SQL} IN ({marks})"));
+        let slugs: Vec<String> = f
+            .resolutions
+            .iter()
+            .map(|r| r.as_str().to_owned())
+            .collect();
+        let marks = sql.bind_list(&slugs);
+        file_conds.push(format!("{RESOLUTION_SQL} IN ({marks})"));
     }
     if !f.hdr.is_empty() {
         let any: Vec<&str> = f.hdr.iter().map(|h| h.sql()).collect();
-        conds.push(format!("({})", any.join(" OR ")));
+        file_conds.push(format!("({})", any.join(" OR ")));
     }
     if !f.audio_formats.is_empty() {
         let marks = sql.bind_list(&f.audio_formats);
-        conds.push(format!(
+        file_conds.push(format!(
             "EXISTS (SELECT 1 FROM json_each(f.audio_formats) j WHERE j.value IN ({marks}))"
         ));
     }
     if !f.audio_languages.is_empty() {
-        let langs: Vec<String> = f.audio_languages.iter().map(|l| l.to_lowercase()).collect();
+        let langs: Vec<String> = f
+            .audio_languages
+            .iter()
+            .map(|l| l.to_lowercase())
+            .collect();
         let marks = sql.bind_list(&langs);
-        conds.push(format!(
+        file_conds.push(format!(
             "EXISTS (SELECT 1 FROM json_each(f.audio_langs) j WHERE lower(j.value) IN ({marks}))"
         ));
     }
-    let needs_watch =
-        !f.watched.is_empty() || query.sort.field == SortField::LastWatched;
+    let needs_watch = !f.watched.is_empty() || query.sort.field == SortField::LastWatched;
     if !f.watched.is_empty() {
         let codes: Vec<i64> = f.watched.iter().map(|w| w.code()).collect();
         let marks = sql.bind_list(&codes);
@@ -582,43 +581,96 @@ fn grouped(query: &LibraryQuery, columns: &str, order: Option<&str>) -> Result<S
             "LEFT JOIN ws ON ws.work_id = w.id",
         )
     } else {
-        // `?1` must be used for the numbering to hold.
         (String::new(), "")
     };
+    // `?1` (the profile) is bound even when the watch CTE is not used.
     let profile_guard = if needs_watch { "" } else { "AND ?1 IS NOT NULL" };
-    sql.text = format!(
-        "{with}SELECT w.id, {columns}
+    let join_files = !file_conds.is_empty()
+        || matches!(query.sort.field, SortField::Added | SortField::Duration);
+    let value = match query.sort.field {
+        SortField::Title => "NULL",
+        SortField::Year => "w.year",
+        SortField::Added => "max(f.added_at_ms)",
+        SortField::Duration => "ifnull(max(f.duration_ms), w.runtime_ms)",
+        SortField::LastWatched => "ws.last",
+    };
+    sql.text = if join_files {
+        conds.extend(file_conds);
+        format!(
+            "{with}SELECT w.id, w.title, w.year, {value}
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
 JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
 {join}
 WHERE {} {profile_guard}
-GROUP BY w.id
-{}",
-        conds.join("\n  AND "),
-        order.unwrap_or("")
-    );
+GROUP BY w.id",
+            conds.join("\n  AND ")
+        )
+    } else {
+        format!(
+            "{with}SELECT w.id, w.title, w.year, {value}
+FROM works w
+{join}
+WHERE {} {profile_guard}
+  AND EXISTS (SELECT 1 FROM matches m
+               JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
+              WHERE m.work_id = w.id AND m.state <> 'rejected')",
+            conds.join("\n  AND ")
+        )
+    };
     Ok(sql)
 }
 
-/// `ORDER BY` of a sort.
-fn order_by(sort: LibrarySort) -> String {
-    let dir = if sort.descending { "DESC" } else { "ASC" };
-    // Ties of other fields read A→Z whatever the direction.
-    let title = "pa_sort_key(w.title), w.year, w.id";
-    match sort.field {
-        SortField::Title => format!("ORDER BY pa_sort_key(w.title) {dir}, w.year {dir}, w.id {dir}"),
-        SortField::Year => format!("ORDER BY w.year {dir} NULLS LAST, {title}"),
-        SortField::Added => format!("ORDER BY max(f.added_at_ms) {dir} NULLS LAST, {title}"),
-        SortField::Duration => format!(
-            "ORDER BY ifnull(max(f.duration_ms), w.runtime_ms) {dir} NULLS LAST, {title}"
-        ),
-        SortField::LastWatched => format!("ORDER BY max(ws.last) {dir} NULLS LAST, {title}"),
-    }
+/// A matching work with what it sorts by.
+struct Hit {
+    id: i64,
+    key: String,
+    year: Option<i64>,
+    value: Option<i64>,
 }
 
-fn to_usize(n: i64) -> usize {
-    usize::try_from(n).unwrap_or(0)
+/// The works matching `query`, in its order, with their title sort keys.
+fn sorted(conn: &Connection, query: &LibraryQuery) -> Result<Vec<Hit>, Error> {
+    let sql = matching(query)?;
+    let mut stmt = conn.prepare_cached(&sql.text)?;
+    let mut rows = stmt.query(params_from_iter(sql.params.iter()))?;
+    let mut hits = Vec::new();
+    while let Some(r) = rows.next()? {
+        let title: String = r.get(1)?;
+        hits.push(Hit {
+            id: r.get(0)?,
+            key: sort_key(&title),
+            year: r.get(2)?,
+            value: r.get(3)?,
+        });
+    }
+    drop(rows);
+    let by_title = |a: &Hit, b: &Hit| {
+        a.key
+            .cmp(&b.key)
+            .then(a.year.cmp(&b.year))
+            .then(a.id.cmp(&b.id))
+    };
+    let descending = query.sort.descending;
+    if query.sort.field == SortField::Title {
+        hits.sort_unstable_by(|a, b| {
+            let o = by_title(a, b);
+            if descending { o.reverse() } else { o }
+        });
+    } else {
+        // Missing values last in both directions; ties A→Z.
+        hits.sort_unstable_by(|a, b| {
+            let o = match (a.value, b.value) {
+                (Some(x), Some(y)) if descending => y.cmp(&x),
+                (Some(x), Some(y)) => x.cmp(&y),
+                (Some(_), None) => Ordering::Less,
+                (None, Some(_)) => Ordering::Greater,
+                (None, None) => Ordering::Equal,
+            };
+            o.then_with(|| by_title(a, b))
+        });
+    }
+    Ok(hits)
 }
 
 pub(crate) fn run_query(
@@ -627,18 +679,14 @@ pub(crate) fn run_query(
     offset: usize,
     limit: usize,
 ) -> Result<ItemPage, Error> {
-    // All matching ids in order, then the page: one pass gives the total
-    // without a window function or a second count query.
-    let sql = grouped(query, "NULL", Some(&order_by(query.sort)))?;
-    let mut stmt = conn.prepare_cached(&sql.text)?;
-    let mut ids: Vec<i64> = Vec::new();
-    let mut rows = stmt.query(params_from_iter(sql.params.iter()))?;
-    while let Some(r) = rows.next()? {
-        ids.push(r.get(0)?);
-    }
-    drop(rows);
-    let total = ids.len();
-    let page: Vec<i64> = ids.into_iter().skip(offset).take(limit).collect();
+    let hits = sorted(conn, query)?;
+    let total = hits.len();
+    let page: Vec<i64> = hits
+        .iter()
+        .skip(offset)
+        .take(limit)
+        .map(|h| h.id)
+        .collect();
     let items = items::works_by_ids(conn, query.kind, &page)?;
     Ok(ItemPage {
         items,
@@ -647,20 +695,21 @@ pub(crate) fn run_query(
     })
 }
 
-pub(crate) fn alphabet(conn: &Connection, query: &LibraryQuery) -> Result<Vec<AlphabetEntry>, Error> {
-    let descending = query.sort.field == SortField::Title && query.sort.descending;
-    let sort = LibrarySort {
-        field: SortField::Title,
-        descending,
+pub(crate) fn alphabet(
+    conn: &Connection,
+    query: &LibraryQuery,
+) -> Result<Vec<AlphabetEntry>, Error> {
+    let title_query = LibraryQuery {
+        kind: query.kind,
+        filter: query.filter.clone(),
+        sort: LibrarySort {
+            field: SortField::Title,
+            descending: query.sort.field == SortField::Title && query.sort.descending,
+        },
     };
-    let sql = grouped(query, "pa_sort_key(w.title)", Some(&order_by(sort)))?;
-    let mut stmt = conn.prepare_cached(&sql.text)?;
-    let mut rows = stmt.query(params_from_iter(sql.params.iter()))?;
     let mut out: Vec<AlphabetEntry> = Vec::new();
-    let mut n = 0;
-    while let Some(r) = rows.next()? {
-        let key: String = r.get(1)?;
-        let letter = index_letter(&key);
+    for (n, hit) in sorted(conn, &title_query)?.iter().enumerate() {
+        let letter = index_letter(&hit.key);
         match out.last_mut() {
             Some(last) if last.letter == letter => last.count += 1,
             _ => out.push(AlphabetEntry {
@@ -669,9 +718,12 @@ pub(crate) fn alphabet(conn: &Connection, query: &LibraryQuery) -> Result<Vec<Al
                 count: 1,
             }),
         }
-        n += 1;
     }
     Ok(out)
+}
+
+fn to_usize(n: i64) -> usize {
+    usize::try_from(n).unwrap_or(0)
 }
 
 pub(crate) fn facets(conn: &Connection, kind: ItemKind) -> Result<Facets, Error> {
@@ -850,18 +902,18 @@ pub(crate) fn browse(
         let group = if folders_first {
             b.is_folder.cmp(&a.is_folder)
         } else {
-            std::cmp::Ordering::Equal
+            Ordering::Equal
         };
         let by_field = match sort.field {
             SortField::Added => a.added_at_ms.cmp(&b.added_at_ms),
             SortField::Duration => match (a.duration_ms, b.duration_ms) {
                 (Some(x), Some(y)) => x.cmp(&y),
                 // Missing values last in both directions.
-                (Some(_), None) => return group.then(std::cmp::Ordering::Less),
-                (None, Some(_)) => return group.then(std::cmp::Ordering::Greater),
-                (None, None) => std::cmp::Ordering::Equal,
+                (Some(_), None) => return group.then(Ordering::Less),
+                (None, Some(_)) => return group.then(Ordering::Greater),
+                (None, None) => Ordering::Equal,
             },
-            _ => std::cmp::Ordering::Equal,
+            _ => Ordering::Equal,
         };
         let by_name = ka.cmp(kb).then_with(|| a.name.cmp(&b.name));
         let ordered = match (sort.field, sort.descending) {

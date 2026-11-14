@@ -90,7 +90,6 @@ impl Catalog {
             std::fs::create_dir_all(dir).map_err(|e| Error::Io(e.to_string()))?;
         }
         let conn = pa_library::open(&path)?;
-        query::register_functions(&conn)?;
         Ok(Self {
             path,
             conn: Mutex::new(conn),
