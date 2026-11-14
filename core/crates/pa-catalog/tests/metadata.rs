@@ -201,7 +201,7 @@ fn run(cat: &Catalog, p: &MetadataProviders) -> pa_catalog::MetadataReport {
             progress.push((d, t))
         })
         .unwrap();
-    if let Some(&(d, t)) = progress.last() {
+    if let (false, Some(&(d, t))) = (report.stopped, progress.last()) {
         assert_eq!(d, t);
     }
     report

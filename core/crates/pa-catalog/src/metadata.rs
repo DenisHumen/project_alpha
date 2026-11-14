@@ -178,7 +178,6 @@ pub struct MetadataReport {
 struct WorkInfo {
     id: i64,
     kind: String,
-    title: String,
     year: Option<i64>,
     /// All titles, main first.
     titles: Vec<String>,
@@ -294,7 +293,7 @@ fn load_work(conn: &Connection, id: i64) -> Result<Option<WorkInfo>, Error> {
     else {
         return Ok(None);
     };
-    let mut titles = vec![title.clone()];
+    let mut titles = vec![title];
     {
         let mut stmt = conn.prepare(
             "SELECT text FROM titles WHERE work_id = ?1
@@ -337,7 +336,6 @@ fn load_work(conn: &Connection, id: i64) -> Result<Option<WorkInfo>, Error> {
     Ok(Some(WorkInfo {
         id,
         kind,
-        title,
         year,
         titles,
         tmdb_id,
@@ -1277,7 +1275,6 @@ mod tests {
         let work = WorkInfo {
             id: 1,
             kind: "movie".into(),
-            title: "Dune".into(),
             year: Some(2021),
             titles: vec!["Dune".into()],
             tmdb_id: None,
