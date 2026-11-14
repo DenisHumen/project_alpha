@@ -400,8 +400,7 @@ impl PlayerEngine for CoreEngine {
     }
     fn set_listener(&self, listener: Option<Arc<dyn EngineListener>>) {
         self.0.set_listener(
-            listener
-                .map(|l| Arc::new(PlatformListener(l)) as Arc<dyn pa_playback::EngineListener>),
+            listener.map(|l| Arc::new(PlatformListener(l)) as Arc<dyn pa_playback::EngineListener>),
         );
     }
     fn state(&self) -> EngineState {
