@@ -111,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
       clipBehavior: Clip.none,
       // Home has a handful of rows: keep the next ones built, so the first
       // poster rows are there at once and TV focus can move down to them.
-      cacheExtent: 800,
+      scrollCacheExtent: const ScrollCacheExtent.pixels(800),
       children: [
         if (initial != null)
           ValueListenableBuilder<LibraryItem?>(
