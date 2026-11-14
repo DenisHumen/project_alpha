@@ -368,23 +368,15 @@ fn spawn_snapshots(
         .spawn(move || {
             let mut visible: BTreeMap<(ServiceKind, String), CoreDiscoveredService> =
                 BTreeMap::new();
-            let mut apply = |ev: DiscoveryEvent| match ev {
-                DiscoveryEvent::Found(s) | DiscoveryEvent::Updated(s) => {
-                    visible.insert(s.key(), (&s).into());
-                }
-                DiscoveryEvent::Lost { kind, instance } => {
-                    visible.remove(&(kind, instance.to_lowercase()));
-                }
-            };
             let mut next: Option<DiscoveryEvent> = None;
             let mut changed = true;
             loop {
                 if let Some(ev) = next.take() {
-                    apply(ev);
+                    apply(&mut visible, ev);
                     changed = true;
                 }
                 while let Ok(ev) = rx.try_recv() {
-                    apply(ev);
+                    apply(&mut visible, ev);
                     changed = true;
                 }
                 if changed {
@@ -403,6 +395,18 @@ fn spawn_snapshots(
         });
     if let Err(e) = spawned {
         eprintln!("pa-discovery: no watch thread: {e}");
+    }
+}
+
+
+fn apply(visible: &mut BTreeMap<(ServiceKind, String), CoreDiscoveredService>, ev: DiscoveryEvent) {
+    match ev {
+        DiscoveryEvent::Found(s) | DiscoveryEvent::Updated(s) => {
+            visible.insert(s.key(), (&s).into());
+        }
+        DiscoveryEvent::Lost { kind, instance } => {
+            visible.remove(&(kind, instance.to_lowercase()));
+        }
     }
 }
 
