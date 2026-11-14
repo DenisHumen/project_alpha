@@ -17,6 +17,7 @@ on:
     paths:
       - "core/crates/**"
       - "tools/bindings/**"
+      - "tools/flavor/**"
       - "clients/apple/TVApp/**"
       - "clients/apple/AlphaPlayerKit/**"
       - "tools/qa/media/**"
@@ -67,6 +68,15 @@ jobs:
         run: tools/bindings/test-pacore.sh ios
       - name: XCTest on tvOS Simulator
         run: tools/bindings/test-pacore.sh tvos
+      - name: Store artifact check of the xcframework (CORE-013)
+        run: |
+          # The xcframework above is the store flavor (PA_FLAVOR default):
+          # no full-only string or symbol in any slice (ADR-0007).
+          tools/flavor/check-artifacts.sh store tools/bindings/PACore/PACoreFFI.xcframework | tee -a "$GITHUB_STEP_SUMMARY"
+          # Positive control: a full core for this Mac trips the same check,
+          # so the store pass is not blindness to Mach-O archives.
+          cargo build -p pa-ffi --lib --release --locked --features full
+          tools/flavor/check-artifacts.sh full "${CARGO_TARGET_DIR:-target}/release/libpa_ffi.a"
       - name: Pack xcframework
         run: cd tools/bindings/PACore && ditto -c -k --keepParent PACoreFFI.xcframework "$RUNNER_TEMP/PACoreFFI.xcframework.zip"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

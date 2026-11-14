@@ -11,6 +11,8 @@
 #   No ABIs = all of them. Needs rustup, cargo-ndk, JDK 17+, `gradle` on PATH,
 #   ANDROID_HOME (or ANDROID_SDK_ROOT) and an NDK: ANDROID_NDK_HOME, or the
 #   pinned version (NDK_VERSION below) under $ANDROID_HOME/ndk.
+#   PA_FLAVOR=store|full (default store): build flavor of the core, the cargo
+#   feature of pa-ffi (ADR-0007, CORE-013).
 #
 # Output (not committed, ADR-0001), under $CARGO_TARGET_DIR (default target/):
 #   android/jniLibs/<abi>/libpa_ffi.so
@@ -29,12 +31,17 @@ MIN_SDK=24
 NDK_VERSION=29.0.14206865
 
 profile=release
+flavor="${PA_FLAVOR:-store}"
+case "$flavor" in
+  store | full) ;;
+  *) echo "PA_FLAVOR must be store or full, not '$flavor'" >&2; exit 2 ;;
+esac
 abis=()
 for arg in "$@"; do
   case "$arg" in
     --debug) profile=dev ;;
     arm64-v8a | armeabi-v7a | x86_64) abis+=("$arg") ;;
-    -h | --help) sed -n '3,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) sed -n '3,21p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
@@ -72,9 +79,9 @@ for abi in "${abis[@]}"; do
   ndk_args+=(-t "$abi")
 done
 
-echo "==> cargo-ndk: ${abis[*]} ($profile, API $MIN_SDK)"
+echo "==> cargo-ndk: ${abis[*]} ($profile, $flavor, API $MIN_SDK)"
 cargo ndk --platform "$MIN_SDK" "${ndk_args[@]}" -o "$OUT/jniLibs" \
-  build -p pa-ffi --lib --locked --profile "$profile"
+  build -p pa-ffi --lib --locked --profile "$profile" --features "$flavor"
 
 # UniFFI Kotlin bindings in library mode, read from the first Android library
 # (metadata symbols are the same for every ABI).

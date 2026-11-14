@@ -49,9 +49,16 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Kinolune
         INFOPLIST_KEY_UIUserInterfaceStyle: Dark
         TARGETED_DEVICE_FAMILY: "3"
-        # Build flavour (ADR-0007): tvOS ships only through the App Store, so
-        # every configuration is `store`. A `full` build would set PA_FLAVOR_FULL.
-        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) PA_FLAVOR_STORE"
+        # Build flavour (ADR-0007, CORE-013): tvOS ships only through the App
+        # Store, so every configuration is `store`. PA_FLAVOR is the one
+        # setting; the Swift condition PA_FLAVOR_STORE / PA_FLAVOR_FULL is
+        # derived from it. The core in PACoreFFI.xcframework must be built
+        # with the same PA_FLAVOR (tools/bindings/build-xcframework.sh);
+        # TVAppTests checks that they agree.
+        PA_FLAVOR: store
+        PA_FLAVOR_CONDITION_store: PA_FLAVOR_STORE
+        PA_FLAVOR_CONDITION_full: PA_FLAVOR_FULL
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) $(PA_FLAVOR_CONDITION_$(PA_FLAVOR))"
 
   TVAppTests:
     type: bundle.unit-test

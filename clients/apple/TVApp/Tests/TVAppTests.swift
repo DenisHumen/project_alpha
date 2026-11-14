@@ -30,4 +30,10 @@ final class TVAppTests: XCTestCase {
         XCTAssertEqual(BuildInfo.flavor, .store)
         XCTAssertTrue(BuildInfo.summary.hasSuffix("· store"), BuildInfo.summary)
     }
+
+    func testRustCoreIsTheSameFlavor() {
+        // CORE-013: PA_FLAVOR of the app and of PACoreFFI.xcframework agree.
+        XCTAssertEqual(BuildInfo.coreFlavor, BuildInfo.flavor.rawValue)
+        XCTAssertEqual(BuildInfo.coreCapabilities.isEmpty, BuildInfo.flavor == .store)
+    }
 }

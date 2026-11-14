@@ -62,7 +62,7 @@ scan_binary() {
     if $have_nm; then nm -C "$file" 2>/dev/null || true; fi
   } >"$out"
   echo "$label" >>"$work/scanned"
-  grep -F -o -f "$pat" "$out" 2>/dev/null | sort -u | while IFS= read -r hit; do
+  { grep -F -o -f "$pat" "$out" 2>/dev/null || true; } | sort -u | while IFS= read -r hit; do
     printf '%s\t%s\n' "$label" "$hit" >>"$work/hits"
   done
 }

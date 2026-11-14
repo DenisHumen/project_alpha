@@ -1,0 +1,153 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Build flavors (ADR-0007, CORE-013): store artifacts must not contain any
+# full-only string or symbol (Twitch native playback and archive, donation
+# links). tools/flavor/check-artifacts.sh greps `strings` and `nm` of every
+# binary against tools/flavor/full-only-patterns.txt and fails on a hit.
+#
+#   rust     Linux: the Rust core (pa-frb, pa-ffi) and the pa-twitch probe in
+#            both flavors. Store must pass; full must trip the same check
+#            (positive control: the check sees full-only code at all).
+#   android  The app as a store Android App Bundle (Rust core + Dart AOT),
+#            checked whole. Uploaded as the workflow artifact `store-android`
+#            (a check build: no libmpv, not signed for a store).
+#
+# Apple: the store xcframework is checked in apple-core.yml. The full
+# artifacts of GitHub Releases are checked in full mode in release-app.yml.
+# Windows: no Windows build yet.
+
+name: Flavors
+
+on:
+  pull_request:
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
+    paths:
+      - "core/crates/**"
+      - "clients/flutter/**"
+      - "tools/flavor/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "rust-toolchain.toml"
+      - ".github/workflows/flavors.yml"
+  push:
+    branches: [main]
+    tags: ["app-v*"]
+    paths:
+      - "core/crates/**"
+      - "clients/flutter/**"
+      - "tools/flavor/**"
+      - "Cargo.lock"
+      - ".github/workflows/flavors.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in sync with flutter.yml and release-app.yml.
+  FLUTTER_VERSION: "3.50.0"
+  APP_DIR: clients/flutter/app
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: Rust core, store vs full
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+      - name: Build both flavors
+        run: |
+          mkdir -p out/store out/full
+          for flavor in store full; do
+            # The artifact crates' own `store`/`full` features, as the app
+            # builds them; the probe through pa-flavor directly.
+            cargo build --release --locked -p pa-frb --lib --features "$flavor"
+            cargo build --release --locked -p pa-ffi --lib --features "$flavor"
+            cargo build --release --locked -p pa-twitch --example flavor_probe --features "pa-flavor/$flavor"
+            cp target/release/libpa_frb.so target/release/libpa_ffi.so \
+               target/release/examples/flavor_probe "out/$flavor/"
+            # Shipped libraries are stripped: check them as shipped.
+            strip -o "out/$flavor/libpa_frb.stripped.so" "out/$flavor/libpa_frb.so"
+            "out/$flavor/flavor_probe"
+          done
+      - name: Store artifacts have no full-only code
+        run: tools/flavor/check-artifacts.sh store out/store | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Positive control - every full artifact trips the check
+        run: |
+          for f in out/full/*; do
+            tools/flavor/check-artifacts.sh full "$f"
+          done
+
+  android:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: Android store bundle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      # The two halves of one flavor: Dart (dart-define) and the Rust core
+      # (pa_core build hook). docs/dev/flavors.md.
+      KINOLUNE_FLAVOR: store
+      CARGO_KINOLUNE_FLAVOR: store
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Fetch design fonts (pinned SHA-256)
+        run: |
+          # pa_design ships Inter outside git; the app and package need it to build.
+          if [ -f design/scripts/fonts-fetch.mjs ]; then node design/scripts/fonts-fetch.mjs; fi
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Rust toolchain for the core (pa_core Native Assets)
+        working-directory: core/crates/pa-frb
+        run: rustup toolchain install
+      - name: flutter build appbundle (store)
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          if [ -f pubspec.lock ]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
+          # A check build: libmpv is third-party and the same in both flavors.
+          flutter build appbundle --release \
+            --target-platform android-arm,android-arm64,android-x64 \
+            --dart-define=KINOLUNE_FLAVOR="$KINOLUNE_FLAVOR" \
+            -Pkinolune.allowMissingLibmpv=true
+          mkdir -p "$GITHUB_WORKSPACE/out"
+          cp build/app/outputs/bundle/release/app-release.aab "$GITHUB_WORKSPACE/out/kinolune-store-android.aab"
+      - name: Store bundle has no full-only code
+        run: |
+          # Rust core and Dart AOT (libapp.so) of every ABI.
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            unzip -l out/kinolune-store-android.aab "base/lib/$abi/libpa_frb.so" "base/lib/$abi/libapp.so" >/dev/null \
+              || { echo "::error::bundle lacks libpa_frb.so or libapp.so for $abi"; exit 1; }
+          done
+          tools/flavor/check-artifacts.sh store out/kinolune-store-android.aab | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: store-android
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
