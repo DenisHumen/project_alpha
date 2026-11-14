@@ -1331,7 +1331,13 @@ fn apply(
     // Cast, crew and the TMDB rating (UI-009).
     if let Some(t) = &fetched.tmdb {
         set_credits(tx, target, &t.credits)?;
-        set_rating(tx, target, "tmdb", t.details.vote_average, t.details.vote_count)?;
+        set_rating(
+            tx,
+            target,
+            "tmdb",
+            t.details.vote_average,
+            t.details.vote_count,
+        )?;
     }
 
     // Artwork.

@@ -24,7 +24,11 @@ fn movie_details_have_extras_logo_and_tech() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path().join("media");
     media(&root, MAIN, 1);
-    media(&root, "Movies/Arrival (2016)/Trailers/Arrival Trailer.mkv", 2);
+    media(
+        &root,
+        "Movies/Arrival (2016)/Trailers/Arrival Trailer.mkv",
+        2,
+    );
     media(&root, "Movies/Arrival (2016)/Featurettes/Making Of.mkv", 3);
     std::fs::write(root.join("Movies/Arrival (2016)/clearlogo.png"), b"png").unwrap();
     let cat = Catalog::open(dir.path().join("library.db")).unwrap();

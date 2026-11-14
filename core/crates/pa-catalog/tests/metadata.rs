@@ -304,7 +304,12 @@ fn movies_shows_and_anime_get_provider_metadata() {
         details.credits[0].profile_url.as_deref(),
         Some("https://image.tmdb.org/t/p/w185/tc.jpg")
     );
-    assert!(details.external_ids.iter().any(|x| x.provider == "imdb" && x.id == "tt0000001"));
+    assert!(
+        details
+            .external_ids
+            .iter()
+            .any(|x| x.provider == "imdb" && x.id == "tt0000001")
+    );
     // Heat has no credits fixture (404): metadata still applies, no people.
     let heat = movies.iter().find(|m| m.tmdb_id == Some(949));
     if let Some(heat) = heat {
