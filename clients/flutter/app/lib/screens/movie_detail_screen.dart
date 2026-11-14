@@ -381,7 +381,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               ),
             ),
           ),
-          ),
           SliverToBoxAdapter(child: SizedBox(height: d.pageInsets.bottom + 24)),
         ],
       ),
