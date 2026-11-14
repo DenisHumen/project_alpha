@@ -282,11 +282,8 @@ impl SyncService {
                 identity
             }
         };
-        let family = match Family::load(store.as_ref(), &config.roster_path()) {
-            Ok(family) => family,
-            // Another family's key or a broken roster: start without one.
-            Err(_) => None,
-        };
+        // Another family's key or a broken roster: start without one.
+        let family = Family::load(store.as_ref(), &config.roster_path()).unwrap_or_default();
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .worker_threads(2)
             .thread_name("pa-sync")

@@ -47,8 +47,13 @@ uuid.workspace = true
 [dev-dependencies]
 pa-secrets = { path = "../pa-secrets" }
 proptest.workspace = true
+tempfile.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
 
 [[test]]
 name = "lan"
+required-features = ["lan"]
+
+[[test]]
+name = "service"
 required-features = ["lan"]
