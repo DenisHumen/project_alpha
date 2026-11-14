@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'details.dart';
 import 'library_lists.dart';
 import 'library_query.dart';
 import 'music.dart';
@@ -98,6 +99,11 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   Future<void> deletePlaylist({required PlatformInt64 id});
 
   Future<void> deleteShelf({required PlatformInt64 id});
+
+  /// What the Detail screen shows besides the item row (UI-009): genres,
+  /// logo, ratings, ids, cast and crew, extras and the probe data of the
+  /// version the item plays.
+  Future<CoreItemDetails> details({required String itemId});
 
   /// Episodes of a show item.
   Future<List<CoreItem>> episodes({required String showId});

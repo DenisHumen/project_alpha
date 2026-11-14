@@ -89,6 +89,8 @@ erDiagram
   profiles ||--o{ view_prefs : ""
   profiles ||--o{ smart_shelves : ""
   works ||--o{ work_genres : ""
+  works ||--o{ work_credits : ""
+  works ||--o{ work_ratings : ""
   playlists ||--o{ playlist_items : ""
   profiles |o--o{ jobs : ""
   files ||--o| music_tracks : ""
@@ -256,6 +258,14 @@ AniDB-часть аниме-произведения: `anidb_aid`, франши�
 ### `work_genres`
 
 Жанры произведения по провайдеру (`tmdb` — названия на языке метаданных, `anilist` — английские, только если у TMDB жанров нет). Пишет прогон метаданных (`META-013`, `pa_library::views::set_work_genres`); фильтр по жанру сравнивает без учёта регистра.
+
+### `work_credits`
+
+Актёры и съёмочная группа произведения по провайдеру для экрана Detail (UI-009): `role` — `cast` (в порядке титров, `character` — роль) или `crew` (`job` — Director, Screenplay…), `position` — порядок показа, `person_ref` — id человека у провайдера (для страниц людей), `profile_url` — фото на CDN провайдера. Прогон метаданных переписывает строки провайдера при каждой загрузке.
+
+### `work_ratings`
+
+Внешние рейтинги произведения (UI-009): средняя оценка 0–10 (`value`) и число голосов (`votes`) по источнику (`tmdb`, позже другие). Пишет прогон метаданных.
 
 ### `view_prefs`
 

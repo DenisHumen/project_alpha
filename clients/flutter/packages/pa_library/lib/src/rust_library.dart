@@ -8,6 +8,7 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
 import 'package:pa_core/pa_core.dart';
 import 'package:path/path.dart' as p;
 
+import 'item_details.dart';
 import 'library.dart';
 import 'library_lists.dart';
 import 'library_query.dart';
@@ -37,7 +38,12 @@ import 'subtitles.dart';
 /// Their files play through the core's loopback HTTP proxy
 /// ([LibraryItem.streamUri]).
 class RustLibrary
-    implements Library, LibraryLists, LibrarySubtitles, LibraryMusic {
+    implements
+        Library,
+        LibraryLists,
+        LibrarySubtitles,
+        LibraryDetails,
+        LibraryMusic {
   final CoreLibrary _core;
   final String? _tempDir;
   final String _metadataCacheDir;
@@ -927,6 +933,90 @@ class RustLibrary
 
   /// Genres of a movie or show.
   Future<List<String>> genres(String itemId) => _core.genres(itemId: itemId);
+
+  // -------------------------------------------------------------------------
+  // details (UI-009)
+
+  /// What to hand to an image widget or the player for a file of a source:
+  /// the local path as a `file://` URI ([fileUri]) or its stream URL.
+  String? _fileUri(CoreFileRef f, {bool fileUri = false}) {
+    final local = f.localPath;
+    if (local != null) return fileUri ? Uri.file(local).toString() : local;
+    final base = _streamBase;
+    return base == null ? null : streamUrl(base, f.sourceId, f.relPath);
+  }
+
+  @override
+  Future<ItemDetails> details(String itemId) async {
+    final d = await _core.details(itemId: itemId);
+    final logo = d.localLogo;
+    final t = d.tech;
+    return ItemDetails(
+      genres: d.genres,
+      runtimeMs: d.runtimeMs,
+      logoUrl: logo != null ? _fileUri(logo, fileUri: true) : d.logoUrl,
+      ratings: [
+        for (final r in d.ratings)
+          ExternalRating(source: r.provider, value: r.value, votes: r.votes),
+      ],
+      externalIds: [
+        for (final x in d.externalIds)
+          ExternalId(provider: x.provider, kind: x.kind, id: x.id),
+      ],
+      credits: [
+        for (final c in d.credits)
+          CreditPerson(
+            name: c.name,
+            crew: c.crew,
+            character: c.character,
+            job: c.job,
+            personRef: c.personRef,
+            photoUrl: c.profileUrl,
+          ),
+      ],
+      extras: [
+        for (final e in d.extras)
+          if (e.file.localPath != null || _streamBase != null)
+            MediaExtra(
+              title: e.title,
+              kind: MediaExtraKind.parse(e.extraType),
+              filePath: _displayPath(
+                e.file.localPath,
+                e.file.sourceId,
+                e.file.relPath,
+              ),
+              streamUri: _fileStreamUri(
+                e.file.localPath,
+                e.file.sourceId,
+                e.file.relPath,
+              ),
+              sizeBytes: e.sizeBytes,
+              durationMs: e.durationMs,
+            ),
+      ],
+      tech: t == null
+          ? null
+          : TechInfo(
+              container: t.container,
+              sizeBytes: t.sizeBytes,
+              durationMs: t.durationMs,
+              videoCodec: t.videoCodec,
+              videoProfile: t.videoProfile,
+              width: t.width,
+              height: t.height,
+              bitDepth: t.bitDepth,
+              frameRate: t.frameRate,
+              hdr: [for (final h in t.hdr) ?TechInfo.parseHdr(h)],
+              audioFormats: t.audioFormats,
+              audioLanguages: t.audioLangs,
+              subtitleLanguages: t.subLangs,
+              filePath: switch (t.file) {
+                final f? => _displayPath(f.localPath, f.sourceId, f.relPath),
+                null => null,
+              },
+            ),
+    );
+  }
 
   static int _shelfId(String id) =>
       int.tryParse(id) ??

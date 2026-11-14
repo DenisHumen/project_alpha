@@ -28,6 +28,7 @@ use flutter_rust_bridge::frb;
 use pa_catalog as c;
 use pa_catalog::pa_sync::lan::service::SyncService;
 
+use crate::api::details::CoreItemDetails;
 use crate::api::library_lists::{CoreCollection, CorePlaylist, CoreVersion};
 use crate::api::library_query::{
     CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
@@ -898,6 +899,13 @@ impl CoreLibrary {
     /// Genres of a movie or show item.
     pub fn genres(&self, item_id: String) -> Result<Vec<String>> {
         Ok(self.catalog.genres(item_ref(&item_id)?)?)
+    }
+
+    /// What the Detail screen shows besides the item row (UI-009): genres,
+    /// logo, ratings, ids, cast and crew, extras and the probe data of the
+    /// version the item plays.
+    pub fn details(&self, item_id: String) -> Result<CoreItemDetails> {
+        Ok(self.catalog.details(item_ref(&item_id)?)?.into())
     }
 
     // -----------------------------------------------------------------------

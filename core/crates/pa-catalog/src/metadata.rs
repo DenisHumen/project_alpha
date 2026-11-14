@@ -45,7 +45,7 @@ use pa_metadata::cache::ProviderCache;
 use pa_metadata::fetch::FetchError;
 use pa_metadata::shikimori::{RussianInfo, ShikimoriClient};
 use pa_metadata::tmdb::{
-    self, Details, ExternalSource, MediaKind, SearchResult, Season, TmdbClient, TmdbError,
+    self, Credits, Details, ExternalSource, MediaKind, SearchResult, Season, TmdbClient, TmdbError,
 };
 use pa_recognition::parse::MediaHint;
 use pa_recognition::title::{TitleIndex, TitleQuery, TitleRecord, WorkKind};
@@ -77,6 +77,8 @@ const WORKERS: usize = 4;
 const POSTER_SIZE: &str = "w500";
 const BACKDROP_SIZE: &str = "w1280";
 const STILL_SIZE: &str = "w300";
+/// Cast and crew photos (UI-009).
+const PROFILE_SIZE: &str = "w185";
 
 const DAY_MS: i64 = 24 * 3600 * 1000;
 
@@ -234,6 +236,9 @@ struct TmdbData {
     titles: Vec<(String, String)>,
     /// Seasons of the work's numbered episodes.
     seasons: Vec<Season>,
+    /// Cast and crew (UI-009); empty when TMDB has none or the request
+    /// failed: credits are best effort and never fail a fetch.
+    credits: Credits,
 }
 
 #[derive(Debug)]
@@ -625,12 +630,14 @@ fn fetch_tmdb(
             }
         }
     }
+    let credits = client.credits(kind, id).unwrap_or_default();
     Ok(Some((
         TmdbData {
             kind,
             details,
             titles,
             seasons,
+            credits,
         },
         confidence,
     )))
@@ -902,6 +909,99 @@ fn set_artwork(
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
         params![work, episode, kind, provider, url, lang, priority],
     )?;
+    Ok(())
+}
+
+/// Actors shown on the Detail screen, in billing order.
+const MAX_CAST: usize = 20;
+/// Crew jobs shown on the Detail screen, in this order.
+const CREW_JOBS: [&str; 6] = [
+    "Director",
+    "Screenplay",
+    "Writer",
+    "Novel",
+    "Original Music Composer",
+    "Director of Photography",
+];
+/// Crew members shown on the Detail screen.
+const MAX_CREW: usize = 8;
+
+/// Rewrites the TMDB cast and crew of a work (UI-009): the first
+/// [`MAX_CAST`] actors and up to [`MAX_CREW`] people of [`CREW_JOBS`].
+fn set_credits(tx: &Transaction<'_>, work: i64, credits: &Credits) -> Result<(), Error> {
+    tx.execute(
+        "DELETE FROM work_credits WHERE work_id = ?1 AND provider = 'tmdb'",
+        [work],
+    )?;
+    let mut insert = tx.prepare(
+        "INSERT OR IGNORE INTO work_credits
+             (work_id, provider, role, position, person_ref, name, character, job, profile_url)
+         VALUES (?1, 'tmdb', ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+    )?;
+    let profile = |p: Option<&str>| p.map(|p| tmdb::image_url(PROFILE_SIZE, p));
+    let mut cast: Vec<_> = credits
+        .cast
+        .iter()
+        .filter(|c| !c.name.trim().is_empty())
+        .collect();
+    cast.sort_by_key(|c| c.order);
+    for (i, c) in (0_i64..).zip(cast.into_iter().take(MAX_CAST)) {
+        insert.execute(params![
+            work,
+            "cast",
+            i,
+            c.id.to_string(),
+            c.name.trim(),
+            non_empty(c.character.as_deref()),
+            Option::<&str>::None,
+            profile(c.profile_path.as_deref()),
+        ])?;
+    }
+    let mut seen = HashSet::new();
+    let mut crew = Vec::new();
+    for job in CREW_JOBS {
+        for c in credits.crew.iter().filter(|c| c.job == job) {
+            if !c.name.trim().is_empty() && seen.insert((c.id, job)) {
+                crew.push((c, job));
+            }
+        }
+    }
+    for (i, (c, job)) in (0_i64..).zip(crew.into_iter().take(MAX_CREW)) {
+        insert.execute(params![
+            work,
+            "crew",
+            i,
+            c.id.to_string(),
+            c.name.trim(),
+            Option::<&str>::None,
+            job,
+            profile(c.profile_path.as_deref()),
+        ])?;
+    }
+    Ok(())
+}
+
+/// Stores or clears the rating of `provider` (UI-009); a rating without
+/// votes is no rating.
+fn set_rating(
+    tx: &Transaction<'_>,
+    work: i64,
+    provider: &str,
+    value: Option<f64>,
+    votes: Option<u32>,
+) -> Result<(), Error> {
+    tx.execute(
+        "DELETE FROM work_ratings WHERE work_id = ?1 AND provider = ?2",
+        params![work, provider],
+    )?;
+    if let Some(v) = value.filter(|v| *v > 0.0 && *v <= 10.0)
+        && votes.is_none_or(|n| n > 0)
+    {
+        tx.execute(
+            "INSERT INTO work_ratings (work_id, provider, value, votes) VALUES (?1, ?2, ?3, ?4)",
+            params![work, provider, v, votes.map(i64::from)],
+        )?;
+    }
     Ok(())
 }
 
@@ -1226,6 +1326,18 @@ fn apply(
             .as_ref()
             .map(|c| (c.id, c.name.as_deref().unwrap_or("")));
         crate::lists::link_tmdb_collection(tx, target, collection, now)?;
+    }
+
+    // Cast, crew and the TMDB rating (UI-009).
+    if let Some(t) = &fetched.tmdb {
+        set_credits(tx, target, &t.credits)?;
+        set_rating(
+            tx,
+            target,
+            "tmdb",
+            t.details.vote_average,
+            t.details.vote_count,
+        )?;
     }
 
     // Artwork.

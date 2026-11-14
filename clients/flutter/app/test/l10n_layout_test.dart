@@ -10,6 +10,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/l10n/l10n.dart';
 import 'package:kinolune/platform/form_factor.dart';
+import 'package:kinolune/screens/movie_detail_screen.dart';
 import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/services/preferences.dart';
 import 'package:kinolune/shell/app_shell.dart';
@@ -60,6 +61,24 @@ final _flows = <String, (Section, _Step?)>{
     },
   ),
   'movie-detail': (Section.movies, (t, _) => _tap(t, 'The Quiet Orbit')),
+  // UI-009: cast, extras, collection and technical info below the hero.
+  'movie-detail-sections': (
+    Section.movies,
+    (t, _) async {
+      await _tap(t, 'Harbor Lights');
+      await t.scrollUntilVisible(
+        find.byKey(const ValueKey('detail-tech')),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(MovieDetailScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await settle(t, 4);
+    },
+  ),
   'shows': (Section.shows, null),
   'show-detail': (Section.shows, (t, _) => _tap(t, 'Moonlit Bureau')),
   'music': (Section.music, null),

@@ -325,6 +325,13 @@ impl TmdbClient {
         )
     }
 
+    /// `/{kind}/{id}/credits`: cast and crew, characters in the configured
+    /// language (UI-009).
+    pub fn credits(&self, kind: MediaKind, id: u64) -> Result<Credits, TmdbError> {
+        let path = format!("/{}/{id}/credits", kind.as_str());
+        self.get_json(&path, self.lang(), TtlClass::Stable)
+    }
+
     /// `/collection/{id}`.
     pub fn collection(&self, id: u64) -> Result<Collection, TmdbError> {
         let mut c: Collection =

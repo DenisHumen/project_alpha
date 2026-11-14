@@ -10,6 +10,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/platform/form_factor.dart';
+import 'package:kinolune/screens/movie_detail_screen.dart';
 import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/shell/app_shell.dart';
 import 'package:kinolune/widgets/cards.dart';
@@ -76,6 +77,21 @@ final _desktopShots = <_Shot>[
     Section.movies,
     (t, _) => _tapText(t, 'The Quiet Orbit'),
   ),
+  // UI-009: the sections below the hero of the Detail screen.
+  _Shot('movie-detail-sections', Section.movies, (t, _) async {
+    await _tapText(t, 'Harbor Lights');
+    await t.scrollUntilVisible(
+      find.byKey(const ValueKey('detail-collection')),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(MovieDetailScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await settle(t, 4);
+  }),
   _Shot('shows', Section.shows),
   _Shot('show-detail', Section.shows, (t, _) => _tapText(t, 'Moonlit Bureau')),
   _Shot('music', Section.music, (t, s) async {

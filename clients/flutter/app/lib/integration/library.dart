@@ -47,6 +47,16 @@ export 'package:pa_library/pa_library.dart'
         // PLAY-007 sidecar subtitles
         LibrarySubtitles,
         SidecarSubtitle,
+        // UI-009 detail
+        CreditPerson,
+        ExternalId,
+        ExternalRating,
+        HdrFormat,
+        ItemDetails,
+        LibraryDetails,
+        MediaExtra,
+        MediaExtraKind,
+        TechInfo,
         // MUS-004 music views
         LibraryMusic,
         MusicAlbum,

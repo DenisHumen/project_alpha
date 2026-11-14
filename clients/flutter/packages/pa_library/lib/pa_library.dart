@@ -13,6 +13,7 @@ export 'src/artwork_cache.dart'
         defaultArtworkCacheBytes;
 export 'src/library.dart'
     show Library, continueWatchingMin, continueWatchingMax, showIdFor;
+export 'src/item_details.dart';
 export 'src/library_lists.dart';
 export 'src/library_query.dart';
 export 'src/models.dart';

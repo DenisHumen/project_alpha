@@ -66,8 +66,10 @@ const TABLES: &[&str] = &[
     "twitch_videos",
     "version_prefs",
     "view_prefs",
+    "work_credits",
     "work_genres",
     "work_metadata",
+    "work_ratings",
     "works",
 ];
 
@@ -481,6 +483,9 @@ fn build_graph(conn: &Connection) -> Graph {
             VALUES (2, '141981764', '[\"509658\"]', {now}, {now});
 
         INSERT INTO work_genres (work_id, provider, name) VALUES (30, 'tmdb', 'Drama');
+        INSERT INTO work_credits (work_id, provider, role, position, person_ref, name, character)
+            VALUES (30, 'tmdb', 'cast', 0, '17419', 'Actor', 'Hero');
+        INSERT INTO work_ratings (work_id, provider, value, votes) VALUES (30, 'tmdb', 8.4, 1200);
         INSERT INTO view_prefs (profile_id, view, sort, descending, folders_first, filter_json,
                                 updated_at_ms)
             VALUES (2, 'movies', 'added', 1, 0, '{{\"genres\":[\"Drama\"]}}', {now});
@@ -594,6 +599,8 @@ fn deleting_a_work_cascades_through_the_catalog() {
         "artwork",
         "version_prefs",
         "work_metadata",
+        "work_credits",
+        "work_ratings",
     ] {
         assert_eq!(count(&conn, table), 0, "{table}");
     }
