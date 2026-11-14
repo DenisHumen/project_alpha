@@ -17,11 +17,14 @@ crate-type = ["lib", "cdylib", "staticlib"]
 [dependencies]
 flutter_rust_bridge.workspace = true
 pa-catalog = { path = "../pa-catalog" }
+pa-discovery = { path = "../pa-discovery" }
 pa-ffi = { path = "../pa-ffi" }
 pa-imagecache = { path = "../pa-imagecache" }
 pa-recognition = { path = "../pa-recognition" }
 pa-secrets = { path = "../pa-secrets" }
 pa-sources = { path = "../pa-sources" }
+pa-sync = { path = "../pa-sync", features = ["lan"] }
+serde_json.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -23,4 +23,7 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+pa-discovery = { path = "../pa-discovery" }
+pa-secrets = { path = "../pa-secrets" }
+pa-sync = { path = "../pa-sync", features = ["lan"] }
 tempfile.workspace = true

@@ -8,4 +8,5 @@ pub mod library_query;
 pub mod recognition;
 pub mod secrets;
 pub mod sources;
+pub mod sync;
 pub mod version;
