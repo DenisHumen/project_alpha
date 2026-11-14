@@ -6,7 +6,6 @@
 // frames are also written as PNGs (see test/tool/screenshots_test.dart).
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/l10n/l10n.dart';

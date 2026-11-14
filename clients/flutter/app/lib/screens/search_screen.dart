@@ -357,7 +357,7 @@ class _HistoryList extends StatelessWidget {
                               : Colors.transparent,
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.history,
                                 size: 20,
                                 color: KColors.textTertiary,
