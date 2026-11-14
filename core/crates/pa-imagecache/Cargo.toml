@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-imagecache"
+version = "0.1.0"
+description = "Disk LRU cache of provider artwork (posters, backdrops, stills) with provider size variants and offline use (LIB-013)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = ["http"]
+# Live HTTPS fetcher (ureq + rustls/ring + webpki-roots, as in pa-metadata).
+# Without it the cache still works with any injected `ImageFetcher`.
+http = ["dep:ureq"]
+
+[dependencies]
+sha2.workspace = true
+thiserror.workspace = true
+ureq = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile.workspace = true
