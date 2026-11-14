@@ -35,6 +35,7 @@ const TABLES: &[&str] = &[
     "music_albums",
     "music_artists",
     "music_genres",
+    "music_plays",
     "music_track_artists",
     "music_track_genres",
     "music_tracks",
