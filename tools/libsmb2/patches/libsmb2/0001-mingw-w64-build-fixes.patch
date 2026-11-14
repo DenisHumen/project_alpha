@@ -1,0 +1,41 @@
+From: project_alpha contributors
+Subject: [PATCH] mingw-w64: use the toolchain's gethostname, snprintf, asprintf
+
+mingw-w64 declares gethostname(char *, int) in winsock2.h, ships a C99
+snprintf and declares asprintf/vasprintf in stdio.h. The MSVC/Xbox-era
+replacements in compat.h and asprintf.h therefore break the build
+("conflicting types for 'gethostname'", "redefinition of 'vasprintf'") and
+would map snprintf to the non-terminating _snprintf. Keep them for MSVC and
+Xbox only.
+
+Needed for the windows-x86_64 target of tools/libsmb2 (NET-002).
+Upstream: not sent yet.
+---
+ lib/compat.h  | 2 +-
+ lib/libsmb2.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/compat.h b/lib/compat.h
+--- a/lib/compat.h
++++ b/lib/compat.h
+@@ -113,7 +113,7 @@
+ #define EBADF WSAENOTSOCK
+ #endif
+
+-#if defined(_XBOX) || defined(__MINGW32__)
++#if defined(_XBOX)
+ #define snprintf _snprintf
+ int gethostname(char* name, size_t len);
+ #endif
+diff --git a/lib/libsmb2.c b/lib/libsmb2.c
+--- a/lib/libsmb2.c
++++ b/lib/libsmb2.c
+@@ -88,7 +88,7 @@
+ #include <sys/socket.h>
+ #endif
+
+-#if defined(_WIN32) || defined(_XBOX) || defined(__AROS__)
++#if (defined(_WIN32) && !defined(__MINGW32__)) || defined(_XBOX) || defined(__AROS__)
+ #include "asprintf.h"
+ #endif
+
