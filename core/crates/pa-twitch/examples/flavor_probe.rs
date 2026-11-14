@@ -45,7 +45,9 @@ async fn main() {
     let answer = match &decision {
         Ok(PlaybackDecision::Embed(e)) => format!("embed ({:?})", e.reason),
         #[cfg(pa_twitch_native)]
-        Ok(PlaybackDecision::Native(n)) => format!("native ({} variants)", n.playlist.variants.len()),
+        Ok(PlaybackDecision::Native(n)) => {
+            format!("native ({} variants)", n.playlist.variants.len())
+        }
         Err(e) => format!("error {}", e.code()),
     };
     println!("flavor {}: {answer}", Flavor::CURRENT);

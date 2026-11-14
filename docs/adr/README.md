@@ -46,6 +46,7 @@
 | [0038](0038-network-playback-loopback-proxy.md) | Сетевые источники: скан через `pa-vfs` (`Connector` в `pa-catalog`), воспроизведение через loopback HTTP Range-прокси `pa-proxy` | Предложен | LIB-018, NET-007 |
 | [0039](0039-remote-config-minisign.md) | Удалённый конфиг: подписанный minisign JSON из публичного репо, `minisign-verify`, anti-rollback по `serial`, только встроенная копия до появления ключа | Предложен | CORE-014 |
 | [0040](0040-app-pairing-and-lan-sync.md) | Сопряжение приложений по QR и коду в LAN (`PairHost`, `_alpha-pair._tcp`) и служба синхронизации `SyncService` в ядре; QR — `qr` + `flutter_zxing` | Предложен | UI-019 |
+| [NNNN](NNNN-build-flavor-mechanism.md) | Флейвор сборки: крейт `pa-flavor` (фичи + cfg через `links`), `KINOLUNE_FLAVOR` в Dart и `CARGO_KINOLUNE_FLAVOR` для хука, `PA_FLAVOR` в Xcode, проверка store-артефактов `strings`/`nm` | Предложен | CORE-013 |
 
 ## Запланированные ADR
 

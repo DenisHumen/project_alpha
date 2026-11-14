@@ -40,7 +40,10 @@ mod tests {
     fn build_flavor_matches_capabilities() {
         let flavor = build_flavor();
         let caps = build_capabilities();
-        assert_eq!(pa_flavor::Flavor::parse(&flavor), Some(pa_flavor::Flavor::CURRENT));
+        assert_eq!(
+            pa_flavor::Flavor::parse(&flavor),
+            Some(pa_flavor::Flavor::CURRENT)
+        );
         assert_eq!(flavor == "store", caps.is_empty(), "{flavor}: {caps:?}");
         let expected: Vec<String> = pa_flavor::enabled_capabilities()
             .iter()

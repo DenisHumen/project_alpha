@@ -156,12 +156,10 @@ pub mod build {
     ///
     /// The calling crate needs `pa-flavor` both in `[dependencies]` (Cargo
     /// passes `DEP_PA_FLAVOR_*` only to direct dependents) and in
-    /// `[build-dependencies]`, and a build script:
+    /// `[build-dependencies]`, and a `build.rs` whose `main` calls:
     ///
     /// ```no_run
-    /// fn main() {
-    ///     pa_flavor::build::emit_cfgs();
-    /// }
+    /// pa_flavor::build::emit_cfgs();
     /// ```
     ///
     /// # Panics
