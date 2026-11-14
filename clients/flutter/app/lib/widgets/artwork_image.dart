@@ -35,7 +35,12 @@ ImageProvider artworkProvider(String url, {int? width, ArtworkCache? cache}) {
   final c = cache ?? appArtworkCache;
   final remote = url.startsWith('http://') || url.startsWith('https://');
   final ImageProvider base;
-  if (remote && c != null) {
+  if (isLoopbackUrl(url)) {
+    // Local art of a network source through the core's stream proxy
+    // (LIB-019): already on this device, and its URL carries a per-process
+    // token, so the disk cache would only fill up with copies.
+    base = NetworkImage(url);
+  } else if (remote && c != null) {
     base = CachedArtworkImage(c, url, width: width);
   } else if (remote) {
     base = NetworkImage(url);
@@ -44,6 +49,13 @@ ImageProvider artworkProvider(String url, {int? width, ArtworkCache? cache}) {
     base = FileImage(File(path));
   }
   return ResizeImage.resizeIfNeeded(width, null, base);
+}
+
+/// `true` for an `http://` URL on this device (the core's stream proxy).
+bool isLoopbackUrl(String url) {
+  if (!url.startsWith('http://')) return false;
+  final host = Uri.tryParse(url)?.host;
+  return host == '127.0.0.1' || host == 'localhost' || host == '::1';
 }
 
 /// An artwork image from the core's disk cache: a cached file shows at

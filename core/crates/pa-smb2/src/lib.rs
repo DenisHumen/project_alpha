@@ -41,4 +41,4 @@ pub mod sys;
 
 pub use context::{Context, DirEntry, Encryption, FileId, FileType, Signing, Stat, Version};
 pub use error::{Error, ErrorKind, Op};
-pub use library::{LIB_ENV, Smb2Lib, default_names};
+pub use library::{LIB_ENV, Smb2Lib, bundled_paths, default_names};

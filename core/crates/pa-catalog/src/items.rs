@@ -98,6 +98,13 @@ pub struct Item {
     pub poster_url: Option<String>,
     /// Backdrop (episodes: the episode still).
     pub backdrop_url: Option<String>,
+    /// Local poster or cover stored next to the files: LIB-007
+    /// `group_assets` art for movies and shows (episodes: the show's), the
+    /// folder cover of a music album for tracks. A path relative to the
+    /// source root like [`rel_path`](Self::rel_path); the app opens it
+    /// directly for local sources and through the stream proxy for network
+    /// ones (LIB-019).
+    pub local_poster: Option<String>,
 }
 
 /// Best artwork of a kind for a work (`w.id`) or episode (`e.id`).
@@ -111,6 +118,42 @@ macro_rules! art {
             " AND a.kind = '",
             $kind,
             "' ORDER BY a.priority, a.id LIMIT 1)"
+        )
+    };
+}
+
+/// Local poster of the movie file `f` (LIB-007 `group_assets`): art named
+/// after the file (`<movie>-poster.jpg`, `<movie>.jpg`) first, then generic
+/// names (`poster.jpg`, `folder.jpg`) of a single-movie folder or a disc.
+macro_rules! movie_local_poster {
+    () => {
+        "(SELECT ga.path FROM file_group_members gm
+   JOIN file_groups g ON g.id = gm.group_id
+   JOIN group_assets ga ON ga.group_id = gm.group_id
+  WHERE gm.file_id = f.id AND ga.role = 'art' AND ga.art_kind = 'poster'
+    AND ga.season_number IS NULL
+    AND (ga.target_path = f.path
+         OR (ga.target_path IS NULL AND g.kind IN ('movie_folder', 'disc')))
+  ORDER BY ga.target_path IS NULL, length(ga.path), ga.path LIMIT 1)"
+    };
+}
+
+/// Local poster of the show `$work` (a column with its `works.id`): a
+/// generic poster, not season art, of a series group holding one of its
+/// present episodes; the shallowest first (the show folder above `Season N`).
+macro_rules! show_local_poster {
+    ($work:literal) => {
+        concat!(
+            "(SELECT ga.path FROM matches m3
+   JOIN files f3 ON f3.id = m3.file_id AND f3.missing_since_ms IS NULL
+   JOIN file_group_members gm ON gm.file_id = f3.id
+   JOIN file_groups g ON g.id = gm.group_id AND g.kind = 'series_folder'
+   JOIN group_assets ga ON ga.group_id = gm.group_id
+  WHERE m3.work_id = ",
+            $work,
+            " AND m3.state <> 'rejected' AND ga.role = 'art' AND ga.art_kind = 'poster'
+    AND ga.season_number IS NULL AND ga.target_path IS NULL
+  ORDER BY length(ga.path), ga.path LIMIT 1)"
         )
     };
 }
@@ -152,6 +195,11 @@ fn relative(path: &str) -> String {
     path.trim_start_matches('/').to_owned()
 }
 
+/// [`relative`] for an optional stored path.
+fn local_rel(path: Option<String>) -> Option<String> {
+    path.map(|p| relative(&p)).filter(|p| !p.is_empty())
+}
+
 const MOVIE_SQL: &str = concat!(
     "
 SELECT w.id, w.title, w.original_title, w.year, w.overview,
@@ -161,6 +209,8 @@ SELECT w.id, w.title, w.original_title, w.year, w.overview,
     art!("work_id", "w.id", "poster"),
     ", ",
     art!("work_id", "w.id", "backdrop"),
+    ", ",
+    movie_local_poster!(),
     "
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
@@ -182,6 +232,8 @@ SELECT w.id, w.title, w.original_title, w.year, w.overview,
     art!("work_id", "w.id", "poster"),
     ", ",
     art!("work_id", "w.id", "backdrop"),
+    ", ",
+    show_local_poster!("w.id"),
     "
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
@@ -200,6 +252,8 @@ SELECT e.id, e.title, e.work_id, e.season_number, ifnull(e.episode_number, e.abs
     art!("work_id", "e.work_id", "poster"),
     ", ",
     art!("episode_id", "e.id", "still"),
+    ", ",
+    show_local_poster!("e.work_id"),
     "
 FROM episodes e
 JOIN match_episodes me ON me.episode_id = e.id
@@ -213,7 +267,8 @@ const TRACK_SQL: &str = "
 SELECT t.id, t.title, t.track_number, t.duration_ms, t.year, a.title,
        (SELECT ar.name FROM music_track_artists ta JOIN music_artists ar ON ar.id = ta.artist_id
          WHERE ta.track_id = t.id AND ta.role = 'artist' ORDER BY ta.position LIMIT 1) AS artist,
-       f.source_id, s.uri, f.path, f.added_at_ms
+       f.source_id, s.uri, f.path, f.added_at_ms,
+       CASE WHEN a.art_kind = 'folder' AND a.art_source_id = f.source_id THEN a.art_path END
 FROM music_tracks t
 JOIN files f ON f.id = t.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
@@ -243,6 +298,7 @@ fn movie_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         added_at_ms: r.get(11)?,
         poster_url: r.get(13)?,
         backdrop_url: r.get(14)?,
+        local_poster: local_rel(r.get(15)?),
         show_id: None,
         season: None,
         episode: None,
@@ -271,6 +327,7 @@ fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         added_at_ms: r.get(11)?,
         poster_url: r.get(12)?,
         backdrop_url: r.get(13)?,
+        local_poster: local_rel(r.get(14)?),
         show_id: None,
         season: None,
         episode: None,
@@ -299,6 +356,7 @@ fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         overview: r.get(12)?,
         poster_url: r.get(13)?,
         backdrop_url: r.get(14)?,
+        local_poster: local_rel(r.get(15)?),
         original_title: None,
         year: None,
         tmdb_id: None,
@@ -333,6 +391,7 @@ fn track_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         tmdb_id: None,
         poster_url: None,
         backdrop_url: None,
+        local_poster: local_rel(r.get(11)?),
     })
 }
 

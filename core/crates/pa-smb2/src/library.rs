@@ -3,7 +3,7 @@
 
 use std::ffi::OsString;
 use std::fmt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use crate::error::Error;
@@ -59,6 +59,33 @@ pub fn default_names() -> &'static [&'static str] {
     }
 }
 
+/// Copies of libsmb2 shipped next to the executable, tried before
+/// [`default_names`] (LIB-019).
+///
+/// On Linux the app bundle (Flutter `bundle/`, the tar.gz, the AppImage)
+/// keeps its libraries in `lib/` beside the executable. `dlopen` from our
+/// own library does not search the executable's `RUNPATH`, so a bare
+/// `libsmb2.so.1` would only find a system copy; the bundled one must win.
+/// Other platforms resolve the names of [`default_names`] inside the app
+/// already (APK `jniLibs`, `@rpath`, the exe directory on Windows).
+#[must_use]
+pub fn bundled_paths() -> Vec<PathBuf> {
+    if !cfg!(unix) || cfg!(any(target_vendor = "apple", target_os = "android")) {
+        return Vec::new();
+    }
+    let Some(dir) = std::env::current_exe()
+        .ok()
+        .and_then(|exe| exe.parent().map(Path::to_path_buf))
+    else {
+        return Vec::new();
+    };
+    ["lib/libsmb2.so.1", "libsmb2.so.1"]
+        .iter()
+        .map(|name| dir.join(name))
+        .filter(|path| path.is_file())
+        .collect()
+}
+
 static SHARED: Mutex<Option<&'static Smb2Lib>> = Mutex::new(None);
 
 impl Smb2Lib {
@@ -85,13 +112,20 @@ impl Smb2Lib {
         })
     }
 
-    /// Loads libsmb2 from `$PA_SMB2_LIB` or, if unset, the first of
+    /// Loads libsmb2 from `$PA_SMB2_LIB` or, if unset, the copy bundled
+    /// next to the executable ([`bundled_paths`]) or the first of
     /// [`default_names`] the platform loader finds.
     pub fn load_default() -> Result<Self, Error> {
         if let Some(path) = std::env::var_os(LIB_ENV).filter(|p| !p.is_empty()) {
             return Self::load(path);
         }
         let mut errors = Vec::new();
+        for path in bundled_paths() {
+            match Self::load(&path) {
+                Ok(lib) => return Ok(lib),
+                Err(e) => errors.push(e.message().to_owned()),
+            }
+        }
         for name in default_names() {
             match Self::load(OsString::from(name)) {
                 Ok(lib) => return Ok(lib),

@@ -142,6 +142,10 @@ pub struct CoreItem {
     pub poster_url: Option<String>,
     /// Backdrop URL; episodes: the episode still.
     pub backdrop_url: Option<String>,
+    /// Local poster or album cover next to the files, relative to the
+    /// source root like `rel_path` (LIB-007 groups; episodes: the show's).
+    /// Network sources: fetch it through [`CoreLibrary::stream_base_url`].
+    pub local_poster: Option<String>,
 }
 
 fn small(v: Option<i64>) -> Option<i32> {
@@ -172,6 +176,7 @@ impl From<c::Item> for CoreItem {
             added_at_ms: i.added_at_ms,
             poster_url: i.poster_url,
             backdrop_url: i.backdrop_url,
+            local_poster: i.local_poster,
         }
     }
 }
