@@ -315,16 +315,20 @@ class _StatusBarScrim extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.paddingOf(context).top;
-    if (top <= 0) return const SizedBox.shrink();
+    // Always positioned: a non-positioned child would size the Stack.
     return Positioned(
-      key: const ValueKey('status-bar-scrim'),
       left: 0,
       top: 0,
       right: 0,
       height: top,
-      child: IgnorePointer(
-        child: ColoredBox(color: KColors.bgBase.withValues(alpha: .72)),
-      ),
+      child: top <= 0
+          ? const SizedBox.shrink()
+          : IgnorePointer(
+              child: ColoredBox(
+                key: const ValueKey('status-bar-scrim'),
+                color: KColors.bgBase.withValues(alpha: .72),
+              ),
+            ),
     );
   }
 }
