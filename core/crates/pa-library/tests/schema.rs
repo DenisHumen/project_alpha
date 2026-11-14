@@ -453,6 +453,7 @@ fn build_graph(conn: &Connection) -> Graph {
         INSERT INTO music_track_artists (track_id, artist_id, role, position) VALUES (112, 110, 'artist', 0);
         INSERT INTO music_genres (id, name, name_key) VALUES (113, 'Rock', 'rock');
         INSERT INTO music_track_genres (track_id, genre_id, position) VALUES (112, 113, 0);
+        INSERT INTO music_plays (profile_id, media_key, play_count, last_played_at_ms) VALUES (2, 'file:ab12', 3, {now});
 
         INSERT INTO twitch_streamers (id, user_id, login, display_name, fetched_at_ms, updated_at_ms)
             VALUES (120, '141981764', 'twitchdev', 'TwitchDev', {now}, {now});
