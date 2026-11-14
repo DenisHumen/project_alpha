@@ -132,15 +132,11 @@ void main() {
     await settle(t, 4);
     await t.tap(find.byKey(const ValueKey('subtitles-font-2'))); // monospace
     await settle(t);
-    await t.ensureVisible(
-      find.byKey(const ValueKey('subtitles-background-2')),
-    );
+    await t.ensureVisible(find.byKey(const ValueKey('subtitles-background-2')));
     await settle(t, 4);
     await t.tap(find.byKey(const ValueKey('subtitles-background-2')));
     await settle(t);
-    await t.ensureVisible(
-      find.byKey(const ValueKey('subtitles-position-up')),
-    );
+    await t.ensureVisible(find.byKey(const ValueKey('subtitles-position-up')));
     await settle(t, 4);
     await t.tap(find.byKey(const ValueKey('subtitles-position-up')));
     await settle(t);
@@ -187,10 +183,7 @@ void main() {
     // The next episode's are fetched too, for Up Next.
     expect(library.asked.first, item.playbackUri);
     expect(engine.autoLoadSubtitles, isFalse);
-    expect([for (final s in engine.addedSubtitles) s.language], [
-      'rus',
-      'eng',
-    ]);
+    expect([for (final s in engine.addedSubtitles) s.language], ['rus', 'eng']);
 
     // The user switches to English and shifts them 0.5 s later.
     final player = t.state<PlayerScreenState>(find.byType(PlayerScreen));

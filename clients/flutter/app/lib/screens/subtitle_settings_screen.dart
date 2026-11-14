@@ -271,7 +271,11 @@ class _Preview extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF3A4F6B), Color(0xFF8A6F4E), Color(0xFF1B1F27)],
+                colors: [
+                  Color(0xFF3A4F6B),
+                  Color(0xFF8A6F4E),
+                  Color(0xFF1B1F27),
+                ],
               ),
             ),
             child: SubtitleOverlay(
