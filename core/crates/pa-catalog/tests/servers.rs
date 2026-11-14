@@ -92,7 +92,7 @@ fn scan_and_stream(kind: SourceKind, address: &str) {
     assert_eq!(titles(&s.cat), ["Dune", "The Matrix", "Брат"]);
     let shows = s.cat.shows().unwrap();
     assert_eq!(shows.len(), 1);
-    assert_eq!(s.cat.episodes(shows[0].id.clone()).unwrap().len(), 2);
+    assert_eq!(s.cat.episodes(shows[0].id).unwrap().len(), 2);
 
     let rel = "Фильмы/Брат (1997)/Брат.1997.BDRip.mkv";
     let local = std::fs::read(PathBuf::from(var("PA_SERVERS_DATA")).join(rel)).unwrap();
