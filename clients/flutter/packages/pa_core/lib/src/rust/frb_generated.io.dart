@@ -292,6 +292,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreScanUpdate dco_decode_core_scan_update(dynamic raw);
 
   @protected
+  CoreSearchGroup dco_decode_core_search_group(dynamic raw);
+
+  @protected
   CoreSecretStoreInfo dco_decode_core_secret_store_info(dynamic raw);
 
   @protected
@@ -404,6 +407,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreResolutionFacet> dco_decode_list_core_resolution_facet(dynamic raw);
+
+  @protected
+  List<CoreSearchGroup> dco_decode_list_core_search_group(dynamic raw);
 
   @protected
   List<CoreSmartShelf> dco_decode_list_core_smart_shelf(dynamic raw);
@@ -820,6 +826,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreScanUpdate sse_decode_core_scan_update(SseDeserializer deserializer);
 
   @protected
+  CoreSearchGroup sse_decode_core_search_group(SseDeserializer deserializer);
+
+  @protected
   CoreSecretStoreInfo sse_decode_core_secret_store_info(
     SseDeserializer deserializer,
   );
@@ -954,6 +963,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreResolutionFacet> sse_decode_list_core_resolution_facet(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CoreSearchGroup> sse_decode_list_core_search_group(
     SseDeserializer deserializer,
   );
 
@@ -1486,6 +1500,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_search_group(
+    CoreSearchGroup self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_secret_store_info(
     CoreSecretStoreInfo self,
     SseSerializer serializer,
@@ -1659,6 +1679,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_resolution_facet(
     List<CoreResolutionFacet> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_search_group(
+    List<CoreSearchGroup> self,
     SseSerializer serializer,
   );
 

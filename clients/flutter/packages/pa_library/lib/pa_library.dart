@@ -28,6 +28,7 @@ export 'src/rust_library.dart' show RustLibrary;
 export 'src/music_tags.dart' show TrackInfo, trackInfoFromPath, readTags;
 export 'src/parser/filename_parser.dart'
     show ParsedName, parseName, parsePath, normalizeTitle, seasonFromFolder;
+export 'src/search_groups.dart';
 export 'src/scanner.dart'
     show MediaType, ScannedFile, mediaTypeOf, isExtraFile, scanFolder;
 export 'src/smb.dart'
