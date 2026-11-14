@@ -260,15 +260,11 @@ void main() {
     expect(ev.last.error, contains('Unknown source'));
   });
 
-  test('SMB source on an unreachable server reports an error', () async {
+  test('SMB share that is not mounted reports an error (v0 never mounts)', () async {
     final l = await Library.open(
       ':memory:',
       httpClient: fake.client,
-      smbResolver: SmbResolver(
-        gvfsRootOverride: tmp.path,
-        runner: (exe, args, {stdinText}) async =>
-            ProcessResult(0, 2, '', 'nope'),
-      ),
+      smbResolver: SmbResolver(gvfsRootOverride: tmp.path),
     );
     await l.addSource(
       const MediaSource(
@@ -278,9 +274,9 @@ void main() {
         path: 'smb://nas/media',
       ),
     );
-    final ev = await l.scan(smbPassword: 'pw').toList();
+    final ev = await l.scan().toList();
     expect(ev.last.phase, ScanPhase.done);
-    expect(ev.last.errors.single, contains('Could not mount'));
+    expect(ev.last.errors.single, contains('not mounted'));
     await l.close();
   });
 

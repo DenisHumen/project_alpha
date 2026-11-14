@@ -69,7 +69,10 @@ Future<OpenedLibrary> openAppLibrary(
   try {
     await (initCore?.call() ??
         RustLibrary.ensureInitialized(externalLibrary: externalLibrary));
-    lib = await RustLibrary.open(p.join(dataDir, coreDbFileName));
+    lib = await RustLibrary.open(
+      p.join(dataDir, coreDbFileName),
+      secretsDir: dataDir,
+    );
     final report = await lib.importLegacyV0(v0Path);
     return OpenedLibrary._(lib, onRustCore: true, importedV0: report != null);
   } catch (e) {

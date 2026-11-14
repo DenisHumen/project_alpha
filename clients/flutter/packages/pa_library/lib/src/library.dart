@@ -51,7 +51,7 @@ abstract class Library {
   /// Scans one source (or all of them): finds files, parses names and
   /// fetches metadata. Emits progress and completes with a [ScanPhase.done]
   /// event. Scans are serialised.
-  Stream<ScanProgress> scan({String? sourceId, String? smbPassword});
+  Stream<ScanProgress> scan({String? sourceId});
 
   /// Sets (or clears) the TMDB API key: a v3 key or a v4 read access token.
   /// Without a key the library works with recognised titles only.
@@ -96,12 +96,11 @@ abstract class Library {
 
   /// Starts following the auto-scan sources (LIB-005), replacing a running
   /// watcher: local folders are rescanned a moment after files change in
-  /// them, network shares ([smbPasswords] by source id) on a timer of
-  /// [networkInterval]. With [scanOnStart] every followed source is scanned
+  /// them, network sources on a timer of [networkInterval]. With
+  /// [scanOnStart] every followed source is scanned
   /// once right away. The item streams update on their own. Implementations
   /// without a watcher do nothing.
   Future<void> startWatching({
-    Map<String, String> smbPasswords = const {},
     Duration networkInterval = const Duration(minutes: 15),
     bool scanOnStart = true,
   });
@@ -282,7 +281,7 @@ DELETE FROM items WHERE kind = 'show' AND NOT EXISTS
   // scanning
 
   @override
-  Stream<ScanProgress> scan({String? sourceId, String? smbPassword}) {
+  Stream<ScanProgress> scan({String? sourceId}) {
     final c = StreamController<ScanProgress>();
     final prev = _scanQueue;
     final done = Completer<void>();
@@ -290,7 +289,7 @@ DELETE FROM items WHERE kind = 'show' AND NOT EXISTS
     () async {
       await prev;
       try {
-        await _runScan(c, sourceId, smbPassword);
+        await _runScan(c, sourceId);
       } catch (e) {
         c.add(ScanProgress(phase: ScanPhase.done, error: '$e', errors: ['$e']));
       } finally {
@@ -305,7 +304,6 @@ DELETE FROM items WHERE kind = 'show' AND NOT EXISTS
   Future<void> _runScan(
     StreamController<ScanProgress> c,
     String? sourceId,
-    String? smbPassword,
   ) async {
     final errors = <String>[];
     var found = 0;
@@ -349,11 +347,7 @@ DELETE FROM items WHERE kind = 'show' AND NOT EXISTS
       String root;
       try {
         root = src.kind == SourceKind.smb
-            ? await _smb.resolve(
-                src.path,
-                username: src.username,
-                password: smbPassword,
-              )
+            ? await _smb.resolve(src.path)
             : src.path;
       } catch (e) {
         emit(ScanPhase.connecting, src: src.id, error: '${src.name}: $e');
@@ -1053,7 +1047,6 @@ VALUES (?, ?, ?, ?, ?)''',
   /// The v0 library has no watcher: rescans are manual.
   @override
   Future<void> startWatching({
-    Map<String, String> smbPasswords = const {},
     Duration networkInterval = const Duration(minutes: 15),
     bool scanOnStart = true,
   }) async {}

@@ -13,7 +13,6 @@ import 'models.dart';
 import 'music_tags.dart';
 import 'open_library.dart';
 import 'playback_session.dart';
-import 'smb.dart';
 
 /// [Library] on the Rust core (UI-024): `pa_core`'s [CoreLibrary] over the
 /// `pa-library` schema v1 — `pa-scanner` with music tags, the
@@ -26,9 +25,13 @@ import 'smb.dart';
 /// Shikimori for anime; a poster from TMDB wins over a local image next to
 /// the files, as in v0. The TMDB key and the metadata language are kept in
 /// memory: the app sets them on start.
+///
+/// Network sources (SMB, WebDAV) are read by the core through `pa-vfs`
+/// (LIB-018): nothing is mounted and the app never holds their passwords.
+/// Their files play through the core's loopback HTTP proxy
+/// ([LibraryItem.streamUri]).
 class RustLibrary implements Library {
   final CoreLibrary _core;
-  final SmbResolver _smb;
   final String? _tempDir;
   final String _metadataCacheDir;
   final _changes = StreamController<void>.broadcast();
@@ -40,14 +43,22 @@ class RustLibrary implements Library {
   /// Metadata language until [setMetadataLanguage] says otherwise.
   static const defaultMetadataLanguage = 'ru-RU';
 
-  /// Local mount paths of SMB sources (by source id), from the last scan or
-  /// an existing mount.
-  final Map<int, String> _smbRoots = {};
+  /// Addresses of the sources (by id), for the display path of network files.
+  final Map<int, String> _sourceUris = {};
+
+  /// Base URL of the core's stream proxy (`http://127.0.0.1:<port>/<token>`);
+  /// null if it could not start (network files are then not playable).
+  String? _streamBase;
+
+  /// Why network sources cannot be reached (the secret store failed to
+  /// open), or null.
+  Object? get networkSourcesError => _networkError;
+  Object? _networkError;
 
   /// Local images per folder: `findLocalImage` results by `(path, mode)`.
   final Map<String, String?> _images = {};
 
-  RustLibrary._(this._core, this._smb, this._tempDir, this._metadataCacheDir);
+  RustLibrary._(this._core, this._tempDir, this._metadataCacheDir);
 
   static Future<void>? _init;
 
@@ -67,11 +78,15 @@ class RustLibrary implements Library {
   ///
   /// Provider responses are cached in [metadataCacheDir] (default: a
   /// `provider-cache` folder next to the database).
+  ///
+  /// With [secretsDir] (the app data folder, as for `CoreSources.open`) the
+  /// core reaches SMB and WebDAV sources with the passwords of its secret
+  /// store; without it only local folders are scanned.
   static Future<RustLibrary> open(
     String dbPath, {
     String? legacyV0Path,
     bool renameLegacyV0 = true,
-    SmbResolver? smbResolver,
+    String? secretsDir,
     String? metadataCacheDir,
     ExternalLibrary? externalLibrary,
   }) async {
@@ -87,14 +102,25 @@ class RustLibrary implements Library {
     final core = await CoreLibrary.open(path: path);
     final lib = RustLibrary._(
       core,
-      smbResolver ?? SmbResolver(),
       tempDir,
       metadataCacheDir ?? p.join(p.dirname(path), 'provider-cache'),
     );
+    if (secretsDir != null) {
+      try {
+        await core.connectSources(dataDir: secretsDir);
+      } catch (e) {
+        lib._networkError = e;
+      }
+    }
+    try {
+      lib._streamBase = await core.streamBaseUrl();
+    } catch (e) {
+      lib._networkError ??= e;
+    }
     if (legacyV0Path != null) {
       await lib.importLegacyV0(legacyV0Path, rename: renameLegacyV0);
     }
-    await lib._findMountedShares();
+    await lib.sources();
     return lib;
   }
 
@@ -123,14 +149,6 @@ class RustLibrary implements Library {
     }
     _notify();
     return report;
-  }
-
-  Future<void> _findMountedShares() async {
-    for (final s in await _core.sources()) {
-      if (s.kind != 'smb') continue;
-      final root = await _smb.mounted(s.uri);
-      if (root != null) _smbRoots[s.id] = root;
-    }
   }
 
   // -------------------------------------------------------------------------
@@ -166,15 +184,24 @@ class RustLibrary implements Library {
 
   MediaSource _source(CoreSource s) => MediaSource(
     id: '${s.id}',
-    kind: s.kind == 'smb' ? SourceKind.smb : SourceKind.localFolder,
+    kind: switch (s.kind) {
+      'smb' => SourceKind.smb,
+      'webdav' => SourceKind.webdav,
+      _ => SourceKind.localFolder,
+    },
     name: s.name,
     path: s.localRoot ?? s.uri,
     username: s.username,
   );
 
   @override
-  Future<List<MediaSource>> sources() async =>
-      (await _core.sources()).map(_source).toList();
+  Future<List<MediaSource>> sources() async {
+    final all = await _core.sources();
+    _sourceUris
+      ..clear()
+      ..addEntries(all.map((s) => MapEntry(s.id.toInt(), s.uri)));
+    return all.map(_source).toList();
+  }
 
   @override
   Future<MediaSource> addSource(MediaSource s) async {
@@ -201,7 +228,7 @@ class RustLibrary implements Library {
     final n = int.tryParse(id);
     if (n == null) return;
     await _core.removeSource(id: n);
-    _smbRoots.remove(n);
+    _sourceUris.remove(n);
     _notify();
   }
 
@@ -209,7 +236,7 @@ class RustLibrary implements Library {
   // scanning
 
   @override
-  Stream<ScanProgress> scan({String? sourceId, String? smbPassword}) {
+  Stream<ScanProgress> scan({String? sourceId}) {
     final c = StreamController<ScanProgress>();
     final prev = _scanQueue;
     final done = Completer<void>();
@@ -217,7 +244,7 @@ class RustLibrary implements Library {
     () async {
       await prev;
       try {
-        await _runScan(c, sourceId, smbPassword);
+        await _runScan(c, sourceId);
       } catch (e) {
         c.add(ScanProgress(phase: ScanPhase.done, error: '$e', errors: ['$e']));
       } finally {
@@ -233,7 +260,6 @@ class RustLibrary implements Library {
   Future<void> _runScan(
     StreamController<ScanProgress> c,
     String? sourceId,
-    String? smbPassword,
   ) async {
     final errors = <String>[];
     void emit(ScanProgress e) {
@@ -254,42 +280,10 @@ class RustLibrary implements Library {
       return;
     }
 
-    // Network shares are mounted here (gio) and scanned as local folders.
-    final roots = <CoreSourceRoot>[];
-    for (final s in await _core.sources()) {
-      if (s.kind != 'smb' || (id != null && s.id != id)) continue;
-      emit(
-        ScanProgress(
-          phase: ScanPhase.connecting,
-          sourceId: '${s.id}',
-          currentPath: s.uri,
-          errors: List.unmodifiable(errors),
-        ),
-      );
-      try {
-        final root = await _smb.resolve(
-          s.uri,
-          username: s.username,
-          password: smbPassword,
-        );
-        _smbRoots[s.id] = root;
-        roots.add(CoreSourceRoot(sourceId: s.id, path: root));
-      } catch (e) {
-        final msg = '${s.name}: $e';
-        emit(
-          ScanProgress(
-            phase: ScanPhase.connecting,
-            sourceId: '${s.id}',
-            error: msg,
-            errors: List.unmodifiable([...errors, msg]),
-          ),
-        );
-      }
-    }
-
     var lastNotify = DateTime.now();
     ScanProgress? finished;
-    await for (final u in _core.scan(sourceId: id, roots: roots)) {
+    await sources(); // addresses of sources added through CoreSources
+    await for (final u in _core.scan(sourceId: id)) {
       final phase = switch (u.phase) {
         CoreScanPhase.connecting => ScanPhase.connecting,
         CoreScanPhase.scanning => ScanPhase.scanning,
@@ -371,8 +365,27 @@ class RustLibrary implements Library {
   String _filePath(CoreItem i) {
     final local = i.localPath;
     if (local != null) return local;
-    final root = _smbRoots[i.sourceId];
-    return root == null ? i.relPath : p.join(root, i.relPath);
+    final uri = _sourceUris[i.sourceId.toInt()];
+    if (uri == null) return i.relPath;
+    final root = uri.endsWith('/') ? uri.substring(0, uri.length - 1) : uri;
+    return i.relPath.isEmpty ? root : '$root/${i.relPath}';
+  }
+
+  /// Stream URL of a file on a network source; null for local files.
+  String? _streamUri(CoreItem i) {
+    final base = _streamBase;
+    if (i.localPath != null || base == null) return null;
+    return streamUrl(base, i.sourceId.toInt(), i.relPath);
+  }
+
+  /// URL of [relPath] of source [sourceId] on the core's stream proxy at
+  /// [base]: every path segment percent-encoded.
+  static String streamUrl(String base, int sourceId, String relPath) {
+    final segments = relPath
+        .split('/')
+        .where((s) => s.isNotEmpty)
+        .map(Uri.encodeComponent);
+    return [base, '$sourceId', ...segments].join('/');
   }
 
   String? _image(String mediaPath, {bool video = false, bool generic = true}) {
@@ -385,6 +398,7 @@ class RustLibrary implements Library {
 
   LibraryItem _item(CoreItem i) {
     final path = _filePath(i);
+    final network = i.localPath == null;
     final kind = switch (i.kind) {
       CoreItemKind.movie => ItemKind.movie,
       CoreItemKind.series => ItemKind.show,
@@ -393,6 +407,8 @@ class RustLibrary implements Library {
     };
     final poster = switch (kind) {
       // Generic names (`poster.jpg`) only for a movie in its own folder.
+      // Local art of network sources is not read by the app (no mount).
+      _ when network => null,
       ItemKind.movie => _image(
         path,
         video: true,
@@ -429,6 +445,7 @@ class RustLibrary implements Library {
       album: i.album,
       trackNumber: i.trackNumber,
       filePath: path,
+      streamUri: kind == ItemKind.show ? null : _streamUri(i),
       durationMs: i.durationMs,
       matchConfidence: i.matchConfidence,
       tmdbId: i.tmdbId,
@@ -585,37 +602,20 @@ class RustLibrary implements Library {
   final _watchEvents = StreamController<CoreWatchEvent>.broadcast();
 
   /// Starts the core watcher: local auto-scan folders through OS change
-  /// notifications with incremental rescans, SMB shares (mounted here with
-  /// [smbPasswords]) on a [networkInterval] timer. A share that cannot be
-  /// mounted now is left out until the next start.
+  /// notifications with incremental rescans, network sources (read by the
+  /// core through `pa-vfs`) on a [networkInterval] timer.
   @override
   Future<void> startWatching({
-    Map<String, String> smbPasswords = const {},
     Duration networkInterval = const Duration(minutes: 15),
     bool scanOnStart = true,
   }) async {
     if (_closed) return;
     await stopWatching();
-    final roots = <CoreSourceRoot>[];
-    for (final s in await _core.sources()) {
-      if (s.kind != 'smb' || !s.autoScan) continue;
-      try {
-        final root = await _smb.resolve(
-          s.uri,
-          username: s.username,
-          password: smbPasswords['${s.id}'],
-        );
-        _smbRoots[s.id] = root;
-        roots.add(CoreSourceRoot(sourceId: s.id, path: root));
-      } catch (_) {
-        // Offline or unsupported here (Android): not followed this time.
-      }
-    }
+    await sources();
     if (_closed) return;
     _watchSub = _core
         .startWatcher(
           settings: CoreWatchSettings(
-            roots: roots,
             networkIntervalSecs: networkInterval.inSeconds,
             debounceMs: 1000,
             scanOnStart: scanOnStart,

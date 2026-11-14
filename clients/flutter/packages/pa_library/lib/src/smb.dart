@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 //
-// SMB support for 0.1 (beta):
-// - Linux: the share is accessed through the GVfs FUSE mount
-//   (/run/user/<uid>/gvfs/smb-share:server=…,share=…). If it is not mounted
-//   yet, we try `gio mount smb://…` (credentials fed on stdin).
-//   A share mounted by the user (mount.cifs, file manager) can also simply be
-//   added as a local folder.
-// - Android: no licence-compatible pure-Dart SMB2 client is bundled in 0.1;
-//   scanning an SMB source reports [SmbUnsupportedException].
+// SMB helpers of the Dart side.
+// - On the Rust core (the default) SMB and WebDAV sources are scanned and
+//   played through `pa-vfs` (LIB-018); nothing here is used for them.
+// - The v0 Dart library (fallback without the native core) scans a share
+//   only if the user mounted it (GVfs FUSE mount,
+//   /run/user/<uid>/gvfs/smb-share:server=…,share=…); it never mounts one.
 
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -90,18 +86,18 @@ String? findGvfsPath(SmbUrl url, String gvfsRoot) {
   return null;
 }
 
-/// Resolves an SMB source to a local folder the scanner can walk.
+/// Finds the local folder of an SMB share that the user mounted (GVfs, in
+/// the file manager), for the v0 Dart library only.
+///
+/// Kinolune never mounts shares itself (LIB-018): on the Rust core SMB and
+/// WebDAV sources are read through `pa-vfs` with the password kept in the
+/// core's secret store. The v0 fallback (no native core) can only scan a
+/// share that is already mounted.
 class SmbResolver {
   /// Overridable for tests.
   final String? gvfsRootOverride;
-  final Future<ProcessResult> Function(
-    String exe,
-    List<String> args, {
-    String? stdinText,
-  })?
-  runner;
 
-  SmbResolver({this.gvfsRootOverride, this.runner});
+  SmbResolver({this.gvfsRootOverride});
 
   Future<String> _gvfsRoot() async {
     if (gvfsRootOverride != null) return gvfsRootOverride!;
@@ -111,29 +107,8 @@ class SmbResolver {
     return '/run/user/${(id.stdout as String).trim()}/gvfs';
   }
 
-  Future<ProcessResult> _run(
-    String exe,
-    List<String> args, {
-    String? stdinText,
-  }) async {
-    if (runner != null) return runner!(exe, args, stdinText: stdinText);
-    final proc = await Process.start(exe, args);
-    if (stdinText != null) proc.stdin.write(stdinText);
-    await proc.stdin.close();
-    final out = proc.stdout.transform(utf8.decoder).join();
-    final err = proc.stderr.transform(utf8.decoder).join();
-    final code = await proc.exitCode.timeout(
-      const Duration(seconds: 45),
-      onTimeout: () {
-        proc.kill();
-        return -1;
-      },
-    );
-    return ProcessResult(proc.pid, code, await out, await err);
-  }
-
-  /// Local path of [url] if the share is already mounted, without mounting
-  /// it. Null when it is not mounted or SMB is not supported here.
+  /// Local path of [url] if the share is already mounted. Null when it is
+  /// not mounted or SMB mounts are not looked up here.
   Future<String?> mounted(String url) async {
     if (!Platform.isLinux && gvfsRootOverride == null) return null;
     try {
@@ -143,49 +118,20 @@ class SmbResolver {
     }
   }
 
-  Future<String> resolve(
-    String url, {
-    String? username,
-    String? password,
-  }) async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      throw SmbUnsupportedException(
-        'SMB is not supported on this platform in Kinolune 0.1 (beta). '
-        'Copy media to the device or use a folder source.',
-      );
-    }
+  /// The local folder of a mounted share, or [SmbMountException].
+  Future<String> resolve(String url) async {
     if (!Platform.isLinux && gvfsRootOverride == null) {
       throw SmbUnsupportedException(
-        'SMB sources are supported on Linux only in 0.1.',
+        'SMB sources need the Kinolune core on this platform.',
       );
     }
     final smb = SmbUrl.parse(url);
-    final root = await _gvfsRoot();
-    var local = findGvfsPath(smb, root);
+    final local = findGvfsPath(smb, await _gvfsRoot());
     if (local != null) return local;
-
-    // Not mounted yet: ask GVfs to mount it. gio prompts for user, domain and
-    // password on stdin when the server asks for authentication.
-    final user = username ?? smb.user;
-    final stdinText = password == null && user == null
-        ? '\n\n\n'
-        : '${user ?? ''}\nWORKGROUP\n${password ?? ''}\n';
-    final ProcessResult res;
-    try {
-      res = await _run('gio', ['mount', smb.shareUrl], stdinText: stdinText);
-    } on ProcessException {
-      throw SmbMountException(
-        'Could not run "gio" to mount ${smb.shareUrl}. Mount the share in your '
-        'file manager (or with mount.cifs) and add the mounted folder as a local folder source.',
-      );
-    }
-    local = findGvfsPath(smb, root);
-    if (local != null) return local;
-    final err = (res.stderr is String ? res.stderr as String : '').trim();
     throw SmbMountException(
-      'Could not mount ${smb.shareUrl}${err.isNotEmpty ? ': $err' : ''}. '
-      'Check the address and credentials, or mount it in your file manager and '
-      'add the mounted folder as a local folder source.',
+      '${smb.shareUrl} is not mounted. Without the Kinolune core SMB shares '
+      'are read only when mounted in the file manager; or add the mounted '
+      'folder as a local folder source.',
     );
   }
 }

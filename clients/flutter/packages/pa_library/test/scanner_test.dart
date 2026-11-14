@@ -237,39 +237,33 @@ void main() {
       );
       expect(findGvfsPath(SmbUrl.parse('smb://x/y'), tmp.path), isNull);
     });
-    test('resolver mounts via gio when not mounted', () async {
-      final calls = <List<String>>[];
-      String? stdin;
-      final resolver = SmbResolver(
-        gvfsRootOverride: tmp.path,
-        runner: (exe, args, {stdinText}) async {
-          calls.add([exe, ...args]);
-          stdin = stdinText;
-          Directory(
-            p.join(tmp.path, 'smb-share:server=nas,share=media'),
-          ).createSync();
-          return ProcessResult(1, 0, '', '');
-        },
-      );
-      final path = await resolver.resolve(
-        'smb://nas/media/TV',
-        username: 'bob',
-        password: 'pw',
-      );
-      expect(path, p.join(tmp.path, 'smb-share:server=nas,share=media', 'TV'));
-      expect(calls.single, ['gio', 'mount', 'smb://nas/media']);
-      expect(stdin, 'bob\nWORKGROUP\npw\n');
-    });
-    test('resolver reports a mount failure', () async {
-      final resolver = SmbResolver(
-        gvfsRootOverride: tmp.path,
-        runner: (exe, args, {stdinText}) async =>
-            ProcessResult(1, 2, '', 'Failed to mount'),
+    test('resolver finds a share the user mounted', () async {
+      Directory(
+        p.join(tmp.path, 'smb-share:server=nas,share=media'),
+      ).createSync();
+      final resolver = SmbResolver(gvfsRootOverride: tmp.path);
+      expect(
+        await resolver.resolve('smb://nas/media/TV'),
+        p.join(tmp.path, 'smb-share:server=nas,share=media', 'TV'),
       );
       expect(
-        resolver.resolve('smb://nas/media'),
-        throwsA(isA<SmbMountException>()),
+        await resolver.mounted('smb://nas/media'),
+        p.join(tmp.path, 'smb-share:server=nas,share=media'),
       );
+    });
+    test('resolver never mounts: a share that is not mounted fails', () async {
+      final resolver = SmbResolver(gvfsRootOverride: tmp.path);
+      await expectLater(
+        resolver.resolve('smb://nas/media'),
+        throwsA(
+          isA<SmbMountException>().having(
+            (e) => e.message,
+            'message',
+            contains('not mounted'),
+          ),
+        ),
+      );
+      expect(await resolver.mounted('smb://nas/media'), isNull);
     });
   }, testOn: 'linux');
 }
