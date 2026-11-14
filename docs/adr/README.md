@@ -43,6 +43,7 @@
 | [0035](0035-apple-engines-foreign-player-engine-mpvkit.md) | Apple-движки — Swift-реализации `PlayerEngine` через UniFFI foreign trait; MPVKit только LGPL с точной версией | Предложен | PLAY-APL-001 |
 | [0036](0036-image-cache-in-core.md) | Кэш изображений в ядре (`pa-imagecache`): размеры через URL провайдера, LRU по mtime, декодирование во Flutter | Предложен | LIB-013 |
 | [0037](0037-platform-secret-stores.md) | Платформенные хранилища секретов: Keystore + AES-GCM без Tink, Keychain `AfterFirstUnlock`, Dart-колбэк FRB для Flutter | Предложен | CORE-015 |
+| [NNNN](NNNN-app-pairing-and-lan-sync.md) | Сопряжение приложений по QR и коду в LAN (`PairHost`, `_alpha-pair._tcp`) и служба синхронизации `SyncService` в ядре; QR — `qr` + `flutter_zxing` | Предложен | UI-019 |
 
 ## Запланированные ADR
 
