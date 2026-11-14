@@ -48,6 +48,7 @@
 | [0040](0040-app-pairing-and-lan-sync.md) | Сопряжение приложений по QR и коду в LAN (`PairHost`, `_alpha-pair._tcp`) и служба синхронизации `SyncService` в ядре; QR — `qr` + `flutter_zxing` | Предложен | UI-019 |
 | [0041](0041-build-flavor-mechanism.md) | Флейвор сборки: крейт `pa-flavor` (фичи + cfg через `links`), `KINOLUNE_FLAVOR` в Dart и `CARGO_KINOLUNE_FLAVOR` для хука, `PA_FLAVOR` в Xcode, проверка store-артефактов `strings`/`nm` | Предложен | CORE-013 |
 | [0042](0042-subtitle-style-and-sidecars.md) | Субтитры: sidecar-файлы из групп ядра (сеть — через прокси), свой оверлей стиля на media_kit, «системный стиль» по умолчанию (Android captioning, MediaAccessibility), выбор и задержка на сериал | Предложен | PLAY-007 |
+| [NNNN](NNNN-disc-main-title-and-iso.md) | Диски в медиатеке: скан записывает потоки BDMV/VIDEO_TS и `.iso`, основной поток — самый большой `.m2ts` / набор VOB, образы ISO в списке, но не воспроизводятся (`Unplayable::DiscImage`) | Предложен | LIB-017 |
 
 ## Запланированные ADR
 

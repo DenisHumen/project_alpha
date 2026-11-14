@@ -9,8 +9,10 @@
 //!   episode / absolute markers) joins the show work with the same title
 //!   key (`anime` if the name looks like an anime release), a movie joins
 //!   the movie work with the same title key and year; extras are skipped;
-//! - **discs** (`BDMV/`, `VIDEO_TS/`, `.iso`): every video of the disc is
-//!   one item named by the disc folder or image, not by `00001.m2ts`;
+//! - **discs** (`BDMV/`, `VIDEO_TS/`, `.iso`): the main title of the disc
+//!   (its VOBs as parts on a DVD) is one item named by the disc folder or
+//!   image, not by `00001.m2ts`; the other streams of the disc (menus,
+//!   bonus clips) are ignored leftovers and get no match (LIB-017);
 //! - **split files** (`cd1`/`cd2`, `part1`…) of a movie folder join the work
 //!   of the folder, one item;
 //! - **extras and samples** belong to the work of their group (the work an
@@ -854,6 +856,10 @@ pub(crate) fn run(
             "SELECT f.id, f.path FROM files f
              WHERE f.source_id = ?1 AND f.missing_since_ms IS NULL
                AND NOT EXISTS (SELECT 1 FROM matches m WHERE m.file_id = f.id AND m.state <> 'rejected')
+               -- Leftovers of a group (LIB-007): the other streams of a
+               -- disc (LIB-017), a one-minute part 3. Never items.
+               AND NOT EXISTS (SELECT 1 FROM group_assets ga
+                               WHERE ga.file_id = f.id AND ga.role = 'ignore')
              ORDER BY f.path",
         )?;
         stmt.query_map([source_id], |r| Ok((r.get(0)?, r.get(1)?)))?

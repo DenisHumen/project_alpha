@@ -3,10 +3,16 @@
 //!
 //! The default rules are the release-0.1 Dart scanner's
 //! (`clients/flutter/packages/pa_library/lib/src/scanner.dart`): media by
-//! extension; samples, trailers and Plex-style extras skipped; disc
-//! structures (BDMV, VIDEO_TS) skipped (`analyze_folders`, LIB-007, makes
-//! each one item in `pa_library::groups`); NAS and OS service folders and
-//! hidden entries skipped.
+//! extension; samples, trailers and Plex-style extras skipped; NAS and OS
+//! service folders and hidden entries skipped.
+//!
+//! Disc structures (LIB-017): the streams of a Blu-ray folder
+//! (`BDMV/STREAM/*.m2ts`), the VOBs of a DVD folder (`VIDEO_TS/*.VOB`) and
+//! disc images (`.iso`) are recorded, so `analyze_folders` (LIB-007) can
+//! make each disc one item in `pa_library::groups` and the main title of
+//! the disc reaches recognition. The rest of a disc structure
+//! (`BDMV/PLAYLIST`, `BDMV/BACKUP`, `CERTIFICATE`, `AUDIO_TS`) is not
+//! listed.
 
 /// Kind of media file, decided by extension.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -20,8 +26,12 @@ pub enum MediaKind {
 /// Video extensions, lowercase, without the dot.
 pub const VIDEO_EXTENSIONS: &[&str] = &[
     "mkv", "mp4", "m4v", "avi", "mov", "wmv", "mpg", "mpeg", "ts", "m2ts", "mts", "webm", "flv",
-    "ogv", "3gp", "rmvb", "divx", "asf",
+    "ogv", "3gp", "rmvb", "divx", "asf", "vob",
 ];
+
+/// Disc image extensions, lowercase, without the dot. Recorded as
+/// [`MediaKind::Video`]; `analyze_folders` makes each image a disc item.
+pub const DISC_IMAGE_EXTENSIONS: &[&str] = &["iso"];
 
 /// Audio extensions, lowercase, without the dot.
 pub const AUDIO_EXTENSIONS: &[&str] = &[
@@ -62,7 +72,8 @@ pub const IGNORED_FOLDERS: &[&str] = &[
     "трейлеры",
     "допы",
     "субтитры",
-    // disc structures (one item each from LIB-007 on)
+    // disc structures: `BDMV/` and `VIDEO_TS/` are entered by
+    // `ScanRules::enter_folder_in` when `disc_streams` is on (LIB-017)
     "bdmv",
     "video_ts",
     "audio_ts",
@@ -93,6 +104,10 @@ pub struct ScanRules {
     pub skip_hidden: bool,
     /// Skip video files named as samples, trailers or Plex-style extras.
     pub skip_extras: bool,
+    /// Enter `BDMV/` (only its `STREAM/` folder) and `VIDEO_TS/`, so the
+    /// streams of disc folders are recorded (LIB-017). Off: disc folders
+    /// are skipped like the other [`IGNORED_FOLDERS`].
+    pub disc_streams: bool,
 }
 
 impl Default for ScanRules {
@@ -101,16 +116,40 @@ impl Default for ScanRules {
             max_depth: 12,
             skip_hidden: true,
             skip_extras: true,
+            disc_streams: true,
         }
     }
 }
 
 impl ScanRules {
-    /// Whether the walker lists a folder called `name`.
+    /// Whether the walker lists a folder called `name`, without looking at
+    /// its parent: disc folders (`BDMV`, `VIDEO_TS`) are not entered. The
+    /// walk uses [`enter_folder_in`](Self::enter_folder_in).
     #[must_use]
     pub fn enter_folder(&self, name: &str) -> bool {
         if self.skip_hidden && name.starts_with('.') {
             return false;
+        }
+        !is_ignored_folder(name)
+    }
+
+    /// Whether the walker lists the folder `name` inside the folder
+    /// `parent` (a path or a folder name). With
+    /// [`disc_streams`](Self::disc_streams), `BDMV` and `VIDEO_TS` are
+    /// entered and inside `BDMV` only `STREAM`.
+    #[must_use]
+    pub fn enter_folder_in(&self, parent: &str, name: &str) -> bool {
+        if self.skip_hidden && name.starts_with('.') {
+            return false;
+        }
+        if self.disc_streams {
+            let parent_name = parent.rsplit('/').next().unwrap_or(parent);
+            if parent_name.eq_ignore_ascii_case("bdmv") {
+                return name.eq_ignore_ascii_case("stream");
+            }
+            if name.eq_ignore_ascii_case("bdmv") || name.eq_ignore_ascii_case("video_ts") {
+                return true;
+            }
         }
         !is_ignored_folder(name)
     }
@@ -135,7 +174,7 @@ impl ScanRules {
 pub fn media_kind(name: &str) -> Option<MediaKind> {
     let (_, ext) = split_ext(name);
     let ext = ext?.to_ascii_lowercase();
-    if VIDEO_EXTENSIONS.contains(&ext.as_str()) {
+    if VIDEO_EXTENSIONS.contains(&ext.as_str()) || DISC_IMAGE_EXTENSIONS.contains(&ext.as_str()) {
         Some(MediaKind::Video)
     } else if AUDIO_EXTENSIONS.contains(&ext.as_str()) {
         Some(MediaKind::Audio)
@@ -228,6 +267,8 @@ mod tests {
         assert_eq!(media_kind("Dune (2021).MKV"), Some(MediaKind::Video));
         assert_eq!(media_kind("01 - Track.flac"), Some(MediaKind::Audio));
         assert_eq!(media_kind("movie.nfo"), None);
+        assert_eq!(media_kind("Spirited Away (2001).ISO"), Some(MediaKind::Video));
+        assert_eq!(media_kind("VTS_01_1.VOB"), Some(MediaKind::Video));
         assert_eq!(media_kind("mkv"), None);
         assert_eq!(media_kind(".mkv"), None);
     }
@@ -286,6 +327,22 @@ mod tests {
             assert!(!r.enter_folder(skip), "{skip}");
         }
         assert!(r.enter_folder("Season 01"));
+        // Disc structures: BDMV (STREAM only) and VIDEO_TS are walked.
+        assert!(r.enter_folder_in("/Movies/Inception (2010)", "BDMV"));
+        assert!(r.enter_folder_in("/Movies/Inception (2010)/BDMV", "STREAM"));
+        assert!(!r.enter_folder_in("/Movies/Inception (2010)/BDMV", "PLAYLIST"));
+        assert!(!r.enter_folder_in("/Movies/Inception (2010)/BDMV", "BACKUP"));
+        assert!(r.enter_folder_in("/Movies/Heat (1995)", "VIDEO_TS"));
+        assert!(!r.enter_folder_in("/Movies/Heat (1995)", "AUDIO_TS"));
+        assert!(!r.enter_folder_in("/Movies/Inception (2010)", "CERTIFICATE"));
+        assert!(!r.enter_folder_in("/Movies", "Featurettes"));
+        assert!(r.enter_folder_in("/Shows/Show", "Season 01"));
+        let no_discs = ScanRules {
+            disc_streams: false,
+            ..ScanRules::default()
+        };
+        assert!(!no_discs.enter_folder_in("/Movies/Inception (2010)", "BDMV"));
+        assert!(!no_discs.enter_folder_in("/Movies/Heat (1995)", "VIDEO_TS"));
         let all = ScanRules {
             skip_hidden: false,
             skip_extras: false,

@@ -603,7 +603,8 @@ fn file_documents(conn: &Connection, id: i64) -> Result<Option<Documents>, Error
         .prepare_cached(
             "SELECT f.path FROM files f WHERE f.id = ?1 AND f.missing_since_ms IS NULL \
              AND NOT EXISTS (SELECT 1 FROM matches m WHERE m.file_id = f.id AND m.state <> 'rejected') \
-             AND NOT EXISTS (SELECT 1 FROM music_tracks t WHERE t.file_id = f.id)",
+             AND NOT EXISTS (SELECT 1 FROM music_tracks t WHERE t.file_id = f.id) \
+             AND NOT EXISTS (SELECT 1 FROM group_assets ga WHERE ga.file_id = f.id AND ga.role = 'ignore')",
         )?
         .query_row([id], |r| r.get(0))
         .optional()?;

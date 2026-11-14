@@ -178,13 +178,15 @@ fn first_scan_records_media_and_applies_skip_rules() {
     assert_eq!(
         paths(&conn),
         [
+            // LIB-017: disc streams are recorded.
+            "/Movies/Disc/BDMV/STREAM/00001.m2ts",
             "/Movies/Dune (2021)/Dune (2021).mkv",
             "/Music/Artist/01 - Track.FLAC",
             "/Shows/Show/Season 01/Show.S01E01.mkv",
         ]
     );
-    assert_eq!(report.added, 3);
-    assert_eq!(report.files_seen, 3);
+    assert_eq!(report.added, 4);
+    assert_eq!(report.files_seen, 4);
     assert_eq!(report.dirs_failed, 0);
     assert!(!report.cancelled);
 
@@ -197,7 +199,7 @@ fn first_scan_records_media_and_applies_skip_rules() {
         .collect();
     assert_eq!(progress.len(), report.dirs_listed);
     let last = progress.last().unwrap();
-    assert_eq!((last.files_seen, last.added), (3, 3));
+    assert_eq!((last.files_seen, last.added), (4, 4));
     assert_eq!(last.dirs_found, report.dirs_listed);
 
     let (added, scanned, mtime): (i64, i64, i64) = conn
@@ -208,6 +210,57 @@ fn first_scan_records_media_and_applies_skip_rules() {
         )
         .unwrap();
     assert_eq!((added, scanned, mtime), (T0, T0, T0));
+}
+
+#[test]
+fn disc_streams_and_images_are_recorded() {
+    let vfs = MemVfs::with(&[
+        ("/Movies/Inception (2010)/BDMV/index.bdmv", 1),
+        ("/Movies/Inception (2010)/BDMV/PLAYLIST/00800.mpls", 1),
+        ("/Movies/Inception (2010)/BDMV/BACKUP/STREAM/00009.m2ts", 1),
+        ("/Movies/Inception (2010)/BDMV/STREAM/00000.m2ts", 10),
+        ("/Movies/Inception (2010)/BDMV/STREAM/00001.m2ts", 900),
+        ("/Movies/Inception (2010)/CERTIFICATE/BACKUP/x.m2ts", 1),
+        ("/Movies/Alien (1979)/VIDEO_TS/VIDEO_TS.IFO", 1),
+        ("/Movies/Alien (1979)/VIDEO_TS/VTS_01_0.VOB", 5),
+        ("/Movies/Alien (1979)/VIDEO_TS/VTS_01_1.VOB", 500),
+        ("/Movies/Alien (1979)/AUDIO_TS/x.vob", 1),
+        ("/Images/Spirited Away (2001).iso", 700),
+        ("/Images/readme.txt", 1),
+    ]);
+    let mut conn = library();
+    let report = run(&mut conn, &vfs, T0);
+    assert_eq!(
+        paths(&conn),
+        [
+            "/Images/Spirited Away (2001).iso",
+            "/Movies/Alien (1979)/VIDEO_TS/VTS_01_0.VOB",
+            "/Movies/Alien (1979)/VIDEO_TS/VTS_01_1.VOB",
+            "/Movies/Inception (2010)/BDMV/STREAM/00000.m2ts",
+            "/Movies/Inception (2010)/BDMV/STREAM/00001.m2ts",
+        ]
+    );
+    assert_eq!(report.added, 5);
+
+    // A rescan of the stream folder only (the watcher, LIB-005) sees it.
+    let sub = ScanOptions {
+        subtree: Some(VfsPath::parse("/Movies/Inception (2010)/BDMV/STREAM").unwrap()),
+        ..opts(T0 + 1)
+    };
+    let again = scan(&mut conn, 1, &vfs, &sub, &CancelToken::new(), &mut |_| {}).unwrap();
+    assert_eq!((again.files_seen, again.unchanged), (2, 2));
+
+    // The old rules: disc folders skipped, images still recorded.
+    let mut conn = library();
+    let old_rules = ScanOptions {
+        rules: pa_scanner::ScanRules {
+            disc_streams: false,
+            ..pa_scanner::ScanRules::default()
+        },
+        ..opts(T0)
+    };
+    scan(&mut conn, 1, &vfs, &old_rules, &CancelToken::new(), &mut |_| {}).unwrap();
+    assert_eq!(paths(&conn), ["/Images/Spirited Away (2001).iso"]);
 }
 
 #[test]

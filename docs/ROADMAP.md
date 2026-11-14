@@ -509,7 +509,7 @@ project_alpha/
   - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
   - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
   - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
-- [ ] **LIB-017** Образы дисков в скане медиатеки
+- [x] **LIB-017** Образы дисков в скане медиатеки
   - Что: скан записывает `.iso` и разделы VIDEO_TS/BDMV (`.vob`, `.m2ts`) в `files`, чтобы группы LIB-007 доходили до распознавания и приложения как один элемент; выбор основного потока для воспроизведения диска.
   - deps: LIB-007 · size: S · parallel: yes · веха: M2 · ref: ADR-0032, META-013
   - done when: папка BDMV и файл ISO появляются в приложении одним фильмом с метаданными; тест в `pa-catalog`.

@@ -13,8 +13,9 @@
 //! - A rescan without changes writes nothing.
 //! - Progress comes as [`ScanEvent`]s; [`CancelToken`] stops a scan.
 //! - [`ScanRules`] decides what is recorded; the defaults are the
-//!   release-0.1 rules (samples, extras, BDMV/VIDEO_TS, NAS service folders
-//!   and hidden entries are skipped).
+//!   release-0.1 rules (samples, extras, NAS service folders and hidden
+//!   entries are skipped); disc streams (`BDMV/STREAM/*.m2ts`,
+//!   `VIDEO_TS/*.VOB`) and disc images (`.iso`) are recorded (LIB-017).
 //! - [`index_music`] (MUS-001) runs after [`scan`]: it reads the tags of new
 //!   and changed audio files with `lofty` ([`read_tags`], path fallback
 //!   [`path_info`]) and fills the music tables of `pa_library::music`
@@ -61,8 +62,8 @@ pub use folders::{FolderOptions, FolderReport, analyze_folders};
 pub use music::{COVER_EXTENSIONS, COVER_NAMES, MusicOptions, MusicReport, index_music};
 
 pub use rules::{
-    AUDIO_EXTENSIONS, IGNORED_FOLDERS, MediaKind, ScanRules, VIDEO_EXTENSIONS, is_extra_file,
-    is_ignored_folder, media_kind,
+    AUDIO_EXTENSIONS, DISC_IMAGE_EXTENSIONS, IGNORED_FOLDERS, MediaKind, ScanRules,
+    VIDEO_EXTENSIONS, is_extra_file, is_ignored_folder, media_kind,
 };
 pub use scan::{
     CancelToken, DEFAULT_GRACE_PERIOD, ScanError, ScanEvent, ScanOptions, ScanProgress, ScanReport,
