@@ -811,7 +811,7 @@ fn queries_over_20_000_items_are_fast() {
             .unwrap();
         let mut progress = tx
             .prepare(
-                "INSERT INTO progress (profile_id, media_key, source_type, position_ms, duration_ms,
+                "INSERT OR IGNORE INTO progress (profile_id, media_key, source_type, position_ms, duration_ms,
                                        watched, updated_at_ms, device_id)
                  VALUES (1, ?1, ?2, ?3, 6000000, ?4, ?5, 'bench')",
             )
