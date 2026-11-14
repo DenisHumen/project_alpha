@@ -36,6 +36,7 @@ pub const MIGRATIONS: &[MigrationFile] = &[
     migration!(202611141730, "202611141730_TWI-007_twitch"),
     migration!(202611141800, "202611141800_LIB-008_search_index"),
     migration!(202611142000, "202611142000_CORE-011_jobs_runtime"),
+    migration!(202611142200, "202611142200_NET-011_source_manager"),
 ];
 
 impl MigrationFile {
