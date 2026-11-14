@@ -36,15 +36,15 @@ use crate::{Op, OpId};
 /// The library the service syncs: the app's catalog database.
 pub trait SyncLibrary: Send + Sync + 'static {
     /// Starts recording local changes as ops of `device_id`.
-    fn enable(&self, device_id: &str) -> Result<(), String>;
+    fn enable(&self, device_id: &str) -> std::result::Result<(), String>;
     /// Stops recording (the device left its family); drops queued ops.
-    fn disable(&self) -> Result<(), String>;
+    fn disable(&self) -> std::result::Result<(), String>;
     /// Queued local ops.
-    fn pending(&self) -> Result<Vec<Op>, String>;
+    fn pending(&self) -> std::result::Result<Vec<Op>, String>;
     /// Another device holds `op_id` now.
-    fn ack(&self, op_id: OpId) -> Result<(), String>;
+    fn ack(&self, op_id: OpId) -> std::result::Result<(), String>;
     /// Writes an op of another device; `true` if the library changed.
-    fn apply(&self, op: &Op) -> Result<bool, String>;
+    fn apply(&self, op: &Op) -> std::result::Result<bool, String>;
 }
 
 /// Settings of a [`SyncService`].
