@@ -1,6 +1,6 @@
 # Удалённый конфиг: ключ minisign и подпись `config/*.json`
 
-> Задача CORE-014. Связано: [ADR-0004](../adr/0004-no-project-servers-local-sync.md) (своих серверов нет), [ADR-NNNN](../adr/0039-remote-config-minisign.md) (формат и правила доверия), [secrets.md](secrets.md), исследование 06 §2.6–2.7, крейт [`pa-remote-config`](../../core/crates/pa-remote-config).
+> Задача CORE-014. Связано: [ADR-0004](../adr/0004-no-project-servers-local-sync.md) (своих серверов нет), [ADR-0039](../adr/0039-remote-config-minisign.md) (формат и правила доверия), [secrets.md](secrets.md), исследование 06 §2.6–2.7, крейт [`pa-remote-config`](../../core/crates/pa-remote-config).
 
 Приложение раз в несколько часов скачивает из этого репозитория `config/remote-config.json` и `config/remote-config.json.minisig`, проверяет подпись встроенным публичным ключом и только после этого читает флаги. Подписывает файл **только владелец, офлайн**. Секретный ключ никогда не попадает в git, CI, облако или на сервер сборки.
 

@@ -833,7 +833,7 @@ project_alpha/
   - done when: результаты в `docs/dev/device-matrix.md`, блокеров нет.
 - [ ] **PLAY-APL-013** Своя LGPL-2.1 сборка FFmpeg и libmpv для iOS и tvOS вместо MPVKit
   - Что: xcframework FFmpeg (без `--enable-version3`) и libmpv (`-Dgpl=false`) для iOS, iOS Simulator, tvOS, tvOS Simulator и macOS из `tools/ffmpeg` (цели `ios-*`, `tvos-*` уже есть) и `tools/mpv` (расширить с macOS на iOS и tvOS, MoltenVK/libplacebo); AlphaPlayerKit переходит на неё вместо MPVKit (LGPLv3, только для разработки и CI), `scripts/check-license.sh --store` становится зелёным.
-  - deps: PLAY-APL-001, PLAY-001, PLAY-002 · size: L · parallel: yes · веха: M5 · ref: 02 §3.1, ADR-0005, ADR-NNNN
+  - deps: PLAY-APL-001, PLAY-001, PLAY-002 · size: L · parallel: yes · веха: M5 · ref: 02 §3.1, ADR-0005, ADR-0035
   - done when: контрактный набор и MKV из QA-002 проходят на симуляторах iOS и tvOS с нашей сборкой; лицензионная проверка в профиле store проходит в CI.
 
 ### 3.11. UI — Flutter-приложение (телефон, планшет, десктоп, общие экраны)
@@ -1180,7 +1180,7 @@ project_alpha/
   - done when: очередь продолжается на втором устройстве с той же позиции.
 - [ ] **MUS-016** Аудиорежим MPVKit на Apple (`AudioKit`)
   - Что: часть MUS-002 для Apple: `clients/apple/AudioKit` на MPVKit (LGPL) с тем же профилем, что `AudioProfile` в `pa_player` (gapless, prefetch, ReplayGain track/album/auto, pre-amp, защита от клиппинга); проверка стыков по сэмплам, как в `gapless_libmpv_test.dart`.
-  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-NNNN (music-audio-mode-libmpv)
+  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-0024
   - done when: XCTest на macOS проигрывает тестовый альбом через MPVKit без пауз на стыках (проверка по сэмплам).
 
 ### 3.16. TWI — Twitch

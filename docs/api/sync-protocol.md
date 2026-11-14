@@ -166,7 +166,7 @@ sequenceDiagram
 
 ## 11. Сопряжение двух приложений в LAN
 
-> Задача `UI-019` · решение: [ADR-NNNN](../adr/0040-app-pairing-and-lan-sync.md) · реализация: `core/crates/pa-sync/src/lan/pair.rs`, `core/crates/pa-sync/src/lan/service.rs` · тесты: `core/crates/pa-sync/tests/service.rs`.
+> Задача `UI-019` · решение: [ADR-0040](../adr/0040-app-pairing-and-lan-sync.md) · реализация: `core/crates/pa-sync/src/lan/pair.rs`, `core/crates/pa-sync/src/lan/service.rs` · тесты: `core/crates/pa-sync/tests/service.rs`.
 
 - **Приглашающий** — любое приложение, которое показывает код (основывает семью, если её нет). На время приглашения оно слушает отдельный порт: WebSocket `wss://<адрес>:<порт>/pair`, TLS 1.3 с эфемерным сертификатом, кадры §9 без изменений; одна попытка за раз.
 - **QR:** `projectalpha://pair?v=1&c=<6 цифр>&k=<ключ подписи, hex>&a=<host:port>` — адрес маршрута по умолчанию; `f` не передаётся (TLS здесь не аутентифицирует, это делают SPAKE2 и `k`).
