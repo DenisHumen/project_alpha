@@ -169,7 +169,7 @@ fn version_row(r: &Row<'_>) -> pa_library::rusqlite::Result<(Option<String>, Ver
 }
 
 /// Versions of a movie (`Movie`) or an episode, best resolution first.
-fn versions(conn: &Connection, item: ItemRef) -> Result<Vec<Version>, Error> {
+pub(crate) fn versions(conn: &Connection, item: ItemRef) -> Result<Vec<Version>, Error> {
     let (filter, id, default) = match item {
         ItemRef::Movie(w) => (
             "AND m.work_id = ?1",

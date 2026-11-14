@@ -217,6 +217,12 @@ pub struct Details {
     /// Adult flag.
     #[serde(default)]
     pub adult: bool,
+    /// Average user rating, 0–10 (UI-009).
+    #[serde(default)]
+    pub vote_average: Option<f64>,
+    /// Number of votes behind [`vote_average`](Self::vote_average).
+    #[serde(default)]
+    pub vote_count: Option<u32>,
 }
 
 impl Details {
@@ -360,6 +366,56 @@ pub struct Image {
     /// Average vote.
     #[serde(default)]
     pub vote_average: f64,
+}
+
+/// `/{kind}/{id}/credits` (UI-009).
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Credits {
+    /// TMDB id.
+    #[serde(default)]
+    pub id: u64,
+    /// Actors in billing order.
+    #[serde(default)]
+    pub cast: Vec<CastMember>,
+    /// Crew members.
+    #[serde(default)]
+    pub crew: Vec<CrewMember>,
+}
+
+/// An actor of a [`Credits`] list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CastMember {
+    /// TMDB person id.
+    pub id: u64,
+    /// Name.
+    pub name: String,
+    /// Role in the film.
+    #[serde(default, deserialize_with = "empty_as_none")]
+    pub character: Option<String>,
+    /// Billing order.
+    #[serde(default)]
+    pub order: u32,
+    /// Photo path for [`image_url`](super::image_url).
+    #[serde(default)]
+    pub profile_path: Option<String>,
+}
+
+/// A crew member of a [`Credits`] list.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct CrewMember {
+    /// TMDB person id.
+    pub id: u64,
+    /// Name.
+    pub name: String,
+    /// `Director`, `Screenplay`, `Original Music Composer`…
+    #[serde(default)]
+    pub job: String,
+    /// `Directing`, `Writing`, `Sound`…
+    #[serde(default)]
+    pub department: String,
+    /// Photo path for [`image_url`](super::image_url).
+    #[serde(default)]
+    pub profile_path: Option<String>,
 }
 
 /// `/collection/{id}`.

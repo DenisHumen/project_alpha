@@ -88,8 +88,20 @@ impl FakeProviders {
             "/movie/438631" => ok(r#"{"id":438631,"title":"Дюна","original_title":"Dune",
                 "original_language":"en","overview":"Пустынная планета.","release_date":"2021-09-15",
                 "status":"Released","runtime":155,"poster_path":"/dune-ru.jpg",
-                "backdrop_path":"/dune-bg.jpg","imdb_id":"tt0000001",
+                "backdrop_path":"/dune-bg.jpg","imdb_id":"tt0000001","vote_average":7.8,
+                "vote_count":12000,"genres":[{"id":878,"name":"фантастика"}],
                 "belongs_to_collection":{"id":726871,"name":"Дюна: Коллекция"}}"#),
+            "/movie/438631/credits" => ok(r#"{"id":438631,"cast":[
+                {"id":2,"name":"Ребекка Фергюсон","character":"Джессика","order":1},
+                {"id":1,"name":"Тимоти Шаламе","character":"Пол Атрейдес","order":0,
+                 "profile_path":"/tc.jpg"},
+                {"id":3,"name":" ","character":"","order":2}
+            ],"crew":[
+                {"id":10,"name":"Ханс Циммер","job":"Original Music Composer","department":"Sound"},
+                {"id":11,"name":"Дени Вильнёв","job":"Screenplay","department":"Writing"},
+                {"id":11,"name":"Дени Вильнёв","job":"Director","department":"Directing"},
+                {"id":12,"name":"Someone","job":"Gaffer","department":"Lighting"}
+            ]}"#),
             "/movie/438631/translations" => ok(r#"{"id":438631,"translations":[
                 {"iso_3166_1":"US","iso_639_1":"en","data":{"title":"Dune","overview":"Desert planet."}},
                 {"iso_3166_1":"RU","iso_639_1":"ru","data":{"title":"Дюна","overview":"Пустынная планета."}}
@@ -257,6 +269,47 @@ fn movies_shows_and_anime_get_provider_metadata() {
     );
     let unknown = movies.iter().find(|m| m.tmdb_id.is_none()).unwrap();
     assert!(unknown.poster_url.is_none());
+
+    // UI-009: cast, crew, rating and genres for the Detail screen.
+    let details = cat.details(dune.id).unwrap();
+    assert_eq!(details.genres, ["фантастика"]);
+    assert_eq!(details.runtime_ms, Some(155 * 60_000));
+    assert_eq!(details.ratings.len(), 1);
+    assert_eq!(details.ratings[0].provider, "tmdb");
+    assert!((details.ratings[0].value - 7.8).abs() < 1e-9);
+    assert_eq!(details.ratings[0].votes, Some(12_000));
+    let people: Vec<_> = details
+        .credits
+        .iter()
+        .map(|c| {
+            (
+                c.crew,
+                c.name.as_str(),
+                c.character.as_deref().or(c.job.as_deref()).unwrap_or(""),
+            )
+        })
+        .collect();
+    assert_eq!(
+        people,
+        [
+            (false, "Тимоти Шаламе", "Пол Атрейдес"),
+            (false, "Ребекка Фергюсон", "Джессика"),
+            (true, "Дени Вильнёв", "Director"),
+            (true, "Дени Вильнёв", "Screenplay"),
+            (true, "Ханс Циммер", "Original Music Composer"),
+        ]
+    );
+    assert_eq!(details.credits[0].person_ref.as_deref(), Some("tmdb:1"));
+    assert_eq!(
+        details.credits[0].profile_url.as_deref(),
+        Some("https://image.tmdb.org/t/p/w185/tc.jpg")
+    );
+    assert!(details.external_ids.iter().any(|x| x.provider == "imdb" && x.id == "tt0000001"));
+    // Heat has no credits fixture (404): metadata still applies, no people.
+    let heat = movies.iter().find(|m| m.tmdb_id == Some(949));
+    if let Some(heat) = heat {
+        assert!(cat.details(heat.id).unwrap().credits.is_empty());
+    }
 
     // LIB-010: the TMDB collection of the movie.
     let collections = cat.collections().unwrap();

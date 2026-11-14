@@ -52,6 +52,7 @@
 //! movie), `s<work>` (a show or anime), `e<episode>`, `t<track>`.
 
 mod connect;
+mod details;
 mod error;
 pub mod fingerprint;
 mod fix;
@@ -78,6 +79,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use pa_library::rusqlite::Connection;
 
 pub use connect::{Connector, LocalConnector, SourceOpener, SourcesConnector};
+pub use details::{Credit, Extra, ExternalId, FileRef, ItemDetails, Rating, TechInfo};
 pub use error::Error;
 pub use import_v0::ImportReport;
 pub use items::{Item, ItemKind, ItemRef, SearchGroup};
