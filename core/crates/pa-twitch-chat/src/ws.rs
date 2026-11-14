@@ -11,8 +11,10 @@ use crate::source::ChatError;
 /// Opens WebSocket connections.
 pub trait WsConnector: Send + Sync {
     /// Connects to a `wss://` URL.
-    fn connect<'a>(&'a self, url: &'a str)
-    -> BoxFuture<'a, Result<Box<dyn WsConnection>, ChatError>>;
+    fn connect<'a>(
+        &'a self,
+        url: &'a str,
+    ) -> BoxFuture<'a, Result<Box<dyn WsConnection>, ChatError>>;
 }
 
 /// One open WebSocket. Only text frames matter for Twitch chat.
@@ -59,7 +61,8 @@ mod live {
 
     impl std::fmt::Debug for TungsteniteConnector {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            f.debug_struct("TungsteniteConnector").finish_non_exhaustive()
+            f.debug_struct("TungsteniteConnector")
+                .finish_non_exhaustive()
         }
     }
 
@@ -100,8 +103,8 @@ mod live {
                     .await
                     .map_err(|e| ChatError::Connect(e.to_string()))?;
                 let _ = tcp.set_nodelay(true);
-                let name = ServerName::try_from(host)
-                    .map_err(|e| ChatError::Connect(e.to_string()))?;
+                let name =
+                    ServerName::try_from(host).map_err(|e| ChatError::Connect(e.to_string()))?;
                 let tls = TlsConnector::from(self.tls.clone())
                     .connect(name, tcp)
                     .await

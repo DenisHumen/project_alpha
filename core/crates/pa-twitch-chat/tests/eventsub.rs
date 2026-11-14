@@ -24,9 +24,7 @@ fn channel() -> ChannelRef {
 
 fn event(text: &str) -> ChatEvent {
     match parse_frame(text).unwrap() {
-        EventSubFrame::Notification {
-            event: Some(e), ..
-        } => e,
+        EventSubFrame::Notification { event: Some(e), .. } => e,
         other => panic!("expected a notification, got {other:?}"),
     }
 }
@@ -165,7 +163,10 @@ fn notifications() {
     assert_eq!(notice.params["cumulative_months"], "15");
     assert_eq!(notice.params["sub_tier"], "1000");
     assert_eq!(notice.params["is_gift"], "false");
-    assert!(!notice.params.contains_key("streak_months"), "nulls skipped");
+    assert!(
+        !notice.params.contains_key("streak_months"),
+        "nulls skipped"
+    );
     assert_eq!(resub.text, "fifteen months already");
     assert_eq!(resub.user.badges[0].info.as_deref(), Some("15"));
 
@@ -176,7 +177,10 @@ fn notifications() {
             viewer_count: Some(42)
         }
     );
-    assert_eq!(raid.notice.as_ref().unwrap().params["user_login"], "moss_lantern");
+    assert_eq!(
+        raid.notice.as_ref().unwrap().params["user_login"],
+        "moss_lantern"
+    );
     assert_eq!(raid.text, "");
 
     let gift = message(fx!("notification_announcement_anonymous"));
@@ -253,7 +257,10 @@ fn rfc3339_timestamps() {
         parse_rfc3339_ms("2026-11-14T14:00:01.25+02:00"),
         Some(1_794_657_601_250)
     );
-    assert_eq!(parse_rfc3339_ms("2024-02-29T23:59:59.9Z"), Some(1_709_251_199_900));
+    assert_eq!(
+        parse_rfc3339_ms("2024-02-29T23:59:59.9Z"),
+        Some(1_709_251_199_900)
+    );
     assert_eq!(parse_rfc3339_ms("yesterday"), None);
     assert_eq!(parse_rfc3339_ms("2026-13-01T00:00:00Z"), None);
 }

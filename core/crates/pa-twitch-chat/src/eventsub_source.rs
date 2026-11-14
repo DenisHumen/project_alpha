@@ -98,7 +98,9 @@ impl EventSubChatSource {
             return Err(ChatError::InvalidArgument("user id is required"));
         }
         if config.broadcaster_ids.is_empty() {
-            return Err(ChatError::InvalidArgument("at least one channel is required"));
+            return Err(ChatError::InvalidArgument(
+                "at least one channel is required",
+            ));
         }
         let (tx, rx) = mpsc::channel(config.buffer.max(1));
         let user_id = config.user_id.clone();
@@ -184,7 +186,10 @@ enum End {
     ConsumerGone,
     /// Auth gone or subscriptions revoked: do not retry.
     Fatal(String),
-    Lost { reason: String, healthy: bool },
+    Lost {
+        reason: String,
+        healthy: bool,
+    },
 }
 
 struct Driver {
@@ -432,12 +437,9 @@ impl Driver {
                     subscription_type,
                     status,
                 } => {
-                    if status == "authorization_revoked" || subscription_type == SUB_CHAT_MESSAGE
-                    {
+                    if status == "authorization_revoked" || subscription_type == SUB_CHAT_MESSAGE {
                         conn.close().await;
-                        return End::Fatal(format!(
-                            "Twitch revoked {subscription_type}: {status}"
-                        ));
+                        return End::Fatal(format!("Twitch revoked {subscription_type}: {status}"));
                     }
                     let notice = ChatEvent::Notice {
                         channel_login: None,

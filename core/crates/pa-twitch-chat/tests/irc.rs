@@ -91,8 +91,9 @@ fn control_lines() {
     let reconnect = parse_line(":tmi.twitch.tv RECONNECT").unwrap();
     assert_eq!(interpret(&reconnect, NICK), IrcInput::Reconnect);
     // Someone else's JOIN is not our join.
-    let other = parse_line(":pixel_otter!pixel_otter@pixel_otter.tmi.twitch.tv JOIN #kinolune_demo")
-        .unwrap();
+    let other =
+        parse_line(":pixel_otter!pixel_otter@pixel_otter.tmi.twitch.tv JOIN #kinolune_demo")
+            .unwrap();
     assert_eq!(interpret(&other, NICK), IrcInput::Ignore);
 }
 
@@ -311,7 +312,8 @@ fn action_messages() {
 
 #[test]
 fn bad_emote_ranges_are_dropped() {
-    let line = "@emotes=25:0-4,10-99/x:a-b;id=e1;room-id=1 :u!u@u.tmi.twitch.tv PRIVMSG #a :Kappa hi";
+    let line =
+        "@emotes=25:0-4,10-99/x:a-b;id=e1;room-id=1 :u!u@u.tmi.twitch.tv PRIVMSG #a :Kappa hi";
     let input = interpret(&parse_line(line).unwrap(), NICK);
     let m = message(&input);
     assert_eq!(

@@ -140,11 +140,7 @@ pub fn parse_frame(text: &str) -> Result<EventSubFrame, FrameError> {
             })
         }
         "notification" => {
-            let subscription_type = frame
-                .metadata
-                .subscription_type
-                .clone()
-                .unwrap_or_default();
+            let subscription_type = frame.metadata.subscription_type.clone().unwrap_or_default();
             let ts_ms = parse_rfc3339_ms(&frame.metadata.message_timestamp).unwrap_or_default();
             let event = payload.get("event").cloned().unwrap_or(Value::Null);
             Ok(EventSubFrame::Notification {
@@ -228,8 +224,9 @@ pub fn normalise(kind: &str, event: Value, ts_ms: i64) -> Result<Option<ChatEven
                     })),
                     unique_chat: Some(e.unique_chat_mode),
                     slow: Some(
-                        e.slow_mode
-                            .then(|| Duration::from_secs(e.slow_mode_wait_time_seconds.unwrap_or(0))),
+                        e.slow_mode.then(|| {
+                            Duration::from_secs(e.slow_mode_wait_time_seconds.unwrap_or(0))
+                        }),
                     ),
                     subscribers_only: Some(e.subscriber_mode),
                 },
@@ -431,7 +428,9 @@ impl ChatMessageEvent {
             notice: None,
             is_first_message: self.message_type == "user_intro",
             is_highlighted: self.message_type == "channel_points_highlighted",
-            reward_id: self.channel_points_custom_reward_id.filter(|r| !r.is_empty()),
+            reward_id: self
+                .channel_points_custom_reward_id
+                .filter(|r| !r.is_empty()),
             source_channel_id: self
                 .source_broadcaster_user_id
                 .filter(|s| !s.is_empty() && *s != channel.id),
@@ -573,7 +572,11 @@ pub fn parse_rfc3339_ms(s: &str) -> Option<i64> {
         if digits == 0 {
             return None;
         }
-        let ms: String = frac[..digits].chars().chain("000".chars()).take(3).collect();
+        let ms: String = frac[..digits]
+            .chars()
+            .chain("000".chars())
+            .take(3)
+            .collect();
         millis = ms.parse().ok()?;
         rest = &frac[digits..];
     }

@@ -160,9 +160,9 @@ pub fn interpret(msg: &IrcMessage, own_nick: &str) -> IrcInput {
                 login: channel_login(msg.param(0)),
             })))
         }
-        "PRIVMSG" => privmsg(msg).map_or(IrcInput::Ignore, |m| {
-            IrcInput::Event(ChatEvent::Message(m))
-        }),
+        "PRIVMSG" => {
+            privmsg(msg).map_or(IrcInput::Ignore, |m| IrcInput::Event(ChatEvent::Message(m)))
+        }
         "USERNOTICE" => IrcInput::Event(ChatEvent::Message(usernotice(msg))),
         "CLEARCHAT" => IrcInput::Event(clearchat(msg)),
         "CLEARMSG" => IrcInput::Event(ChatEvent::MessageDeleted {
@@ -288,9 +288,7 @@ fn reply(msg: &IrcMessage) -> Option<ReplyInfo> {
             .unwrap_or_default()
             .to_owned(),
         thread_message_id: msg.tag("reply-thread-parent-msg-id").map(str::to_owned),
-        thread_user_login: msg
-            .tag("reply-thread-parent-user-login")
-            .map(str::to_owned),
+        thread_user_login: msg.tag("reply-thread-parent-user-login").map(str::to_owned),
     })
 }
 

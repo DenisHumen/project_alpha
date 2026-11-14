@@ -87,8 +87,7 @@ async fn irc_handshake_join_pong_and_idle_reconnect() {
     let session = include_str!("fixtures/irc/session.txt").replace('\n', "\r\n");
     connector.push(Script::hanging([session]));
     let clock = Arc::new(ManualClock::at_unix(START));
-    let source =
-        IrcChatSource::spawn(irc_config(1), Arc::new(connector.clone()), clock).unwrap();
+    let source = IrcChatSource::spawn(irc_config(1), Arc::new(connector.clone()), clock).unwrap();
     assert_eq!(source.kind(), SourceKind::AnonymousIrc);
     assert!(!source.can_send());
 
@@ -235,7 +234,10 @@ fn backoff_caps_and_jitters() {
     for attempt in 1..10 {
         let d = j.delay(attempt);
         let step = b.delay(attempt);
-        assert!(d >= step / 2 && d <= step, "{d:?} outside 50-100% of {step:?}");
+        assert!(
+            d >= step / 2 && d <= step,
+            "{d:?} outside 50-100% of {step:?}"
+        );
     }
 }
 
@@ -312,7 +314,10 @@ async fn eventsub_subscribes_dedups_and_follows_session_reconnect() {
     for r in &requests {
         assert_eq!(r.url, "https://helix.test/helix/eventsub/subscriptions");
         assert_eq!(r.header("Content-Type"), Some("application/json"));
-        assert_eq!(r.header("Client-Id"), Some("testclientid0000000000000000000"));
+        assert_eq!(
+            r.header("Client-Id"),
+            Some("testclientid0000000000000000000")
+        );
         let body: serde_json::Value = serde_json::from_slice(r.body.as_ref().unwrap()).unwrap();
         assert_eq!(body["version"], "1");
         assert_eq!(body["condition"]["broadcaster_user_id"], "100000001");
@@ -326,13 +331,20 @@ async fn eventsub_subscribes_dedups_and_follows_session_reconnect() {
     }
     assert_eq!(types, pa_twitch_chat::eventsub::CHAT_SUBSCRIPTIONS);
 
-    assert_eq!(message_ids(&events), ["e5f6a7b8-0003-4a5b-9c1d-000000000003"]);
-    assert!(events
-        .iter()
-        .any(|e| matches!(e, ChatEvent::MessageDeleted { .. })));
-    assert!(events
-        .iter()
-        .any(|e| matches!(e, ChatEvent::ChatCleared { .. })));
+    assert_eq!(
+        message_ids(&events),
+        ["e5f6a7b8-0003-4a5b-9c1d-000000000003"]
+    );
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, ChatEvent::MessageDeleted { .. }))
+    );
+    assert!(
+        events
+            .iter()
+            .any(|e| matches!(e, ChatEvent::ChatCleared { .. }))
+    );
     let st = statuses(&events);
     assert_eq!(st[0], SourceStatus::Connected);
     assert_eq!(
@@ -369,7 +381,11 @@ async fn eventsub_keepalive_timeout_reconnects_and_resubscribes() {
     );
     assert_eq!(st[2], SourceStatus::Connected);
     assert_eq!(message_ids(&events).len(), 1);
-    assert_eq!(h.transport.requests().len(), 12, "new session, new subscriptions");
+    assert_eq!(
+        h.transport.requests().len(),
+        12,
+        "new session, new subscriptions"
+    );
 }
 
 #[tokio::test]
@@ -438,7 +454,10 @@ async fn eventsub_sends_through_helix() {
     assert!(sent.is_sent);
     assert_eq!(sent.message_id, "e5f6a7b8-0100-4a5b-9c1d-000000000100");
 
-    let dropped = source.send_message("100000001", "hello chat", None).await.unwrap();
+    let dropped = source
+        .send_message("100000001", "hello chat", None)
+        .await
+        .unwrap();
     assert!(!dropped.is_sent);
     assert_eq!(dropped.drop_reason.unwrap().code, "msg_duplicate");
 
