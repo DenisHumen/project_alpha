@@ -509,7 +509,10 @@ impl Catalog {
 
     /// Creates an empty video playlist.
     pub fn create_playlist(&self, name: &str) -> Result<PlaylistInfo, Error> {
-        Ok(lists::create_playlist(&self.lock(), PROFILE, name, PlaylistKind::Video, now_ms())?.into())
+        Ok(
+            lists::create_playlist(&self.lock(), PROFILE, name, PlaylistKind::Video, now_ms())?
+                .into(),
+        )
     }
 
     pub fn rename_playlist(&self, id: i64, name: &str) -> Result<(), Error> {
@@ -639,14 +642,26 @@ mod tests {
 
     #[test]
     fn resolution_prefers_the_probe() {
-        assert_eq!(resolution(Some(3840), Some(1600), None).as_deref(), Some("4K"));
-        assert_eq!(resolution(Some(1920), Some(800), None).as_deref(), Some("1080p"));
+        assert_eq!(
+            resolution(Some(3840), Some(1600), None).as_deref(),
+            Some("4K")
+        );
+        assert_eq!(
+            resolution(Some(1920), Some(800), None).as_deref(),
+            Some("1080p")
+        );
         assert_eq!(
             resolution(Some(1280), Some(720), Some("2160p".into())).as_deref(),
             Some("720p")
         );
-        assert_eq!(resolution(None, None, Some("2160p".into())).as_deref(), Some("4K"));
-        assert_eq!(resolution(None, None, Some("1080p".into())).as_deref(), Some("1080p"));
+        assert_eq!(
+            resolution(None, None, Some("2160p".into())).as_deref(),
+            Some("4K")
+        );
+        assert_eq!(
+            resolution(None, None, Some("1080p".into())).as_deref(),
+            Some("1080p")
+        );
         assert_eq!(resolution(None, None, None), None);
     }
 }

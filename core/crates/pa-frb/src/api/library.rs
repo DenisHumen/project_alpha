@@ -1021,7 +1021,9 @@ impl CoreLibrary {
     /// Appends a movie, an episode or every episode of a show; returns how
     /// many entries were added (items already there are skipped).
     pub fn add_to_playlist(&self, id: i64, item_id: String) -> Result<u32> {
-        Ok(count(self.catalog.add_to_playlist(id, item_ref(&item_id)?)?))
+        Ok(count(
+            self.catalog.add_to_playlist(id, item_ref(&item_id)?)?,
+        ))
     }
 
     pub fn remove_from_playlist(&self, id: i64, item_id: String) -> Result<u32> {

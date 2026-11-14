@@ -52,7 +52,7 @@ pub struct CoreCollection {
     pub id: i64,
     pub name: String,
     /// From provider metadata (`tmdb:collection:<id>`); not editable.
-    pub external: bool,
+    pub is_external: bool,
     pub item_count: i64,
 }
 
@@ -61,7 +61,7 @@ impl From<c::CollectionInfo> for CoreCollection {
         Self {
             id: col.id,
             name: col.name,
-            external: col.kind == c::CollectionKind::External,
+            is_external: col.kind == c::CollectionKind::External,
             item_count: col.item_count,
         }
     }

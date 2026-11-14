@@ -51,7 +51,11 @@ fn two_files_of_one_film_are_one_card_with_versions() {
     let (_dir, cat) = setup();
     let movies = cat.movies().unwrap();
     let titles: Vec<_> = movies.iter().map(|m| m.title.as_str()).collect();
-    assert_eq!(titles, ["Arrival", "Blade Runner", "Inception"], "{movies:?}");
+    assert_eq!(
+        titles,
+        ["Arrival", "Blade Runner", "Inception"],
+        "{movies:?}"
+    );
 
     let inception = movie(&movies, "Inception");
     assert_eq!(inception.version_count, 2);
@@ -74,8 +78,8 @@ fn two_files_of_one_film_are_one_card_with_versions() {
 
     let cut = cat.versions(blade.id).unwrap();
     assert!(
-        cut.iter().any(|v| v.rel_path == CUT
-            && v.edition.as_deref().is_some_and(|e| e.contains("Cut"))),
+        cut.iter()
+            .any(|v| v.rel_path == CUT && v.edition.as_deref().is_some_and(|e| e.contains("Cut"))),
         "{cut:?}"
     );
 

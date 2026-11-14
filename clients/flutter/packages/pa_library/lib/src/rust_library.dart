@@ -930,7 +930,7 @@ class RustLibrary implements Library, LibraryLists {
   static MediaCollection _collection(CoreCollection c) => MediaCollection(
     id: '${c.id}',
     name: c.name,
-    external: c.external,
+    external: c.isExternal,
     itemCount: c.itemCount,
   );
 

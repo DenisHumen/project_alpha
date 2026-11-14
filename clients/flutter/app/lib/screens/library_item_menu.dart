@@ -49,11 +49,11 @@ Future<void> showLibraryItemMenu(
   final l = context.l10n;
   final watched = badge?.state == WatchState.watched;
   final lists = libraryListsOf(context);
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
+  final local = overlay.globalToLocal(position);
   final favorite = await _isFavorite(lists, item);
   if (!context.mounted) return;
   final soon = {..._soonAlways, if (lists == null) ..._needLists};
-  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
-  final local = overlay.globalToLocal(position);
   final actions = [
     LibraryItemAction.play,
     watched ? LibraryItemAction.markUnwatched : LibraryItemAction.markWatched,

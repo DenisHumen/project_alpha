@@ -655,7 +655,11 @@ fn touch_playlist(conn: &Connection, id: i64, now_ms: i64) -> Result<(), Error> 
 
 /// The default version (`files.id`) of `work` for `profile_id`, if one was
 /// chosen.
-pub fn default_version(conn: &Connection, profile_id: i64, work: i64) -> Result<Option<i64>, Error> {
+pub fn default_version(
+    conn: &Connection,
+    profile_id: i64,
+    work: i64,
+) -> Result<Option<i64>, Error> {
     Ok(conn
         .prepare_cached("SELECT file_id FROM version_prefs WHERE profile_id = ?1 AND work_id = ?2")?
         .query_row(params![profile_id, work], |r| r.get(0))
@@ -762,7 +766,10 @@ mod tests {
             id
         );
         let c = collection(&conn, id).unwrap().unwrap();
-        assert_eq!((c.name.as_str(), c.profile_id, c.kind), ("Saga 2", None, CollectionKind::External));
+        assert_eq!(
+            (c.name.as_str(), c.profile_id, c.kind),
+            ("Saga 2", None, CollectionKind::External)
+        );
         assert_eq!(c.item_count, 2);
         // Visible to any profile.
         assert_eq!(collections(&conn, 7).unwrap().len(), 1);
@@ -783,7 +790,10 @@ mod tests {
         assert!(add_to_playlist(&conn, p.id + 1, "file:ab12", 4).is_err());
         let items = playlist_items(&conn, p.id).unwrap();
         assert_eq!(
-            items.iter().map(|i| i.media_key.as_str()).collect::<Vec<_>>(),
+            items
+                .iter()
+                .map(|i| i.media_key.as_str())
+                .collect::<Vec<_>>(),
             ["tmdb:movie:603", "file:ab12"]
         );
         reorder_playlist(&mut conn, p.id, &[items[1].id], 5).unwrap();
@@ -797,7 +807,11 @@ mod tests {
             playlists(&conn, 1, Some(PlaylistKind::Video)).unwrap()[0].item_count,
             2
         );
-        assert!(playlists(&conn, 1, Some(PlaylistKind::Audio)).unwrap().is_empty());
+        assert!(
+            playlists(&conn, 1, Some(PlaylistKind::Audio))
+                .unwrap()
+                .is_empty()
+        );
         assert!(remove_from_playlist(&conn, p.id, "file:ab12", 6).unwrap());
         assert!(rename_playlist(&conn, p.id, "Late", 7).unwrap());
         assert!(delete_playlist(&conn, p.id).unwrap());
