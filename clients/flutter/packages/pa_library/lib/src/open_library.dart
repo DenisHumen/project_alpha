@@ -105,11 +105,10 @@ Future<Library> _openV0(String v0Path) async {
 /// database and its `-wal`/`-shm` files: `<v0Path>.v0.bak`, else
 /// `<v0Path>.v0.bak.1`, `.2`, …
 String freeLegacyV0BackupPath(String v0Path) {
-  bool free(String base) => ![
-    '',
-    '-wal',
-    '-shm',
-  ].any((s) => FileSystemEntity.typeSync('$base$s') != FileSystemEntityType.notFound);
+  bool free(String base) => !['', '-wal', '-shm'].any(
+    (s) =>
+        FileSystemEntity.typeSync('$base$s') != FileSystemEntityType.notFound,
+  );
   final base = '$v0Path.v0.bak';
   if (free(base)) return base;
   for (var n = 1; ; n++) {

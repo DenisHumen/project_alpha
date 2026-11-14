@@ -216,57 +216,62 @@ void main() {
     return v0Path;
   }
 
-  test('first start on the Rust core imports v0 and keeps it as a backup', () async {
-    final dataDir = p.join(tmp.path, 'data');
-    final v0Path = await v0Library(dataDir);
-    final v0Bytes = File(v0Path).readAsBytesSync();
+  test(
+    'first start on the Rust core imports v0 and keeps it as a backup',
+    () async {
+      final dataDir = p.join(tmp.path, 'data');
+      final v0Path = await v0Library(dataDir);
+      final v0Bytes = File(v0Path).readAsBytesSync();
 
-    final opened = await openAppLibrary(dataDir);
-    expect(opened.onRustCore, isTrue);
-    expect(opened.importedV0, isTrue);
-    expect(opened.fallbackReason, isNull);
-    final lib = opened.library;
-    expect(lib, isA<RustLibrary>());
-    expect(File(p.join(dataDir, coreDbFileName)).existsSync(), isTrue);
+      final opened = await openAppLibrary(dataDir);
+      expect(opened.onRustCore, isTrue);
+      expect(opened.importedV0, isTrue);
+      expect(opened.fallbackReason, isNull);
+      final lib = opened.library;
+      expect(lib, isA<RustLibrary>());
+      expect(File(p.join(dataDir, coreDbFileName)).existsSync(), isTrue);
 
-    // The v0 file is renamed, byte for byte, never deleted.
-    expect(File(v0Path).existsSync(), isFalse);
-    expect(File('$v0Path.v0.bak').readAsBytesSync(), v0Bytes);
+      // The v0 file is renamed, byte for byte, never deleted.
+      expect(File(v0Path).existsSync(), isFalse);
+      expect(File('$v0Path.v0.bak').readAsBytesSync(), v0Bytes);
 
-    // Folders, works, progress.
-    expect((await lib.sources()).single.path, root);
-    expect((await lib.movies().first).map((m) => m.title), [
-      'Inception',
-      'The Matrix',
-    ]);
-    final show = (await lib.shows().first).single;
-    expect(show.title, 'Breaking Bad');
-    expect(await lib.episodes(show.id).first, hasLength(2));
-    final cw = await lib.continueWatching().first;
-    expect(cw.map((r) => (r.$1.kind, r.$2.positionMs)).toSet(), {
-      (ItemKind.movie, 1000000),
-      (ItemKind.episode, 600000),
-    });
-    expect(cw.firstWhere((r) => r.$1.kind == ItemKind.movie).$1.title,
-        'The Matrix');
+      // Folders, works, progress.
+      expect((await lib.sources()).single.path, root);
+      expect((await lib.movies().first).map((m) => m.title), [
+        'Inception',
+        'The Matrix',
+      ]);
+      final show = (await lib.shows().first).single;
+      expect(show.title, 'Breaking Bad');
+      expect(await lib.episodes(show.id).first, hasLength(2));
+      final cw = await lib.continueWatching().first;
+      expect(cw.map((r) => (r.$1.kind, r.$2.positionMs)).toSet(), {
+        (ItemKind.movie, 1000000),
+        (ItemKind.episode, 600000),
+      });
+      expect(
+        cw.firstWhere((r) => r.$1.kind == ItemKind.movie).$1.title,
+        'The Matrix',
+      );
 
-    // Music: the import moves the file; its tags come with the scan the app
-    // runs after an import.
-    final events = await lib.scan().toList();
-    expect(events.last.isDone, isTrue);
-    expect(await lib.tracks().first, hasLength(1));
-    expect(await lib.movies().first, hasLength(2));
-    expect(await lib.continueWatching().first, hasLength(2));
-    await lib.close();
+      // Music: the import moves the file; its tags come with the scan the app
+      // runs after an import.
+      final events = await lib.scan().toList();
+      expect(events.last.isDone, isTrue);
+      expect(await lib.tracks().first, hasLength(1));
+      expect(await lib.movies().first, hasLength(2));
+      expect(await lib.continueWatching().first, hasLength(2));
+      await lib.close();
 
-    // Next start: nothing to import, the data is there.
-    final next = await openAppLibrary(dataDir);
-    expect((next.onRustCore, next.importedV0), (true, false));
-    expect(await next.library.movies().first, hasLength(2));
-    expect(await next.library.continueWatching().first, hasLength(2));
-    expect(await next.library.tracks().first, hasLength(1));
-    await next.library.close();
-  });
+      // Next start: nothing to import, the data is there.
+      final next = await openAppLibrary(dataDir);
+      expect((next.onRustCore, next.importedV0), (true, false));
+      expect(await next.library.movies().first, hasLength(2));
+      expect(await next.library.continueWatching().first, hasLength(2));
+      expect(await next.library.tracks().first, hasLength(1));
+      await next.library.close();
+    },
+  );
 
   test('an older v0 backup is never overwritten', () async {
     final dataDir = p.join(tmp.path, 'data');
