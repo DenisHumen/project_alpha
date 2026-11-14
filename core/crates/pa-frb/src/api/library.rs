@@ -314,10 +314,6 @@ pub struct CoreMetadataUpdate {
     pub error: Option<String>,
 }
 
-fn count(n: usize) -> u32 {
-    u32::try_from(n).unwrap_or(u32::MAX)
-}
-
 /// One library database.
 #[frb(opaque)]
 pub struct CoreLibrary {
