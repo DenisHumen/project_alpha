@@ -88,7 +88,8 @@ impl FakeProviders {
             "/movie/438631" => ok(r#"{"id":438631,"title":"Дюна","original_title":"Dune",
                 "original_language":"en","overview":"Пустынная планета.","release_date":"2021-09-15",
                 "status":"Released","runtime":155,"poster_path":"/dune-ru.jpg",
-                "backdrop_path":"/dune-bg.jpg","imdb_id":"tt0000001"}"#),
+                "backdrop_path":"/dune-bg.jpg","imdb_id":"tt0000001",
+                "belongs_to_collection":{"id":726871,"name":"Дюна: Коллекция"}}"#),
             "/movie/438631/translations" => ok(r#"{"id":438631,"translations":[
                 {"iso_3166_1":"US","iso_639_1":"en","data":{"title":"Dune","overview":"Desert planet."}},
                 {"iso_3166_1":"RU","iso_639_1":"ru","data":{"title":"Дюна","overview":"Пустынная планета."}}
@@ -256,6 +257,20 @@ fn movies_shows_and_anime_get_provider_metadata() {
     );
     let unknown = movies.iter().find(|m| m.tmdb_id.is_none()).unwrap();
     assert!(unknown.poster_url.is_none());
+
+    // LIB-010: the TMDB collection of the movie.
+    let collections = cat.collections().unwrap();
+    assert_eq!(collections.len(), 1, "{collections:?}");
+    assert_eq!(collections[0].name, "Дюна: Коллекция");
+    assert_eq!(
+        collections[0].external_ref.as_deref(),
+        Some("tmdb:collection:726871")
+    );
+    assert_eq!(collections[0].kind, pa_catalog::CollectionKind::External);
+    let in_collection = cat.collection_items(collections[0].id).unwrap();
+    assert_eq!(in_collection.len(), 1);
+    assert_eq!(in_collection[0].id, dune.id);
+    assert_eq!(cat.item_collections(dune.id).unwrap(), collections);
 
     // Show: two folders of one TMDB series became one show.
     let shows = cat.shows().unwrap();

@@ -63,6 +63,7 @@ const TABLES: &[&str] = &[
     "twitch_search",
     "twitch_streamers",
     "twitch_videos",
+    "version_prefs",
     "view_prefs",
     "work_genres",
     "work_metadata",
@@ -484,6 +485,8 @@ fn build_graph(conn: &Connection) -> Graph {
         INSERT INTO smart_shelves (profile_id, name, query_json, pinned_home, position,
                                    created_at_ms, updated_at_ms)
             VALUES (2, '4K', '{{\"kind\":\"movie\"}}', 1, 0, {now}, {now});
+        INSERT INTO version_prefs (profile_id, work_id, file_id, updated_at_ms)
+            VALUES (2, 30, 100, {now});
         "
     ))
     .unwrap();
@@ -587,6 +590,7 @@ fn deleting_a_work_cascades_through_the_catalog() {
         "display_preferences",
         "collection_items",
         "artwork",
+        "version_prefs",
         "work_metadata",
     ] {
         assert_eq!(count(&conn, table), 0, "{table}");
@@ -639,6 +643,7 @@ fn deleting_a_profile_removes_its_state_and_keeps_jobs() {
         "collection_items",
         "playlists",
         "playlist_items",
+        "version_prefs",
     ] {
         assert_eq!(count(&conn, table), 0, "{table}");
     }

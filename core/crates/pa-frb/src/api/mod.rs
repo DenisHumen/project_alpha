@@ -5,6 +5,7 @@ pub mod discovery;
 pub mod events;
 pub mod images;
 pub mod library;
+pub mod library_lists;
 pub mod library_query;
 pub mod recognition;
 pub mod remote_config;

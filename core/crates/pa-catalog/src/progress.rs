@@ -106,7 +106,7 @@ pub(crate) fn key_of(
 }
 
 /// The item a stored key belongs to.
-fn item_of_key(conn: &Connection, key: &MediaKey) -> Result<Option<ItemRef>, Error> {
+pub(crate) fn item_of_key(conn: &Connection, key: &MediaKey) -> Result<Option<ItemRef>, Error> {
     if let Some(ep) = progress::episode_for_key(conn, key)? {
         return Ok(Some(ItemRef::Episode(ep)));
     }
