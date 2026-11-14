@@ -668,7 +668,15 @@ impl Scorer {
                 last_year = year;
             }
         }
-        let remake = segments.len() > 1;
+        // A remake competes only if it carries the written title too.
+        let remake = segments.len() > 1
+            && query_base.as_ref().is_some_and(|q| {
+                segments
+                    .iter()
+                    .filter(|seg| !seg.contains(&c.record))
+                    .flatten()
+                    .any(|&r| self.info(index, r).bases.contains(q))
+            });
         let chain = segments
             .into_iter()
             .find(|s| s.contains(&c.record))
@@ -686,13 +694,15 @@ impl Scorer {
     }
 }
 
-/// `a` and `b` start with the same words: at least three, or all words of
-/// the shorter one.
-fn shares_prefix(a: &str, b: &str) -> bool {
-    let (wa, wb): (Vec<&str>, Vec<&str>) = (a.split(' ').collect(), b.split(' ').collect());
-    let common = wa.iter().zip(&wb).take_while(|(x, y)| x == y).count();
-    let shorter = wa.len().min(wb.len());
-    common >= 3.min(shorter) && common > 0
+/// `entry` continues the written title `query`: it starts with all words of
+/// `query` (`gintama` → `gintama porori hen`), or both share at least three
+/// leading words (`kimetsu no yaiba mugen ressha hen` → `kimetsu no yaiba
+/// yuukaku hen`). A shorter parent title (`dragon ball` for `dragon ball
+/// super`) does not.
+fn shares_prefix(query: &str, entry: &str) -> bool {
+    let (wq, we): (Vec<&str>, Vec<&str>) = (query.split(' ').collect(), entry.split(' ').collect());
+    let common = wq.iter().zip(&we).take_while(|(x, y)| x == y).count();
+    common >= 3 || (common == wq.len() && common > 0)
 }
 
 /// Places written numbers counted from the start of entry `from`.
@@ -1029,5 +1039,6 @@ mod tests {
         assert!(shares_prefix("kimetsu no yaiba", "kimetsu no yaiba yuukaku hen"));
         assert!(!shares_prefix("boku no hero academia", "boku no pico"));
         assert!(shares_prefix("gintama", "gintama porori hen"));
+        assert!(!shares_prefix("dragon ball super", "dragon ball"));
     }
 }
