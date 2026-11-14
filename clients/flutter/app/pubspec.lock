@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  build_cli_annotations:
+    dependency: transitive
+    description:
+      name: build_cli_annotations
+      sha256: e563c2e01de8974566a1998410d3f6f03521788160a02503b0b1f1a46c7b3d95
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   characters:
     dependency: transitive
     description:
@@ -227,6 +235,22 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_rust_bridge:
+    dependency: transitive
+    description:
+      name: flutter_rust_bridge
+      sha256: ec69331e2335ab4d456c0a9fc700892c2c85b72b9c0cb39df3ecfe8833d5d5c8
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.13.0"
+  flutter_rust_bridge_hooks:
+    dependency: transitive
+    description:
+      name: flutter_rust_bridge_hooks
+      sha256: "19900fbcaa8ddc2a4f1b13994ef34393eda129ebccc59ceb887a8fd2cf5def3e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.13.0"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -492,6 +516,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.6"
+  native_toolchain_rust:
+    dependency: transitive
+    description:
+      name: native_toolchain_rust
+      sha256: dc8e5f20c0cb7052372bc302f075607086d86354b37199e89ec9d3d35589e519
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.7"
   objective_c:
     dependency: transitive
     description:
@@ -500,6 +532,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.6.4"
+  pa_core:
+    dependency: transitive
+    description:
+      path: "../packages/pa_core"
+      relative: true
+    source: path
+    version: "0.1.0"
   pa_design:
     dependency: "direct main"
     description:
@@ -790,6 +829,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.14"
+  toml:
+    dependency: transitive
+    description:
+      name: toml
+      sha256: "35a35f782228656a2af31e8c73d1353cc4ef3d683fd68af1111b44631879c05e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.18.0"
   typed_data:
     dependency: transitive
     description:
