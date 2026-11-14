@@ -341,7 +341,7 @@ project_alpha/
   - Что: storage_targets (тип, квота, резерв свободного места), оценка размера перед стартом, мониторинг и пауза задач при пересечении резерва, политики «хранить N / X дней / просмотренные через Y», корзина на 7 дней, атомарный перенос tmp → rename, чистка tmp при старте.
   - deps: CORE-011 · size: M · parallel: yes · веха: M4 · ref: 04 §1.10
   - done when: интеграционные тесты квот и retention на временной ФС.
-- [ ] **CORE-013** Флейворы сборки `store` и `full`
+- [x] **CORE-013** Флейворы сборки `store` и `full`
   - Что: cargo features `store`/`full`, `twitch-archive`, `donation-links`; константа флейвора во всех клиентах (dart-define, Gradle flavors, Xcode configs); CI-тест, что store-бинарь не содержит символов и строк архива Twitch и донат-ссылок.
   - deps: CORE-006 · size: M · parallel: no · веха: M1 · ref: S §4, §6; 06 §2.7 п.4
   - done when: CI проверяет store-артефакты всех платформ (`nm` / `strings`) и падает при находке.

@@ -13,6 +13,9 @@
 #
 # Usage: tools/bindings/build-xcframework.sh [--debug] [slice ...]
 #   No slices = all of them. Needs macOS with Xcode and rustup.
+#   PA_FLAVOR=store|full (default store): build flavor of the core, the cargo
+#   feature of pa-ffi (ADR-0007, CORE-013). Apple builds go to the App Store,
+#   so store is the default; check with tools/flavor/check-artifacts.sh.
 #
 # Output (not committed, ADR-0001):
 #   tools/bindings/PACore/PACoreFFI.xcframework
@@ -31,12 +34,17 @@ export TVOS_DEPLOYMENT_TARGET=15.0
 export MACOSX_DEPLOYMENT_TARGET=12.0
 
 profile=release
+flavor="${PA_FLAVOR:-store}"
+case "$flavor" in
+  store | full) ;;
+  *) echo "PA_FLAVOR must be store or full, not '$flavor'" >&2; exit 2 ;;
+esac
 slices=()
 for arg in "$@"; do
   case "$arg" in
     --debug) profile=dev ;;
     ios | ios-sim | tvos | tvos-sim | macos) slices+=("$arg") ;;
-    -h | --help) sed -n '3,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h | --help) sed -n '3,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
@@ -64,13 +72,13 @@ build_target() {
   local target="$1"
   if grep -qx "$target" <<<"$installable"; then
     rustup target add "$target" >/dev/null
-    cargo build -p pa-ffi --lib --locked --profile "$profile" --target "$target"
+    cargo build -p pa-ffi --lib --locked --profile "$profile" --features "$flavor" --target "$target"
   else
     # Tier 3 target (tvOS): no prebuilt std, build it from rust-src. Stable
     # toolchain + RUSTC_BOOTSTRAP keeps the pinned compiler version.
     rustup component add rust-src >/dev/null
     RUSTC_BOOTSTRAP=1 cargo build -p pa-ffi --lib --locked --profile "$profile" \
-      --target "$target" -Zbuild-std=std,panic_abort
+      --features "$flavor" --target "$target" -Zbuild-std=std,panic_abort
   fi
 }
 
@@ -80,7 +88,7 @@ xcf_args=()
 for slice in "${slices[@]}"; do
   libs=()
   for target in $(slice_targets "$slice"); do
-    echo "==> $slice: $target ($profile)"
+    echo "==> $slice: $target ($profile, $flavor)"
     build_target "$target"
     libs+=("$TARGET_DIR/$target/$profile_dir/libpa_ffi.a")
   done
@@ -91,7 +99,7 @@ done
 
 # UniFFI Swift bindings in library mode, read from a host cdylib.
 echo "==> Swift bindings"
-cargo build -p pa-ffi --lib --locked --profile "$profile"
+cargo build -p pa-ffi --lib --locked --profile "$profile" --features "$flavor"
 cargo run -q -p pa-ffi --locked --features cli --bin uniffi-bindgen -- \
   generate --library "$TARGET_DIR/$profile_dir/libpa_ffi.dylib" --no-format \
   --language swift --out-dir "$WORK/swift"

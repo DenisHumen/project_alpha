@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:pa_core/pa_core.dart' as core;
 import 'package:pa_platform_secrets/pa_platform_secrets.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -11,6 +12,7 @@ import 'config.dart';
 import 'fakes/fake_device_sync.dart';
 import 'fakes/fake_library.dart';
 import 'fakes/fake_source_manager.dart';
+import 'flavor.dart';
 import 'integration/library.dart';
 import 'integration/player.dart';
 import 'licenses.dart';
@@ -49,6 +51,7 @@ Future<void> main() async {
     if (opened.fallbackReason != null) {
       debugPrint('Library on the v0 fallback: ${opened.fallbackReason}');
     }
+    if (opened.onRustCore) _checkCoreFlavor();
     // CORE-015: on Android the core keeps passwords and tokens in the
     // Keystore through this callback; desktop uses the OS keychain itself.
     // Before CoreSources.open, which takes the store opened here.
@@ -113,6 +116,15 @@ Future<void> main() async {
       libmpvMissing: libmpvMissing(),
     ),
   );
+}
+
+/// CORE-013: the Dart and Rust halves must be the same flavor. A mismatch
+/// is a packaging error: fatal in debug builds, logged in release builds.
+void _checkCoreFlavor() {
+  final problem = checkCoreFlavor(core.buildFlavor());
+  if (problem == null) return;
+  debugPrint('Build flavor mismatch: $problem');
+  assert(false, 'Build flavor mismatch: $problem');
 }
 
 Future<void> _openCoreSecrets(String dataDir) async {

@@ -34,14 +34,14 @@
 //!   the live-chat sources in `pa-twitch-chat`.
 //! - **Playback** (TWI-004): [`playback::TwitchPlayback`] decides between
 //!   the official embed and native HLS from the signed remote config
-//!   (`pa-remote-config`); the GQL/usher path exists only with the `full`
-//!   feature.
+//!   (`pa-remote-config`); the GQL/usher path exists only in full builds
+//!   (`cfg(pa_twitch_native)` from `pa-flavor`, CORE-013).
 //!
 //! # Policy (ADR-0011 §5, docs/legal/providers.md §2.4)
 //!
 //! - Only documented Helix endpoints live here; that makes the crate usable
 //!   in both store and full builds. Playback through GQL/usher
-//!   ([`playback`]) is compiled only with the `full` feature; store builds
+//!   ([`playback`]) is compiled only into full builds; store builds
 //!   play through the official embed (TWI-005).
 //! - Twitch data may be cached for at most 24 hours: every cache in this
 //!   crate clamps its TTL to [`MAX_CACHE_TTL`].

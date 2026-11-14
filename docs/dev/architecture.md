@@ -470,7 +470,7 @@ sequenceDiagram
 | `full` | GitHub Releases, F-Droid, Flathub, AUR, winget, ISO, Docker | всё включено; сервер и NAS-ОС существуют только здесь |
 | `store` | App Store, Google Play, Microsoft Store | без загрузок и записи Twitch, без внешних донат-ссылок; код этих функций не компилируется |
 
-Реализация — cargo features `store`/`full` (`twitch-archive`, `donation-links`), `--dart-define` во Flutter, Gradle flavors, Xcode schemes ([ADR-0007](../adr/0007-store-full-build-flavors.md)). Флейвор не меняет форматы данных и протоколы: store- и full-клиенты синхронизируются друг с другом.
+Реализация — крейт `pa-flavor`: cargo features `store`/`full` (`twitch-native`, `twitch-archive`, `donation-links`) и общий для workspace `cfg(pa_flavor = …)`; `--dart-define=KINOLUNE_FLAVOR` во Flutter, `PA_FLAVOR` в Xcode; CI проверяет store-артефакты `nm`/`strings` ([ADR-0007](../adr/0007-store-full-build-flavors.md), [ADR-NNNN](../adr/0041-build-flavor-mechanism.md), [flavors.md](flavors.md)). Флейвор не меняет форматы данных и протоколы: store- и full-клиенты синхронизируются друг с другом.
 
 **Удалённый конфиг и kill-switch без сервера** (`CORE-014`): JSON-файлы в `config/` этого репо, подписанные minisign, раздаются через GitHub Pages/raw. Клиент проверяет подпись, кэширует и при недоступности работает с последним валидным конфигом.
 

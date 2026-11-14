@@ -17,12 +17,13 @@ default = ["reqwest"]
 reqwest = ["dep:reqwest", "dep:rustls"]
 # Fixture transport and manual clock for tests of this and dependent crates.
 testing = []
-# Full build flavor (ADR-0011 §5): native Twitch playback through GQL + usher
-# (TWI-004). Without it every playback decision is the official embed. To be
-# folded into the shared `store`/`full` flavors of CORE-013.
-full = []
+# No flavor feature here: native playback through GQL + usher (TWI-004) is
+# the `twitch-native` capability of pa-flavor (CORE-013), compiled under
+# `cfg(pa_twitch_native)`. Full build of this crate alone:
+# `cargo test -p pa-twitch --features pa-flavor/full`.
 
 [dependencies]
+pa-flavor = { path = "../pa-flavor" }
 pa-remote-config = { path = "../pa-remote-config", default-features = false }
 pa-secrets = { path = "../pa-secrets" }
 reqwest = { workspace = true, optional = true, features = ["http2", "rustls-no-provider"] }
@@ -32,6 +33,14 @@ serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["rt", "sync", "time"] }
 
+[build-dependencies]
+pa-flavor = { path = "../pa-flavor" }
+
 [dev-dependencies]
 pa-twitch = { path = ".", features = ["testing"] }
 tokio = { workspace = true, features = ["macros", "rt"] }
+
+[[example]]
+# Store/full artifact check (CORE-013, tools/flavor/check-artifacts.sh).
+name = "flavor_probe"
+required-features = ["reqwest"]

@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Strings and symbols that only full builds may contain (ADR-0007, CORE-013).
+# tools/flavor/check-artifacts.sh greps `strings -a` and `nm -C` of every
+# binary in a store artifact for these fixed strings and fails on any hit.
+# One pattern per line, matched literally and case-sensitively; `#` starts a
+# comment line. Adding full-only code means adding its distinctive strings
+# or module path here in the same PR (docs/dev/flavors.md).
+
+# pa-flavor markers of the full-only capabilities. The client facades
+# return them from build_capabilities(), so every full core has them.
+kinolune-full-only:
+
+# Native Twitch playback (TWI-004, pa_twitch::playback::{gql,usher,hls}).
+usher.ttvnw.net
+gql.twitch.tv
+pa_twitch::playback::gql
+pa_twitch::playback::usher
+pa_twitch::playback::hls
+pa_twitch::playback::native
+# The same modules as Rust symbol name fragments (legacy and v0 mangling),
+# for binaries whose symbol table is not demangled by nm.
+9pa_twitch8playback3gql
+9pa_twitch8playback5usher
+9pa_twitch8playback3hls
+9pa_twitch8playback6native
+
+# Twitch archive: VOD downloads and live recording (TWI-017, TWI-018). The
+# module path is reserved for that code.
+pa_twitch::archive
+9pa_twitch7archive
+pa_twitch_archive
+
+# External donation platforms (docs/STRATEGY.md §4, DEC-003).
+github.com/sponsors
+opencollective.com
+liberapay.com
+ko-fi.com
+boosty.to

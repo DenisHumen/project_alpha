@@ -10,7 +10,7 @@
 //!   `twitch.gql_playback` off, kills it for this app version or platform,
 //!   asks for `player = embed`, or lacks the persisted-query hash. No request
 //!   to Twitch is made on this path.
-//! - `PlaybackDecision::Native` (cargo feature `full` only): the
+//! - `PlaybackDecision::Native` (full builds only, `cfg(pa_twitch_native)`): the
 //!   `PlaybackAccessToken` from GQL, the usher master playlist URL and its
 //!   parsed variants (quality, `audio_only`).
 //!
@@ -22,14 +22,15 @@
 //! - Ads are played as Twitch serves them (06 §2.4, TWI-006): the request
 //!   uses the regular web-player values and the playlist from usher is
 //!   passed through untouched. No ad blocking, no DRM or sub-only bypass.
-//! - The GQL, usher and HLS code is compiled only with the `full` feature
-//!   (until CORE-013 introduces the shared `store`/`full` flavors).
+//! - The GQL, usher and HLS code is compiled only into full builds: the
+//!   `twitch-native` capability of `pa-flavor` (CORE-013), enabled by
+//!   `--features pa-flavor/full` or an artifact crate's `full` feature.
 
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 mod gql;
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 mod hls;
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 mod usher;
 
 use std::sync::Arc;
@@ -38,34 +39,20 @@ use pa_remote_config::{ClientContext, PlayerMode, RemoteConfig, flags};
 
 use crate::transport::Transport;
 
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 pub use gql::PlaybackAccessToken;
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 pub use hls::{MasterPlaylist, QualityPreference, Variant};
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 pub use usher::usher_master_url;
 
 /// Name of the GQL operation whose persisted-query hash the remote config
 /// must carry in `twitch.persisted_queries` for native playback.
 pub const PLAYBACK_ACCESS_TOKEN_OPERATION: &str = "PlaybackAccessToken";
 
-/// Build flavor of this binary (ADR-0011 §5).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Flavor {
-    /// Store builds: official embed only.
-    Store,
-    /// Full builds (GitHub, F-Droid, Flathub, desktop, server): native HLS.
-    Full,
-}
-
-impl Flavor {
-    /// The flavor this crate was compiled as (cargo feature `full`).
-    pub const CURRENT: Flavor = if cfg!(feature = "full") {
-        Flavor::Full
-    } else {
-        Flavor::Store
-    };
-}
+/// Build flavor of this binary (ADR-0007, ADR-0011 §5): [`Flavor::CURRENT`]
+/// is the workspace flavor of `pa-flavor` (CORE-013).
+pub use pa_flavor::Flavor;
 
 /// What to play.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -257,7 +244,7 @@ pub struct EmbedPlayback {
 }
 
 /// Native HLS playback, ready for the player (full builds only).
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct NativePlayback {
     /// What is played.
@@ -276,7 +263,7 @@ pub enum PlaybackDecision {
     /// Use the embed player.
     Embed(EmbedPlayback),
     /// Use the native player with this master playlist.
-    #[cfg(feature = "full")]
+    #[cfg(pa_twitch_native)]
     Native(NativePlayback),
 }
 
@@ -285,7 +272,7 @@ impl PlaybackDecision {
     pub fn as_embed(&self) -> Option<&EmbedPlayback> {
         match self {
             PlaybackDecision::Embed(e) => Some(e),
-            #[cfg(feature = "full")]
+            #[cfg(pa_twitch_native)]
             PlaybackDecision::Native(_) => None,
         }
     }
@@ -373,7 +360,7 @@ impl PlaybackError {
 /// Twitch playback entry point.
 pub struct TwitchPlayback {
     features: TwitchFeatures,
-    #[cfg(feature = "full")]
+    #[cfg(pa_twitch_native)]
     native: native::NativeResolver,
 }
 
@@ -381,11 +368,11 @@ impl TwitchPlayback {
     /// Playback for these features over `transport`. In store builds the
     /// transport is never used.
     pub fn new(features: TwitchFeatures, transport: Arc<dyn Transport>) -> Self {
-        #[cfg(not(feature = "full"))]
+        #[cfg(not(pa_twitch_native))]
         let _ = transport;
         Self {
             features,
-            #[cfg(feature = "full")]
+            #[cfg(pa_twitch_native)]
             native: native::NativeResolver::new(transport),
         }
     }
@@ -396,7 +383,7 @@ impl TwitchPlayback {
     }
 
     /// Overrides the GQL endpoint and the usher base URL (tests, mirrors).
-    #[cfg(feature = "full")]
+    #[cfg(pa_twitch_native)]
     pub fn with_endpoints(mut self, gql_url: &str, usher_base: &str) -> Self {
         self.native.gql_url = gql_url.trim_end_matches('/').to_owned();
         self.native.usher_base = usher_base.trim_end_matches('/').to_owned();
@@ -417,13 +404,13 @@ impl TwitchPlayback {
         };
         match &self.features.player {
             PlayerChoice::Embed(reason) => Ok(embed(reason.clone())),
-            #[cfg(feature = "full")]
+            #[cfg(pa_twitch_native)]
             PlayerChoice::Native(settings) => self
                 .native
                 .resolve(settings, target, codecs)
                 .await
                 .map(PlaybackDecision::Native),
-            #[cfg(not(feature = "full"))]
+            #[cfg(not(pa_twitch_native))]
             PlayerChoice::Native(_) => {
                 let _ = codecs;
                 Ok(embed(EmbedReason::StoreBuild))
@@ -448,7 +435,7 @@ impl TwitchPlayback {
     }
 }
 
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 mod native {
     use std::sync::Arc;
 

@@ -44,7 +44,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.13.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -779605479;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1788257501;
 
 // Section: executor
 
@@ -4004,6 +4004,64 @@ fn wire__crate__api__sync__CoreSync_unpair_impl(
         },
     )
 }
+fn wire__crate__api__version__build_capabilities_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "build_capabilities",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Ok::<_, ()>(crate::api::version::build_capabilities())?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
+fn wire__crate__api__version__build_flavor_impl(
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_sync::<flutter_rust_bridge::for_generated::SseCodec, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "build_flavor",
+            port: None,
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Sync,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            transform_result_sse::<_, ()>((move || {
+                let output_ok = Ok::<_, ()>(crate::api::version::build_flavor())?;
+                std::result::Result::Ok(output_ok)
+            })())
+        },
+    )
+}
 fn wire__crate__api__library_query__core_library_filter_default_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -6773,47 +6831,47 @@ fn pde_ffi_dispatcher_primary_impl(
         74 => wire__crate__api__sync__CoreSync_start_impl(port, ptr, rust_vec_len, data_len),
         75 => wire__crate__api__sync__CoreSync_stop_impl(port, ptr, rust_vec_len, data_len),
         77 => wire__crate__api__sync__CoreSync_unpair_impl(port, ptr, rust_vec_len, data_len),
-        78 => wire__crate__api__library_query__core_library_filter_default_impl(
+        80 => wire__crate__api__library_query__core_library_filter_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        79 => wire__crate__api__sources__core_source_options_default_impl(
+        81 => wire__crate__api__sources__core_source_options_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        82 => wire__crate__api__version__init_app_impl(port, ptr, rust_vec_len, data_len),
-        83 => {
+        84 => wire__crate__api__version__init_app_impl(port, ptr, rust_vec_len, data_len),
+        85 => {
             wire__crate__api__library__is_legacy_v0_library_impl(port, ptr, rust_vec_len, data_len)
         }
-        84 => wire__crate__api__recognition__parse_filename_impl(port, ptr, rust_vec_len, data_len),
-        85 => wire__crate__api__recognition__parse_filename_with_impl(
+        86 => wire__crate__api__recognition__parse_filename_impl(port, ptr, rust_vec_len, data_len),
+        87 => wire__crate__api__recognition__parse_filename_with_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        86 => wire__crate__api__secrets__platform_secret_reply_default_impl(
+        88 => wire__crate__api__secrets__platform_secret_reply_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        87 => wire__crate__api__secrets__secret_delete_impl(port, ptr, rust_vec_len, data_len),
-        88 => wire__crate__api__secrets__secret_get_impl(port, ptr, rust_vec_len, data_len),
-        89 => wire__crate__api__secrets__secret_set_impl(port, ptr, rust_vec_len, data_len),
-        90 => wire__crate__api__secrets__secrets_close_impl(port, ptr, rust_vec_len, data_len),
-        91 => wire__crate__api__secrets__secrets_info_impl(port, ptr, rust_vec_len, data_len),
-        92 => {
+        89 => wire__crate__api__secrets__secret_delete_impl(port, ptr, rust_vec_len, data_len),
+        90 => wire__crate__api__secrets__secret_get_impl(port, ptr, rust_vec_len, data_len),
+        91 => wire__crate__api__secrets__secret_set_impl(port, ptr, rust_vec_len, data_len),
+        92 => wire__crate__api__secrets__secrets_close_impl(port, ptr, rust_vec_len, data_len),
+        93 => wire__crate__api__secrets__secrets_info_impl(port, ptr, rust_vec_len, data_len),
+        94 => {
             wire__crate__api__secrets__secrets_open_default_impl(port, ptr, rust_vec_len, data_len)
         }
-        93 => {
+        95 => {
             wire__crate__api__secrets__secrets_open_platform_impl(port, ptr, rust_vec_len, data_len)
         }
-        94 => wire__crate__api__events__tick_stream_impl(port, ptr, rust_vec_len, data_len),
+        96 => wire__crate__api__events__tick_stream_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -6867,8 +6925,10 @@ fn pde_ffi_dispatcher_sync_impl(
         70 => wire__crate__api__sync__CoreSync_is_running_impl(ptr, rust_vec_len, data_len),
         73 => wire__crate__api__sync__CoreSync_peer_up_impl(ptr, rust_vec_len, data_len),
         76 => wire__crate__api__sync__CoreSync_sync_addr_impl(ptr, rust_vec_len, data_len),
-        80 => wire__crate__api__version__core_version_impl(ptr, rust_vec_len, data_len),
-        81 => {
+        78 => wire__crate__api__version__build_capabilities_impl(ptr, rust_vec_len, data_len),
+        79 => wire__crate__api__version__build_flavor_impl(ptr, rust_vec_len, data_len),
+        82 => wire__crate__api__version__core_version_impl(ptr, rust_vec_len, data_len),
+        83 => {
             wire__crate__api__recognition__filename_parser_version_impl(ptr, rust_vec_len, data_len)
         }
         _ => unreachable!(),

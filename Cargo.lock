@@ -2455,6 +2455,7 @@ dependencies = [
 name = "pa-ffi"
 version = "0.1.0"
 dependencies = [
+ "pa-flavor",
  "pa-playback",
  "pa-runtime",
  "pa-secrets",
@@ -2465,6 +2466,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-flavor"
+version = "0.1.0"
+
+[[package]]
 name = "pa-frb"
 version = "0.1.0"
 dependencies = [
@@ -2472,6 +2477,7 @@ dependencies = [
  "pa-catalog",
  "pa-discovery",
  "pa-ffi",
+ "pa-flavor",
  "pa-imagecache",
  "pa-proxy",
  "pa-recognition",
@@ -2750,6 +2756,7 @@ dependencies = [
 name = "pa-twitch"
 version = "0.1.0"
 dependencies = [
+ "pa-flavor",
  "pa-remote-config",
  "pa-secrets",
  "pa-twitch",

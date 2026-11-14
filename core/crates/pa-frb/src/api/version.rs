@@ -13,6 +13,22 @@ pub fn core_version() -> String {
     pa_ffi::core_version()
 }
 
+/// Build flavor of the core: `"store"` or `"full"` (ADR-0007, CORE-013).
+///
+/// Same value as `pa_ffi::build_flavor()`. The app compares it with its
+/// Dart flavor (`--dart-define=KINOLUNE_FLAVOR`) on startup.
+#[frb(sync)]
+pub fn build_flavor() -> String {
+    pa_ffi::build_flavor()
+}
+
+/// Full-only capabilities compiled into the core (`twitch-native`,
+/// `twitch-archive`, `donation-links`). Empty in store builds.
+#[frb(sync)]
+pub fn build_capabilities() -> Vec<String> {
+    pa_ffi::build_capabilities()
+}
+
 /// Initialises the Rust side when Dart calls `RustLib.init()`.
 ///
 /// Sets up flutter_rust_bridge utilities (panic backtraces in debug builds).
@@ -28,5 +44,7 @@ mod tests {
     #[test]
     fn matches_uniffi_facade() {
         assert_eq!(core_version(), pa_ffi::core_version());
+        assert_eq!(build_flavor(), pa_ffi::build_flavor());
+        assert_eq!(build_capabilities(), pa_ffi::build_capabilities());
     }
 }

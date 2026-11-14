@@ -41,6 +41,11 @@ env:
   # Keep in sync with flutter.yml.
   FLUTTER_VERSION: "3.50.0"
   APP_DIR: clients/flutter/app
+  # GitHub Releases ship the full flavor (ADR-0007, CORE-013): Dart through
+  # --dart-define, the Rust core through the pa_core build hook. Store
+  # builds: flavors.yml.
+  KINOLUNE_FLAVOR: full
+  CARGO_KINOLUNE_FLAVOR: full
 
 jobs:
   meta:
@@ -151,7 +156,8 @@ jobs:
           export PKG_CONFIG_PATH="$RUNNER_TEMP/libmpv-linux-x86_64/lib/pkgconfig"
           pkg-config --modversion mpv
           if [ -f pubspec.lock ]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
-          flutter build linux --release --build-name "$VERSION" --build-number "$BUILD_NUMBER"
+          flutter build linux --release --build-name "$VERSION" --build-number "$BUILD_NUMBER" \
+            --dart-define=KINOLUNE_FLAVOR="$KINOLUNE_FLAVOR"
       - name: Package tar.gz and AppImage (with our libmpv and libsmb2)
         env:
           PA_LIBMPV_DIR: ${{ runner.temp }}/libmpv-linux-x86_64
@@ -181,6 +187,8 @@ jobs:
           fi
           # The library runs on the Rust core (UI-024): libpa_frb must be bundled.
           [ -f "$dir/lib/libpa_frb.so" ] || { echo "::error::libpa_frb.so (Rust core) missing"; exit 1; }
+          # The core is the full flavor (CORE-013).
+          tools/flavor/check-artifacts.sh full "$dir/lib/libpa_frb.so"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: linux
@@ -254,7 +262,8 @@ jobs:
         run: |
           if [ -f pubspec.lock ]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
           common=(--release --target-platform "android-arm,android-arm64,android-x64"
-                  --build-name "$VERSION" --build-number "$BUILD_NUMBER")
+                  --build-name "$VERSION" --build-number "$BUILD_NUMBER"
+                  --dart-define=KINOLUNE_FLAVOR="$KINOLUNE_FLAVOR")
           out="$GITHUB_WORKSPACE/dist"
           mkdir -p "$out"
           apks=build/app/outputs/flutter-apk
@@ -273,6 +282,8 @@ jobs:
                 || { echo "::error::$apk has no lib/$abi/libpa_frb.so (Rust core)"; exit 1; }
             done
           done
+          # Every APK carries the full flavor of the core (CORE-013).
+          for apk in "$out"/*.apk; do "$GITHUB_WORKSPACE/tools/flavor/check-artifacts.sh" full "$apk"; done
       - name: Sign APKs
         id: sign
         env:
@@ -392,7 +403,7 @@ jobs:
             echo "Linux needs glibc 2.39+ (Ubuntu 24.04 or newer), GTK 3, PulseAudio or PipeWire, libva and EGL;"
             echo "libmpv, FFmpeg and libsmb2 are included."
             echo
-            echo "Android signing: **$SIGNING**. Verify downloads with \`sha256sum -c SHA256SUMS --ignore-missing\`."
+            echo "Build flavor: **$KINOLUNE_FLAVOR** (ADR-0007). Android signing: **$SIGNING**. Verify downloads with \`sha256sum -c SHA256SUMS --ignore-missing\`."
             echo
             echo "## Licences"
             echo

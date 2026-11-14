@@ -14,11 +14,18 @@ name = "pa_frb"
 # cdylib: Android, Linux, Windows; staticlib: Apple; lib: Rust tests.
 crate-type = ["lib", "cdylib", "staticlib"]
 
+[features]
+# Build flavor (ADR-0007, CORE-013): exactly one of them in release builds;
+# neither means `store`. See docs/dev/flavors.md.
+store = ["pa-flavor/store"]
+full = ["pa-flavor/full"]
+
 [dependencies]
 flutter_rust_bridge.workspace = true
 pa-catalog = { path = "../pa-catalog" }
 pa-discovery = { path = "../pa-discovery" }
 pa-ffi = { path = "../pa-ffi" }
+pa-flavor = { path = "../pa-flavor" }
 pa-imagecache = { path = "../pa-imagecache" }
 pa-proxy = { path = "../pa-proxy" }
 pa-recognition = { path = "../pa-recognition" }
