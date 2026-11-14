@@ -1,0 +1,21 @@
+{
+  "_comment": "EXAMPLE, UNSIGNED: there is no remote-config.json.minisig yet, so apps reject this file and use their built-in copy. The owner signs it offline (docs/dev/remote-config.md) once the production minisign key exists.",
+  "schema": 1,
+  "serial": 1,
+  "issued_at": "2026-11-14T00:00:00Z",
+  "refresh": {
+    "interval_secs": 21600,
+    "retry_secs": 1800
+  },
+  "flags": {
+    "twitch.gql_playback": false,
+    "twitch.chapters_gql": false,
+    "twitch.chat_replay": false,
+    "twitch.archive": false
+  },
+  "kill_switches": [],
+  "twitch": {
+    "persisted_queries": {},
+    "player": "embed"
+  }
+}
