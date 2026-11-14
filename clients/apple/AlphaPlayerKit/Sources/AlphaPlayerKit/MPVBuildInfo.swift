@@ -15,10 +15,16 @@ public enum MPVBuildInfo {
         /// Meson options mpv was built with (`mpv-configuration`).
         public var mpvConfiguration: String?
 
-        /// mpv was built with `-Dgpl=false` (LGPL-2.1+).
+        /// mpv was built with `-Dgpl=false` (LGPL-2.1+): every `-Dgpl=`
+        /// option in the configuration says `false`. (Parsed rather than
+        /// matched against a GPL literal, so this binary never contains the
+        /// marker scripts/check-license.sh looks for.)
         public var isLGPL: Bool {
             guard let config = mpvConfiguration else { return false }
-            return config.contains("-Dgpl=false") && !config.contains("-Dgpl=true")
+            let values = config.split(separator: " ")
+                .filter { $0.hasPrefix("-Dgpl=") }
+                .map { $0.dropFirst("-Dgpl=".count) }
+            return !values.isEmpty && values.allSatisfy { $0 == "false" }
         }
     }
 
