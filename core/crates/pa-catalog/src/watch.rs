@@ -36,7 +36,7 @@ use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use notify::event::{AccessKind, AccessMode, EventKind, ModifyKind, MetadataKind};
+use notify::event::{AccessKind, AccessMode, EventKind, MetadataKind, ModifyKind};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use pa_scanner::CancelToken;
 use pa_vfs::VfsPath;
@@ -176,7 +176,10 @@ impl LibraryWatcher {
                 continue;
             };
             let mode = if s.kind == "local" {
-                match watcher.as_mut().map(|w| w.watch(&root, RecursiveMode::Recursive)) {
+                match watcher
+                    .as_mut()
+                    .map(|w| w.watch(&root, RecursiveMode::Recursive))
+                {
                     Some(Ok(())) => WatchMode::Events,
                     Some(Err(e)) => {
                         failures.push((s.id, format!("{}: cannot watch: {e}", s.name)));
@@ -516,8 +519,9 @@ fn changed_folder(rel: &Path) -> Option<VfsPath> {
 /// A hidden file or folder (`.part` downloads, `.DS_Store`, `.Trash`):
 /// the scan skips them anyway.
 fn hidden(rel: &Path) -> bool {
-    rel.components()
-        .any(|c| matches!(c, Component::Normal(n) if n.to_str().is_some_and(|s| s.starts_with('.'))))
+    rel.components().any(
+        |c| matches!(c, Component::Normal(n) if n.to_str().is_some_and(|s| s.starts_with('.'))),
+    )
 }
 
 /// Drops folders inside another folder of the set.
@@ -581,7 +585,9 @@ mod tests {
         assert!(!relevant(&EventKind::Modify(ModifyKind::Metadata(
             MetadataKind::AccessTime
         ))));
-        assert!(relevant(&EventKind::Create(notify::event::CreateKind::File)));
+        assert!(relevant(&EventKind::Create(
+            notify::event::CreateKind::File
+        )));
     }
 
     #[test]

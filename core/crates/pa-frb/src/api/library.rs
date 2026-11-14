@@ -472,9 +472,8 @@ impl CoreLibrary {
             .map(|r| (r.source_id, PathBuf::from(r.path)))
             .collect();
         let options = c::watch::WatchOptions {
-            network_interval: (settings.network_interval_secs > 0).then(|| {
-                std::time::Duration::from_secs(u64::from(settings.network_interval_secs))
-            }),
+            network_interval: (settings.network_interval_secs > 0)
+                .then(|| std::time::Duration::from_secs(u64::from(settings.network_interval_secs))),
             debounce: std::time::Duration::from_millis(u64::from(settings.debounce_ms)),
             scan_on_start: settings.scan_on_start,
             ..c::watch::WatchOptions::default()

@@ -31,7 +31,11 @@ fn setup() -> (tempfile::TempDir, std::path::PathBuf, Arc<Catalog>) {
     let root = dir.path().join("media");
     media(&root, "Movies/Dune (2021)/Dune.2021.2160p.WEB-DL.mkv", 1);
     media(&root, "Movies/The Matrix 1999.mkv", 2);
-    media(&root, "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv", 3);
+    media(
+        &root,
+        "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv",
+        3,
+    );
     let cat = Catalog::open(dir.path().join("db/library.db")).unwrap();
     cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
         .unwrap();
@@ -90,7 +94,10 @@ fn a_new_file_appears_in_the_library_in_under_5_seconds() {
 
     let event = rx.recv_timeout(LIMIT).unwrap();
     assert!(!event.full, "an incremental rescan: {event:?}");
-    assert!(event.report.added >= 1 && event.error.is_none(), "{event:?}");
+    assert!(
+        event.report.added >= 1 && event.error.is_none(),
+        "{event:?}"
+    );
     assert!(
         event.folders.iter().all(|f| f.starts_with("/Movies")),
         "only the changed folder: {event:?}"
