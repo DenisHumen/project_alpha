@@ -51,8 +51,10 @@ flowchart LR
   pa_catalog --> pa_scanner
   pa_catalog --> pa_vfs
   pa_eval --> pa_anime_mappings
+  pa_eval --> pa_catalog
   pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
+  pa_eval --> pa_scanner
   pa_ffi --> pa_playback
   pa_ffi --> pa_runtime
   pa_ffi --> pa_secrets

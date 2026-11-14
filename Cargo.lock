@@ -2333,8 +2333,10 @@ name = "pa-eval"
 version = "0.1.0"
 dependencies = [
  "pa-anime-mappings",
+ "pa-catalog",
  "pa-recognition",
  "pa-recognition-eval",
+ "pa-scanner",
  "serde",
  "serde_json",
 ]
