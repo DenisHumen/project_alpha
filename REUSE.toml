@@ -29,6 +29,8 @@ SPDX-License-Identifier = "MPL-2.0"
 path = [
   "**/*.json",
   "**/*.jsonl",
+  "config/**/*.minisig",
+  "config/**/*.pub",
   "**/*.arb",
   "**/.gitkeep",
   "**/.gitignore",
