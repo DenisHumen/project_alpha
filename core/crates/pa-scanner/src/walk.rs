@@ -66,13 +66,15 @@ struct Shared {
 }
 
 /// Runs the walk on `threads` workers inside `scope` and returns the stream
-/// of listed folders. The stream ends when every folder is listed or `stop`
+/// of listed folders, starting at `root` (at folder level `depth`; the
+/// source root is level 0). The stream ends when every folder is listed or `stop`
 /// is set (cancellation or a fatal error on the receiving side).
 pub(crate) fn spawn<'scope, 'env>(
     scope: &'scope std::thread::Scope<'scope, 'env>,
     vfs: &'env dyn Vfs,
     rules: &'env dyn WalkFilter,
     root: VfsPath,
+    depth: usize,
     threads: usize,
     stop: Arc<AtomicBool>,
 ) -> Receiver<Listed> {
@@ -81,7 +83,7 @@ pub(crate) fn spawn<'scope, 'env>(
     let (tx, rx) = sync_channel(threads * 4);
     let shared = Arc::new(Shared {
         state: Mutex::new(State {
-            queue: vec![(root, 0)],
+            queue: vec![(root, depth)],
             active: 0,
             queued_total: 1,
             done: false,

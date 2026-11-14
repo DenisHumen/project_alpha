@@ -50,6 +50,8 @@ pub struct CoreSource {
     pub username: Option<String>,
     /// Local path of a `file://` root.
     pub local_root: Option<String>,
+    /// Followed by the change watcher ([`CoreLibrary::start_watcher`]).
+    pub auto_scan: bool,
 }
 
 impl From<c::Source> for CoreSource {
@@ -61,6 +63,7 @@ impl From<c::Source> for CoreSource {
             uri: s.uri,
             username: s.username,
             local_root: s.local_root.map(|p| p.to_string_lossy().into_owned()),
+            auto_scan: s.auto_scan,
         }
     }
 }
@@ -314,11 +317,56 @@ pub struct CoreMetadataUpdate {
     pub error: Option<String>,
 }
 
+/// Settings of the change watcher ([`CoreLibrary::start_watcher`]).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CoreWatchSettings {
+    /// Local paths of mounted network shares.
+    pub roots: Vec<CoreSourceRoot>,
+    /// Rescan interval of network shares, seconds; 0: no timer.
+    pub network_interval_secs: u32,
+    /// Quiet time after a change before the rescan, milliseconds.
+    pub debounce_ms: u32,
+    /// Scan every followed source when the watcher starts.
+    pub scan_on_start: bool,
+}
+
+/// A rescan done by the change watcher.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CoreWatchEvent {
+    pub source_id: i64,
+    /// The whole source was scanned (start, timer, many changes).
+    pub full: bool,
+    /// Rescanned folders, relative to the source root.
+    pub folders: Vec<String>,
+    pub added: i64,
+    pub changed: i64,
+    pub removed: i64,
+    /// The library may have changed: refresh the views.
+    pub may_have_changed: bool,
+    pub error: Option<String>,
+}
+
+impl From<c::watch::WatchEvent> for CoreWatchEvent {
+    fn from(e: c::watch::WatchEvent) -> Self {
+        Self {
+            source_id: e.source_id,
+            full: e.full,
+            may_have_changed: e.may_have_changed(),
+            folders: e.folders,
+            added: signed(e.report.added + e.report.restored),
+            changed: signed(e.report.changed),
+            removed: signed(e.report.removed),
+            error: e.error,
+        }
+    }
+}
+
 /// One library database.
 #[frb(opaque)]
 pub struct CoreLibrary {
-    catalog: c::Catalog,
+    catalog: Arc<c::Catalog>,
     cancel: Mutex<Option<c::CancelToken>>,
+    watcher: Mutex<Option<c::watch::LibraryWatcher>>,
 }
 
 impl CoreLibrary {
@@ -326,8 +374,9 @@ impl CoreLibrary {
     /// `pa_library` v0 file is refused: open a new file and import it.
     pub fn open(path: String) -> Result<CoreLibrary> {
         Ok(Self {
-            catalog: c::Catalog::open(path)?,
+            catalog: Arc::new(c::Catalog::open(path)?),
             cancel: Mutex::new(None),
+            watcher: Mutex::new(None),
         })
     }
 
@@ -402,6 +451,55 @@ impl CoreLibrary {
                 current_path: None,
                 error: None,
             });
+        }
+    }
+
+    /// Starts the change watcher (LIB-005), replacing a running one: local
+    /// auto-scan sources are watched with OS notifications and rescanned
+    /// incrementally, mounted network shares on a timer. Every rescan comes
+    /// as an event; the stream stays open until
+    /// [`stop_watcher`](Self::stop_watcher).
+    pub fn start_watcher(
+        &self,
+        settings: CoreWatchSettings,
+        sink: StreamSink<CoreWatchEvent>,
+    ) -> Result<()> {
+        // The old watcher (and its stream) goes first.
+        self.stop_watcher();
+        let roots: HashMap<i64, PathBuf> = settings
+            .roots
+            .into_iter()
+            .map(|r| (r.source_id, PathBuf::from(r.path)))
+            .collect();
+        let options = c::watch::WatchOptions {
+            network_interval: (settings.network_interval_secs > 0)
+                .then(|| std::time::Duration::from_secs(u64::from(settings.network_interval_secs))),
+            debounce: std::time::Duration::from_millis(u64::from(settings.debounce_ms)),
+            scan_on_start: settings.scan_on_start,
+            ..c::watch::WatchOptions::default()
+        };
+        let watcher = c::watch::LibraryWatcher::start(
+            Arc::clone(&self.catalog),
+            &roots,
+            options,
+            Box::new(move |e| {
+                let _ = sink.add(e.into());
+            }),
+        )?;
+        *self.watcher.lock().unwrap_or_else(|e| e.into_inner()) = Some(watcher);
+        Ok(())
+    }
+
+    /// Stops the change watcher (a running rescan is cancelled) and closes
+    /// its stream. Does nothing if none runs.
+    pub fn stop_watcher(&self) {
+        let old = self
+            .watcher
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .take();
+        if let Some(w) = old {
+            w.stop();
         }
     }
 
