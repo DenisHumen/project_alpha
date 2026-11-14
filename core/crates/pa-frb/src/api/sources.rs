@@ -5,10 +5,11 @@
 //! database and their passwords in the OS secret store (`pa-secrets`).
 //! Passwords go from Dart to Rust only; no call returns one.
 //!
-//! On Android and iOS the secret store needs the platform keystore
-//! callback, which is not wired through this facade yet: there
-//! [`CoreSources::open`] fails unless no password is ever stored. Desktop
-//! uses the OS keychain or the encrypted fallback file in `data_dir`.
+//! On Android and iOS the platform keystore callback is not wired through
+//! this facade yet (CORE-015): there passwords go to the encrypted fallback
+//! file in `data_dir`. Desktop uses the OS keychain or the same fallback.
+//! The store is shared with [`CoreLibrary`](super::library::CoreLibrary),
+//! which reads the passwords to scan and play network sources (LIB-018).
 //!
 //! Every method blocks (SQLite, keychain, network), so none is
 //! `#[frb(sync)]`.
@@ -241,8 +242,8 @@ impl CoreSources {
     /// Opens the library database at `db_path` and the secret store
     /// (keychain, or the encrypted fallback file in `data_dir`).
     pub fn open(db_path: String, data_dir: String) -> SourcesResult<CoreSources> {
-        let opened = pa_secrets::open(pa_secrets::OpenOptions::new(Some(data_dir.into())))
-            .map_err(s::Error::from)?;
+        let opened =
+            crate::shared::secret_store(std::path::Path::new(&data_dir)).map_err(s::Error::from)?;
         Ok(Self {
             backend: opened.backend().as_str().into(),
             fallback_reason: opened.fallback_reason,

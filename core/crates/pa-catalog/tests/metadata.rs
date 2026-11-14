@@ -2,7 +2,6 @@
 //! Metadata run (META-013) end to end: a scanned folder, synthetic provider
 //! responses (no network, no real TMDB data), the library afterwards.
 
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
@@ -204,7 +203,7 @@ fn setup() -> (tempfile::TempDir, Catalog) {
     let cat = Catalog::open(dir.path().join("library.db")).unwrap();
     cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
         .unwrap();
-    cat.scan(None, &HashMap::new(), &CancelToken::new(), &mut |_| {})
+    cat.scan(None, &CancelToken::new(), &mut |_| {})
         .unwrap();
     (dir, cat)
 }
@@ -456,7 +455,7 @@ fn an_nfo_imdb_id_is_looked_up_instead_of_searched() {
     let cat = Catalog::open(dir.path().join("library.db")).unwrap();
     cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
         .unwrap();
-    cat.scan(None, &HashMap::new(), &CancelToken::new(), &mut |_| {})
+    cat.scan(None, &CancelToken::new(), &mut |_| {})
         .unwrap();
     let fake = Arc::new(FakeProviders::default());
     let report = run(&cat, &providers(&fake, true));

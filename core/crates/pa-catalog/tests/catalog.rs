@@ -2,7 +2,6 @@
 //! End-to-end tests of the catalog on real folders: scan, recognition,
 //! views, progress, Up Next, search, fixes and the v0 import.
 
-use std::collections::HashMap;
 use std::path::Path;
 
 use pa_catalog::{Catalog, ItemKind, ItemRef, ScanPhase, ScanUpdate};
@@ -33,7 +32,7 @@ fn library_folder(root: &Path) {
 
 fn scan_all(cat: &Catalog) -> Vec<ScanUpdate> {
     let mut updates = Vec::new();
-    cat.scan(None, &HashMap::new(), &CancelToken::new(), &mut |u| {
+    cat.scan(None, &CancelToken::new(), &mut |u| {
         updates.push(u)
     })
     .unwrap();

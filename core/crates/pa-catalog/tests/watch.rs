@@ -3,7 +3,6 @@
 //! up in the library in under 5 s, a removed one leaves it, and only the
 //! changed folders are rescanned.
 
-use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use std::sync::mpsc::{self, Receiver};
@@ -46,7 +45,6 @@ fn start(cat: &Arc<Catalog>, options: WatchOptions) -> (LibraryWatcher, Receiver
     let (tx, rx) = mpsc::channel();
     let watcher = LibraryWatcher::start(
         Arc::clone(cat),
-        &HashMap::new(),
         options,
         Box::new(move |e| {
             let _ = tx.send(e);
@@ -147,12 +145,12 @@ fn hidden_and_unrelated_changes_rescan_nothing_visible() {
 #[test]
 fn rescan_folders_without_changes_reports_none() {
     let (_dir, root, cat) = setup();
-    cat.scan(None, &HashMap::new(), &CancelToken::new(), &mut |_| {})
+    cat.scan(None, &CancelToken::new(), &mut |_| {})
         .unwrap();
     let id = cat.sources().unwrap()[0].id;
     let folders = [VfsPath::parse("/Movies").unwrap()];
     let r = cat
-        .rescan_folders(id, &root, &folders, &CancelToken::new())
+        .rescan_folders(id, &folders, &CancelToken::new())
         .unwrap();
     assert_eq!(
         r,
@@ -165,16 +163,20 @@ fn rescan_folders_without_changes_reports_none() {
 
     media(&root, "Movies/Heat (1995)/Heat.1995.mkv", 9);
     let r = cat
-        .rescan_folders(id, &root, &folders, &CancelToken::new())
+        .rescan_folders(id, &folders, &CancelToken::new())
         .unwrap();
     assert_eq!((r.files_seen, r.added), (3, 1));
     assert!(movie_titles(&cat).iter().any(|t| t == "Heat"));
 
     // An offline root changes nothing.
-    assert!(
-        cat.rescan_folders(id, &root.join("gone"), &folders, &CancelToken::new())
-            .is_err()
-    );
+    let away = root.with_file_name("media-offline");
+    std::fs::rename(&root, &away).unwrap();
+    let err = cat
+        .rescan_folders(id, &folders, &CancelToken::new())
+        .unwrap_err();
+    assert!(err.to_string().contains("folder not found"), "{err}");
+    std::fs::rename(&away, &root).unwrap();
+    assert!(movie_titles(&cat).iter().any(|t| t == "Heat"));
 }
 
 #[test]

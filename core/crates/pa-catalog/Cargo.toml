@@ -2,7 +2,7 @@
 [package]
 name = "pa-catalog"
 version = "0.1.0"
-description = "Client media library on the Rust core: scan pipeline (pa-scanner, music tags, fingerprints, local recognition with pa-recognition), provider metadata (pa-metadata), item views, progress and the pa_library v0 import (UI-024), change watcher (LIB-005)"
+description = "Client media library on the Rust core: scan pipeline (pa-scanner, music tags, fingerprints, local recognition with pa-recognition), provider metadata (pa-metadata), item views, progress and the pa_library v0 import (UI-024), change watcher (LIB-005), sources through pa-vfs connectors and the playback opener (LIB-018)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -14,8 +14,10 @@ notify.workspace = true
 pa-library = { path = "../pa-library" }
 pa-metadata = { path = "../pa-metadata" }
 pa-model = { path = "../pa-model" }
+pa-proxy = { path = "../pa-proxy" }
 pa-recognition = { path = "../pa-recognition" }
 pa-scanner = { path = "../pa-scanner" }
+pa-sources = { path = "../pa-sources" }
 pa-vfs = { path = "../pa-vfs" }
 serde_json.workspace = true
 thiserror.workspace = true
