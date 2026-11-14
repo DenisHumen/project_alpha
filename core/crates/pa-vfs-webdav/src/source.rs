@@ -41,7 +41,13 @@ impl fmt::Debug for WebDavSource {
 
 impl WebDavSource {
     pub(crate) fn new(fs: Arc<Inner>, url: Url, name: String, size: u64) -> Self {
-        Self { fs, url: Mutex::new(url), name, size, blocks: Mutex::new(VecDeque::new()) }
+        Self {
+            fs,
+            url: Mutex::new(url),
+            name,
+            size,
+            blocks: Mutex::new(VecDeque::new()),
+        }
     }
 
     fn cached(&self, offset: u64, buf: &mut [u8]) -> Option<usize> {
@@ -58,7 +64,11 @@ impl WebDavSource {
     /// GETs `len` bytes at `offset`; returns fewer only at the end of the
     /// resource.
     fn fetch(&self, offset: u64, len: usize) -> Result<Vec<u8>> {
-        let url = self.url.lock().unwrap_or_else(PoisonError::into_inner).clone();
+        let url = self
+            .url
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .clone();
         let mut req = Req::new(Method::GET, url.clone());
         req.range = Some((offset, offset + len as u64 - 1));
         let mut resp = self.fs.send(&req, &self.name)?;
@@ -94,7 +104,9 @@ impl WebDavSource {
             }
         }
         let mut data = Vec::with_capacity(len);
-        resp.take(len as u64).read_to_end(&mut data).map_err(io_err)?;
+        resp.take(len as u64)
+            .read_to_end(&mut data)
+            .map_err(io_err)?;
         Ok(data)
     }
 }

@@ -61,14 +61,11 @@ pub(crate) fn certificate_error(err: &(dyn StdError + 'static)) -> Option<String
         if let Some(r) = e.downcast_ref::<rustls::Error>() {
             return is_cert(r).then(|| r.to_string());
         }
-        if let Some(r) = e
-            .downcast_ref::<io::Error>()
-            .and_then(io::Error::get_ref)
-            .and_then(|inner| inner.downcast_ref::<rustls::Error>())
-        {
-            return is_cert(r).then(|| r.to_string());
-        }
-        cur = e.source();
+        // hyper and tokio-rustls nest `io::Error`s in each other.
+        cur = match e.downcast_ref::<io::Error>().and_then(io::Error::get_ref) {
+            Some(inner) => Some(inner as &(dyn StdError + 'static)),
+            None => e.source(),
+        };
     }
     None
 }
@@ -100,19 +97,29 @@ pub fn fetch_fingerprint(url: &str, timeout: Duration) -> Result<Fingerprint> {
     if url.scheme() != "https" {
         return Err(VfsError::new(ErrorKind::InvalidPath, "not an https URL"));
     }
-    let host = url.host_str().unwrap_or_default().trim_matches(['[', ']']).to_owned();
+    let host = url
+        .host_str()
+        .unwrap_or_default()
+        .trim_matches(['[', ']'])
+        .to_owned();
     let port = url.port_or_known_default().unwrap_or(443);
     let addr = (host.as_str(), port)
         .to_socket_addrs()
         .map_err(|e| VfsError::from_io(e, &host))?
         .next()
         .ok_or_else(|| VfsError::new(ErrorKind::Unavailable, format!("{host}: no address")))?;
-    let mut tcp = TcpStream::connect_timeout(&addr, timeout).map_err(|e| VfsError::from_io(e, &host))?;
-    tcp.set_read_timeout(Some(timeout)).map_err(|e| VfsError::from_io(e, &host))?;
-    tcp.set_write_timeout(Some(timeout)).map_err(|e| VfsError::from_io(e, &host))?;
+    let mut tcp =
+        TcpStream::connect_timeout(&addr, timeout).map_err(|e| VfsError::from_io(e, &host))?;
+    tcp.set_read_timeout(Some(timeout))
+        .map_err(|e| VfsError::from_io(e, &host))?;
+    tcp.set_write_timeout(Some(timeout))
+        .map_err(|e| VfsError::from_io(e, &host))?;
 
     let seen = Arc::new(Mutex::new(None));
-    let verifier = Capture { seen: Arc::clone(&seen), provider: provider() };
+    let verifier = Capture {
+        seen: Arc::clone(&seen),
+        provider: provider(),
+    };
     let config = rustls::ClientConfig::builder_with_provider(provider())
         .with_safe_default_protocol_versions()
         .map_err(|e| VfsError::new(ErrorKind::Other, e.to_string()))?
@@ -131,7 +138,12 @@ pub fn fetch_fingerprint(url: &str, timeout: Duration) -> Result<Fingerprint> {
         }
     }
     let fp = *seen.lock().unwrap_or_else(PoisonError::into_inner);
-    fp.ok_or_else(|| VfsError::new(ErrorKind::Unavailable, format!("{host}: no TLS certificate received")))
+    fp.ok_or_else(|| {
+        VfsError::new(
+            ErrorKind::Unavailable,
+            format!("{host}: no TLS certificate received"),
+        )
+    })
 }
 
 /// Records the leaf certificate and refuses it.
@@ -150,7 +162,8 @@ impl ServerCertVerifier for Capture {
         _ocsp_response: &[u8],
         _now: UnixTime,
     ) -> std::result::Result<ServerCertVerified, rustls::Error> {
-        *self.seen.lock().unwrap_or_else(PoisonError::into_inner) = Some(Fingerprint::of_der(end_entity));
+        *self.seen.lock().unwrap_or_else(PoisonError::into_inner) =
+            Some(Fingerprint::of_der(end_entity));
         Err(rustls::Error::InvalidCertificate(
             rustls::CertificateError::ApplicationVerificationFailure,
         ))
@@ -175,6 +188,8 @@ impl ServerCertVerifier for Capture {
     }
 
     fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        self.provider.signature_verification_algorithms.supported_schemes()
+        self.provider
+            .signature_verification_algorithms
+            .supported_schemes()
     }
 }

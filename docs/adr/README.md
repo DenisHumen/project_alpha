@@ -35,6 +35,7 @@
 | [0027](0027-player-io-adapters-fn-pointers.md) | Адаптеры ByteSource для FFmpeg и mpv не линкуют библиотеки, а получают функции указателями | Предложен | NET-008 |
 | [0028](0028-pa-jobs-persistent-queue.md) | Очередь задач `pa-jobs`: таблица `jobs` в базе медиатеки, блокирующие обработчики на потоках | Предложен | CORE-011 |
 | [0029](0029-server-tls-pinning-port.md) | Медиасервер: HTTPS с самоподписанным сертификатом, pinning по `fp` из mDNS, порт 8487 | Предложен | SRV-004 |
+| [NNNN](NNNN-webdav-backend-blocking-reqwest.md) | WebDAV-бэкенд: блокирующий reqwest, свои редиректы и Digest, pinning самоподписанного сертификата | Предложен | NET-004 |
 
 ## Запланированные ADR
 

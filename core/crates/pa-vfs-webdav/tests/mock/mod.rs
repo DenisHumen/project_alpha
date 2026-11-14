@@ -28,7 +28,9 @@ pub enum Auth {
     Basic,
     /// Digest MD5, qop=auth; the nonce rotates every `rotate` requests and
     /// the server answers `stale=true`.
-    Digest { rotate: usize },
+    Digest {
+        rotate: usize,
+    },
 }
 
 #[derive(Clone, Default)]
@@ -80,7 +82,11 @@ impl MockServer {
         let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
         let addr = listener.local_addr().expect("addr");
         let scheme = if opts.tls.is_some() { "https" } else { "http" };
-        let host = if opts.tls.is_some() { "localhost" } else { "127.0.0.1" };
+        let host = if opts.tls.is_some() {
+            "localhost"
+        } else {
+            "127.0.0.1"
+        };
         let origin = format!("{scheme}://{host}:{}", addr.port());
         let requests = Arc::new(AtomicUsize::new(0));
         let ranges = Arc::new(Mutex::new(Vec::new()));
@@ -104,7 +110,9 @@ impl MockServer {
                 std::thread::spawn(move || {
                     let _ = conn.set_read_timeout(Some(Duration::from_secs(10)));
                     if let Some(cfg) = state.opts.tls.clone() {
-                        let Ok(tls) = rustls::ServerConnection::new(cfg) else { return };
+                        let Ok(tls) = rustls::ServerConnection::new(cfg) else {
+                            return;
+                        };
                         let mut s = rustls::StreamOwned::new(tls, conn);
                         handle(&state, &mut s);
                         s.conn.send_close_notify();
@@ -116,7 +124,14 @@ impl MockServer {
                 });
             }
         });
-        Self { url: format!("{origin}/dav/"), origin, requests, ranges, stop, addr }
+        Self {
+            url: format!("{origin}/dav/"),
+            origin,
+            requests,
+            ranges,
+            stop,
+            addr,
+        }
     }
 }
 
@@ -153,8 +168,15 @@ fn read_request(s: &mut dyn Read) -> Option<Request> {
         let (k, v) = h.split_once(':')?;
         headers.push((k.trim().to_owned(), v.trim().to_owned()));
     }
-    let req = Request { method, target, headers };
-    if let Some(n) = req.header("content-length").and_then(|v| v.parse::<u64>().ok()) {
+    let req = Request {
+        method,
+        target,
+        headers,
+    };
+    if let Some(n) = req
+        .header("content-length")
+        .and_then(|v| v.parse::<u64>().ok())
+    {
         std::io::copy(&mut r.take(n), &mut std::io::sink()).ok()?;
     }
     Some(req)
@@ -188,17 +210,26 @@ fn handle(st: &State, s: &mut dyn Stream) {
     if st.opts.moved
         && let Some(rest) = path.strip_prefix("/old/")
     {
-        respond(s, "308 Permanent Redirect", &[("Location", format!("/dav/{rest}"))], b"", head);
+        respond(
+            s,
+            "308 Permanent Redirect",
+            &[("Location", format!("/dav/{rest}"))],
+            b"",
+            head,
+        );
         return;
     }
-    let Some(rest) = path.strip_prefix("/dav/").or(if path == "/dav" { Some("") } else { None }) else {
+    let Some(rest) = path
+        .strip_prefix("/dav/")
+        .or(if path == "/dav" { Some("") } else { None })
+    else {
         respond(s, "404 Not Found", &[], b"", head);
         return;
     };
     let segs: Vec<String> = rest
         .split('/')
         .filter(|x| !x.is_empty())
-        .map(|x| decode(x))
+        .map(decode)
         .collect();
     let fs_path = segs.iter().fold(st.root.clone(), |p, c| p.join(c));
     let Ok(meta) = std::fs::metadata(&fs_path) else {
@@ -208,10 +239,18 @@ fn handle(st: &State, s: &mut dyn Stream) {
     match req.method.as_str() {
         "PROPFIND" => {
             if meta.is_dir() && !path.ends_with('/') && st.opts.slash_redirect {
-                respond(s, "301 Moved Permanently", &[("Location", format!("{path}/"))], b"", false);
+                respond(
+                    s,
+                    "301 Moved Permanently",
+                    &[("Location", format!("{path}/"))],
+                    b"",
+                    false,
+                );
                 return;
             }
-            let mut xml = String::from(r#"<?xml version="1.0" encoding="utf-8"?><D:multistatus xmlns:D="DAV:">"#);
+            let mut xml = String::from(
+                r#"<?xml version="1.0" encoding="utf-8"?><D:multistatus xmlns:D="DAV:">"#,
+            );
             push_entry(&mut xml, st, &segs, &fs_path);
             if meta.is_dir() && req.header("depth") != Some("0") {
                 for e in std::fs::read_dir(&fs_path).expect("read_dir").flatten() {
@@ -230,7 +269,11 @@ fn handle(st: &State, s: &mut dyn Stream) {
             if let Some(r) = &range {
                 st.ranges.lock().unwrap().push(r.clone());
             }
-            match range.as_deref().and_then(parse_range).filter(|_| !st.opts.ignore_range) {
+            match range
+                .as_deref()
+                .and_then(parse_range)
+                .filter(|_| !st.opts.ignore_range)
+            {
                 Some((a, _)) if a >= data.len() as u64 => {
                     respond(s, "416 Range Not Satisfiable", &[], b"", head);
                 }
@@ -251,18 +294,30 @@ fn handle(st: &State, s: &mut dyn Stream) {
 fn push_entry(xml: &mut String, st: &State, segs: &[String], fs_path: &Path) {
     let meta = std::fs::metadata(fs_path).expect("metadata");
     let mut href = String::from("/dav/");
-    href.push_str(&segs.iter().map(|s| encode_loose(s)).collect::<Vec<_>>().join("/"));
+    href.push_str(
+        &segs
+            .iter()
+            .map(|s| encode_loose(s))
+            .collect::<Vec<_>>()
+            .join("/"),
+    );
     if meta.is_dir() && !segs.is_empty() {
         href.push('/');
     }
     let modified = httpdate::fmt_http_date(meta.modified().unwrap_or(SystemTime::now()));
-    xml.push_str(&format!("<D:response><D:href>{}</D:href><D:propstat><D:prop>", escape(&href)));
+    xml.push_str(&format!(
+        "<D:response><D:href>{}</D:href><D:propstat><D:prop>",
+        escape(&href)
+    ));
     if meta.is_dir() {
         xml.push_str("<D:resourcetype><D:collection/></D:resourcetype>");
     } else {
         xml.push_str("<D:resourcetype/>");
         if !st.opts.no_length {
-            xml.push_str(&format!("<D:getcontentlength>{}</D:getcontentlength>", meta.len()));
+            xml.push_str(&format!(
+                "<D:getcontentlength>{}</D:getcontentlength>",
+                meta.len()
+            ));
         }
     }
     xml.push_str(&format!(
@@ -296,7 +351,9 @@ fn encode_loose(s: &str) -> String {
 }
 
 fn escape(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }
 
 fn decode(s: &str) -> String {
@@ -324,17 +381,28 @@ fn b64(data: &[u8]) -> String {
     const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::new();
     for chunk in data.chunks(3) {
-        let b = [chunk[0], *chunk.get(1).unwrap_or(&0), *chunk.get(2).unwrap_or(&0)];
+        let b = [
+            chunk[0],
+            *chunk.get(1).unwrap_or(&0),
+            *chunk.get(2).unwrap_or(&0),
+        ];
         let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
         for (i, shift) in [18, 12, 6, 0].into_iter().enumerate() {
-            out.push(if i <= chunk.len() { char::from(T[((n >> shift) & 63) as usize]) } else { '=' });
+            out.push(if i <= chunk.len() {
+                char::from(T[((n >> shift) & 63) as usize])
+            } else {
+                '='
+            });
         }
     }
     out
 }
 
 fn md5_hex(s: &str) -> String {
-    Md5::digest(s.as_bytes()).iter().map(|b| format!("{b:02x}")).collect()
+    Md5::digest(s.as_bytes())
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 /// Parses `k=v, k="v"` parameters of a Digest `Authorization` header.
@@ -342,7 +410,9 @@ fn params(v: &str) -> Vec<(String, String)> {
     let mut out = Vec::new();
     let mut rest = v.trim();
     while !rest.is_empty() {
-        let Some((k, r)) = rest.split_once('=') else { break };
+        let Some((k, r)) = rest.split_once('=') else {
+            break;
+        };
         let k = k.trim().trim_start_matches(',').trim().to_owned();
         let r = r.trim_start();
         let (val, r) = if let Some(r) = r.strip_prefix('"') {
@@ -368,31 +438,51 @@ fn authorized(st: &State, req: &Request, s: &mut dyn Write) -> bool {
             if req.header("authorization") == Some(want.as_str()) {
                 return true;
             }
-            respond(s, "401 Unauthorized", &[("WWW-Authenticate", r#"Basic realm="mock""#.to_owned())], b"", head);
+            respond(
+                s,
+                "401 Unauthorized",
+                &[("WWW-Authenticate", r#"Basic realm="mock""#.to_owned())],
+                b"",
+                head,
+            );
             false
         }
         Auth::Digest { rotate } => {
             let nonce = format!("nonce{}", st.nonce_gen.load(Ordering::SeqCst));
             let challenge = |stale: bool| {
-                let mut c = format!(r#"Digest realm="mock", qop="auth", algorithm=MD5, nonce="{nonce}", opaque="op""#);
+                let mut c = format!(
+                    r#"Digest realm="mock", qop="auth", algorithm=MD5, nonce="{nonce}", opaque="op""#
+                );
                 if stale {
                     c.push_str(", stale=true");
                 }
                 ("WWW-Authenticate", c)
             };
-            let Some(h) = req.header("authorization").and_then(|h| h.strip_prefix("Digest ")) else {
+            let Some(h) = req
+                .header("authorization")
+                .and_then(|h| h.strip_prefix("Digest "))
+            else {
                 respond(s, "401 Unauthorized", &[challenge(false)], b"", head);
                 return false;
             };
             let p = params(h);
-            let get = |k: &str| p.iter().find(|(n, _)| n == k).map(|(_, v)| v.as_str()).unwrap_or("");
+            let get = |k: &str| {
+                p.iter()
+                    .find(|(n, _)| n == k)
+                    .map(|(_, v)| v.as_str())
+                    .unwrap_or("")
+            };
             if get("nonce") != nonce {
                 respond(s, "401 Unauthorized", &[challenge(true)], b"", head);
                 return false;
             }
             let ha1 = md5_hex(&format!("{}:mock:{PASS}", get("username")));
             let ha2 = md5_hex(&format!("{}:{}", req.method, get("uri")));
-            let want = md5_hex(&format!("{ha1}:{nonce}:{}:{}:auth:{ha2}", get("nc"), get("cnonce")));
+            let want = md5_hex(&format!(
+                "{ha1}:{nonce}:{}:{}:auth:{ha2}",
+                get("nc"),
+                get("cnonce")
+            ));
             let ok = get("username") == USER
                 && get("response") == want
                 && get("uri") == req.target
@@ -414,11 +504,13 @@ pub fn self_signed() -> (Vec<u8>, Arc<rustls::ServerConfig>) {
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_owned()]).expect("rcgen");
     let der = cert.cert.der().to_vec();
     let key = rustls::pki_types::PrivateKeyDer::Pkcs8(cert.signing_key.serialize_der().into());
-    let cfg = rustls::ServerConfig::builder_with_provider(Arc::new(rustls::crypto::ring::default_provider()))
-        .with_safe_default_protocol_versions()
-        .expect("versions")
-        .with_no_client_auth()
-        .with_single_cert(vec![der.clone().into()], key)
-        .expect("server config");
+    let cfg = rustls::ServerConfig::builder_with_provider(Arc::new(
+        rustls::crypto::ring::default_provider(),
+    ))
+    .with_safe_default_protocol_versions()
+    .expect("versions")
+    .with_no_client_auth()
+    .with_single_cert(vec![der.clone().into()], key)
+    .expect("server config");
     (der, Arc::new(cfg))
 }

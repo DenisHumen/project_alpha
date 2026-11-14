@@ -106,7 +106,8 @@ mod tests {
 
     #[test]
     fn debug_hides_password() {
-        let c = WebDavConfig::new("http://h/").with_credentials(Credentials::new("anna", "hunter2"));
+        let c =
+            WebDavConfig::new("http://h/").with_credentials(Credentials::new("anna", "hunter2"));
         let s = format!("{c:?}");
         assert!(s.contains("anna"));
         assert!(!s.contains("hunter2"), "{s}");

@@ -69,7 +69,8 @@ pub(crate) struct Base {
 impl Base {
     /// Validates and normalizes the root URL of a source.
     pub(crate) fn parse(url: &str) -> Result<Self> {
-        let invalid = |why: &str| VfsError::new(ErrorKind::InvalidPath, format!("WebDAV URL: {why}"));
+        let invalid =
+            |why: &str| VfsError::new(ErrorKind::InvalidPath, format!("WebDAV URL: {why}"));
         let mut url = Url::parse(url).map_err(|e| invalid(&e.to_string()))?;
         if !matches!(url.scheme(), "http" | "https") {
             return Err(invalid("scheme must be http or https"));
@@ -79,7 +80,9 @@ impl Base {
         }
         // Credentials go to `Credentials`, never into a URL that may be logged.
         if !url.username().is_empty() || url.password().is_some() {
-            return Err(invalid("user name or password in the URL; pass them as credentials"));
+            return Err(invalid(
+                "user name or password in the URL; pass them as credentials",
+            ));
         }
         url.set_query(None);
         url.set_fragment(None);
@@ -135,15 +138,22 @@ impl Base {
     /// location. Without redirects (or if the target does not end with
     /// `path`) this is the configured root.
     pub(crate) fn as_seen_by(&self, reply_url: &Url, path: &VfsPath) -> Self {
-        if reply_url.origin() == self.url.origin() && reply_url.path() == self.url_of(path, false).path() {
+        if reply_url.origin() == self.url.origin()
+            && reply_url.path() == self.url_of(path, false).path()
+        {
             return self.clone();
         }
         let comps: Vec<&str> = path.components().collect();
         match decoded_segments(reply_url.path()) {
-            Some(segs) if segs.len() >= comps.len() && segs[segs.len() - comps.len()..] == comps[..] => {
+            Some(segs)
+                if segs.len() >= comps.len() && segs[segs.len() - comps.len()..] == comps[..] =>
+            {
                 let mut url = reply_url.clone();
                 url.set_query(None);
-                Self { url, segments: segs[..segs.len() - comps.len()].to_vec() }
+                Self {
+                    url,
+                    segments: segs[..segs.len() - comps.len()].to_vec(),
+                }
             }
             _ => self.clone(),
         }
@@ -181,7 +191,10 @@ mod tests {
     #[test]
     fn base_is_normalized() {
         let b = Base::parse("https://nas.local:8443/remote.php/dav/files/u?x=1#f").unwrap();
-        assert_eq!(b.url().as_str(), "https://nas.local:8443/remote.php/dav/files/u/");
+        assert_eq!(
+            b.url().as_str(),
+            "https://nas.local:8443/remote.php/dav/files/u/"
+        );
         assert!(Base::parse("ftp://h/").is_err());
         assert!(Base::parse("http://user:pw@h/").is_err());
         assert!(Base::parse("not a url").is_err());
@@ -191,7 +204,10 @@ mod tests {
     fn urls_of_paths() {
         let b = Base::parse("http://h/dav").unwrap();
         assert_eq!(b.url_of(&VfsPath::root(), true).as_str(), "http://h/dav/");
-        assert_eq!(b.url_of(&p("/a b/c#"), false).as_str(), "http://h/dav/a%20b/c%23");
+        assert_eq!(
+            b.url_of(&p("/a b/c#"), false).as_str(),
+            "http://h/dav/a%20b/c%23"
+        );
         assert_eq!(b.url_of(&p("/a"), true).as_str(), "http://h/dav/a/");
     }
 
@@ -200,8 +216,14 @@ mod tests {
         let b = Base::parse("http://h/dav/files/").unwrap();
         let rel = |h| b.relative(h);
         assert_eq!(rel("/dav/files/"), Some(vec![]));
-        assert_eq!(rel("http://h/dav/files/a%20b/"), Some(vec!["a b".to_owned()]));
-        assert_eq!(rel("/dav/files/a/%D0%94"), Some(vec!["a".to_owned(), "Д".to_owned()]));
+        assert_eq!(
+            rel("http://h/dav/files/a%20b/"),
+            Some(vec!["a b".to_owned()])
+        );
+        assert_eq!(
+            rel("/dav/files/a/%D0%94"),
+            Some(vec!["a".to_owned(), "Д".to_owned()])
+        );
         // Unescaped non-ASCII and lowercase hex.
         assert_eq!(rel("/dav/files/Дюна%2fx"), Some(vec!["Дюна/x".to_owned()]));
         assert_eq!(rel("/dav/other/"), None);
@@ -216,7 +238,10 @@ mod tests {
         let b = Base::parse("http://h/old/").unwrap();
         let moved = Url::parse("http://h/new/root/a/b/").unwrap();
         let seen = b.as_seen_by(&moved, &p("/a/b"));
-        assert_eq!(seen.relative("/new/root/a/b/c"), Some(vec!["a".into(), "b".into(), "c".into()]));
+        assert_eq!(
+            seen.relative("/new/root/a/b/c"),
+            Some(vec!["a".into(), "b".into(), "c".into()])
+        );
         // No redirect: unchanged.
         let same = b.as_seen_by(&Url::parse("http://h/old/a").unwrap(), &p("/a"));
         assert_eq!(same.relative("/old/a"), Some(vec!["a".to_owned()]));

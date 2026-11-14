@@ -36,7 +36,10 @@ impl Challenge {
 pub(crate) fn parse_challenges<'a>(values: impl IntoIterator<Item = &'a str>) -> Vec<Challenge> {
     let mut out: Vec<Challenge> = Vec::new();
     for value in values {
-        let mut p = Parser { s: value.as_bytes(), i: 0 };
+        let mut p = Parser {
+            s: value.as_bytes(),
+            i: 0,
+        };
         loop {
             p.skip_separators();
             let Some(token) = p.token() else { break };
@@ -186,7 +189,9 @@ impl AuthState {
     /// nonce expired, so retrying with the new nonce is allowed.
     pub(crate) fn is_stale(challenges: &[Challenge]) -> bool {
         challenges.iter().any(|c| {
-            c.scheme == "digest" && c.param("stale").is_some_and(|v| v.eq_ignore_ascii_case("true"))
+            c.scheme == "digest"
+                && c.param("stale")
+                    .is_some_and(|v| v.eq_ignore_ascii_case("true"))
         })
     }
 
@@ -216,7 +221,8 @@ impl DigestState {
             _ => return None,
         };
         let qop = c.param("qop");
-        let qop_auth = qop.is_some_and(|q| q.split(',').any(|v| v.trim().eq_ignore_ascii_case("auth")));
+        let qop_auth =
+            qop.is_some_and(|q| q.split(',').any(|v| v.trim().eq_ignore_ascii_case("auth")));
         // Only `auth-int` offered: we do not hash bodies.
         if qop.is_some() && !qop_auth {
             return None;
@@ -236,7 +242,10 @@ impl DigestState {
     fn header(&self, creds: &Credentials, method: &str, uri: &str, cnonce: &str) -> String {
         let h = |s: &str| self.algorithm.hex(s);
         let nc = format!("{:08x}", self.nc);
-        let mut ha1 = h(&format!("{}:{}:{}", creds.username, self.realm, creds.password));
+        let mut ha1 = h(&format!(
+            "{}:{}:{}",
+            creds.username, self.realm, creds.password
+        ));
         if self.session {
             ha1 = h(&format!("{ha1}:{}:{cnonce}", self.nonce));
         }
@@ -278,10 +287,12 @@ fn quote(s: &str) -> String {
 }
 
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().fold(String::with_capacity(bytes.len() * 2), |mut s, b| {
-        let _ = write!(s, "{b:02x}");
-        s
-    })
+    bytes
+        .iter()
+        .fold(String::with_capacity(bytes.len() * 2), |mut s, b| {
+            let _ = write!(s, "{b:02x}");
+            s
+        })
 }
 
 fn cnonce() -> String {
@@ -305,7 +316,11 @@ pub(crate) fn base64(data: &[u8]) -> String {
     const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
-        let b = [chunk[0], *chunk.get(1).unwrap_or(&0), *chunk.get(2).unwrap_or(&0)];
+        let b = [
+            chunk[0],
+            *chunk.get(1).unwrap_or(&0),
+            *chunk.get(2).unwrap_or(&0),
+        ];
         let n = (u32::from(b[0]) << 16) | (u32::from(b[1]) << 8) | u32::from(b[2]);
         for (i, shift) in [18, 12, 6, 0].into_iter().enumerate() {
             if i <= chunk.len() {
@@ -329,7 +344,13 @@ mod tests {
     #[test]
     fn base64_vectors() {
         // RFC 4648 §10.
-        for (i, o) in [("", ""), ("f", "Zg=="), ("fo", "Zm8="), ("foo", "Zm9v"), ("foobar", "Zm9vYmFy")] {
+        for (i, o) in [
+            ("", ""),
+            ("f", "Zg=="),
+            ("fo", "Zm8="),
+            ("foo", "Zm9v"),
+            ("foobar", "Zm9vYmFy"),
+        ] {
             assert_eq!(base64(i.as_bytes()), o);
         }
         // RFC 7617 §2.
@@ -367,9 +388,14 @@ mod tests {
         };
         assert_eq!(d.algorithm, Algorithm::Sha256);
         let basic = parse_challenges([r#"Basic realm="r""#]);
-        assert!(matches!(AuthState::from_challenges(&basic, &cr), Some(AuthState::Basic(_))));
+        assert!(matches!(
+            AuthState::from_challenges(&basic, &cr),
+            Some(AuthState::Basic(_))
+        ));
         assert!(AuthState::from_challenges(&parse_challenges(["NTLM"]), &cr).is_none());
-        assert!(AuthState::is_stale(&parse_challenges([r#"Digest nonce="x", stale=TRUE"#])));
+        assert!(AuthState::is_stale(&parse_challenges([
+            r#"Digest nonce="x", stale=TRUE"#
+        ])));
     }
 
     /// RFC 7616 §3.9.1 (MD5 and SHA-256 with qop=auth).
@@ -405,8 +431,16 @@ mod tests {
         ]);
         let mut d = DigestState::from_challenge(&c[0]).unwrap();
         d.nc = 1;
-        let h = d.header(&creds("Mufasa", "Circle Of Life"), "GET", "/dir/index.html", "0a4f113b");
-        assert!(h.contains("response=\"6629fae49393a05397450978507c4ef1\""), "{h}");
+        let h = d.header(
+            &creds("Mufasa", "Circle Of Life"),
+            "GET",
+            "/dir/index.html",
+            "0a4f113b",
+        );
+        assert!(
+            h.contains("response=\"6629fae49393a05397450978507c4ef1\""),
+            "{h}"
+        );
     }
 
     #[test]

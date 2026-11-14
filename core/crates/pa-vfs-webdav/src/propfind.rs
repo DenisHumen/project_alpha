@@ -50,27 +50,27 @@ pub(crate) fn parse(xml: &[u8]) -> Result<Vec<DavEntry>> {
     reader.config_mut().expand_empty_elements = true;
 
     let mut out = Vec::new();
-    let mut stack: Vec<Option<Vec<u8>>> = Vec::new();
+    let mut stack: Vec<Option<String>> = Vec::new();
     let mut entry: Option<DavEntry> = None;
     let mut propstat: Option<PropStat> = None;
     let mut buf = String::new();
 
     loop {
-        let (ns, event) = reader.read_resolved_event().map_err(|e| {
-            VfsError::new(ErrorKind::Other, format!("bad PROPFIND reply: {e}"))
-        })?;
+        let (ns, event) = reader
+            .read_resolved_event()
+            .map_err(|e| VfsError::new(ErrorKind::Other, format!("bad PROPFIND reply: {e}")))?;
         let dav = match ns {
-            ResolveResult::Bound(Namespace(n)) => n == b"DAV:",
+            ResolveResult::Bound(Namespace(n)) => n == "DAV:",
             ResolveResult::Unbound => true,
             ResolveResult::Unknown(_) => false,
         };
         match event {
             Event::Start(e) => {
-                let name = dav.then(|| e.local_name().as_ref().to_vec());
+                let name = dav.then(|| e.local_name().as_ref().to_owned());
                 match name.as_deref() {
-                    Some(b"response") => entry = Some(DavEntry::default()),
-                    Some(b"propstat") => propstat = Some(PropStat::default()),
-                    Some(b"collection") if in_elem(&stack, b"resourcetype") => {
+                    Some("response") => entry = Some(DavEntry::default()),
+                    Some("propstat") => propstat = Some(PropStat::default()),
+                    Some("collection") if in_elem(&stack, "resourcetype") => {
                         if let Some(ps) = propstat.as_mut() {
                             ps.is_collection = true;
                         }
@@ -81,17 +81,17 @@ pub(crate) fn parse(xml: &[u8]) -> Result<Vec<DavEntry>> {
                 buf.clear();
             }
             Event::Text(t) => buf.push_str(&t.xml10_content()),
-            Event::CData(t) => buf.push_str(&String::from_utf8_lossy(&t)),
+            Event::CData(t) => buf.push_str(&t),
             Event::GeneralRef(r) => {
                 if let Ok(Some(c)) = r.resolve_char_ref() {
                     buf.push(c);
                 } else {
-                    buf.push_str(match r.as_ref() {
-                        b"amp" => "&",
-                        b"lt" => "<",
-                        b"gt" => ">",
-                        b"quot" => "\"",
-                        b"apos" => "'",
+                    buf.push_str(match &*r {
+                        "amp" => "&",
+                        "lt" => "<",
+                        "gt" => ">",
+                        "quot" => "\"",
+                        "apos" => "'",
                         _ => "",
                     });
                 }
@@ -101,32 +101,32 @@ pub(crate) fn parse(xml: &[u8]) -> Result<Vec<DavEntry>> {
                 let value = std::mem::take(&mut buf);
                 let value = value.trim();
                 match name.as_deref() {
-                    Some(b"href") if in_elem(&stack, b"response") => {
+                    Some("href") if in_elem(&stack, "response") => {
                         if let Some(en) = entry.as_mut() {
                             en.href = value.to_owned();
                         }
                     }
-                    Some(b"status") if in_elem(&stack, b"propstat") => {
+                    Some("status") if in_elem(&stack, "propstat") => {
                         if let Some(ps) = propstat.as_mut() {
                             ps.ok = status_is_success(value);
                         }
                     }
-                    Some(b"status") if in_elem(&stack, b"response") => {
+                    Some("status") if in_elem(&stack, "response") => {
                         if let Some(en) = entry.as_mut() {
                             en.failed = !status_is_success(value);
                         }
                     }
-                    Some(b"getcontentlength") => {
+                    Some("getcontentlength") => {
                         if let Some(ps) = propstat.as_mut() {
                             ps.size = value.parse().ok();
                         }
                     }
-                    Some(b"getlastmodified") => {
+                    Some("getlastmodified") => {
                         if let Some(ps) = propstat.as_mut() {
                             ps.modified_ms = parse_http_date(value);
                         }
                     }
-                    Some(b"propstat") => {
+                    Some("propstat") => {
                         if let (Some(ps), Some(en)) = (propstat.take(), entry.as_mut())
                             && ps.ok
                         {
@@ -135,7 +135,7 @@ pub(crate) fn parse(xml: &[u8]) -> Result<Vec<DavEntry>> {
                             en.modified_ms = en.modified_ms.or(ps.modified_ms);
                         }
                     }
-                    Some(b"response") => {
+                    Some("response") => {
                         if let Some(en) = entry.take()
                             && !en.href.is_empty()
                         {
@@ -152,7 +152,7 @@ pub(crate) fn parse(xml: &[u8]) -> Result<Vec<DavEntry>> {
     Ok(out)
 }
 
-fn in_elem(stack: &[Option<Vec<u8>>], name: &[u8]) -> bool {
+fn in_elem(stack: &[Option<String>], name: &str) -> bool {
     stack.last().and_then(Option::as_deref) == Some(name)
 }
 

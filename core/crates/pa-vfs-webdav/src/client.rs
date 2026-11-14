@@ -5,9 +5,13 @@ use std::fmt;
 use std::io::Read;
 use std::sync::{Arc, Mutex, PoisonError};
 
-use pa_vfs::{ByteSource, DirEntry, EntryKind, ErrorKind, Metadata, Result, Vfs, VfsError, VfsPath};
+use pa_vfs::{
+    ByteSource, DirEntry, EntryKind, ErrorKind, Metadata, Result, Vfs, VfsError, VfsPath,
+};
 use reqwest::blocking::{Client, Response};
-use reqwest::header::{AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, LOCATION, RANGE, WWW_AUTHENTICATE};
+use reqwest::header::{
+    AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, LOCATION, RANGE, WWW_AUTHENTICATE,
+};
 use reqwest::{Method, StatusCode, Url};
 
 use crate::auth::{AuthState, parse_challenges};
@@ -22,6 +26,9 @@ const MAX_REDIRECTS: usize = 10;
 /// Upper bound for a PROPFIND reply (a directory of ~100k entries).
 const MAX_PROPFIND_BYTES: u64 = 64 * 1024 * 1024;
 
+/// PROPFIND entries with their components relative to the source root.
+type Entries = Vec<(Vec<String>, DavEntry)>;
+
 /// A WebDAV collection as a [`Vfs`] (NET-004).
 ///
 /// - Listing and metadata: `PROPFIND` with `Depth: 1` / `Depth: 0`, only
@@ -32,8 +39,8 @@ const MAX_PROPFIND_BYTES: u64 = 64 * 1024 * 1024;
 /// - Authentication: Basic and Digest (MD5, SHA-256, `-sess`, `qop=auth`),
 ///   chosen from the server's challenge; credentials are sent only to the
 ///   origin of the source URL.
-/// - Redirects: up to 10 hops, method preserved (a PROPFIND stays a
-///   PROPFIND, unlike in browsers).
+/// - Redirects: up to 10 hops, method and body preserved; the Digest
+///   header is recomputed for every hop.
 /// - TLS: rustls; platform trust or a pinned self-signed certificate
 ///   ([`TlsTrust`]).
 ///
@@ -58,7 +65,10 @@ impl fmt::Debug for WebDavFs {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("WebDavFs")
             .field("url", &self.inner.base.url().as_str())
-            .field("user", &self.inner.creds.as_ref().map(|c| c.username.as_str()))
+            .field(
+                "user",
+                &self.inner.creds.as_ref().map(|c| c.username.as_str()),
+            )
             .finish_non_exhaustive()
     }
 }
@@ -74,7 +84,13 @@ pub(crate) struct Req<'a> {
 
 impl Req<'_> {
     pub(crate) fn new(method: Method, url: Url) -> Self {
-        Self { method, url, depth: None, range: None, body: None }
+        Self {
+            method,
+            url,
+            depth: None,
+            range: None,
+            body: None,
+        }
     }
 }
 
@@ -96,9 +112,9 @@ impl WebDavFs {
             }
             TlsTrust::Pinned(fp) => builder.tls_backend_preconfigured(tls::pinned_config(fp)?),
         };
-        let http = builder
-            .build()
-            .map_err(|e| VfsError::new(ErrorKind::Other, format!("HTTP client: {e}")).with_source(e))?;
+        let http = builder.build().map_err(|e| {
+            VfsError::new(ErrorKind::Other, format!("HTTP client: {e}")).with_source(e)
+        })?;
         Ok(Self {
             inner: Arc::new(Inner {
                 base,
@@ -118,7 +134,7 @@ impl WebDavFs {
     }
 
     /// PROPFIND `path`; returns every entry and the one describing `path`.
-    fn propfind(&self, path: &VfsPath, depth: &'static str) -> Result<(Vec<(Vec<String>, DavEntry)>, usize)> {
+    fn propfind(&self, path: &VfsPath, depth: &'static str) -> Result<(Entries, usize)> {
         let url = self.inner.base.url_of(path, false);
         let mut req = Req::new(Method::from_bytes(b"PROPFIND").expect("valid method"), url);
         req.depth = Some(depth);
@@ -142,7 +158,9 @@ impl WebDavFs {
             .iter()
             .position(|(rel, _)| *rel == want)
             .or_else(|| (!entries.is_empty()).then_some(0))
-            .ok_or_else(|| VfsError::new(ErrorKind::Other, format!("{path}: empty PROPFIND reply")))?;
+            .ok_or_else(|| {
+                VfsError::new(ErrorKind::Other, format!("{path}: empty PROPFIND reply"))
+            })?;
         if entries[me].1.failed {
             return Err(VfsError::new(ErrorKind::NotFound, path.to_string()));
         }
@@ -150,27 +168,42 @@ impl WebDavFs {
     }
 
     fn size_from_head(&self, path: &VfsPath, url: &Url) -> Result<u64> {
-        let resp = self.inner.send(&Req::new(Method::HEAD, url.clone()), path)?;
+        let resp = self
+            .inner
+            .send(&Req::new(Method::HEAD, url.clone()), path)?;
         if !resp.status().is_success() {
             return Err(status_error(resp.status(), path));
         }
         resp.headers()
             .get(CONTENT_LENGTH)
             .and_then(|v| v.to_str().ok()?.parse().ok())
-            .ok_or_else(|| VfsError::new(ErrorKind::Unsupported, format!("{path}: server reports no file size")))
+            .ok_or_else(|| {
+                VfsError::new(
+                    ErrorKind::Unsupported,
+                    format!("{path}: server reports no file size"),
+                )
+            })
     }
 
     /// Metadata of an entry; a file without `getcontentlength` (rare, some
     /// embedded servers) costs one extra HEAD request.
     fn metadata(&self, path: &VfsPath, e: &DavEntry) -> Result<Metadata> {
         if e.is_collection {
-            return Ok(Metadata { kind: EntryKind::Dir, size: 0, modified_ms: e.modified_ms });
+            return Ok(Metadata {
+                kind: EntryKind::Dir,
+                size: 0,
+                modified_ms: e.modified_ms,
+            });
         }
         let size = match e.size {
             Some(s) => s,
             None => self.size_from_head(path, &self.inner.base.url_of(path, false))?,
         };
-        Ok(Metadata { kind: EntryKind::File, size, modified_ms: e.modified_ms })
+        Ok(Metadata {
+            kind: EntryKind::File,
+            size,
+            modified_ms: e.modified_ms,
+        })
     }
 }
 
@@ -183,7 +216,11 @@ impl Vfs for WebDavFs {
         let depth = dir.components().count();
         let mut out: Vec<DirEntry> = Vec::with_capacity(entries.len().saturating_sub(1));
         for (i, (rel, e)) in entries.iter().enumerate() {
-            if i == me || e.failed || rel.len() != depth + 1 || !rel.iter().zip(dir.components()).all(|(a, b)| a == b) {
+            if i == me
+                || e.failed
+                || rel.len() != depth + 1
+                || !rel.iter().zip(dir.components()).all(|(a, b)| a == b)
+            {
                 continue;
             }
             let name = &rel[depth];
@@ -193,7 +230,11 @@ impl Vfs for WebDavFs {
                 continue;
             }
             let metadata = self.metadata(&path, e)?;
-            out.push(DirEntry { name: name.clone(), path, metadata });
+            out.push(DirEntry {
+                name: name.clone(),
+                path,
+                metadata,
+            });
         }
         Ok(out)
     }
@@ -211,7 +252,12 @@ impl Vfs for WebDavFs {
         }
         let size = self.metadata(path, e)?.size;
         let url = self.inner.base.url_of(path, false);
-        Ok(Box::new(WebDavSource::new(Arc::clone(&self.inner), url, path.to_string(), size)))
+        Ok(Box::new(WebDavSource::new(
+            Arc::clone(&self.inner),
+            url,
+            path.to_string(),
+            size,
+        )))
     }
 }
 
@@ -249,7 +295,7 @@ impl Inner {
                     sent_auth = true;
                 }
             }
-            let resp = rb.send().map_err(|e| request_error(&e, what))?;
+            let resp = rb.send().map_err(|e| request_error(e, what))?;
             let status = resp.status();
 
             if status == StatusCode::UNAUTHORIZED {
@@ -290,10 +336,18 @@ impl Inner {
                     .get(LOCATION)
                     .and_then(|v| v.to_str().ok())
                     .and_then(|l| url.join(l).ok())
-                    .ok_or_else(|| VfsError::new(ErrorKind::Other, format!("{what}: redirect without a valid Location")))?;
+                    .ok_or_else(|| {
+                        VfsError::new(
+                            ErrorKind::Other,
+                            format!("{what}: redirect without a valid Location"),
+                        )
+                    })?;
                 redirects += 1;
                 if redirects > MAX_REDIRECTS || !matches!(next.scheme(), "http" | "https") {
-                    return Err(VfsError::new(ErrorKind::Other, format!("{what}: too many or bad redirects")));
+                    return Err(VfsError::new(
+                        ErrorKind::Other,
+                        format!("{what}: too many or bad redirects"),
+                    ));
                 }
                 url = next;
                 continue;
@@ -320,10 +374,13 @@ pub(crate) fn status_error(status: StatusCode, what: &dyn fmt::Display) -> VfsEr
 
 /// Maps a transport error; certificate failures get an
 /// [`UntrustedCertificate`] source.
-pub(crate) fn request_error(e: &reqwest::Error, what: &dyn fmt::Display) -> VfsError {
-    if let Some(msg) = tls::certificate_error(e) {
-        return VfsError::new(ErrorKind::Other, format!("{what}: untrusted TLS certificate ({msg})"))
-            .with_source(UntrustedCertificate(msg));
+pub(crate) fn request_error(e: reqwest::Error, what: &dyn fmt::Display) -> VfsError {
+    if let Some(msg) = tls::certificate_error(&e) {
+        return VfsError::new(
+            ErrorKind::Other,
+            format!("{what}: untrusted TLS certificate ({msg})"),
+        )
+        .with_source(UntrustedCertificate(msg));
     }
     let kind = if e.is_timeout() {
         ErrorKind::TimedOut
@@ -333,10 +390,10 @@ pub(crate) fn request_error(e: &reqwest::Error, what: &dyn fmt::Display) -> VfsE
         ErrorKind::Other
     };
     let mut msg = format!("{what}: {e}");
-    let mut cur = std::error::Error::source(e);
+    let mut cur = std::error::Error::source(&e);
     while let Some(s) = cur {
         msg.push_str(&format!(": {s}"));
         cur = s.source();
     }
-    VfsError::new(kind, msg)
+    VfsError::new(kind, msg).with_source(e)
 }

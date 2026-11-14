@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 //! The pa-vfs contract suite against the in-process WebDAV server, in the
-//! configurations real servers differ in.
+//! configurations real servers differ in. (Not named `harness`: the
+//! macro defines a function with that name.)
 
 mod mock;
 
@@ -9,7 +10,7 @@ use pa_vfs::VfsPath;
 use pa_vfs::contract::{self, Harness};
 use pa_vfs_webdav::{Credentials, WebDavConfig, WebDavFs};
 
-fn harness(opts: Options, config: impl FnOnce(String) -> WebDavConfig) -> Harness {
+fn serve(opts: Options, config: impl FnOnce(String) -> WebDavConfig) -> Harness {
     let dir = tempfile::tempdir().expect("tempdir");
     let base = dir.path().join("media").join("контракт");
     std::fs::create_dir_all(&base).expect("base");
@@ -27,13 +28,13 @@ fn creds() -> Credentials {
 /// Anonymous, with read-ahead (the default configuration).
 mod plain {
     use super::*;
-    pa_vfs::vfs_contract_tests!(|| harness(Options::default(), WebDavConfig::new));
+    pa_vfs::vfs_contract_tests!(|| serve(Options::default(), WebDavConfig::new));
 }
 
 /// Every read is its own ranged GET.
 mod no_read_ahead {
     use super::*;
-    pa_vfs::vfs_contract_tests!(|| harness(Options::default(), |u| {
+    pa_vfs::vfs_contract_tests!(|| serve(Options::default(), |u| {
         WebDavConfig::new(u).with_read_ahead(0)
     }));
 }
@@ -41,8 +42,12 @@ mod no_read_ahead {
 /// Basic auth, nginx-style slash redirects on collections.
 mod basic_redirects {
     use super::*;
-    pa_vfs::vfs_contract_tests!(|| harness(
-        Options { auth: Auth::Basic, slash_redirect: true, ..Options::default() },
+    pa_vfs::vfs_contract_tests!(|| serve(
+        Options {
+            auth: Auth::Basic,
+            slash_redirect: true,
+            ..Options::default()
+        },
         |u| WebDavConfig::new(u).with_credentials(creds())
     ));
 }
@@ -51,17 +56,26 @@ mod basic_redirects {
 /// read-ahead blocks so reads cross block borders.
 mod digest_stale {
     use super::*;
-    pa_vfs::vfs_contract_tests!(|| harness(
-        Options { auth: Auth::Digest { rotate: 7 }, ..Options::default() },
-        |u| WebDavConfig::new(u).with_credentials(creds()).with_read_ahead(10_000)
+    pa_vfs::vfs_contract_tests!(|| serve(
+        Options {
+            auth: Auth::Digest { rotate: 7 },
+            ..Options::default()
+        },
+        |u| WebDavConfig::new(u)
+            .with_credentials(creds())
+            .with_read_ahead(10_000)
     ));
 }
 
 /// A server that ignores `Range` and does not report sizes in PROPFIND.
 mod no_range_no_length {
     use super::*;
-    pa_vfs::vfs_contract_tests!(|| harness(
-        Options { ignore_range: true, no_length: true, ..Options::default() },
+    pa_vfs::vfs_contract_tests!(|| serve(
+        Options {
+            ignore_range: true,
+            no_length: true,
+            ..Options::default()
+        },
         |u| WebDavConfig::new(u).with_read_ahead(64 * 1024)
     ));
 }

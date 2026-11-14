@@ -8,10 +8,11 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 
 use mock::{Auth, MockServer, Options, PASS, USER};
-use pa_vfs::{ByteSource, ErrorKind, Vfs, VfsPath};
 use pa_vfs::contract::{self, SAMPLE, SAMPLE_SIZE};
+use pa_vfs::{ByteSource, ErrorKind, Vfs, VfsPath};
 use pa_vfs_webdav::{
-    Credentials, Fingerprint, TlsTrust, WebDavConfig, WebDavFs, fetch_fingerprint, is_untrusted_certificate,
+    Credentials, Fingerprint, TlsTrust, WebDavConfig, WebDavFs, fetch_fingerprint,
+    is_untrusted_certificate,
 };
 
 fn seeded() -> tempfile::TempDir {
@@ -28,7 +29,13 @@ fn p(s: &str) -> VfsPath {
 fn wrong_or_missing_password_is_authentication_failed() {
     for auth in [Auth::Basic, Auth::Digest { rotate: 0 }] {
         let dir = seeded();
-        let server = MockServer::start(dir.path(), Options { auth, ..Options::default() });
+        let server = MockServer::start(
+            dir.path(),
+            Options {
+                auth,
+                ..Options::default()
+            },
+        );
 
         let anon = WebDavFs::new(WebDavConfig::new(&server.url)).unwrap();
         let e = anon.list(&VfsPath::root()).unwrap_err();
@@ -53,14 +60,31 @@ fn wrong_or_missing_password_is_authentication_failed() {
 #[test]
 fn credentials_are_sent_preemptively_after_the_first_challenge() {
     let dir = seeded();
-    let server = MockServer::start(dir.path(), Options { auth: Auth::Digest { rotate: 0 }, ..Options::default() });
-    let fs = WebDavFs::new(WebDavConfig::new(&server.url).with_credentials(Credentials::new(USER, PASS))).unwrap();
+    let server = MockServer::start(
+        dir.path(),
+        Options {
+            auth: Auth::Digest { rotate: 0 },
+            ..Options::default()
+        },
+    );
+    let fs = WebDavFs::new(
+        WebDavConfig::new(&server.url).with_credentials(Credentials::new(USER, PASS)),
+    )
+    .unwrap();
     fs.stat(&VfsPath::root()).unwrap();
-    assert_eq!(server.requests.load(Ordering::SeqCst), 2, "challenge + retry");
+    assert_eq!(
+        server.requests.load(Ordering::SeqCst),
+        2,
+        "challenge + retry"
+    );
     for _ in 0..5 {
         fs.stat(&p("/dir")).unwrap();
     }
-    assert_eq!(server.requests.load(Ordering::SeqCst), 7, "one request per call");
+    assert_eq!(
+        server.requests.load(Ordering::SeqCst),
+        7,
+        "one request per call"
+    );
 }
 
 #[test]
@@ -68,13 +92,24 @@ fn moved_source_follows_redirects_keeping_the_method() {
     let dir = seeded();
     let server = MockServer::start(
         dir.path(),
-        Options { moved: true, slash_redirect: true, auth: Auth::Basic, ..Options::default() },
+        Options {
+            moved: true,
+            slash_redirect: true,
+            auth: Auth::Basic,
+            ..Options::default()
+        },
     );
     let old = format!("{}/old/", server.origin);
-    let fs = WebDavFs::new(WebDavConfig::new(old).with_credentials(Credentials::new(USER, PASS))).unwrap();
+    let fs = WebDavFs::new(WebDavConfig::new(old).with_credentials(Credentials::new(USER, PASS)))
+        .unwrap();
     // Hrefs in the replies point to /dav/, the moved root.
     assert!(fs.stat(&p("/dir")).unwrap().is_dir());
-    let mut names: Vec<_> = fs.list(&p("/dir")).unwrap().into_iter().map(|e| e.name).collect();
+    let mut names: Vec<_> = fs
+        .list(&p("/dir"))
+        .unwrap()
+        .into_iter()
+        .map(|e| e.name)
+        .collect();
     names.sort();
     assert_eq!(names, ["nested.txt", "sub"]);
     contract::run_all(&fs, &VfsPath::root());
@@ -99,7 +134,10 @@ fn read_ahead_batches_small_reads() {
     // The tail block is clamped to the file size.
     let tail = SAMPLE_SIZE as u64 - 100;
     src.read_exact_at(tail, &mut buf[..100]).unwrap();
-    assert_eq!(server.ranges.lock().unwrap()[1], format!("bytes={tail}-{}", SAMPLE_SIZE - 1));
+    assert_eq!(
+        server.ranges.lock().unwrap()[1],
+        format!("bytes={tail}-{}", SAMPLE_SIZE - 1)
+    );
     // Back to the start: still cached.
     src.read_exact_at(0, &mut buf).unwrap();
     assert_eq!(server.ranges.lock().unwrap().len(), 2);
@@ -130,7 +168,13 @@ fn bad_urls_are_rejected() {
 fn self_signed_certificate_tofu() {
     let dir = seeded();
     let (der, cfg) = mock::self_signed();
-    let server = MockServer::start(dir.path(), Options { tls: Some(cfg), ..Options::default() });
+    let server = MockServer::start(
+        dir.path(),
+        Options {
+            tls: Some(cfg),
+            ..Options::default()
+        },
+    );
     let pin = Fingerprint::of_der(&der);
 
     // Not trusted by the platform: a distinct, recognizable error.
@@ -145,7 +189,8 @@ fn self_signed_certificate_tofu() {
     assert_eq!(server.requests.load(Ordering::SeqCst), before);
 
     // Pinned: works.
-    let pinned = WebDavFs::new(WebDavConfig::new(&server.url).with_tls(TlsTrust::Pinned(pin))).unwrap();
+    let pinned =
+        WebDavFs::new(WebDavConfig::new(&server.url).with_tls(TlsTrust::Pinned(pin))).unwrap();
     assert!(pinned.stat(&p("/dir")).unwrap().is_dir());
     contract::run_all(&pinned, &VfsPath::root());
 

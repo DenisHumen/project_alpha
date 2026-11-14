@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Real WebDAV servers for the pa-vfs contract suite (NET-004, CI-012).
+# Started by run.sh, which seeds $PA_WEBDAV_DATA and the auth files in
+# $PA_WEBDAV_AUTH first. Ports are bound to 127.0.0.1 only.
+
+services:
+  # nginx with the dav-ext module (PROPFIND), Basic auth.
+  nginx:
+    image: alpine:3.22
+    command:
+      - sh
+      - -c
+      - apk add --no-cache nginx nginx-mod-http-dav-ext >/dev/null && exec nginx -c /etc/pa/nginx.conf -g 'daemon off;'
+    volumes:
+      - ./nginx.conf:/etc/pa/nginx.conf:ro
+      - ${PA_WEBDAV_DATA}:/data:ro
+      - ${PA_WEBDAV_AUTH}:/auth:ro
+    ports:
+      - 127.0.0.1:18081:8080
+
+  # Apache mod_dav + mod_dav_fs, Digest auth.
+  apache:
+    image: httpd:2.4-alpine
+    command: [httpd-foreground, -f, /etc/pa/httpd.conf]
+    volumes:
+      - ./httpd.conf:/etc/pa/httpd.conf:ro
+      - ${PA_WEBDAV_DATA}:/data:ro
+      - ${PA_WEBDAV_AUTH}:/auth:ro
+    ports:
+      - 127.0.0.1:18082:8080
+
+  # rclone serve webdav, Basic auth.
+  rclone:
+    image: rclone/rclone:1.71
+    command: [serve, webdav, /data, --addr, ":8080", --user, "${PA_WEBDAV_USER}", --pass, "${PA_WEBDAV_PASS}", --read-only]
+    volumes:
+      - ${PA_WEBDAV_DATA}:/data:ro
+    ports:
+      - 127.0.0.1:18083:8080
+
+  # Nextcloud (SQLite), Basic auth; run.sh copies the fixture in and runs
+  # `occ files:scan`.
+  nextcloud:
+    image: nextcloud:31-apache
+    environment:
+      SQLITE_DATABASE: nextcloud
+      NEXTCLOUD_ADMIN_USER: ${PA_WEBDAV_USER}
+      NEXTCLOUD_ADMIN_PASSWORD: ${PA_WEBDAV_PASS}
+      NEXTCLOUD_TRUSTED_DOMAINS: 127.0.0.1 localhost
+    ports:
+      - 127.0.0.1:18084:80
