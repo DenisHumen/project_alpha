@@ -26,7 +26,11 @@ pub struct SmbSource {
 
 impl fmt::Debug for SmbSource {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SmbSource({}, {} bytes)", self.shared.url, self.shared.size)
+        write!(
+            f,
+            "SmbSource({}, {} bytes)",
+            self.shared.url, self.shared.size
+        )
     }
 }
 
@@ -100,9 +104,9 @@ impl SourceShared {
         let start = idx * self.chunk;
         let len = usize::try_from((self.size - start).min(self.chunk)).unwrap_or(0);
         let mut data = vec![0u8; len];
-        self.fs
-            .pool
-            .with_conn(&self.url, |c| read_on(c, &self.path, start, &mut data, true))?;
+        self.fs.pool.with_conn(&self.url, |c| {
+            read_on(c, &self.path, start, &mut data, true)
+        })?;
         Ok(data)
     }
 
@@ -164,7 +168,10 @@ impl SourceShared {
             if !st.inflight.contains(&idx) {
                 break;
             }
-            st = self.changed.wait(st).unwrap_or_else(PoisonError::into_inner);
+            st = self
+                .changed
+                .wait(st)
+                .unwrap_or_else(PoisonError::into_inner);
         }
         st.inflight.insert(idx);
         drop(st);

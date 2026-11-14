@@ -27,9 +27,11 @@ flowchart LR
     pa_runtime["pa-runtime"]
     pa_scanner["pa-scanner"]
     pa_secrets["pa-secrets"]
+    pa_smb2["pa-smb2"]
     pa_sync["pa-sync"]
     pa_twitch["pa-twitch"]
     pa_vfs["pa-vfs"]
+    pa_vfs_smb["pa-vfs-smb"]
     pa_vfs_webdav["pa-vfs-webdav"]
   end
   subgraph g1["server — медиасервер"]
@@ -71,6 +73,8 @@ flowchart LR
   pa_sync -. dev .-> pa_secrets
   pa_twitch --> pa_secrets
   pa_twitch -. dev .-> pa_twitch
+  pa_vfs_smb --> pa_smb2
+  pa_vfs_smb --> pa_vfs
   pa_vfs_webdav --> pa_discovery
   pa_vfs_webdav --> pa_vfs
 ```
@@ -95,9 +99,11 @@ flowchart LR
 | `pa-scanner` | `core/crates/pa-scanner` | 1 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003); music tags and index (MUS-001) |
 | `pa-secrets` | `core/crates/pa-secrets` | 11 | Secret storage of project_alpha: OS keychains, platform callbacks, encrypted-file fallback, log redaction |
 | `pa-server` | `server` | 12 | Kinolune media server (mode B): axum HTTP on top of the core crates |
+| `pa-smb2` | `core/crates/pa-smb2` | 1 | Safe Rust wrapper over libsmb2 (LGPL-2.1+) loaded at run time as a shared library (NET-002) |
 | `pa-sync` | `core/crates/pa-sync` | 11 | Serverless state sync: hybrid logical clock, sync operations, LWW merge, the SQLite outbox (SYNC-001) and the LAN P2P transport (SYNC-006) |
 | `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002) |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
+| `pa-vfs-smb` | `core/crates/pa-vfs-smb` | 0 | SMB2/3 backend of pa-vfs over libsmb2: NTLMSSP, signing, SMB3 encryption, pooled connections, read-ahead with parallel prefetch (NET-003) |
 | `pa-vfs-webdav` | `core/crates/pa-vfs-webdav` | 7 | WebDAV backend of pa-vfs: PROPFIND listing, Range reads with read-ahead, Basic and Digest auth, redirects, TLS pinning (NET-004) |
 
 <!-- END GENERATED: crate-graph -->

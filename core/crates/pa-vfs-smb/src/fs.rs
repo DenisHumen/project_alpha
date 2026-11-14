@@ -5,7 +5,9 @@ use std::fmt;
 use std::sync::Arc;
 
 use pa_smb2::{FileType, Smb2Lib, Stat};
-use pa_vfs::{ByteSource, DirEntry, EntryKind, ErrorKind, Metadata, Result, Vfs, VfsError, VfsPath};
+use pa_vfs::{
+    ByteSource, DirEntry, EntryKind, ErrorKind, Metadata, Result, Vfs, VfsError, VfsPath,
+};
 
 use crate::config::SmbConfig;
 use crate::pool::{Pool, map_error};
@@ -58,13 +60,14 @@ impl SmbFs {
                 ),
             ));
         }
-        if config.server.is_empty()
-            || config.share.is_empty()
-            || config.share.contains(['/', '\\'])
+        if config.server.is_empty() || config.share.is_empty() || config.share.contains(['/', '\\'])
         {
             return Err(VfsError::new(
                 ErrorKind::InvalidPath,
-                format!("invalid SMB address: server {:?}, share {:?}", config.server, config.share),
+                format!(
+                    "invalid SMB address: server {:?}, share {:?}",
+                    config.server, config.share
+                ),
             ));
         }
         let lib = match config.lib {
@@ -140,7 +143,9 @@ impl Vfs for SmbFs {
         let mut out = Vec::with_capacity(entries.len());
         for e in entries {
             // Names VfsPath rejects (control characters) cannot be addressed.
-            let Ok(path) = dir.join(&e.name) else { continue };
+            let Ok(path) = dir.join(&e.name) else {
+                continue;
+            };
             out.push(DirEntry {
                 metadata: metadata(&e.stat),
                 name: e.name,
@@ -183,7 +188,12 @@ impl Vfs for SmbFs {
                 ));
             }
         }
-        Ok(Box::new(SmbSource::new(Arc::clone(&self.inner), p, url, st.size)))
+        Ok(Box::new(SmbSource::new(
+            Arc::clone(&self.inner),
+            p,
+            url,
+            st.size,
+        )))
     }
 }
 

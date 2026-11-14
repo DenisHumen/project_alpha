@@ -58,7 +58,11 @@ impl Prefetcher {
         if jobs.is_empty() {
             return;
         }
-        let mut q = self.shared.queue.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut q = self
+            .shared
+            .queue
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
         if q.closed {
             return;
         }
@@ -80,7 +84,11 @@ impl Prefetcher {
 
     /// Stops the workers after their current job; queued jobs are dropped.
     pub(crate) fn close(&self) {
-        let mut q = self.shared.queue.lock().unwrap_or_else(PoisonError::into_inner);
+        let mut q = self
+            .shared
+            .queue
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
         q.closed = true;
         let dropped: Vec<Job> = q.jobs.drain(..).collect();
         drop(q);

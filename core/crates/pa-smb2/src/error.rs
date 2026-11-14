@@ -211,7 +211,9 @@ fn classify(op: Op, errno: i32, nt: u32, message: &str) -> ErrorKind {
     match errno_kind(errno) {
         ErrorKind::Other
             if op == Op::Connect
-                && (lower.contains("socket") || lower.contains("connect") || lower.contains("resolve")) =>
+                && (lower.contains("socket")
+                    || lower.contains("connect")
+                    || lower.contains("resolve")) =>
         {
             ErrorKind::Unavailable
         }
@@ -251,12 +253,12 @@ fn errno_kind(errno: i32) -> ErrorKind {
 #[cfg(not(unix))]
 fn errno_kind(errno: i32) -> ErrorKind {
     match errno {
-        2 => ErrorKind::NotFound,                       // ENOENT
-        1 | 13 => ErrorKind::PermissionDenied,          // EPERM, EACCES
-        20 => ErrorKind::NotADirectory,                 // ENOTDIR
-        21 => ErrorKind::IsADirectory,                  // EISDIR
-        22 => ErrorKind::InvalidPath,                   // EINVAL
-        10060 | 138 => ErrorKind::TimedOut,             // WSAETIMEDOUT, ETIMEDOUT
+        2 => ErrorKind::NotFound,              // ENOENT
+        1 | 13 => ErrorKind::PermissionDenied, // EPERM, EACCES
+        20 => ErrorKind::NotADirectory,        // ENOTDIR
+        21 => ErrorKind::IsADirectory,         // EISDIR
+        22 => ErrorKind::InvalidPath,          // EINVAL
+        10060 | 138 => ErrorKind::TimedOut,    // WSAETIMEDOUT, ETIMEDOUT
         10050..=10054 | 10057 | 10061 | 10064 | 10065 => ErrorKind::Unavailable, // WSAENETDOWN..WSAECONNRESET, WSAENOTCONN, WSAECONNREFUSED, WSAEHOSTDOWN, WSAEHOSTUNREACH
         _ => ErrorKind::Other,
     }
@@ -269,9 +271,19 @@ mod tests {
     #[test]
     fn nt_status_wins_over_errno() {
         // libsmb2 maps LOGON_FAILURE to ECONNREFUSED; it is an auth error.
-        let e = Error::new(Op::Connect, 111, STATUS_LOGON_FAILURE, "Session setup failed".into());
+        let e = Error::new(
+            Op::Connect,
+            111,
+            STATUS_LOGON_FAILURE,
+            "Session setup failed".into(),
+        );
         assert_eq!(e.kind(), ErrorKind::AuthenticationFailed);
-        let e = Error::new(Op::Connect, 2, STATUS_BAD_NETWORK_NAME, "Tree connect".into());
+        let e = Error::new(
+            Op::Connect,
+            2,
+            STATUS_BAD_NETWORK_NAME,
+            "Tree connect".into(),
+        );
         assert_eq!(e.kind(), ErrorKind::NotFound);
         let e = Error::new(Op::Open, 1, STATUS_FILE_IS_A_DIRECTORY, "open".into());
         assert_eq!(e.kind(), ErrorKind::IsADirectory);
@@ -282,7 +294,12 @@ mod tests {
 
     #[test]
     fn local_failures() {
-        let e = Error::new(Op::Read, 0, 0, "Timeout expired and no connection exists".into());
+        let e = Error::new(
+            Op::Read,
+            0,
+            0,
+            "Timeout expired and no connection exists".into(),
+        );
         assert_eq!(e.kind(), ErrorKind::TimedOut);
         let e = Error::new(
             Op::Connect,
@@ -291,7 +308,10 @@ mod tests {
             "smb2_service failed with : Socket connect failed with 111".into(),
         );
         assert_eq!(e.kind(), ErrorKind::Unavailable);
-        assert_eq!(Error::library("x".into()).kind(), ErrorKind::LibraryUnavailable);
+        assert_eq!(
+            Error::library("x".into()).kind(),
+            ErrorKind::LibraryUnavailable
+        );
     }
 
     #[cfg(target_os = "linux")]

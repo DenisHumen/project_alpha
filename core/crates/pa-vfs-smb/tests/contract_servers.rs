@@ -54,9 +54,7 @@ mod smb3 {
 
 mod direct_reads {
     use super::*;
-    pa_vfs::vfs_contract_tests!(|| share(
-        config("PA_SMB_SERVER", "media").with_read_ahead(0)
-    ));
+    pa_vfs::vfs_contract_tests!(|| share(config("PA_SMB_SERVER", "media").with_read_ahead(0)));
 }
 
 mod smb2_02 {
@@ -90,11 +88,14 @@ mod encrypted {
 
     #[test]
     fn encryption_off_is_refused_by_sealed_share() {
-        let fs = SmbFs::new(config("PA_SMB_SERVER", "sealed").with_encryption(Encryption::Off))
-            .unwrap();
+        let fs =
+            SmbFs::new(config("PA_SMB_SERVER", "sealed").with_encryption(Encryption::Off)).unwrap();
         let e = fs.stat(&VfsPath::root()).expect_err("unencrypted access");
         assert!(
-            matches!(e.kind(), ErrorKind::PermissionDenied | ErrorKind::Unsupported),
+            matches!(
+                e.kind(),
+                ErrorKind::PermissionDenied | ErrorKind::Unsupported
+            ),
             "{e}"
         );
     }
@@ -112,7 +113,10 @@ fn anonymous_logon_is_refused() {
     let fs = SmbFs::new(SmbConfig::new(var("PA_SMB_SERVER"), "media")).unwrap();
     let e = fs.stat(&VfsPath::root()).expect_err("anonymous");
     assert!(
-        matches!(e.kind(), ErrorKind::AuthenticationFailed | ErrorKind::PermissionDenied),
+        matches!(
+            e.kind(),
+            ErrorKind::AuthenticationFailed | ErrorKind::PermissionDenied
+        ),
         "{e}"
     );
 }
@@ -163,12 +167,16 @@ fn stream(server_var: &str, min_mbit: Option<f64>) {
         .with_timeout(Duration::from_secs(30));
     // Tuning experiments: PA_SMB_PREFETCH=<parallel blocks>,
     // PA_SMB_CHUNK=<block bytes>; defaults otherwise.
-    if let Some(n) = std::env::var("PA_SMB_PREFETCH").ok().and_then(|v| v.parse().ok()) {
-        config = config
-            .with_prefetch_parallel(n)
-            .with_max_connections(n + 2);
+    if let Some(n) = std::env::var("PA_SMB_PREFETCH")
+        .ok()
+        .and_then(|v| v.parse().ok())
+    {
+        config = config.with_prefetch_parallel(n).with_max_connections(n + 2);
     }
-    if let Some(n) = std::env::var("PA_SMB_CHUNK").ok().and_then(|v| v.parse().ok()) {
+    if let Some(n) = std::env::var("PA_SMB_CHUNK")
+        .ok()
+        .and_then(|v| v.parse().ok())
+    {
         config = config.with_chunk_size(n);
     }
     let fs = SmbFs::new(config).unwrap();
