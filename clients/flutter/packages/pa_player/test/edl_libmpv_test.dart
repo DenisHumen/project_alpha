@@ -220,18 +220,15 @@ Future<void> _checkTimeline(String uri) async {
         pos = player.state.position.inMilliseconds / 1000;
         final raw = await player.screenshot(format: null);
         if (raw == null || raw.isEmpty) continue;
-        got = _blockOf(
-          raw,
-          state.value.videoWidth!,
-          state.value.videoHeight!,
-        );
+        got = _blockOf(raw, state.value.videoWidth!, state.value.videoHeight!);
         if (got == want && (pos - at).abs() < 0.5) break;
       }
       expect(pos, closeTo(at, 0.5), reason: 'position after seek to $at');
       expect(
         got,
         want,
-        reason: 'frame at $at s: ${_blocks[want]}, '
+        reason:
+            'frame at $at s: ${_blocks[want]}, '
             'not ${got < 0 ? '?' : _blocks[got]}',
       );
     }
