@@ -22,7 +22,7 @@ fn setup() -> (tempfile::TempDir, Catalog) {
     let root = dir.path().join("media");
     media(&root, "Music/Artist/Album/01 - One.flac", 1);
     media(&root, "Music/Artist/Album/02 - Two.flac", 2);
-    media(&root, "Music/Other/Single/01 - Three.flac", 3);
+    media(&root, "Music/Band/Single/01 - Three.flac", 3);
     let cat = Catalog::open(dir.path().join("library.db")).unwrap();
     cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
         .unwrap();
