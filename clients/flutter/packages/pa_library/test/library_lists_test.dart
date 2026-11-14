@@ -68,7 +68,10 @@ void main() {
     expect([for (final v in versions) v.label], ['4K · HDR10', '1080p']);
     expect(versions.first.filePath, p.join(root, uhd));
     expect(versions.first.playbackUri, p.join(root, uhd));
-    expect([for (final v in versions) v.isDefault].where((d) => d), hasLength(1));
+    expect(
+      [for (final v in versions) v.isDefault].where((d) => d),
+      hasLength(1),
+    );
     final defaultPath = versions.firstWhere((v) => v.isDefault).filePath;
     expect(inception.filePath, defaultPath);
 
@@ -106,9 +109,10 @@ void main() {
     expect({for (final i in all) i.id}, {movies.first.id, show.id});
 
     await lib.setFavoritePinned(show.id, false);
-    expect([for (final i in await lib.favorites(pinnedOnly: true).first) i.id], [
-      movies.first.id,
-    ]);
+    expect(
+      [for (final i in await lib.favorites(pinnedOnly: true).first) i.id],
+      [movies.first.id],
+    );
     await Future<void>.delayed(const Duration(milliseconds: 100));
     expect(seen.last, [movies.first.id]);
     await sub.cancel();
@@ -126,10 +130,10 @@ void main() {
     expect(await lib.addToCollection(c.id, movies.last.id), isTrue);
     expect(await lib.addToCollection(c.id, movies.first.id), isTrue);
     expect(await lib.addToCollection(c.id, movies.first.id), isFalse);
-    expect([for (final i in await lib.collectionItems(c.id)) i.id], [
-      movies.last.id,
-      movies.first.id,
-    ]);
+    expect(
+      [for (final i in await lib.collectionItems(c.id)) i.id],
+      [movies.last.id, movies.first.id],
+    );
     expect((await lib.collections()).single.itemCount, 2);
     expect((await lib.itemCollections(movies.first.id)).single.name, 'Sci-fi');
     await lib.deleteCollection(c.id);
@@ -138,11 +142,10 @@ void main() {
     final pl = await lib.createPlaylist('Weekend');
     expect(await lib.addToPlaylist(pl.id, movies.first.id), 1);
     expect(await lib.addToPlaylist(pl.id, show.id), 2);
-    expect([for (final i in await lib.playlistItems(pl.id)) i.id], [
-      movies.first.id,
-      episodes[0].id,
-      episodes[1].id,
-    ]);
+    expect(
+      [for (final i in await lib.playlistItems(pl.id)) i.id],
+      [movies.first.id, episodes[0].id, episodes[1].id],
+    );
     await lib.reorderPlaylist(pl.id, [episodes[1].id]);
     expect((await lib.playlistItems(pl.id)).first.id, episodes[1].id);
     expect(await lib.removeFromPlaylist(pl.id, movies.first.id), 1);

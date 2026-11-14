@@ -78,11 +78,7 @@ Future<AppServices> _services(
   LibraryQueries Function(LibraryQueries q)? wrap,
   Preferences? preferences,
 }) async {
-  final lib = FakeLibrary.items(
-    items,
-    progress: progress,
-    versions: versions,
-  );
+  final lib = FakeLibrary.items(items, progress: progress, versions: versions);
   final LibraryQueries q = MemoryLibraryQueries(
     lib,
     supportsFilters: filters,
@@ -499,9 +495,10 @@ void main() {
       await _tapKey(t, 'playlist-create');
       final playlists = await lib.playlists();
       expect([for (final p in playlists) p.name], ['Weekend']);
-      expect([
-        for (final i in await lib.playlistItems(playlists.single.id)) i.id,
-      ], ['m-bravo']);
+      expect(
+        [for (final i in await lib.playlistItems(playlists.single.id)) i.id],
+        ['m-bravo'],
+      );
       expect(find.text('Added to “Weekend”'), findsOneWidget);
     });
 

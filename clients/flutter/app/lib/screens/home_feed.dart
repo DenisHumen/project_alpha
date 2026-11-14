@@ -209,9 +209,10 @@ class HomeFeed {
   /// Favorites pinned to Home (LIB-010), newest first; empty on a library
   /// without favorites (the v0 fallback).
   Stream<List<LibraryItem>> favorites() => switch (library) {
-    final LibraryLists l => l
-        .favorites(pinnedOnly: true)
-        .map((items) => items.take(rowLimit).toList()),
+    final LibraryLists l =>
+      l
+          .favorites(pinnedOnly: true)
+          .map((items) => items.take(rowLimit).toList()),
     _ => Stream.value(const <LibraryItem>[]),
   };
 

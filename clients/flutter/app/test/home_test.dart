@@ -110,10 +110,7 @@ void main() {
     await t.scrollUntilVisible(row, 300, scrollable: _homeScroll);
     expect(find.text('Favorites'), findsOneWidget);
     final title = (await library.item('movie-harbor-lights'))!.title;
-    expect(
-      find.descendant(of: row, matching: find.text(title)),
-      findsWidgets,
-    );
+    expect(find.descendant(of: row, matching: find.text(title)), findsWidgets);
 
     // Unpinned from Home: still a favorite, the row goes.
     await library.setFavoritePinned('movie-harbor-lights', false);

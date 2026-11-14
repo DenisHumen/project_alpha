@@ -6626,12 +6626,12 @@ impl SseDecode for crate::api::library_lists::CoreCollection {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_id = <i64>::sse_decode(deserializer);
         let mut var_name = <String>::sse_decode(deserializer);
-        let mut var_external_ = <bool>::sse_decode(deserializer);
+        let mut var_isExternal = <bool>::sse_decode(deserializer);
         let mut var_itemCount = <i64>::sse_decode(deserializer);
         return crate::api::library_lists::CoreCollection {
             id: var_id,
             name: var_name,
-            external: var_external_,
+            is_external: var_isExternal,
             item_count: var_itemCount,
         };
     }
@@ -9177,7 +9177,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::library_lists::CoreCollection
         [
             self.id.into_into_dart().into_dart(),
             self.name.into_into_dart().into_dart(),
-            self.external.into_into_dart().into_dart(),
+            self.is_external.into_into_dart().into_dart(),
             self.item_count.into_into_dart().into_dart(),
         ]
         .into_dart()
@@ -11117,7 +11117,7 @@ impl SseEncode for crate::api::library_lists::CoreCollection {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <i64>::sse_encode(self.id, serializer);
         <String>::sse_encode(self.name, serializer);
-        <bool>::sse_encode(self.external, serializer);
+        <bool>::sse_encode(self.is_external, serializer);
         <i64>::sse_encode(self.item_count, serializer);
     }
 }

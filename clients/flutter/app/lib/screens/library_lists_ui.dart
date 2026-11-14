@@ -13,12 +13,11 @@ import '../services/app_services.dart';
 import '../theme/kinolune_theme.dart';
 
 /// The lists of the app's library, or null if it has none.
-LibraryLists? libraryListsOf(BuildContext context) => switch (Services.read(
-  context,
-).library) {
-  final LibraryLists l => l,
-  _ => null,
-};
+LibraryLists? libraryListsOf(BuildContext context) =>
+    switch (Services.read(context).library) {
+      final LibraryLists l => l,
+      _ => null,
+    };
 
 /// Adds [item] to the favorites or removes it, with a confirmation.
 Future<void> setFavorite(

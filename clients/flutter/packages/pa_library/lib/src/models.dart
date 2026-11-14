@@ -138,33 +138,30 @@ class LibraryItem {
   });
 
   /// This item playing another file: one of its versions (LIB-010).
-  LibraryItem withFile(
-    String filePath, {
-    String? streamUri,
-    int? durationMs,
-  }) => LibraryItem(
-    id: id,
-    kind: kind,
-    title: title,
-    filePath: filePath,
-    streamUri: streamUri,
-    originalTitle: originalTitle,
-    year: year,
-    overview: overview,
-    posterUrl: posterUrl,
-    backdropUrl: backdropUrl,
-    showId: showId,
-    season: season,
-    episode: episode,
-    artist: artist,
-    album: album,
-    trackNumber: trackNumber,
-    durationMs: durationMs ?? this.durationMs,
-    matchConfidence: matchConfidence,
-    tmdbId: tmdbId,
-    addedAt: addedAt,
-    versionCount: versionCount,
-  );
+  LibraryItem withFile(String filePath, {String? streamUri, int? durationMs}) =>
+      LibraryItem(
+        id: id,
+        kind: kind,
+        title: title,
+        filePath: filePath,
+        streamUri: streamUri,
+        originalTitle: originalTitle,
+        year: year,
+        overview: overview,
+        posterUrl: posterUrl,
+        backdropUrl: backdropUrl,
+        showId: showId,
+        season: season,
+        episode: episode,
+        artist: artist,
+        album: album,
+        trackNumber: trackNumber,
+        durationMs: durationMs ?? this.durationMs,
+        matchConfidence: matchConfidence,
+        tmdbId: tmdbId,
+        addedAt: addedAt,
+        versionCount: versionCount,
+      );
 
   @override
   bool operator ==(Object other) =>

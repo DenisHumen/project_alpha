@@ -14,19 +14,19 @@ class CoreCollection {
   final String name;
 
   /// From provider metadata (`tmdb:collection:<id>`); not editable.
-  final bool external_;
+  final bool isExternal;
   final PlatformInt64 itemCount;
 
   const CoreCollection({
     required this.id,
     required this.name,
-    required this.external_,
+    required this.isExternal,
     required this.itemCount,
   });
 
   @override
   int get hashCode =>
-      id.hashCode ^ name.hashCode ^ external_.hashCode ^ itemCount.hashCode;
+      id.hashCode ^ name.hashCode ^ isExternal.hashCode ^ itemCount.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -35,7 +35,7 @@ class CoreCollection {
           runtimeType == other.runtimeType &&
           id == other.id &&
           name == other.name &&
-          external_ == other.external_ &&
+          isExternal == other.isExternal &&
           itemCount == other.itemCount;
 }
 

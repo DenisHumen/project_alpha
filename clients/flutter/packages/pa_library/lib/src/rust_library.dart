@@ -382,7 +382,8 @@ class RustLibrary implements Library, LibraryLists {
   // -------------------------------------------------------------------------
   // items
 
-  String _filePath(CoreItem i) => _displayPath(i.localPath, i.sourceId, i.relPath);
+  String _filePath(CoreItem i) =>
+      _displayPath(i.localPath, i.sourceId, i.relPath);
 
   /// Local path, else the source address and [relPath] (network files).
   String _displayPath(String? local, int sourceId, String relPath) {
@@ -912,7 +913,8 @@ class RustLibrary implements Library, LibraryLists {
   // versions, favorites, collections, playlists (LIB-010)
 
   static int _listId(String id, String what) =>
-      int.tryParse(id) ?? (throw ArgumentError.value(id, 'id', 'no such $what'));
+      int.tryParse(id) ??
+      (throw ArgumentError.value(id, 'id', 'no such $what'));
 
   MediaVersion _version(CoreVersion v) => MediaVersion(
     id: '${v.fileId}',

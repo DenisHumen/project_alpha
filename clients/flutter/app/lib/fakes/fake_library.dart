@@ -493,9 +493,7 @@ class FakeLibrary implements Library, LibraryQueriesProvider, LibraryLists {
     if (v == null) return;
     _items.value = [
       for (final i in _items.value)
-        i.id == itemId
-            ? i.withFile(v.filePath, streamUri: v.streamUri)
-            : i,
+        i.id == itemId ? i.withFile(v.filePath, streamUri: v.streamUri) : i,
     ];
   }
 

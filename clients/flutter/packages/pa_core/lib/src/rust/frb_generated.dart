@@ -5861,7 +5861,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return CoreCollection(
       id: dco_decode_i_64(arr[0]),
       name: dco_decode_String(arr[1]),
-      external_: dco_decode_bool(arr[2]),
+      isExternal: dco_decode_bool(arr[2]),
       itemCount: dco_decode_i_64(arr[3]),
     );
   }
@@ -7643,12 +7643,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_i_64(deserializer);
     var var_name = sse_decode_String(deserializer);
-    var var_external_ = sse_decode_bool(deserializer);
+    var var_isExternal = sse_decode_bool(deserializer);
     var var_itemCount = sse_decode_i_64(deserializer);
     return CoreCollection(
       id: var_id,
       name: var_name,
-      external_: var_external_,
+      isExternal: var_isExternal,
       itemCount: var_itemCount,
     );
   }
@@ -9978,7 +9978,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_64(self.id, serializer);
     sse_encode_String(self.name, serializer);
-    sse_encode_bool(self.external_, serializer);
+    sse_encode_bool(self.isExternal, serializer);
     sse_encode_i_64(self.itemCount, serializer);
   }
 
