@@ -287,9 +287,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreSourceOptions dco_decode_core_source_options(dynamic raw);
 
   @protected
-  CoreSourceRoot dco_decode_core_source_root(dynamic raw);
-
-  @protected
   CoreSourceStatus dco_decode_core_source_status(dynamic raw);
 
   @protected
@@ -387,9 +384,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreSourceFacet> dco_decode_list_core_source_facet(dynamic raw);
-
-  @protected
-  List<CoreSourceRoot> dco_decode_list_core_source_root(dynamic raw);
 
   @protected
   List<CoreTextFacet> dco_decode_list_core_text_facet(dynamic raw);
@@ -778,9 +772,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  CoreSourceRoot sse_decode_core_source_root(SseDeserializer deserializer);
-
-  @protected
   CoreSourceStatus sse_decode_core_source_status(SseDeserializer deserializer);
 
   @protected
@@ -900,11 +891,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreSourceFacet> sse_decode_list_core_source_facet(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreSourceRoot> sse_decode_list_core_source_root(
     SseDeserializer deserializer,
   );
 
@@ -1400,12 +1386,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_core_source_root(
-    CoreSourceRoot self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_core_source_status(
     CoreSourceStatus self,
     SseSerializer serializer,
@@ -1555,12 +1535,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_source_facet(
     List<CoreSourceFacet> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_source_root(
-    List<CoreSourceRoot> self,
     SseSerializer serializer,
   );
 

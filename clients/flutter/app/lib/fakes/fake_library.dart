@@ -66,7 +66,7 @@ class FakeLibrary implements Library {
   }
 
   @override
-  Stream<ScanProgress> scan({String? sourceId, String? smbPassword}) async* {
+  Stream<ScanProgress> scan({String? sourceId}) async* {
     if (_sources.isEmpty) {
       yield const ScanProgress(phase: ScanPhase.done, error: 'No sources');
       return;
@@ -274,7 +274,6 @@ class FakeLibrary implements Library {
 
   @override
   Future<void> startWatching({
-    Map<String, String> smbPasswords = const {},
     Duration networkInterval = const Duration(minutes: 15),
     bool scanOnStart = true,
   }) async {

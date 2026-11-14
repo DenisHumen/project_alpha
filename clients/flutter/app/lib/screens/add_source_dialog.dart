@@ -365,6 +365,7 @@ class _SourceFormState extends State<SourceForm> {
   String _smbEncryption = 'auto';
   bool _signing = false;
   bool _scanIntoLibrary = true;
+  bool _autoScan = true;
   bool _forgetPassword = false;
 
   /// Field errors are shown after the first submit.
@@ -384,6 +385,7 @@ class _SourceFormState extends State<SourceForm> {
       _name.text = s.name;
       _user.text = s.username ?? '';
       _scanIntoLibrary = s.scanIntoLibrary;
+      _autoScan = s.autoScan;
       _smbVersion = s.smb.version;
       _smbEncryption = s.smb.encryption;
       _signing = s.smb.signingRequired;
@@ -530,7 +532,7 @@ class _SourceFormState extends State<SourceForm> {
       ),
       tlsPin: pin?.address,
       scanIntoLibrary: widget.type.indexable && _scanIntoLibrary,
-      autoScan: widget.initial?.autoScan ?? true,
+      autoScan: _autoScan,
     );
     try {
       final saved = _editing
@@ -723,8 +725,18 @@ class _SourceFormState extends State<SourceForm> {
           title: Text(l.sourcesFormScanIntoLibrary),
           subtitle: Text(l.sourcesFormScanIntoLibraryHint),
           onChanged: (v) => setState(() => _scanIntoLibrary = v),
-        )
-      else ...[
+        ),
+      // LIB-005 watcher: events for local folders, a timer for the rest.
+      if (type.indexable && _scanIntoLibrary)
+        SwitchListTile(
+          key: const ValueKey('source-auto-scan'),
+          contentPadding: EdgeInsets.zero,
+          value: _autoScan,
+          title: Text(l.sourcesFormAutoScan),
+          subtitle: Text(l.sourcesFormAutoScanHint),
+          onChanged: (v) => setState(() => _autoScan = v),
+        ),
+      if (!type.indexable) ...[
         gap,
         Text(l.sourcesNotIndexable, style: theme.textTheme.bodySmall),
       ],

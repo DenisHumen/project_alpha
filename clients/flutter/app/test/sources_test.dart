@@ -353,19 +353,18 @@ void main() {
       expect(d.smb.encryption, 'required');
       expect(d.toString(), isNot(contains('s3cret')));
       final smb = services.sources.firstWhere((s) => s.kind == SourceKind.smb);
-      expect(
-        await services.secureStore.read('smb_password_${smb.id}'),
-        's3cret',
-      );
+      // LIB-018: the password lives in the core's secret store only.
+      expect(services.managedSource(smb.id)!.hasPassword, isTrue);
+      expect(await services.secureStore.read('smb_password_${smb.id}'), isNull);
     });
 
-    testWidgets('WebDAV form: URL and pin rules; not indexed yet', (
+    testWidgets('WebDAV form: URL and pin rules; indexed like SMB', (
       tester,
     ) async {
       final services = await _openAdd(tester);
       await _pick(tester, en.sourcesTypeWebdav);
-      expect(find.text(en.sourcesNotIndexable), findsOneWidget);
-      expect(find.text(en.sourcesFormAdd), findsOneWidget); // no "and scan"
+      expect(find.text(en.sourcesNotIndexable), findsNothing);
+      expect(find.text(en.addSourceSubmit), findsOneWidget); // add and scan
       await _enter(tester, 'source-url', 'https://anna:pw@nas/dav');
       await _submit(tester);
       expect(find.text(en.sourcesFormErrorCredentials), findsOneWidget);
@@ -381,8 +380,28 @@ void main() {
       expect(d.type, SourceType.webdav);
       expect(d.address, 'https://nas.local/dav/media');
       expect(d.tlsPin, 'sha256:${'f' * 64}');
-      expect(d.scanIntoLibrary, isFalse);
-      expect(services.scanning, isFalse);
+      expect(d.scanIntoLibrary, isTrue);
+      expect(d.autoScan, isTrue);
+      await settle(tester, 4);
+    });
+
+    testWidgets('auto-scan can be switched off in the form', (tester) async {
+      final services = await _openAdd(tester);
+      await _pick(tester, en.sourcesTypeWebdav);
+      await _enter(tester, 'source-url', 'nas.local/dav/media');
+      expect(find.text(en.sourcesFormAutoScan), findsOneWidget);
+      final toggle = find.byKey(const ValueKey('source-auto-scan'));
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pump();
+      await _submit(tester);
+      final d = _fake(services).drafts.single;
+      expect(d.autoScan, isFalse);
+      expect(
+        services.managedSource(services.sources.last.id)!.autoScan,
+        isFalse,
+      );
+      await settle(tester, 4);
     });
 
     testWidgets('a core error is shown as a readable sentence', (tester) async {
@@ -495,10 +514,8 @@ void main() {
       expect(d.name, 'Home NAS');
       expect(d.address, 'smb://nas/media');
       expect(d.password, isNull); // keep
-      expect(
-        await services.secureStore.read('smb_password_${nas.id}'),
-        'old-pass',
-      );
+      expect(services.managedSource(nas.id)!.hasPassword, isTrue);
+      expect(await services.secureStore.read('smb_password_${nas.id}'), isNull);
       expect(find.text('Home NAS'), findsWidgets);
     });
 

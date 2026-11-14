@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 
 /// Kind of a media source.
-enum SourceKind { localFolder, smb }
+/// Kind of a [MediaSource]. `webdav` exists only on the Rust core.
+enum SourceKind { localFolder, smb, webdav }
 
 /// A place the library scans for media files.
 class MediaSource {
@@ -83,9 +84,19 @@ class LibraryItem {
   final String? album;
   final int? trackNumber;
 
-  /// Absolute path of the media file. For shows: the show folder (or the
-  /// folder of its first episode).
+  /// Absolute path of the media file; for files of network sources the
+  /// source address and the path inside it (`smb://nas/media/Movies/x.mkv`),
+  /// for display. For shows: the show folder (or the folder of its first
+  /// episode). Play [playbackUri], not this.
   final String filePath;
+
+  /// What the player opens when it is not [filePath]: the loopback stream
+  /// URL of a file on a network source (LIB-018). Contains a per-process
+  /// secret: do not show or log it.
+  final String? streamUri;
+
+  /// The URI to hand to the player.
+  String get playbackUri => streamUri ?? filePath;
   final int? durationMs;
 
   /// 0..1; how sure we are about the recognition (TMDB match or parser).
@@ -102,6 +113,7 @@ class LibraryItem {
     required this.kind,
     required this.title,
     required this.filePath,
+    this.streamUri,
     this.originalTitle,
     this.year,
     this.overview,
@@ -137,6 +149,7 @@ class LibraryItem {
       other.album == album &&
       other.trackNumber == trackNumber &&
       other.filePath == filePath &&
+      other.streamUri == streamUri &&
       other.durationMs == durationMs &&
       other.matchConfidence == matchConfidence &&
       other.tmdbId == tmdbId;
