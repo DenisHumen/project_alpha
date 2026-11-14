@@ -476,6 +476,14 @@ fn build_graph(conn: &Connection) -> Graph {
             VALUES (125, 'Twitch/twitchdev/2000000001.chat.json.gz', {now});
         INSERT INTO twitch_record_rules (profile_id, user_id, categories_filter_json, created_at_ms, updated_at_ms)
             VALUES (2, '141981764', '[\"509658\"]', {now}, {now});
+
+        INSERT INTO work_genres (work_id, provider, name) VALUES (30, 'tmdb', 'Drama');
+        INSERT INTO view_prefs (profile_id, view, sort, descending, folders_first, filter_json,
+                                updated_at_ms)
+            VALUES (2, 'movies', 'added', 1, 0, '{{\"genres\":[\"Drama\"]}}', {now});
+        INSERT INTO smart_shelves (profile_id, name, query_json, pinned_home, position,
+                                   created_at_ms, updated_at_ms)
+            VALUES (2, '4K', '{{\"kind\":\"movie\"}}', 1, 0, {now}, {now});
         "
     ))
     .unwrap();
