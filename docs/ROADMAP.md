@@ -288,7 +288,7 @@ project_alpha/
   - done when: тестовый тег `app-v0.0.1-rc.1` даёт черновик релиза со всеми артефактами и подписями.
 - [ ] **CI-012** Сетевые интеграционные тесты
   - Что: docker-compose с Samba (SMB2/3, signing, encryption), NFS-ganesha, WebDAV (nginx, Apache, `rclone serve`), SFTP и FTP; деградация сети через `tc netem`; общий тест-сьют `pa-vfs`.
-  - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
+  - deps: NET-001, NET-003, NET-004 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
   - done when: контракт-тесты Vfs запускаются против всех серверов в CI.
 
 ### 3.3. CORE — ядро на Rust, FFI, общие сервисы
@@ -362,11 +362,11 @@ project_alpha/
   - done when: контракт-тесты проходят на LocalFs под Linux, Windows и macOS.
 - [x] **NET-002** libsmb2: сборка и `smb2-sys`
   - Что: вендоринг libsmb2 (LGPL-2.1), сборка динамической библиотеки для всех таргетов (на iOS и tvOS — embedded framework), безопасная Rust-обёртка.
-  - deps: NET-001, CI-004 · size: M · parallel: yes · веха: M1 · ref: 02 §3.1, §4
+  - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 02 §3.1, §4
   - done when: на всех таргетах бинарь линкуется динамически (проверка `otool`/`ldd`/`dumpbin`).
 - [x] **NET-003** SMB2/3 бэкенд
   - Что: NTLMSSP, подпись и шифрование SMB3 (`smb3_set_seal`), листинг, чтение с read-ahead и параллельным prefetch (буфер 32–256 МБ, настраиваемый), SMB1 только по явному флагу с предупреждением.
-  - deps: NET-002, CI-012 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
+  - deps: NET-002 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
   - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь). Итог: контракт-тесты есть; на профиле с потерями 29–66 Мбит/с — цель по скорости вынесена в NET-021 (ADR-0033).
 - [x] **NET-004** WebDAV бэкенд
   - Что: reqwest + quick-xml (PROPFIND), Basic и Digest, Range, редиректы, самоподписанные сертификаты с TOFU.
@@ -1774,12 +1774,12 @@ project_alpha/
 | REPO | 13 | SRV | 18 |
 | CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
-| NET | 20 | DIST | 27 |
-| LIB | 15 | DSN | 15 |
-| META | 25 | PKG | 17 |
-| PLAY | 12 | QA | 11 |
+| NET | 21 | DIST | 27 |
+| LIB | 16 | DSN | 16 |
+| META | 26 | PKG | 17 |
+| PLAY | 14 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
-| PLAY-DSK | 8 | LEGAL | 10 |
+| PLAY-DSK | 9 | LEGAL | 10 |
 | PLAY-APL | 13 | SITE | 6 |
-| UI | 22 | COMM | 6 |
-| TV | 13 | **Всего** | **350** (342 задачи + 8 решений владельца) |
+| UI | 24 | COMM | 6 |
+| TV | 13 | **Всего** | **365** (357 задач + 8 решений владельца) |
