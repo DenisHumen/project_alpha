@@ -61,6 +61,7 @@ final _flows = <String, (Section, _Step?)>{
 const _surfaces = <String, (FormFactor, Size, double)>{
   'desktop': (FormFactor.desktop, Size(1280, 800), 1),
   'phone': (FormFactor.phone, Size(390, 844), 2),
+  'tablet': (FormFactor.phone, Size(820, 1180), 2), // rail (UI-002)
   'tv': (FormFactor.tv, Size(960, 540), 2),
 };
 

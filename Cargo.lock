@@ -2506,12 +2506,22 @@ dependencies = [
 name = "pa-sync"
 version = "0.1.0"
 dependencies = [
+ "futures-util",
+ "pa-discovery",
  "pa-library",
  "pa-model",
+ "pa-pairing",
+ "pa-secrets",
  "proptest",
+ "rcgen",
+ "rustls",
  "serde",
  "serde_json",
  "thiserror",
+ "tokio",
+ "tokio-rustls",
+ "tokio-tungstenite",
+ "tracing",
  "uuid",
 ]
 
