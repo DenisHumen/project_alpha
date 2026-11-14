@@ -12,6 +12,7 @@ import 'library.dart';
 import 'library_lists.dart';
 import 'library_query.dart';
 import 'models.dart';
+import 'music.dart';
 import 'music_tags.dart';
 import 'open_library.dart';
 import 'playback_session.dart';
@@ -35,11 +36,16 @@ import 'subtitles.dart';
 /// (LIB-018): nothing is mounted and the app never holds their passwords.
 /// Their files play through the core's loopback HTTP proxy
 /// ([LibraryItem.streamUri]).
-class RustLibrary implements Library, LibraryLists, LibrarySubtitles {
+class RustLibrary
+    implements Library, LibraryLists, LibrarySubtitles, LibraryMusic {
   final CoreLibrary _core;
   final String? _tempDir;
   final String _metadataCacheDir;
   final _changes = StreamController<void>.broadcast();
+
+  /// Plays and audio playlists changed (MUS-004): only the music views
+  /// reload.
+  final _musicChanges = StreamController<void>.broadcast();
   Future<void> _scanQueue = Future.value();
   bool _closed = false;
   String? _tmdbKey;
@@ -518,7 +524,8 @@ class RustLibrary implements Library, LibraryLists, LibrarySubtitles {
   /// Emits [query] now and after every change. A result is dropped if a
   /// newer query finished first, so a slow query never overwrites a fresh
   /// one.
-  Stream<T> _watch<T>(Future<T> Function() query) => Stream.multi((c) {
+  Stream<T> _watch<T>(Future<T> Function() query, {Stream<void>? also}) =>
+      Stream.multi((c) {
     var started = 0;
     var shown = 0;
     Future<void> emit() async {
@@ -537,7 +544,11 @@ class RustLibrary implements Library, LibraryLists, LibrarySubtitles {
 
     emit();
     final sub = _changes.stream.listen((_) => emit());
-    c.onCancel = sub.cancel;
+    final other = also?.listen((_) => emit());
+    c.onCancel = () async {
+      await sub.cancel();
+      await other?.cancel();
+    };
   });
 
   Future<List<LibraryItem>> _items(Future<List<CoreItem>> f) async =>
@@ -1096,6 +1107,108 @@ class RustLibrary implements Library, LibraryLists, LibrarySubtitles {
   }
 
   // -------------------------------------------------------------------------
+  // music views, plays, audio playlists (MUS-004)
+
+  MusicTrack _musicTrack(CoreMusicTrack t) => MusicTrack(
+    item: _item(t.item),
+    albumId: t.albumId == null ? null : '${t.albumId}',
+    albumArtists: t.albumArtists,
+    albumYear: t.albumYear,
+    compilation: t.compilation,
+    artists: t.artists,
+    composers: t.composers,
+    genres: t.genres,
+    discNumber: t.discNumber,
+    discTotal: t.discTotal,
+    codec: t.codec,
+    lossless: t.lossless,
+    sampleRateHz: t.sampleRateHz,
+    bitDepth: t.bitDepth,
+    channels: t.channels,
+    bitrateKbps: t.bitrateKbps,
+    local: t.local,
+    playCount: t.playCount,
+    lastPlayedAt: t.lastPlayedAtMs == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(t.lastPlayedAtMs!),
+  );
+
+  static MusicPlaylist _musicPlaylist(CorePlaylist p) => MusicPlaylist(
+    id: '${p.id}',
+    name: p.name,
+    trackCount: p.itemCount,
+    updatedAt: DateTime.fromMillisecondsSinceEpoch(p.updatedAtMs),
+  );
+
+  void _notifyMusic() {
+    if (!_closed && _musicChanges.hasListener) _musicChanges.add(null);
+  }
+
+  @override
+  Stream<List<MusicTrack>> musicTracks() => _watch(
+    () async => [for (final t in await _core.musicTracks()) _musicTrack(t)],
+    also: _musicChanges.stream,
+  );
+
+  @override
+  Future<void> recordTrackPlay(String trackId) async {
+    await _core.recordTrackPlay(itemId: trackId);
+    _notifyMusic();
+  }
+
+  @override
+  bool get hasMusicPlaylists => true;
+
+  @override
+  Stream<List<MusicPlaylist>> musicPlaylists() => _watch(
+    () async => [for (final p in await _core.musicPlaylists()) _musicPlaylist(p)],
+    also: _musicChanges.stream,
+  );
+
+  @override
+  Future<MusicPlaylist> createMusicPlaylist(String name) async {
+    final p = await _core.createMusicPlaylist(name: name);
+    _notifyMusic();
+    return _musicPlaylist(p);
+  }
+
+  @override
+  Future<void> renameMusicPlaylist(String id, String name) async {
+    await _core.renameMusicPlaylist(id: _listId(id, 'playlist'), name: name);
+    _notifyMusic();
+  }
+
+  @override
+  Future<void> deleteMusicPlaylist(String id) async {
+    await _core.deleteMusicPlaylist(id: _listId(id, 'playlist'));
+    _notifyMusic();
+  }
+
+  @override
+  Future<List<LibraryItem>> musicPlaylistItems(String id) =>
+      _items(_core.musicPlaylistItems(id: _listId(id, 'playlist')));
+
+  @override
+  Future<bool> addToMusicPlaylist(String id, String trackId) async {
+    final added = await _core.addToMusicPlaylist(
+      id: _listId(id, 'playlist'),
+      itemId: trackId,
+    );
+    _notifyMusic();
+    return added;
+  }
+
+  @override
+  Future<bool> removeFromMusicPlaylist(String id, String trackId) async {
+    final removed = await _core.removeFromMusicPlaylist(
+      id: _listId(id, 'playlist'),
+      itemId: trackId,
+    );
+    _notifyMusic();
+    return removed;
+  }
+
+  // -------------------------------------------------------------------------
   // sidecar subtitles (PLAY-007)
 
   @override
@@ -1241,6 +1354,7 @@ class RustLibrary implements Library, LibraryLists, LibrarySubtitles {
     _closed = true;
     await _watchEvents.close();
     await _changes.close();
+    await _musicChanges.close();
     _core.dispose();
     final tmp = _tempDir;
     if (tmp != null) {
