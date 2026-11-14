@@ -7,9 +7,9 @@ import '../frb_generated.dart';
 import 'library.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `of`
+// These functions are ignored because they are not marked as `pub`: `io`, `key`, `ms`, `name_of`, `of`, `remote`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `CatalogSync`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `ack`, `apply`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `disable`, `enable`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `pending`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `ack`, `apply`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `disable`, `enable`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `pending`
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CoreSync>>
 abstract class CoreSync implements RustOpaqueInterface {
@@ -23,7 +23,7 @@ abstract class CoreSync implements RustOpaqueInterface {
   List<CoreSyncDevice> devices();
 
   /// Events until the service is dropped. Returns at once; the stream
-  /// stays open.
+  /// stays open. `pb.*` of other profiles are left out.
   Stream<CoreSyncEvent> events();
 
   /// Fingerprint of this device's key.
@@ -31,6 +31,17 @@ abstract class CoreSync implements RustOpaqueInterface {
 
   /// Sends queued changes now.
   void flush();
+
+  /// Heartbeat of the playback session (SYNC-003): every 5 s while
+  /// playing and at once on pause, seek, stop and going to the
+  /// background. Ephemeral: nothing is stored. `false` if the item has no
+  /// synced key yet or sync does not run.
+  Future<bool> heartbeat({
+    required String itemId,
+    required PlatformInt64 positionMs,
+    required PlatformInt64 durationMs,
+    required CorePlayState state,
+  });
 
   /// Opens an invitation (5 minutes, 5 attempts) for another device.
   Future<CoreSyncInvite> invite();
@@ -63,8 +74,26 @@ abstract class CoreSync implements RustOpaqueInterface {
     required String addr,
   });
 
+  /// Titles other devices of the family play right now, newest first
+  /// (the "Continue on this device" banner).
+  Future<List<CoreRemotePlayback>> playingElsewhere();
+
+  /// Where the item continues: first pulls from the hub for at most
+  /// `timeout_ms` (500–800 ms before playing; 0 skips the pull), then
+  /// takes the newest point by HLC of the stored progress (with the
+  /// others' `progress.upsert`) and the last heartbeat of another device.
+  /// `None` if there is neither (or the item was finished last).
+  Future<CoreResumeHint?> resumeHint({
+    required String itemId,
+    required int timeoutMs,
+  });
+
   /// Starts sync if paired; returns whether it runs.
   Future<bool> start();
+
+  /// This device starts playing the item: the other devices of the
+  /// profile pause it (`pb.takeover`, if their setting allows).
+  Future<bool> startPlaying({required String itemId});
 
   /// Stops sync (until [`start`](Self::start)).
   Future<void> stop();
@@ -80,6 +109,117 @@ abstract class CoreSync implements RustOpaqueInterface {
 /// What kind of device this app runs on (orders the hub election: desktop,
 /// TV, phone).
 enum CoreDeviceClass { desktop, tv, mobile }
+
+/// Player state in a heartbeat.
+enum CorePlayState { playing, paused, stopped }
+
+/// A title another device plays right now (the handoff banner).
+class CoreRemotePlayback {
+  /// The title in this library; `None` if this library does not have it.
+  final String? itemId;
+  final String deviceId;
+  final String? deviceName;
+
+  /// Position now (moved on since the heartbeat).
+  final PlatformInt64 positionMs;
+
+  /// 0 if unknown.
+  final PlatformInt64 durationMs;
+  final PlatformInt64 stampMs;
+
+  const CoreRemotePlayback({
+    this.itemId,
+    required this.deviceId,
+    this.deviceName,
+    required this.positionMs,
+    required this.durationMs,
+    required this.stampMs,
+  });
+
+  @override
+  int get hashCode =>
+      itemId.hashCode ^
+      deviceId.hashCode ^
+      deviceName.hashCode ^
+      positionMs.hashCode ^
+      durationMs.hashCode ^
+      stampMs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoreRemotePlayback &&
+          runtimeType == other.runtimeType &&
+          itemId == other.itemId &&
+          deviceId == other.deviceId &&
+          deviceName == other.deviceName &&
+          positionMs == other.positionMs &&
+          durationMs == other.durationMs &&
+          stampMs == other.stampMs;
+}
+
+/// Where a title continues (SYNC-003): the newest point by HLC of stored
+/// progress and of the last heartbeat of another device.
+class CoreResumeHint {
+  /// Position now: a title another device still plays moved on since its
+  /// last heartbeat.
+  final PlatformInt64 positionMs;
+
+  /// 0 if unknown.
+  final PlatformInt64 durationMs;
+
+  /// Device that set the point.
+  final String deviceId;
+
+  /// Its name in the family, if known.
+  final String? deviceName;
+
+  /// Set by another device (not by this one).
+  final bool remote;
+
+  /// That device was playing it at its last heartbeat.
+  final bool playing;
+
+  /// HLC of the point (wall ms, counter): later points order after it.
+  final PlatformInt64 stampMs;
+  final int stampCounter;
+
+  const CoreResumeHint({
+    required this.positionMs,
+    required this.durationMs,
+    required this.deviceId,
+    this.deviceName,
+    required this.remote,
+    required this.playing,
+    required this.stampMs,
+    required this.stampCounter,
+  });
+
+  @override
+  int get hashCode =>
+      positionMs.hashCode ^
+      durationMs.hashCode ^
+      deviceId.hashCode ^
+      deviceName.hashCode ^
+      remote.hashCode ^
+      playing.hashCode ^
+      stampMs.hashCode ^
+      stampCounter.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoreResumeHint &&
+          runtimeType == other.runtimeType &&
+          positionMs == other.positionMs &&
+          durationMs == other.durationMs &&
+          deviceId == other.deviceId &&
+          deviceName == other.deviceName &&
+          remote == other.remote &&
+          playing == other.playing &&
+          stampMs == other.stampMs &&
+          stampCounter == other.stampCounter;
+}
 
 /// Settings of [`CoreSync::open`].
 class CoreSyncConfig {
@@ -209,12 +349,16 @@ class CoreSyncEvent {
   final String? message;
   final String? payload;
 
+  /// `Playback`/`Takeover`: the title in this library, if it has it.
+  final String? itemId;
+
   const CoreSyncEvent({
     required this.kind,
     this.deviceId,
     this.name,
     this.message,
     this.payload,
+    this.itemId,
   });
 
   @override
@@ -223,7 +367,8 @@ class CoreSyncEvent {
       deviceId.hashCode ^
       name.hashCode ^
       message.hashCode ^
-      payload.hashCode;
+      payload.hashCode ^
+      itemId.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -234,7 +379,8 @@ class CoreSyncEvent {
           deviceId == other.deviceId &&
           name == other.name &&
           message == other.message &&
-          payload == other.payload;
+          payload == other.payload &&
+          itemId == other.itemId;
 }
 
 /// Kind of a [`CoreSyncEvent`].
@@ -256,11 +402,12 @@ enum CoreSyncEventKind {
   /// The invitation closed.
   inviteClosed,
 
-  /// What another device plays now (`payload`: JSON of `pb.update`);
-  /// hook for the handoff banner of SYNC-003.
+  /// What another device plays now (`payload`: JSON of `pb.update`,
+  /// `item_id`: the title in this library, if it has it).
   playback,
 
-  /// Another device started a title (`payload`: JSON of `pb.takeover`).
+  /// Another device started a title (`payload`: JSON of `pb.takeover`,
+  /// `item_id` as for `Playback`): pause it here if the setting allows.
   takeover,
 }
 

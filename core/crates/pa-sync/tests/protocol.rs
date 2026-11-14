@@ -50,6 +50,7 @@ fn update(state: PlayState, position_ms: u64) -> PlaybackUpdate {
         rate: 1.0,
         state,
         hlc: hlc("phone"),
+        ttl_ms: None,
     }
 }
 

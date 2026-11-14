@@ -15,6 +15,7 @@ use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 use std::path::PathBuf;
 use std::sync::mpsc as std_mpsc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError, Weak};
 use std::time::Duration;
 
@@ -23,6 +24,7 @@ use pa_discovery::{
     Registration, ServiceKind, host_for_id,
 };
 use pa_pairing::pair::{Invitation, PairingCode, QR_PREFIX, QrInvite};
+use pa_model::MediaKey;
 use pa_pairing::{DeviceIdentity, DeviceKind, Family};
 use pa_secrets::SecretStore;
 use tokio::runtime::Runtime;
@@ -30,7 +32,9 @@ use tokio::sync::Notify;
 
 use super::pair::{self, Admit, HostEvent, JoinAs, JoinError, PairHost};
 use super::{AbortOnDrop, LanConfig, LanEvent, LanNode};
-use crate::proto::{PlaybackUpdate, Takeover};
+use crate::handoff;
+use crate::hlc::HlcClock;
+use crate::proto::{PlayState, PlaybackUpdate, Takeover};
 use crate::{Op, OpId};
 
 /// The library the service syncs: the app's catalog database.
@@ -138,9 +142,10 @@ pub enum ServiceEvent {
     PairingFailed { reason: String },
     /// This device's invitation closed (expired, used up, or used).
     InviteClosed,
-    /// What another device plays now (hook for SYNC-003).
+    /// What another device plays now (`pb.update`, SYNC-003).
     Playback(PlaybackUpdate),
-    /// Another device started a title (hook for SYNC-003).
+    /// Another device started a title (`pb.takeover`): pause it here if
+    /// it plays in the same profile and the user allows it.
     Takeover(Takeover),
 }
 
@@ -242,6 +247,11 @@ struct Inner {
     mdns: Mutex<Option<Arc<Mdns>>>,
     subscribers: Mutex<Vec<std_mpsc::Sender<ServiceEvent>>>,
     flush: Notify,
+    /// Stamps of this device's `pb.*` messages; observes the others'.
+    clock: Mutex<HlcClock>,
+    /// Full pull answers applied by the event loop, and its signal.
+    pulled: AtomicU64,
+    pulled_notify: Notify,
 }
 
 /// The sync service of one app. Dropping it stops everything.
@@ -284,6 +294,8 @@ impl SyncService {
         };
         // Another family's key or a broken roster: start without one.
         let family = Family::load(store.as_ref(), &config.roster_path()).unwrap_or_default();
+        let clock = HlcClock::new(identity.device_id())
+            .map_err(|e| ServiceError::new("pairing", e.to_string()))?;
         let runtime = tokio::runtime::Builder::new_multi_thread()
             .worker_threads(2)
             .thread_name("pa-sync")
@@ -302,6 +314,9 @@ impl SyncService {
                 mdns: Mutex::new(None),
                 subscribers: Mutex::new(Vec::new()),
                 flush: Notify::new(),
+                clock: Mutex::new(clock),
+                pulled: AtomicU64::new(0),
+                pulled_notify: Notify::new(),
             }),
             runtime: Some(runtime),
         })
@@ -424,7 +439,102 @@ impl SyncService {
         self.rt().block_on(Inner::unpair(&self.inner, device_id))
     }
 
-    /// Sends what this device plays now (hook for SYNC-003).
+    /// Heartbeat of the playback session (SYNC-003): what this device plays
+    /// now, stamped with its clock and the TTL of `state`. Call it every
+    /// [`handoff::HEARTBEAT_INTERVAL_MS`] while playing and at once on
+    /// pause, seek, stop and going to the background. Ephemeral: nothing is
+    /// stored. A no-op while sync does not run.
+    pub fn heartbeat(
+        &self,
+        profile: &str,
+        key: &MediaKey,
+        position_ms: u64,
+        duration_ms: Option<u64>,
+        state: PlayState,
+    ) -> Result<()> {
+        if !self.is_running() {
+            return Ok(());
+        }
+        let hlc = lock(&self.inner.clock).now();
+        self.playback(PlaybackUpdate {
+            profile: profile.to_owned(),
+            key: key.clone(),
+            position_ms,
+            duration_ms: duration_ms.filter(|d| *d > 0),
+            rate: 1.0,
+            state,
+            hlc,
+            ttl_ms: Some(handoff::ttl_for(state)),
+        })
+    }
+
+    /// This device starts playing `key` (SYNC-003): other devices of the
+    /// profile get `pb.takeover` and pause it if their setting allows.
+    pub fn start_playing(&self, profile: &str, key: &MediaKey) -> Result<()> {
+        if !self.is_running() {
+            return Ok(());
+        }
+        let hlc = lock(&self.inner.clock).now();
+        self.takeover(Takeover {
+            profile: profile.to_owned(),
+            key: key.clone(),
+            hlc,
+        })
+    }
+
+    /// Pulls what the hub has and this device lacks, waiting at most
+    /// `timeout` ([`handoff::PULL_TIMEOUT_MS`] before playing). Ops that
+    /// arrive are applied to the library before this returns. `true` when
+    /// the hub answered in time or there is none; `false` on timeout or
+    /// while sync does not run.
+    pub fn refresh(&self, timeout: Duration) -> bool {
+        let node = lock(&self.inner.state)
+            .running
+            .as_ref()
+            .map(|r| Arc::clone(&r.node));
+        let Some(node) = node else { return false };
+        let asked = node.hub().is_some();
+        let before = self.inner.pulled.load(Ordering::Acquire);
+        let answered = self.rt().block_on(node.refresh(timeout));
+        if answered && asked {
+            // The answer's ops reach the library through the event loop:
+            // wait until it has passed the end of the answer.
+            self.rt().block_on(self.inner.applied_after(before, timeout));
+        }
+        answered
+    }
+
+    /// The last `pb.update` of another device for `key` in `profile`, if
+    /// one is known (it may be old: see [`handoff::is_current`]).
+    pub fn remote_playback(&self, profile: &str, key: &MediaKey) -> Option<PlaybackUpdate> {
+        self.playback_updates()
+            .into_iter()
+            .filter(|u| u.profile == profile && u.key == *key)
+            .max_by(|a, b| a.hlc.cmp(&b.hlc))
+    }
+
+    /// What other devices play right now ([`handoff::is_playing_now`]),
+    /// newest first: the "Continue on this device" banner.
+    pub fn playing_elsewhere(&self) -> Vec<PlaybackUpdate> {
+        let now = now_ms();
+        let mut out: Vec<PlaybackUpdate> = self
+            .playback_updates()
+            .into_iter()
+            .filter(|u| handoff::is_playing_now(u, now))
+            .collect();
+        out.sort_by(|a, b| b.hlc.cmp(&a.hlc));
+        out
+    }
+
+    fn playback_updates(&self) -> Vec<PlaybackUpdate> {
+        lock(&self.inner.state)
+            .running
+            .as_ref()
+            .map(|r| r.node.playback_updates())
+            .unwrap_or_default()
+    }
+
+    /// Sends a `pb.update` as is (stamped by the caller).
     pub fn playback(&self, update: PlaybackUpdate) -> Result<()> {
         if let Some(r) = &lock(&self.inner.state).running {
             r.node
@@ -434,7 +544,7 @@ impl SyncService {
         Ok(())
     }
 
-    /// Announces that this device started a title (hook for SYNC-003).
+    /// Sends a `pb.takeover` as is (stamped by the caller).
     pub fn takeover(&self, takeover: Takeover) -> Result<()> {
         if let Some(r) = &lock(&self.inner.state).running {
             r.node
@@ -479,6 +589,27 @@ fn instance_name(name: &str, device_id: &str) -> String {
 }
 
 impl Inner {
+    /// Orders this device's next `pb.*` after a stamp of another device.
+    fn observe(&self, stamp: &crate::Hlc) {
+        // A peer clock far ahead is ignored, not fatal.
+        let _ = lock(&self.clock).observe(stamp, now_ms());
+    }
+
+    /// Waits (at most `limit`) until the event loop has applied a full
+    /// pull answer counted after `before`.
+    async fn applied_after(&self, before: u64, limit: Duration) {
+        let wait = async {
+            loop {
+                let notified = self.pulled_notify.notified();
+                if self.pulled.load(Ordering::Acquire) > before {
+                    return;
+                }
+                notified.await;
+            }
+        };
+        let _ = tokio::time::timeout(limit, wait).await;
+    }
+
     fn emit(&self, event: &ServiceEvent) {
         lock(&self.subscribers).retain(|tx| tx.send(event.clone()).is_ok());
     }
@@ -920,8 +1051,18 @@ async fn event_loop(weak: Weak<Inner>, mut events: tokio::sync::mpsc::UnboundedR
                     tracing::warn!(error = %e, "sync: ack not stored");
                 }
             }
-            LanEvent::Playback(u) => inner.emit(&ServiceEvent::Playback(u)),
-            LanEvent::Takeover(t) => inner.emit(&ServiceEvent::Takeover(t)),
+            LanEvent::Playback(u) => {
+                inner.observe(&u.hlc);
+                inner.emit(&ServiceEvent::Playback(u));
+            }
+            LanEvent::Takeover(t) => {
+                inner.observe(&t.hlc);
+                inner.emit(&ServiceEvent::Takeover(t));
+            }
+            LanEvent::Pulled => {
+                inner.pulled.fetch_add(1, Ordering::AcqRel);
+                inner.pulled_notify.notify_waiters();
+            }
             LanEvent::HubChanged(_) => inner.emit(&ServiceEvent::DevicesChanged),
             LanEvent::FamilyChanged => {
                 let saved = {

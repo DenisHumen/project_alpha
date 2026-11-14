@@ -155,6 +155,7 @@ fn pb(device: &str, id: u32, position_ms: u64, wall_ms: u64) -> PlaybackUpdate {
         rate: 1.0,
         state: PlayState::Playing,
         hlc: hlc(device, wall_ms),
+        ttl_ms: None,
     }
 }
 

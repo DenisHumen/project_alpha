@@ -2480,6 +2480,7 @@ dependencies = [
  "pa-ffi",
  "pa-flavor",
  "pa-imagecache",
+ "pa-model",
  "pa-proxy",
  "pa-recognition",
  "pa-remote-config",

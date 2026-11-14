@@ -17,8 +17,8 @@ use super::{LanConfig, LanEvent};
 use crate::OpId;
 use crate::hlc::Hlc;
 use crate::proto::{
-    Ack, Change, Cursor, ErrorFrame, Hello, MAX_PULL_LIMIT, Message, OpFrame, ProtoRange, Pull,
-    Role, code, encode,
+    Ack, Change, Cursor, ErrorFrame, Hello, MAX_PULL_LIMIT, Message, OpFrame, PlaybackUpdate,
+    ProtoRange, Pull, Role, code, encode,
 };
 
 /// Frames to a link's writer; `None` closes the link.
@@ -56,6 +56,13 @@ pub(crate) struct Shared {
     state: Mutex<State>,
 }
 
+/// A `pb.update` as received.
+struct Cached {
+    at: Instant,
+    raw: String,
+    update: PlaybackUpdate,
+}
+
 pub(crate) struct State {
     pub(crate) family: Family,
     pub(crate) election: Election,
@@ -71,8 +78,10 @@ pub(crate) struct State {
     cursors: HashMap<String, Cursor>,
     /// Ops each hub journal (by log id) is known to hold.
     acked: HashMap<String, HashSet<OpId>>,
-    /// Last `pb.update` frame per title, replayed to new links.
-    playback: HashMap<(String, MediaKey), (Instant, String)>,
+    /// Last `pb.update` per title (and its frame), replayed to new links.
+    playback: HashMap<(String, MediaKey), Cached>,
+    /// Waiting for the hub's answer to a `pull` (SYNC-003, before playing).
+    pull_waiters: Vec<tokio::sync::oneshot::Sender<()>>,
     /// Newest stamp per message type and title: drops repeats and loops.
     seen: HashMap<(bool, String, MediaKey), Hlc>,
 }
@@ -107,6 +116,7 @@ impl Shared {
             cursors: HashMap::new(),
             acked: HashMap::new(),
             playback: HashMap::new(),
+            pull_waiters: Vec::new(),
             seen: HashMap::new(),
         };
         Ok(Self {
@@ -238,9 +248,9 @@ impl State {
                     );
                 }
                 let ttl = self.playback_ttl;
-                self.playback.retain(|_, (at, _)| at.elapsed() < ttl);
-                for (_, raw) in self.playback.values() {
-                    let _ = link.tx.send(Some(raw.clone()));
+                self.playback.retain(|_, c| c.at.elapsed() < ttl);
+                for c in self.playback.values() {
+                    let _ = link.tx.send(Some(c.raw.clone()));
                 }
                 let head = self.journal.head();
                 if peer.cursor.as_ref() != Some(&head) {
@@ -255,10 +265,49 @@ impl State {
     pub(crate) fn unregister(&mut self, id: u64) {
         if let Some(link) = self.links.remove(&id)
             && let Side::Up { hub_id } = link.side
-            && self.hub.as_ref() == Some(&hub_id)
         {
-            self.set_hub(None);
+            // The answer will not come: waiters see a closed channel.
+            self.pull_waiters.clear();
+            if self.hub.as_ref() == Some(&hub_id) {
+                self.set_hub(None);
+            }
         }
+    }
+
+    /// Asks the hub for what this device lacks (SYNC-003: before playing).
+    /// The receiver fires when the hub has answered in full; `None` when
+    /// there is no hub link (this device is the hub, or alone).
+    pub(crate) fn request_pull(&mut self) -> Option<tokio::sync::oneshot::Receiver<()>> {
+        let (hub_id, tx, log) = self.links.values().find_map(|l| match &l.side {
+            Side::Up { hub_id } => Some((hub_id.clone(), l.tx.clone(), l.log.clone())),
+            Side::Down => None,
+        })?;
+        let cursor = self
+            .cursors
+            .get(&hub_id)
+            .filter(|c| Some(&c.log) == log.as_ref())
+            .cloned();
+        let (done, rx) = tokio::sync::oneshot::channel();
+        self.pull_waiters.push(done);
+        Self::send(
+            &tx,
+            &Message::Pull(Pull {
+                cursor,
+                limit: MAX_PULL_LIMIT,
+            }),
+        );
+        Some(rx)
+    }
+
+    /// The last `pb.update` of another device per title, newest replay
+    /// window only.
+    pub(crate) fn playback_updates(&self) -> Vec<PlaybackUpdate> {
+        let me = self.family.identity().device_id();
+        self.playback
+            .values()
+            .filter(|c| c.at.elapsed() < self.playback_ttl && c.update.hlc.device != me)
+            .map(|c| c.update.clone())
+            .collect()
     }
 
     fn send(tx: &LinkTx, msg: &Message) {
@@ -320,10 +369,14 @@ impl State {
             return;
         }
         self.seen.insert(slot, hlc.clone());
-        if is_update {
+        if let Message::PbUpdate(u) = &msg {
             self.playback.insert(
                 (profile.clone(), key.clone()),
-                (Instant::now(), raw.to_owned()),
+                Cached {
+                    at: Instant::now(),
+                    raw: raw.to_owned(),
+                    update: u.clone(),
+                },
             );
         }
         for (id, link) in &self.links {
@@ -402,6 +455,12 @@ impl State {
                     let more = end.more;
                     let cursor = end.cursor;
                     self.cursors.insert(hub_id.clone(), cursor.clone());
+                    if !more {
+                        self.emit(LanEvent::Pulled);
+                        for done in self.pull_waiters.drain(..) {
+                            let _ = done.send(());
+                        }
+                    }
                     if more {
                         Self::send(
                             &tx,

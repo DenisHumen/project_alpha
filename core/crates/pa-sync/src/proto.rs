@@ -199,6 +199,12 @@ pub struct PlaybackUpdate {
     pub state: PlayState,
     /// When the state was sampled; `hlc.device` is the playing device.
     pub hlc: Hlc,
+    /// How long after `hlc.wall_ms` this state stays current (SYNC-003):
+    /// a `playing` update older than this means the device stopped sending
+    /// (crashed, lost the network). Relays keep the frame for their own
+    /// replay time regardless. Absent: [`crate::handoff::DEFAULT_TTL_MS`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ttl_ms: Option<u64>,
 }
 
 /// `pb.takeover`: `hlc.device` started playing `key`; other devices of the
