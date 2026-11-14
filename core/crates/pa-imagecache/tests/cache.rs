@@ -42,7 +42,12 @@ impl Fake {
 
 impl ImageFetcher for Fake {
     fn fetch(&self, url: &str) -> Result<Fetched, FetchError> {
-        *self.calls.lock().unwrap().entry(url.to_owned()).or_default() += 1;
+        *self
+            .calls
+            .lock()
+            .unwrap()
+            .entry(url.to_owned())
+            .or_default() += 1;
         if self.offline.load(Ordering::SeqCst) {
             return Err(FetchError("host not found".into()));
         }
@@ -235,7 +240,9 @@ fn local_art_is_not_copied() {
     let fake = Fake::new(100);
     let cache = ImageCache::open(dir.path(), options(1 << 20), fake.clone()).unwrap();
     assert_eq!(
-        cache.get("/media/Movie (2020)/poster.jpg", Some(200)).unwrap(),
+        cache
+            .get("/media/Movie (2020)/poster.jpg", Some(200))
+            .unwrap(),
         std::path::PathBuf::from("/media/Movie (2020)/poster.jpg")
     );
     assert_eq!(

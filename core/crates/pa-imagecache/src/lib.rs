@@ -375,9 +375,7 @@ impl ImageCache {
         }
         match result {
             Ok(p) => Ok(p),
-            Err(e @ (Error::Offline(_) | Error::Status(500..))) => {
-                self.any_variant(url).ok_or(e)
-            }
+            Err(e @ (Error::Offline(_) | Error::Status(500..))) => self.any_variant(url).ok_or(e),
             Err(e) => Err(e),
         }
     }
@@ -454,14 +452,13 @@ impl ImageCache {
     }
 
     fn any_variant(&self, url: &str) -> Option<PathBuf> {
-        size::variants(url).iter().find_map(|v| self.hit(&key_of(v)))
+        size::variants(url)
+            .iter()
+            .find_map(|v| self.hit(&key_of(v)))
     }
 
     fn download(&self, url: &str, key: &str) -> Result<PathBuf> {
-        let fetched = self
-            .fetcher
-            .fetch(url)
-            .map_err(|e| Error::Offline(e.0))?;
+        let fetched = self.fetcher.fetch(url).map_err(|e| Error::Offline(e.0))?;
         if !(200..300).contains(&fetched.status) {
             return Err(Error::Status(fetched.status));
         }
@@ -482,9 +479,11 @@ impl ImageCache {
         let path = self.dir.join(&name);
         // The directory may have been purged by the OS since `open`.
         fs::create_dir_all(&self.dir)?;
-        fs::write(&tmp, body).and_then(|()| fs::rename(&tmp, &path)).inspect_err(|_| {
-            let _ = fs::remove_file(&tmp);
-        })?;
+        fs::write(&tmp, body)
+            .and_then(|()| fs::rename(&tmp, &path))
+            .inspect_err(|_| {
+                let _ = fs::remove_file(&tmp);
+            })?;
         let mut s = lock(&self.state);
         let entry = Entry {
             file: name,
@@ -560,7 +559,10 @@ mod tests {
             Some(PathBuf::from("C:/m/p.jpg"))
         );
         assert_eq!(local_path("/m/p.jpg"), Some(PathBuf::from("/m/p.jpg")));
-        assert_eq!(local_path("C:\\m\\p.jpg"), Some(PathBuf::from("C:\\m\\p.jpg")));
+        assert_eq!(
+            local_path("C:\\m\\p.jpg"),
+            Some(PathBuf::from("C:\\m\\p.jpg"))
+        );
         assert_eq!(local_path("https://x/p.jpg"), None);
         assert_eq!(local_path("file://host/p.jpg"), None);
         assert_eq!(local_path("file:///bad%zz"), None);
