@@ -26,9 +26,8 @@ class AppServices extends ChangeNotifier {
     SourceManager? sourceManager,
     this.discovery = const NoSourceDiscovery(),
     this.sync = const NoDeviceSync(),
-    void Function()? onRemoteLibraryChange,
-  }) : _onRemoteLibraryChange = onRemoteLibraryChange,
-       preferences = preferences ?? MemoryPreferences(),
+    this.onRemoteLibraryChange,
+  }) : preferences = preferences ?? MemoryPreferences(),
        sourceManager = sourceManager ?? LibrarySourceManager(library),
        systemLocale = systemLocale ?? _platformLocale,
        music =
@@ -52,7 +51,7 @@ class AppServices extends ChangeNotifier {
 
   /// Refreshes the library views when another device changed progress;
   /// default: [RustLibrary.notifyExternalChange].
-  final void Function()? _onRemoteLibraryChange;
+  final void Function()? onRemoteLibraryChange;
   StreamSubscription<SyncEvent>? _syncSub;
 
   /// What other devices play now (`pb.update` / `pb.takeover`): the hook
@@ -141,7 +140,7 @@ class AppServices extends ChangeNotifier {
   void _onSyncEvent(SyncEvent e) {
     switch (e.kind) {
       case SyncEventKind.libraryChanged:
-        final refresh = _onRemoteLibraryChange;
+        final refresh = onRemoteLibraryChange;
         if (refresh != null) {
           refresh();
         } else if (library is RustLibrary) {
