@@ -10,6 +10,7 @@ import 'package:kinolune/app.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/fakes/fake_source_manager.dart';
 import 'package:kinolune/platform/form_factor.dart';
+import 'package:kinolune/screens/home_screen.dart';
 import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/services/secure_store.dart';
 import 'package:kinolune/shell/app_shell.dart';
@@ -158,4 +159,20 @@ Future<void> capture(WidgetTester tester, String name) async {
   final file = File('$dir/$name.png');
   file.parent.createSync(recursive: true);
   file.writeAsBytesSync(bytes!);
+}
+
+/// Scrolls Home down until [finder] is on screen (UI-007: rows below the
+/// Continue and Up Next rows start below the fold).
+Future<void> scrollHomeTo(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    300,
+    scrollable: find
+        .descendant(
+          of: find.byType(HomeScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await settle(tester, 2);
 }

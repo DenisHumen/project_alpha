@@ -21,6 +21,7 @@ void main() {
       await tester.pumpWidget(testApp(await demoServices()));
       await settle(tester);
       expect(find.text('Continue Watching'), findsOneWidget);
+      await scrollHomeTo(tester, find.text('Recently Added Movies'));
       expect(find.text('Recently Added Movies'), findsOneWidget);
       expect(find.text('TV Shows'), findsWidgets);
       expect(find.byType(KinoluneLogo), findsWidgets);
@@ -133,6 +134,7 @@ void main() {
       await settle(tester, 20);
       expect(services.sources.single.path, '/srv/media');
       expect(services.scanProgress?.isDone, isTrue);
+      await scrollHomeTo(tester, find.text('Recently Added Movies'));
       expect(find.text('Recently Added Movies'), findsOneWidget);
     });
 
