@@ -7,6 +7,9 @@ import 'package:material_ui/material_ui.dart';
 import '../integration/library.dart';
 import '../integration/player.dart';
 import '../l10n/l10n.dart';
+import '../sources/discovery.dart';
+import '../sources/library_source_manager.dart';
+import '../sources/source_manager.dart';
 import 'preferences.dart';
 import 'secure_store.dart';
 
@@ -19,7 +22,10 @@ class AppServices extends ChangeNotifier {
     MusicPlayerController? music,
     this.playerEngineFactory,
     Locale Function()? systemLocale,
+    SourceManager? sourceManager,
+    this.discovery = const NoSourceDiscovery(),
   }) : preferences = preferences ?? MemoryPreferences(),
+       sourceManager = sourceManager ?? LibrarySourceManager(library),
        systemLocale = systemLocale ?? _platformLocale,
        music =
            music ?? MusicPlayerController(engineFactory: playerEngineFactory);
@@ -28,6 +34,14 @@ class AppServices extends ChangeNotifier {
   final SecureStore secureStore;
   final Preferences preferences;
   final MusicPlayerController music;
+
+  /// Settings and status of sources (UI-005): the Rust source manager, or
+  /// the reduced v0 one ([LibrarySourceManager]).
+  final SourceManager sourceManager;
+
+  /// LAN discovery for the add flow (hook; off until pa-discovery is in
+  /// pa_core).
+  final SourceDiscovery discovery;
 
   /// UI language chosen in Settings; null = follow the system locale.
   final ValueNotifier<Locale?> locale = ValueNotifier(null);
@@ -56,6 +70,22 @@ class AppServices extends ChangeNotifier {
 
   List<MediaSource> _sources = const [];
   List<MediaSource> get sources => _sources;
+
+  List<ManagedSource> _managed = const [];
+
+  /// [sources] with settings and status, from [sourceManager].
+  List<ManagedSource> get managedSources => _managed;
+
+  /// Why [managedSources] could not be read, if it failed.
+  Object? get managedSourcesError => _managedError;
+  Object? _managedError;
+
+  /// End time and error of each source's last scan in this session (the
+  /// reduced manager has no stored status).
+  final Map<String, ({DateTime at, String? error})> sessionScans = {};
+
+  /// Sources a scan is running for (all of them for a full scan).
+  final Set<String> scanningSources = {};
   bool _loaded = false;
   bool get loaded => _loaded;
 
@@ -69,6 +99,7 @@ class AppServices extends ChangeNotifier {
     await _syncMetadataLanguage();
     showTwitch.value = await preferences.read(Preferences.showTwitch) == 'true';
     _sources = await library.sources();
+    await _loadManaged();
     final key = await secureStore.read(SecureStore.tmdbKey);
     if (key != null && key.isNotEmpty) await library.setTmdbApiKey(key);
     _loaded = true;
@@ -77,7 +108,80 @@ class AppServices extends ChangeNotifier {
 
   Future<void> refreshSources() async {
     _sources = await library.sources();
+    await _loadManaged();
     notifyListeners();
+  }
+
+  Future<void> _loadManaged() async {
+    try {
+      _managed = await sourceManager.list();
+      _managedError = null;
+    } catch (e) {
+      _managedError = e;
+    }
+  }
+
+  ManagedSource? managedSource(String id) =>
+      _managed.where((s) => s.id == id).firstOrNull;
+
+  /// Adds a source through [sourceManager]. An SMB password is also kept in
+  /// [secureStore]: the scan mounts the share with it (the core never hands
+  /// a stored password back).
+  Future<ManagedSource> createSource(SourceDraft draft) async {
+    final added = await sourceManager.create(draft);
+    final pwd = draft.password;
+    if (draft.type == SourceType.smb && pwd != null && pwd.isNotEmpty) {
+      await secureStore.write(SecureStore.smbPassword(added.id), pwd);
+    }
+    await refreshSources();
+    return added;
+  }
+
+  /// Saves edited settings; [SourceDraft.password] null keeps the password,
+  /// empty removes it.
+  Future<ManagedSource> updateSource(String id, SourceDraft draft) async {
+    final saved = await sourceManager.update(id, draft);
+    final pwd = draft.password;
+    if (pwd != null) {
+      await secureStore.write(
+        SecureStore.smbPassword(id),
+        pwd.isEmpty || draft.type != SourceType.smb ? null : pwd,
+      );
+    }
+    await refreshSources();
+    return saved;
+  }
+
+  /// Removes a source: its settings and password, then its library items.
+  Future<void> deleteSource(String id) async {
+    await sourceManager.delete(id);
+    await removeSource(id);
+  }
+
+  /// Checks a source; the new status is in [managedSources].
+  Future<SourceStatusInfo> checkSource(String id) async {
+    try {
+      return await sourceManager.check(id);
+    } finally {
+      await refreshSources();
+    }
+  }
+
+  Future<SpeedResult> speedTest(String id, {int maxSeconds = 10}) async {
+    try {
+      return await sourceManager.speedTest(id, maxSeconds: maxSeconds);
+    } finally {
+      await refreshSources();
+    }
+  }
+
+  /// Whether a full scan includes [s]: not for browse-only sources nor for
+  /// kinds the scan cannot read yet (WebDAV).
+  bool _scannable(MediaSource s, {required bool explicit}) {
+    final m = managedSource(s.id);
+    if (m == null) return true;
+    if (!m.type.indexable) return false;
+    return explicit || m.scanIntoLibrary;
   }
 
   Future<MediaSource> addSource(MediaSource s, {String? smbPassword}) async {
@@ -99,9 +203,13 @@ class AppServices extends ChangeNotifier {
   Future<void> scan({String? sourceId}) async {
     if (_scanRunning) return;
     final targets = sourceId == null
-        ? _sources
-        : _sources.where((s) => s.id == sourceId).toList();
+        ? _sources.where((s) => _scannable(s, explicit: false)).toList()
+        : _sources
+              .where((s) => s.id == sourceId && _scannable(s, explicit: true))
+              .toList();
+    if (sourceId != null && targets.isEmpty) return;
     _scanRunning = true;
+    scanningSources.addAll(targets.map((s) => s.id));
     _scan = const ScanProgress(phase: ScanPhase.connecting);
     notifyListeners();
     final errors = <String>[];
@@ -111,19 +219,25 @@ class AppServices extends ChangeNotifier {
         final pwd = s.kind == SourceKind.smb
             ? await secureStore.read(SecureStore.smbPassword(s.id))
             : null;
+        String? sourceError;
         await for (final p in library.scan(sourceId: s.id, smbPassword: pwd)) {
           _scan = p;
+          sourceError ??= p.error;
           if (p.isDone) {
             found += p.filesFound;
             if (p.error != null) errors.add('${s.name}: ${p.error}');
           }
           notifyListeners();
         }
+        sessionScans[s.id] = (at: DateTime.now(), error: sourceError);
+        scanningSources.remove(s.id);
       }
     } catch (e) {
       errors.add('$e');
     }
     _scanRunning = false;
+    scanningSources.clear();
+    await _loadManaged();
     _scan = ScanProgress(
       phase: ScanPhase.done,
       filesFound: found,

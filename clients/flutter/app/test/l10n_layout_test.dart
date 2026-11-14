@@ -49,6 +49,22 @@ final _flows = <String, (Section, _Step?)>{
   ),
   'settings': (Section.settings, null),
   'add-source': (Section.settings, (t, l) => _tap(t, l.addSourceTitle)),
+  // UI-005: the SMB form and the Sources screen.
+  'add-source-smb': (
+    Section.settings,
+    (t, l) async {
+      await _tap(t, l.addSourceTitle);
+      await _tap(t, l.sourcesTypeSmb);
+    },
+  ),
+  'sources': (
+    Section.settings,
+    (t, l) async {
+      await t.ensureVisible(find.text(l.sourcesManage));
+      await settle(t, 4);
+      await _tap(t, l.sourcesManage);
+    },
+  ),
   'about': (
     Section.settings,
     (t, l) async {

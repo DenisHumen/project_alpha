@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
+//
+// Adding and editing sources (UI-005): sources found on the network first,
+// then the kinds that can be added by hand; forms for a local folder, SMB
+// and WebDAV. Other kinds are listed as "soon".
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -9,47 +14,449 @@ import 'package:permission_handler/permission_handler.dart';
 import '../integration/library.dart';
 import '../l10n/l10n.dart';
 import '../services/app_services.dart';
+import '../sources/discovery.dart';
+import '../sources/source_address.dart';
+import '../sources/source_manager.dart';
+import '../sources/source_text.dart';
 
-/// Adds a local folder or an SMB share. SMB passwords go to the platform
-/// keystore (flutter_secure_storage), never to the library database.
+/// Opens the add flow. With [type] the kind chooser is skipped. After a
+/// source is added it is checked and — if it goes to the library — scanned.
 Future<MediaSource?> showAddSourceDialog(
   BuildContext context, {
   bool scanAfter = true,
+  SourceType? type,
 }) async {
-  final added = await showDialog<MediaSource>(
+  final services = Services.read(context);
+  final added = await showDialog<ManagedSource>(
     context: context,
-    builder: (_) => const _AddSourceDialog(),
+    builder: (_) => AddSourceDialog(initialType: type),
   );
-  if (added != null && scanAfter && context.mounted) {
-    Services.read(context).scan(sourceId: added.id);
+  if (added == null) return null;
+  unawaited(_checkQuietly(services, added.id));
+  if (scanAfter && added.type.indexable && added.scanIntoLibrary) {
+    unawaited(services.scan(sourceId: added.id));
   }
-  return added;
+  return services.sources.where((s) => s.id == added.id).firstOrNull;
 }
 
-class _AddSourceDialog extends StatefulWidget {
-  const _AddSourceDialog();
+Future<void> _checkQuietly(AppServices services, String id) async {
+  try {
+    await services.checkSource(id);
+  } on SourceException {
+    // The result is in the source status.
+  }
+}
+
+/// Opens the form of an existing source.
+Future<ManagedSource?> showEditSourceDialog(
+  BuildContext context,
+  ManagedSource source,
+) => showDialog<ManagedSource>(
+  context: context,
+  builder: (_) => _FormDialog(
+    child: SourceForm(type: source.type, initial: source),
+  ),
+);
+
+class _FormDialog extends StatelessWidget {
+  const _FormDialog({required this.child});
+
+  final Widget child;
 
   @override
-  State<_AddSourceDialog> createState() => _AddSourceDialogState();
+  Widget build(BuildContext context) => Dialog(
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 520),
+      child: child,
+    ),
+  );
 }
 
-class _AddSourceDialogState extends State<_AddSourceDialog> {
-  SourceKind _kind = SourceKind.localFolder;
-  static final _smbUnsupported = Platform.isAndroid;
+/// Kind chooser, then the form of the chosen kind.
+class AddSourceDialog extends StatefulWidget {
+  const AddSourceDialog({super.key, this.initialType});
+
+  final SourceType? initialType;
+
+  @override
+  State<AddSourceDialog> createState() => _AddSourceDialogState();
+}
+
+class _AddSourceDialogState extends State<AddSourceDialog> {
+  SourceType? _type;
+  DiscoveredSource? _found;
+
+  @override
+  void initState() {
+    super.initState();
+    _type = widget.initialType;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final type = _type;
+    return _FormDialog(
+      child: type == null
+          ? _KindChooser(
+              onPick: (t, [found]) => setState(() {
+                _type = t;
+                _found = found;
+              }),
+            )
+          : SourceForm(
+              type: type,
+              discovered: _found,
+              onBack: widget.initialType == null
+                  ? () => setState(() {
+                      _type = null;
+                      _found = null;
+                    })
+                  : null,
+            ),
+    );
+  }
+}
+
+/// Whether SMB shares can be scanned here: the scan mounts them with gio,
+/// which Android does not have (SmbUnsupportedException).
+bool get _smbScanSupported => !Platform.isAndroid;
+
+class _KindChooser extends StatelessWidget {
+  const _KindChooser({required this.onPick});
+
+  final void Function(SourceType type, [DiscoveredSource? found]) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final services = Services.read(context);
+    final manager = services.sourceManager;
+    final l = context.l10n;
+    final theme = Theme.of(context);
+
+    String? badge(SourceType t) {
+      if (!SourceType.available.contains(t)) return l.sourcesSoon;
+      if (t == SourceType.smb && !_smbScanSupported) return l.sourcesSoon;
+      if (!manager.creatableTypes.contains(t)) {
+        return l.sourcesUnavailableReduced;
+      }
+      return null;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DialogTitle(l.addSourceTitle),
+        Flexible(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.only(bottom: 8),
+            children: [
+              if (services.discovery.supported) ...[
+                _Header(l.sourcesAddDiscovered),
+                StreamBuilder<List<DiscoveredSource>>(
+                  stream: services.discovery.watch(),
+                  builder: (context, snap) {
+                    final found = [
+                      for (final d in snap.data ?? const <DiscoveredSource>[])
+                        if (manager.creatableTypes.contains(d.type)) d,
+                    ];
+                    if (found.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 4, 24, 8),
+                        child: Text(
+                          l.sourcesAddDiscoveredEmpty,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: [
+                        for (final d in found)
+                          ListTile(
+                            leading: Icon(sourceTypeIcon(d.type)),
+                            title: Text(d.name),
+                            subtitle: Text(
+                              '${sourceTypeLabel(l, d.type)} · ${d.host}',
+                            ),
+                            onTap: () => onPick(d.type, d),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                _Header(l.sourcesAddManual),
+              ],
+              for (final t in SourceType.values)
+                Builder(
+                  builder: (context) {
+                    final b = badge(t);
+                    return ListTile(
+                      enabled: b == null,
+                      leading: Icon(sourceTypeIcon(t)),
+                      title: Text(sourceTypeLabel(l, t)),
+                      trailing: b == null
+                          ? const Icon(Icons.chevron_right)
+                          : _Badge(b),
+                      onTap: b == null ? () => onPick(t) : null,
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l.commonCancel),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DialogTitle extends StatelessWidget {
+  const _DialogTitle(this.text, {this.onBack});
+
+  final String text;
+  final VoidCallback? onBack;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.fromLTRB(onBack == null ? 24 : 8, 20, 24, 8),
+    child: Row(
+      children: [
+        if (onBack != null)
+          IconButton(
+            tooltip: context.l10n.commonBack,
+            onPressed: onBack,
+            icon: const Icon(Icons.arrow_back),
+          ),
+        Expanded(
+          child: Text(text, style: Theme.of(context).textTheme.headlineSmall),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Header extends StatelessWidget {
+  const _Header(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
+    child: Text(text, style: Theme.of(context).textTheme.labelLarge),
+  );
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 140),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.colorScheme.outline),
+        ),
+        child: Text(
+          text,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.labelSmall,
+        ),
+      ),
+    );
+  }
+}
+
+/// Readable error with the technical message under "Details".
+class SourceErrorView extends StatelessWidget {
+  const SourceErrorView({super.key, required this.code, this.detail});
+
+  final SourceErrorCode code;
+  final String? detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.error,
+    );
+    final d = detail;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(sourceErrorText(context.l10n, code), style: style),
+        if (d != null && d.isNotEmpty)
+          Theme(
+            data: theme.copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              dense: true,
+              title: Text(
+                context.l10n.sourcesErrorDetails,
+                style: theme.textTheme.labelSmall,
+              ),
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: SelectableText(d, style: theme.textTheme.labelSmall),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Form of one source kind: add (no [initial]) or edit.
+class SourceForm extends StatefulWidget {
+  const SourceForm({
+    super.key,
+    required this.type,
+    this.initial,
+    this.discovered,
+    this.onBack,
+  });
+
+  final SourceType type;
+  final ManagedSource? initial;
+  final DiscoveredSource? discovered;
+  final VoidCallback? onBack;
+
+  @override
+  State<SourceForm> createState() => _SourceFormState();
+}
+
+class _SourceFormState extends State<SourceForm> {
   final _name = TextEditingController();
-  final _path = TextEditingController();
-  final _smbUrl = TextEditingController(text: 'smb://');
+  final _folder = TextEditingController();
+  final _host = TextEditingController();
+  final _share = TextEditingController();
+  final _subfolder = TextEditingController();
+  final _url = TextEditingController();
   final _user = TextEditingController();
   final _password = TextEditingController();
-  String? _error;
+  final _domain = TextEditingController();
+  final _pin = TextEditingController();
+  String _smbVersion = 'any';
+  String _smbEncryption = 'auto';
+  bool _signing = false;
+  bool _scanIntoLibrary = true;
+  bool _forgetPassword = false;
+
+  /// Field errors are shown after the first submit.
+  bool _submitted = false;
   bool _busy = false;
+  SourceException? _error;
+  String? _pickerError;
+
+  bool get _editing => widget.initial != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final s = widget.initial;
+    final d = widget.discovered;
+    if (s != null) {
+      _name.text = s.name;
+      _user.text = s.username ?? '';
+      _scanIntoLibrary = s.scanIntoLibrary;
+      _smbVersion = s.smb.version;
+      _smbEncryption = s.smb.encryption;
+      _signing = s.smb.signingRequired;
+      _domain.text = s.smb.domain ?? '';
+      _pin.text = s.tlsPin ?? '';
+      switch (s.type) {
+        case SourceType.smb:
+          final p = splitSmb(s.address);
+          _host.text = p?.host ?? '';
+          _share.text = p?.share ?? '';
+          _subfolder.text = p?.folder ?? '';
+        case SourceType.webdav:
+          _url.text = s.address;
+        default:
+          _folder.text = _localPath(s.address);
+      }
+    } else if (d != null) {
+      _name.text = d.name;
+      if (d.type == SourceType.smb) {
+        _host.text = d.host;
+      } else if (d.type == SourceType.webdav) {
+        final port = d.port == null ? '' : ':${d.port}';
+        _url.text = 'https://${d.host}$port${d.path ?? '/'}';
+      }
+    }
+    for (final c in [_host, _share, _subfolder, _url, _folder]) {
+      c.addListener(_changed);
+    }
+  }
+
+  void _changed() => setState(() {});
+
+  /// `file:///a/b` (how the core stores folders) as a path.
+  static String _localPath(String address) {
+    if (!address.startsWith('file://')) return address;
+    try {
+      return Uri.parse(address).toFilePath();
+    } on UnsupportedError {
+      return address;
+    }
+  }
 
   @override
   void dispose() {
-    for (final c in [_name, _path, _smbUrl, _user, _password]) {
+    for (final c in [
+      _name,
+      _folder,
+      _host,
+      _share,
+      _subfolder,
+      _url,
+      _user,
+      _password,
+      _domain,
+      _pin,
+    ]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  AddressResult _address() => switch (widget.type) {
+    SourceType.smb => smbAddress(
+      host: _host.text,
+      share: _share.text,
+      folder: _subfolder.text,
+    ),
+    SourceType.webdav => webdavAddress(_url.text),
+    _ => localAddress(_folder.text),
+  };
+
+  AddressResult? _pinResult() =>
+      widget.type == SourceType.webdav ? tlsPin(_pin.text) : null;
+
+  String? _fieldError(SourceFormError? e, Set<SourceFormError> mine) {
+    if (!_submitted || e == null || !mine.contains(e)) return null;
+    return sourceFormErrorText(context.l10n, e);
   }
 
   Future<void> _browse() async {
@@ -58,21 +465,9 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
       final dir = await FilePicker.getDirectoryPath(
         dialogTitle: l.addSourcePickerTitle,
       );
-      if (dir != null) {
-        setState(() {
-          _path.text = dir;
-          if (_name.text.isEmpty) {
-            _name.text =
-                dir
-                    .split(Platform.pathSeparator)
-                    .where((s) => s.isNotEmpty)
-                    .lastOrNull ??
-                dir;
-          }
-        });
-      }
+      if (dir != null) setState(() => _folder.text = dir);
     } catch (e) {
-      setState(() => _error = l.addSourcePickerUnavailable('$e'));
+      setState(() => _pickerError = l.addSourcePickerUnavailable('$e'));
     }
   }
 
@@ -86,166 +481,374 @@ class _AddSourceDialogState extends State<_AddSourceDialog> {
     return statuses.values.any((s) => s.isGranted || s.isLimited);
   }
 
-  String? _validate() {
-    if (_kind == SourceKind.localFolder) {
-      if (_path.text.trim().isEmpty) return context.l10n.addSourceErrorNoFolder;
-      return null;
-    }
-    final u = Uri.tryParse(_smbUrl.text.trim());
-    if (u == null || u.scheme != 'smb' || u.host.isEmpty) {
-      return context.l10n.addSourceErrorSmbForm;
-    }
-    return null;
-  }
-
-  Future<void> _save() async {
-    final err = _validate();
-    if (err != null) {
-      setState(() => _error = err);
-      return;
-    }
+  Future<void> _submit() async {
+    setState(() {
+      _submitted = true;
+      _error = null;
+    });
+    final address = _address();
+    final pin = _pinResult();
+    if (address.error != null || pin?.error != null) return;
     final services = Services.read(context);
     final permissionError = context.l10n.addSourceErrorPermission;
     setState(() => _busy = true);
-    if (_kind == SourceKind.localFolder && !await _ensureStoragePermission()) {
+    if (widget.type == SourceType.local && !await _ensureStoragePermission()) {
       setState(() {
         _busy = false;
-        _error = permissionError;
+        _pickerError = permissionError;
       });
       return;
     }
-    final isSmb = _kind == SourceKind.smb;
-    final path = isSmb ? _smbUrl.text.trim() : _path.text.trim();
-    final uri = isSmb ? Uri.parse(path) : null;
-    final source = MediaSource(
-      id: '',
-      kind: _kind,
+    final user = _user.text.trim();
+    final String? password;
+    if (widget.type == SourceType.local) {
+      password = null;
+    } else if (_editing) {
+      password = _forgetPassword
+          ? ''
+          : (_password.text.isEmpty ? null : _password.text);
+    } else {
+      password = _password.text.isEmpty ? null : _password.text;
+    }
+    final draft = SourceDraft(
+      type: widget.type,
       name: _name.text.trim().isNotEmpty
           ? _name.text.trim()
-          : (uri != null ? '${uri.host}${uri.path}' : path),
-      path: path,
-      username: isSmb && _user.text.trim().isNotEmpty
-          ? _user.text.trim()
-          : null,
+          : suggestSourceName(address.address!),
+      address: address.address!,
+      username: widget.type == SourceType.local || user.isEmpty ? null : user,
+      password: password,
+      smb: SmbSettings(
+        domain: _domain.text.trim().isEmpty ? null : _domain.text.trim(),
+        version: _smbVersion,
+        encryption: _smbEncryption,
+        signingRequired: _signing,
+      ),
+      tlsPin: pin?.address,
+      scanIntoLibrary: widget.type.indexable && _scanIntoLibrary,
+      autoScan: widget.initial?.autoScan ?? true,
     );
-    final added = await services.addSource(
-      source,
-      smbPassword: isSmb ? _password.text : null,
-    );
-    if (mounted) Navigator.of(context).pop(added);
+    try {
+      final saved = _editing
+          ? await services.updateSource(widget.initial!.id, draft)
+          : await services.createSource(draft);
+      if (mounted) Navigator.of(context).pop(saved);
+    } on SourceException catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = e;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l = context.l10n;
-    return AlertDialog(
-      title: Text(l.addSourceTitle),
-      content: SizedBox(
-        width: 460,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SegmentedButton<SourceKind>(
-                segments: [
-                  ButtonSegment(
-                    value: SourceKind.localFolder,
-                    icon: const Icon(Icons.folder_outlined),
-                    label: Text(l.addSourceFolder),
-                  ),
-                  // pa_library 0.1 has no SMB client on Android (SmbUnsupportedException).
-                  ButtonSegment(
-                    value: SourceKind.smb,
-                    enabled: !_smbUnsupported,
-                    icon: const Icon(Icons.lan_outlined),
-                    label: Text(
-                      _smbUnsupported ? l.addSourceSmbSoon : l.addSourceSmbBeta,
-                    ),
-                  ),
-                ],
-                selected: {_kind},
-                onSelectionChanged: (s) => setState(() {
-                  _kind = s.first;
-                  _error = null;
-                }),
+    final theme = Theme.of(context);
+    final address = _address();
+    final addrError = address.error;
+    final type = widget.type;
+    final title = _editing
+        ? l.sourcesEditTitle
+        : '${l.addSourceTitle}: ${sourceTypeLabel(l, type)}';
+    final submitLabel = _editing
+        ? l.commonSave
+        : (type.indexable && _scanIntoLibrary
+              ? l.addSourceSubmit
+              : l.sourcesFormAdd);
+    const gap = SizedBox(height: 12);
+
+    final fields = <Widget>[
+      if (type == SourceType.local) ...[
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextField(
+                key: const ValueKey('source-folder'),
+                controller: _folder,
+                decoration: InputDecoration(
+                  labelText: l.addSourceFolder,
+                  hintText: l.addSourceFolderHint,
+                  errorText: _fieldError(addrError, {
+                    SourceFormError.folderEmpty,
+                    SourceFormError.folderNotAbsolute,
+                  }),
+                  errorMaxLines: 3,
+                ),
               ),
-              const SizedBox(height: 16),
-              if (_kind == SourceKind.localFolder) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _path,
-                        decoration: InputDecoration(
-                          labelText: l.addSourceFolder,
-                          hintText: l.addSourceFolderHint,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton.tonalIcon(
-                      onPressed: _browse,
-                      icon: const Icon(Icons.folder_open),
-                      label: Text(l.addSourceBrowse),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(l.addSourceFolderTip, style: theme.textTheme.bodySmall),
-              ] else ...[
-                TextField(
-                  controller: _smbUrl,
-                  keyboardType: TextInputType.url,
-                  decoration: InputDecoration(
-                    labelText: l.addSourceShareAddress,
-                    hintText: l.addSourceShareHint,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _user,
-                  decoration: InputDecoration(labelText: l.addSourceUsername),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _password,
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: l.addSourcePassword,
-                    helperText: l.addSourcePasswordHelper,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              TextField(
-                controller: _name,
-                decoration: InputDecoration(labelText: l.addSourceDisplayName),
+            ),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: IconButton.filledTonal(
+                tooltip: l.addSourceBrowse,
+                onPressed: _busy ? null : _browse,
+                icon: const Icon(Icons.folder_open),
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(
-                  _error!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
-                  ),
-                ),
-              ],
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Text(l.addSourceFolderTip, style: theme.textTheme.bodySmall),
+        if (_pickerError != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _pickerError!,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        ],
+      ],
+      if (type == SourceType.smb) ...[
+        TextField(
+          key: const ValueKey('source-host'),
+          controller: _host,
+          keyboardType: TextInputType.url,
+          decoration: InputDecoration(
+            labelText: l.sourcesFormHost,
+            hintText: l.sourcesFormHostHint,
+            errorText: _fieldError(addrError, {
+              SourceFormError.hostEmpty,
+              SourceFormError.credentialsInAddress,
+            }),
+            errorMaxLines: 3,
           ),
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.pop(context),
-          child: Text(l.commonCancel),
+        gap,
+        TextField(
+          key: const ValueKey('source-share'),
+          controller: _share,
+          decoration: InputDecoration(
+            labelText: l.sourcesFormShare,
+            hintText: l.sourcesFormShareHint,
+            errorText: _fieldError(addrError, {SourceFormError.shareEmpty}),
+            errorMaxLines: 3,
+          ),
         ),
-        FilledButton(
-          onPressed: _busy ? null : _save,
-          child: Text(l.addSourceSubmit),
+        gap,
+        TextField(
+          key: const ValueKey('source-subfolder'),
+          controller: _subfolder,
+          decoration: InputDecoration(
+            labelText: l.sourcesFormSubfolder,
+            hintText: l.sourcesFormSubfolderHint,
+          ),
+        ),
+        if (address.address != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            l.sourcesFormAddress(address.address!),
+            style: theme.textTheme.labelSmall,
+          ),
+        ],
+      ],
+      if (type == SourceType.webdav)
+        TextField(
+          key: const ValueKey('source-url'),
+          controller: _url,
+          keyboardType: TextInputType.url,
+          decoration: InputDecoration(
+            labelText: l.sourcesFormUrl,
+            hintText: l.sourcesFormUrlHint,
+            errorText: _fieldError(addrError, {
+              SourceFormError.urlEmpty,
+              SourceFormError.urlScheme,
+              SourceFormError.credentialsInAddress,
+            }),
+            errorMaxLines: 3,
+          ),
+        ),
+      if (type != SourceType.local) ...[
+        gap,
+        TextField(
+          key: const ValueKey('source-user'),
+          controller: _user,
+          autocorrect: false,
+          decoration: InputDecoration(labelText: l.addSourceUsername),
+        ),
+        gap,
+        TextField(
+          key: const ValueKey('source-password'),
+          controller: _password,
+          obscureText: true,
+          enabled: !_forgetPassword,
+          decoration: InputDecoration(
+            labelText: l.addSourcePassword,
+            helperText: _editing && widget.initial!.hasPassword
+                ? l.sourcesFormPasswordKeep
+                : l.addSourcePasswordHelper,
+            helperMaxLines: 3,
+          ),
+        ),
+        if (_editing && widget.initial!.hasPassword)
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            value: _forgetPassword,
+            title: Text(l.sourcesFormForgetPassword),
+            onChanged: (v) => setState(() => _forgetPassword = v),
+          ),
+        Theme(
+          data: theme.copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            key: const ValueKey('source-advanced'),
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: const EdgeInsets.only(bottom: 8),
+            title: Text(l.sourcesFormAdvanced),
+            expandedCrossAxisAlignment: CrossAxisAlignment.start,
+            children: type == SourceType.smb
+                ? _smbAdvanced(l)
+                : _webdavAdvanced(l),
+          ),
+        ),
+      ],
+      gap,
+      TextField(
+        key: const ValueKey('source-name'),
+        controller: _name,
+        decoration: InputDecoration(labelText: l.addSourceDisplayName),
+      ),
+      if (type.indexable)
+        SwitchListTile(
+          key: const ValueKey('source-scan-into-library'),
+          contentPadding: EdgeInsets.zero,
+          value: _scanIntoLibrary,
+          title: Text(l.sourcesFormScanIntoLibrary),
+          subtitle: Text(l.sourcesFormScanIntoLibraryHint),
+          onChanged: (v) => setState(() => _scanIntoLibrary = v),
+        )
+      else ...[
+        gap,
+        Text(l.sourcesNotIndexable, style: theme.textTheme.bodySmall),
+      ],
+      if (_error != null) ...[
+        gap,
+        SourceErrorView(code: _error!.code, detail: _error!.detail),
+      ],
+    ];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DialogTitle(title, onBack: _busy ? null : widget.onBack),
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: fields,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+          child: Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              TextButton(
+                onPressed: _busy ? null : () => Navigator.pop(context),
+                child: Text(l.commonCancel),
+              ),
+              FilledButton(
+                key: const ValueKey('source-submit'),
+                onPressed: _busy ? null : _submit,
+                child: Text(submitLabel),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
+
+  List<Widget> _smbAdvanced(AppLocalizations l) => [
+    TextField(
+      key: const ValueKey('source-domain'),
+      controller: _domain,
+      decoration: InputDecoration(labelText: l.sourcesFormDomain),
+    ),
+    const SizedBox(height: 12),
+    Text(l.sourcesFormSmbVersion),
+    _Choices(
+      value: _smbVersion,
+      options: {
+        'any': l.sourcesFormSmbVersionAny, // l10n-ignore
+        'smb2': l.sourcesFormSmbVersionSmb2, // l10n-ignore
+        'smb3': l.sourcesFormSmbVersionSmb3, // l10n-ignore
+      },
+      onChanged: (v) => setState(() => _smbVersion = v),
+    ),
+    const SizedBox(height: 8),
+    Text(l.sourcesFormEncryption),
+    _Choices(
+      value: _smbEncryption,
+      options: {
+        'auto': l.sourcesFormEncryptionAuto, // l10n-ignore
+        'required': l.sourcesFormEncryptionRequired, // l10n-ignore
+        'off': l.sourcesFormEncryptionOff, // l10n-ignore
+      },
+      onChanged: (v) => setState(() => _smbEncryption = v),
+    ),
+    SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      value: _signing,
+      title: Text(l.sourcesFormSigning),
+      onChanged: (v) => setState(() => _signing = v),
+    ),
+  ];
+
+  List<Widget> _webdavAdvanced(AppLocalizations l) {
+    final pin = _pinResult();
+    return [
+      TextField(
+        key: const ValueKey('source-tls-pin'),
+        controller: _pin,
+        autocorrect: false,
+        onChanged: (_) => setState(() {}),
+        decoration: InputDecoration(
+          labelText: l.sourcesFormTlsPin,
+          helperText: l.sourcesFormTlsPinHelper,
+          helperMaxLines: 3,
+          errorText: _fieldError(pin?.error, {SourceFormError.tlsPin}),
+          errorMaxLines: 3,
+        ),
+      ),
+    ];
+  }
+}
+
+class _Choices extends StatelessWidget {
+  const _Choices({
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String value;
+  final Map<String, String> options;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 6),
+    child: Wrap(
+      spacing: 8,
+      runSpacing: 6,
+      children: [
+        for (final MapEntry(:key, value: label) in options.entries)
+          ChoiceChip(
+            label: Text(label),
+            selected: key == value,
+            onSelected: (_) => onChanged(key),
+          ),
+      ],
+    ),
+  );
 }

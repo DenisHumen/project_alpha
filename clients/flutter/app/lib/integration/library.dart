@@ -14,6 +14,7 @@ export 'package:pa_library/pa_library.dart'
         nextEpisodeIn,
         resumePositionMs,
         OpenedLibrary,
+        coreDbFileName,
         openAppLibrary,
         RustLibrary,
         ScanProgress,

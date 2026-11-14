@@ -8,10 +8,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/app.dart';
 import 'package:kinolune/fakes/fake_library.dart';
+import 'package:kinolune/fakes/fake_source_manager.dart';
 import 'package:kinolune/platform/form_factor.dart';
 import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/services/secure_store.dart';
 import 'package:kinolune/shell/app_shell.dart';
+import 'package:kinolune/sources/discovery.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pa_player/testing.dart';
 
@@ -75,13 +77,23 @@ Directory? _materialFontsDir() {
   return null;
 }
 
-Future<AppServices> demoServices({bool empty = false}) async {
+/// Demo services. Sources go through [FakeSourceManager] (like the Rust
+/// source manager); with [reducedSources] through the v0 fallback
+/// (`LibrarySourceManager`). [discovery] feeds the add flow.
+Future<AppServices> demoServices({
+  bool empty = false,
+  bool reducedSources = false,
+  SourceDiscovery discovery = const NoSourceDiscovery(),
+}) async {
+  final library = empty
+      ? FakeLibrary(scanStepDelay: Duration.zero)
+      : FakeLibrary.demo(scanStepDelay: Duration.zero);
   final s = AppServices(
-    library: empty
-        ? FakeLibrary(scanStepDelay: Duration.zero)
-        : FakeLibrary.demo(scanStepDelay: Duration.zero),
+    library: library,
     secureStore: MemorySecureStore(),
     playerEngineFactory: ({bool video = true}) => FakePlayerEngine(),
+    sourceManager: reducedSources ? null : FakeSourceManager(library),
+    discovery: discovery,
   );
   await s.init();
   return s;

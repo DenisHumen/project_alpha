@@ -155,6 +155,7 @@ void main() {
         'fixMatch',
         'twitch',
         'addSource',
+        'sources',
         'settings',
         'about',
         'onboarding',

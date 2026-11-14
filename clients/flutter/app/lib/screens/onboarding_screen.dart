@@ -8,6 +8,7 @@ import '../theme/kinolune_theme.dart';
 import '../widgets/artwork.dart';
 import '../widgets/focusable.dart';
 import '../widgets/logo.dart';
+import '../sources/source_manager.dart';
 import 'add_source_dialog.dart';
 
 /// First run: shown while there are no sources.
@@ -73,7 +74,8 @@ class OnboardingScreen extends StatelessWidget {
                               primary: true,
                               icon: Icons.create_new_folder_outlined,
                               label: l.onboardingAddFolder,
-                              onPressed: () => showAddSourceDialog(context),
+                              onPressed: () =>
+                                  showAddSourceDialog(context, type: SourceType.local),
                             ),
                             KButton(
                               icon: Icons.auto_awesome_outlined,

@@ -9,8 +9,9 @@
 //! so queries on the catalog keep working while it runs (WAL).
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use pa_library::rusqlite::params;
 use pa_scanner::{CancelToken, FolderOptions, MusicOptions, ScanError, ScanEvent, ScanOptions};
 use pa_vfs::LocalFs;
 
@@ -59,6 +60,70 @@ impl ScanUpdate {
     }
 }
 
+/// Start, end and fatal error of one source's scan in the `sources` status
+/// columns (NET-011), shown by the Sources screen (UI-005). Written on a
+/// short connection of its own; the end is written on drop, so every exit
+/// of the pipeline (errors, cancel) closes the scan. Status writes are best
+/// effort: a failure never fails the scan.
+struct ScanStatus<'a> {
+    db: &'a Path,
+    id: i64,
+    error: Option<String>,
+}
+
+impl<'a> ScanStatus<'a> {
+    fn start(db: &'a Path, id: i64) -> Self {
+        Self::write(
+            db,
+            "UPDATE sources SET last_scan_started_at_ms = ?2, last_scan_finished_at_ms = NULL
+             WHERE id = ?1",
+            id,
+            None,
+        );
+        Self {
+            db,
+            id,
+            error: None,
+        }
+    }
+
+    /// The source could not be scanned: `message` becomes its last error.
+    fn fail(&mut self, message: String) {
+        self.error = Some(message);
+    }
+
+    fn write(db: &Path, sql: &str, id: i64, error: Option<&str>) {
+        if let Ok(conn) = pa_library::open(db) {
+            let now = crate::now_ms();
+            let _ = match error {
+                Some(e) => conn.execute(sql, params![id, now, e]),
+                None => conn.execute(sql, params![id, now]),
+            };
+        }
+    }
+}
+
+impl Drop for ScanStatus<'_> {
+    fn drop(&mut self) {
+        match self.error.take() {
+            Some(e) => Self::write(
+                self.db,
+                "UPDATE sources SET last_scan_finished_at_ms = ?2, last_error = ?3,
+                     last_error_at_ms = ?2
+                 WHERE id = ?1",
+                self.id,
+                Some(&e),
+            ),
+            None => Self::write(
+                self.db,
+                "UPDATE sources SET last_scan_finished_at_ms = ?2 WHERE id = ?1",
+                self.id,
+                None,
+            ),
+        }
+    }
+}
+
 fn n(v: usize) -> u64 {
     u64::try_from(v).unwrap_or(u64::MAX)
 }
@@ -98,21 +163,26 @@ impl Catalog {
                 u.error = Some(format!("{}: {msg}", src.name));
                 u
             };
+            let mut status = ScanStatus::start(&self.path, src.id);
             let mut u = ScanUpdate::new(ScanPhase::Connecting, Some(src.id), found);
             u.current_path = Some(src.uri.clone());
             on_update(u);
             let Some(root) = roots.get(&src.id).cloned().or(src.local_root.clone()) else {
+                status.fail("no local path for this source".into());
                 on_update(fail(found, "no local path for this source".into()));
                 continue;
             };
             if !root.is_dir() {
                 // Offline drive / unmounted share: keep the items.
-                on_update(fail(found, format!("folder not found: {}", root.display())));
+                let msg = format!("folder not found: {}", root.display());
+                status.fail(msg.clone());
+                on_update(fail(found, msg));
                 continue;
             }
             let vfs = match LocalFs::new(&root) {
                 Ok(v) => v,
                 Err(e) => {
+                    status.fail(e.to_string());
                     on_update(fail(found, e.to_string()));
                     continue;
                 }
@@ -143,6 +213,7 @@ impl Catalog {
             ) {
                 Ok(r) => r,
                 Err(ScanError::SourceUnavailable(e)) => {
+                    status.fail(e.to_string());
                     on_update(fail(found, e.to_string()));
                     continue;
                 }
