@@ -111,9 +111,8 @@ class CoreSourceDiscovery implements SourceDiscovery {
     out = StreamController<List<DiscoveredSource>>(
       onListen: () {
         sub = _core.watch().listen(
-          (list) => out.add([
-            for (final s in list) ?discoveredSourceFromCore(s),
-          ]),
+          (list) =>
+              out.add([for (final s in list) ?discoveredSourceFromCore(s)]),
           onError: out.addError,
         );
         if (_listeners++ == 0) {
