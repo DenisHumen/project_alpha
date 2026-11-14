@@ -72,8 +72,9 @@ class _DevicesScreenState extends State<DevicesScreen> {
     }
   }
 
-  void _snack(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _snack(String text) => ScaffoldMessenger.of(context)
+    ..removeCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
 
   String _errorText(Object e) {
     final l = context.l10n;
