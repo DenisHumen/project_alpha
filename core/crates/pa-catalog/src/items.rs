@@ -14,7 +14,8 @@ use pa_library::search::{SearchKind, SearchOptions};
 use crate::{Catalog, Error, uri};
 
 /// Kind of an item.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ItemKind {
     Movie,
     /// A show or an anime series (a group of episodes).
@@ -349,6 +350,43 @@ fn query(
     let mut stmt = conn.prepare_cached(&sql)?;
     let rows = stmt.query_map(params_from_iter(args.iter()), row)?;
     Ok(rows.collect::<Result<_, _>>()?)
+}
+
+/// Movies (`ItemKind::Movie`) or shows (`ItemKind::Show`) with these work
+/// ids, in the order of `ids`; ids without a present file are left out.
+pub(crate) fn works_by_ids(
+    conn: &Connection,
+    kind: ItemKind,
+    ids: &[i64],
+) -> Result<Vec<Item>, Error> {
+    if ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    let json = serde_json::to_string(ids).map_err(|e| Error::Invalid(e.to_string()))?;
+    let filter = "AND w.id IN (SELECT value FROM json_each(?1))";
+    let found = match kind {
+        ItemKind::Movie => query(
+            conn,
+            MOVIE_SQL,
+            filter,
+            "GROUP BY w.id",
+            &[&json],
+            movie_row,
+        )?,
+        ItemKind::Show => query(conn, SHOW_SQL, filter, "GROUP BY w.id", &[&json], show_row)?,
+        other => return Err(Error::Invalid(format!("not a work kind: {other:?}"))),
+    };
+    let mut by_id: std::collections::HashMap<ItemRef, Item> =
+        found.into_iter().map(|i| (i.id, i)).collect();
+    Ok(ids
+        .iter()
+        .filter_map(|id| {
+            by_id.remove(&match kind {
+                ItemKind::Movie => ItemRef::Movie(*id),
+                _ => ItemRef::Show(*id),
+            })
+        })
+        .collect())
 }
 
 pub(crate) fn movies(conn: &Connection) -> Result<Vec<Item>, Error> {

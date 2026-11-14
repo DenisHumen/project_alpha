@@ -4,11 +4,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
-    show ExternalLibrary;
+    show ExternalLibrary, Int64List;
 import 'package:pa_core/pa_core.dart';
 import 'package:path/path.dart' as p;
 
 import 'library.dart';
+import 'library_query.dart';
 import 'models.dart';
 import 'music_tags.dart';
 import 'open_library.dart';
@@ -573,6 +574,272 @@ class RustLibrary implements Library {
     );
     _notify();
   }
+
+  // -------------------------------------------------------------------------
+  // library queries (LIB-009)
+
+  static CoreItemKind _workKind(ItemKind kind) => switch (kind) {
+    ItemKind.movie => CoreItemKind.movie,
+    ItemKind.show => CoreItemKind.series,
+    _ => throw ArgumentError.value(
+      kind,
+      'kind',
+      'queries list movies or shows',
+    ),
+  };
+
+  static ItemKind _kindOf(CoreItemKind kind) => switch (kind) {
+    CoreItemKind.movie => ItemKind.movie,
+    CoreItemKind.series => ItemKind.show,
+    CoreItemKind.episode => ItemKind.episode,
+    CoreItemKind.track => ItemKind.track,
+  };
+
+  static CoreLibrarySort _coreSort(LibrarySort s) => CoreLibrarySort(
+    field: CoreSortField.values[s.field.index],
+    descending: s.descending,
+  );
+
+  static LibrarySort _sort(CoreLibrarySort s) => LibrarySort(
+    field: SortField.values[s.field.index],
+    descending: s.descending,
+  );
+
+  static CoreLibraryFilter _coreFilter(LibraryFilter f) => CoreLibraryFilter(
+    genres: f.genres,
+    yearMin: f.yearMin,
+    yearMax: f.yearMax,
+    watched: [for (final w in f.watched) CoreWatchState.values[w.index]],
+    resolutions: [
+      for (final r in f.resolutions) CoreResolution.values[r.index],
+    ],
+    hdr: [for (final h in f.hdr) CoreHdrFilter.values[h.index]],
+    audioFormats: f.audioFormats,
+    audioLanguages: f.audioLanguages,
+    sources: Int64List.fromList([
+      for (final id in f.sources) ?int.tryParse(id),
+    ]),
+  );
+
+  static LibraryFilter _filter(CoreLibraryFilter f) => LibraryFilter(
+    genres: f.genres,
+    yearMin: f.yearMin,
+    yearMax: f.yearMax,
+    watched: {for (final w in f.watched) WatchState.values[w.index]},
+    resolutions: {
+      for (final r in f.resolutions) VideoResolution.values[r.index],
+    },
+    hdr: {for (final h in f.hdr) HdrFilter.values[h.index]},
+    audioFormats: f.audioFormats,
+    audioLanguages: f.audioLanguages,
+    sources: [for (final id in f.sources) '$id'],
+  );
+
+  static CoreLibraryQuery _coreQuery(LibraryQuery q) => CoreLibraryQuery(
+    kind: _workKind(q.kind),
+    filter: _coreFilter(q.filter),
+    sort: _coreSort(q.sort),
+  );
+
+  static LibraryQuery _query(CoreLibraryQuery q) => LibraryQuery(
+    _kindOf(q.kind),
+    filter: _filter(q.filter),
+    sort: _sort(q.sort),
+  );
+
+  LibraryPage _page(CoreItemPage p) => LibraryPage(
+    items: p.items.map(_item).toList(),
+    total: p.total,
+    offset: p.offset,
+  );
+
+  SmartShelf _shelf(CoreSmartShelf s) => SmartShelf(
+    id: '${s.id}',
+    name: s.name,
+    query: _query(s.query),
+    pinnedHome: s.pinnedHome,
+    position: s.position,
+  );
+
+  /// One page of [query]: [limit] items from [offset], and the total.
+  Future<LibraryPage> query(
+    LibraryQuery query, {
+    int offset = 0,
+    int limit = 100,
+  }) async => _page(
+    await _core.query(
+      query: _coreQuery(query),
+      offset: offset.clamp(0, 0xffffffff),
+      limit: limit.clamp(0, 0xffffffff),
+    ),
+  );
+
+  /// [query] now and after every library change.
+  Stream<LibraryPage> watchQuery(
+    LibraryQuery query, {
+    int offset = 0,
+    int limit = 100,
+  }) => _watch(() => this.query(query, offset: offset, limit: limit));
+
+  /// Alphabet index of [query] in title order (descending if the query
+  /// sorts by title descending).
+  Future<List<AlphabetEntry>> alphabetIndex(LibraryQuery query) async => [
+    for (final e in await _core.alphabetIndex(query: _coreQuery(query)))
+      AlphabetEntry(letter: e.letter, offset: e.offset, count: e.count),
+  ];
+
+  /// Filter values present among movies or shows, for filter chips.
+  Future<LibraryFacets> facets(ItemKind kind) async {
+    final f = await _core.facets(kind: _workKind(kind));
+    List<FacetCount<String>> text(List<CoreTextFacet> v) => [
+      for (final x in v) FacetCount(x.value, x.count),
+    ];
+    return LibraryFacets(
+      genres: text(f.genres),
+      yearMin: f.yearMin,
+      yearMax: f.yearMax,
+      resolutions: [
+        for (final r in f.resolutions)
+          FacetCount(VideoResolution.values[r.value.index], r.count),
+      ],
+      hdr: [
+        for (final h in f.hdr)
+          FacetCount(HdrFilter.values[h.value.index], h.count),
+      ],
+      audioFormats: text(f.audioFormats),
+      audioLanguages: text(f.audioLanguages),
+      sources: [
+        for (final s in f.sources) FacetCount('${s.sourceId}', s.count),
+      ],
+    );
+  }
+
+  /// Entries of folder [dir] (relative to the source root, `''` = root) of
+  /// a source: subfolders and media files, sorted by [sort] (title = name),
+  /// folders first if [foldersFirst].
+  Future<List<FolderEntry>> browse(
+    String sourceId, {
+    String dir = '',
+    LibrarySort sort = const LibrarySort(),
+    bool foldersFirst = true,
+  }) async {
+    final id = int.tryParse(sourceId);
+    if (id == null) return const [];
+    return [
+      for (final e in await _core.browse(
+        sourceId: id,
+        dir: dir,
+        sort: _coreSort(sort),
+        foldersFirst: foldersFirst,
+      ))
+        FolderEntry(
+          name: e.name,
+          relPath: e.relPath,
+          isFolder: e.isFolder,
+          itemId: e.itemId,
+          sizeBytes: e.sizeBytes,
+          fileCount: e.fileCount,
+          addedAt: DateTime.fromMillisecondsSinceEpoch(e.addedAtMs),
+          durationMs: e.durationMs,
+        ),
+    ];
+  }
+
+  /// Saved preferences of [view] (`movies`, `shows`, `folder:<source>`…),
+  /// or its defaults: by title, folders first, no filter.
+  Future<ViewPrefs> viewPrefs(String view) async {
+    final p = await _core.viewPrefs(view: view);
+    final filter = p.filter;
+    return ViewPrefs(
+      p.view,
+      sort: _sort(p.sort),
+      foldersFirst: p.foldersFirst,
+      filter: filter == null ? null : _filter(filter),
+    );
+  }
+
+  /// Saves the preferences of [prefs.view]; each view keeps its own.
+  Future<void> setViewPrefs(ViewPrefs prefs) async {
+    final filter = prefs.filter;
+    await _core.setViewPrefs(
+      prefs: CoreViewPrefs(
+        view: prefs.view,
+        sort: _coreSort(prefs.sort),
+        foldersFirst: prefs.foldersFirst,
+        filter: filter == null ? null : _coreFilter(filter),
+      ),
+    );
+  }
+
+  /// Smart shelves by position; [pinnedOnly]: those pinned to Home.
+  Future<List<SmartShelf>> shelves({bool pinnedOnly = false}) async => [
+    for (final s in await _core.shelves(pinnedOnly: pinnedOnly)) _shelf(s),
+  ];
+
+  /// Saves [query] as a new shelf at the end of the list.
+  Future<SmartShelf> createShelf(
+    String name,
+    LibraryQuery query, {
+    bool pinnedHome = false,
+  }) async {
+    final s = await _core.createShelf(
+      name: name,
+      query: _coreQuery(query),
+      pinnedHome: pinnedHome,
+    );
+    _notify();
+    return _shelf(s);
+  }
+
+  Future<void> updateShelf(
+    String id,
+    String name,
+    LibraryQuery query, {
+    bool pinnedHome = false,
+  }) async {
+    await _core.updateShelf(
+      id: _shelfId(id),
+      name: name,
+      query: _coreQuery(query),
+      pinnedHome: pinnedHome,
+    );
+    _notify();
+  }
+
+  Future<void> deleteShelf(String id) async {
+    final n = int.tryParse(id);
+    if (n == null) return;
+    await _core.deleteShelf(id: n);
+    _notify();
+  }
+
+  /// Puts the shelves in the order of [ids]; unlisted ones follow.
+  Future<void> reorderShelves(List<String> ids) async {
+    await _core.reorderShelves(
+      ids: Int64List.fromList([for (final id in ids) ?int.tryParse(id)]),
+    );
+    _notify();
+  }
+
+  /// One page of a shelf's query.
+  Future<LibraryPage> shelfItems(
+    String id, {
+    int offset = 0,
+    int limit = 100,
+  }) async => _page(
+    await _core.shelfItems(
+      id: _shelfId(id),
+      offset: offset.clamp(0, 0xffffffff),
+      limit: limit.clamp(0, 0xffffffff),
+    ),
+  );
+
+  /// Genres of a movie or show.
+  Future<List<String>> genres(String itemId) => _core.genres(itemId: itemId);
+
+  static int _shelfId(String id) =>
+      int.tryParse(id) ??
+      (throw ArgumentError.value(id, 'id', 'no such shelf'));
 
   // -------------------------------------------------------------------------
   // change watcher (LIB-005)
