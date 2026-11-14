@@ -18,7 +18,10 @@ class AppServices extends ChangeNotifier {
     Preferences? preferences,
     MusicPlayerController? music,
     this.playerEngineFactory,
+    Locale Function()? systemLocale,
   }) : preferences = preferences ?? MemoryPreferences(),
+       systemLocale = systemLocale ??
+           (() => WidgetsBinding.instance.platformDispatcher.locale),
        music =
            music ?? MusicPlayerController(engineFactory: playerEngineFactory);
 
@@ -29,6 +32,9 @@ class AppServices extends ChangeNotifier {
 
   /// UI language chosen in Settings; null = follow the system locale.
   final ValueNotifier<Locale?> locale = ValueNotifier(null);
+
+  /// The system locale, for [locale] == null (tests override it).
+  final Locale Function() systemLocale;
 
   /// Whether the Twitch section is in the navigation. Off by default until
   /// the Twitch feature ships (after release 0.1); toggled in Settings.
@@ -49,6 +55,7 @@ class AppServices extends ChangeNotifier {
 
   Future<void> init() async {
     locale.value = parseLocaleTag(await preferences.read(Preferences.locale));
+    await _syncMetadataLanguage();
     showTwitch.value = await preferences.read(Preferences.showTwitch) == 'true';
     _sources = await library.sources();
     final key = await secureStore.read(SecureStore.tmdbKey);
@@ -125,8 +132,15 @@ class AppServices extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Provider metadata follows the UI language (UI-024); stored metadata in
+  /// another language is fetched again on the next scan.
+  Future<void> _syncMetadataLanguage() => library.setMetadataLanguage(
+    metadataLanguageFor(locale.value ?? systemLocale()),
+  );
+
   Future<void> setLocale(Locale? value) async {
     locale.value = value;
+    await _syncMetadataLanguage();
     await preferences.write(
       Preferences.locale,
       value == null ? null : localeTag(value),

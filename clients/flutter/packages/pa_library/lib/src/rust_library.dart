@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'library.dart';
 import 'models.dart';
 import 'music_tags.dart';
+import 'open_library.dart';
 import 'playback_session.dart';
 import 'smb.dart';
 
@@ -60,9 +61,9 @@ class RustLibrary implements Library {
   ///
   /// If [legacyV0Path] is a `pa_library` v0 database, it is imported (only
   /// what is new: the import is idempotent). With [renameLegacyV0] the v0
-  /// file is renamed to `*.v0.bak` after a successful import
-  /// (docs/dev/db.md); keep it while the Rust core is behind a flag, so the
-  /// app can still go back to v0.
+  /// file is renamed to `*.v0.bak` (or a free `*.v0.bak.N`) after a
+  /// successful import (docs/dev/db.md); nothing is deleted. The app opens
+  /// the library with [openAppLibrary].
   ///
   /// Provider responses are cached in [metadataCacheDir] (default: a
   /// `provider-cache` folder next to the database).
@@ -107,9 +108,17 @@ class RustLibrary implements Library {
     if (!await isLegacyV0Library(path: path)) return null;
     final report = await _core.importV0(path: path);
     if (rename) {
-      for (final suffix in ['', '-wal', '-shm']) {
-        final f = File('$path$suffix');
-        if (f.existsSync()) f.renameSync('$path.v0.bak$suffix');
+      // Never over an older backup: a free `.v0.bak[.N]` name. A failed
+      // rename leaves the file in place; the next start imports it again
+      // (idempotent) and retries.
+      final backup = freeLegacyV0BackupPath(path);
+      try {
+        for (final suffix in ['', '-wal', '-shm']) {
+          final f = File('$path$suffix');
+          if (f.existsSync()) f.renameSync('$backup$suffix');
+        }
+      } on FileSystemException {
+        // Keep going on the imported data.
       }
     }
     _notify();
@@ -144,10 +153,13 @@ class RustLibrary implements Library {
     final l = (language == null || language.trim().isEmpty)
         ? defaultMetadataLanguage
         : language.trim();
-    if (l == _language) return;
+    // No reset: the core fetches again every work whose stored metadata is in
+    // another language (`work_metadata.language`), on the next metadata run.
     _language = l;
-    await _core.resetMetadata(all: true);
   }
+
+  /// The language of the next metadata run.
+  String get metadataLanguage => _language;
 
   // -------------------------------------------------------------------------
   // sources

@@ -124,6 +124,11 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           # No cache in the release pipeline: every release builds from scratch.
           cache: false
+      - name: Rust toolchain for the core (pa_core Native Assets, UI-024)
+        working-directory: core/crates/pa-frb
+        # Channel and targets (Linux, Android) from the crate's rust-toolchain.toml;
+        # the pa_core build hook compiles libpa_frb into the app with it.
+        run: rustup toolchain install
       - name: flutter build linux
         working-directory: ${{ env.APP_DIR }}
         env:
@@ -150,6 +155,8 @@ jobs:
           ldd "$dir/lib/libmedia_kit_video_plugin.so" | grep -F "libmpv.so.2 => $dir/lib/libmpv.so.2" \
             || { echo "::error::media_kit_video does not load the bundled libmpv"; exit 1; }
           [ -f "$dir/licenses/libmpv/BUILDINFO.txt" ] || { echo "::error::libmpv licences missing"; exit 1; }
+          # The library runs on the Rust core (UI-024): libpa_frb must be bundled.
+          [ -f "$dir/lib/libpa_frb.so" ] || { echo "::error::libpa_frb.so (Rust core) missing"; exit 1; }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: linux
@@ -199,6 +206,11 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: false
+      - name: Rust toolchain for the core (pa_core Native Assets, UI-024)
+        working-directory: core/crates/pa-frb
+        # Channel and targets (Linux, Android) from the crate's rust-toolchain.toml;
+        # the pa_core build hook compiles libpa_frb into the app with it.
+        run: rustup toolchain install
       - name: flutter build apk (split per ABI + universal)
         working-directory: ${{ env.APP_DIR }}
         env:
@@ -218,6 +230,14 @@ jobs:
           flutter build apk "${common[@]}"
           cp "$apks/app-release.apk" "$out/kinolune-$VERSION-android-universal.apk"
           ls -l "$out"
+          # The library runs on the Rust core (UI-024): libpa_frb in every ABI.
+          for apk in "$out"/*.apk; do
+            for abi in arm64-v8a armeabi-v7a x86_64; do
+              case "$apk" in *-android-universal.apk|*-android-$abi.apk) ;; *) continue ;; esac
+              unzip -l "$apk" "lib/$abi/libpa_frb.so" >/dev/null \
+                || { echo "::error::$apk has no lib/$abi/libpa_frb.so (Rust core)"; exit 1; }
+            done
+          done
       - name: Sign APKs
         id: sign
         env:

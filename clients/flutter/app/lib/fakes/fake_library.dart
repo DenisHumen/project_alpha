@@ -96,8 +96,12 @@ class FakeLibrary implements Library {
   @override
   Future<String?> tmdbApiKey() async => _tmdbApiKey;
 
+  /// The last [setMetadataLanguage] value (tests).
+  String? metadataLanguage;
+
   @override
-  Future<void> setMetadataLanguage(String? language) async {}
+  Future<void> setMetadataLanguage(String? language) async =>
+      metadataLanguage = language;
 
   Stream<List<LibraryItem>> _ofKind(
     ItemKind kind, [

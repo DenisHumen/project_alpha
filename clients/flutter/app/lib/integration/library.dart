@@ -13,6 +13,8 @@ export 'package:pa_library/pa_library.dart'
         Progress,
         nextEpisodeIn,
         resumePositionMs,
+        OpenedLibrary,
+        openAppLibrary,
         RustLibrary,
         ScanProgress,
         ScanPhase,

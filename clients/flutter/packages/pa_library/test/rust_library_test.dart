@@ -186,4 +186,151 @@ void main() {
     expect(await lib.tmdbApiKey(), 'k');
     await lib.close();
   });
+
+  // --- openAppLibrary: the app's start (UI-024) -----------------------------
+
+  /// A v0 database in [dataDir] with the media scanned and progress on The
+  /// Matrix and the first Breaking Bad episode.
+  Future<String> v0Library(String dataDir) async {
+    final v0Path = p.join(dataDir, legacyV0DbFileName);
+    final v0 = await Library.open(v0Path);
+    await addMedia(v0);
+    await v0.scan().drain<void>();
+    final matrix = (await v0.movies().first).firstWhere(
+      (m) => m.title == 'The Matrix',
+    );
+    final show = (await v0.shows().first).single;
+    final ep1 = (await v0.episodes(show.id).first).first;
+    for (final (id, pos) in [(matrix.id, 1000000), (ep1.id, 600000)]) {
+      await v0.saveProgress(
+        Progress(
+          itemId: id,
+          positionMs: pos,
+          durationMs: 3000000,
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(5000),
+        ),
+      );
+    }
+    expect(await v0.tracks().first, hasLength(1));
+    await v0.close();
+    return v0Path;
+  }
+
+  test('first start on the Rust core imports v0 and keeps it as a backup', () async {
+    final dataDir = p.join(tmp.path, 'data');
+    final v0Path = await v0Library(dataDir);
+    final v0Bytes = File(v0Path).readAsBytesSync();
+
+    final opened = await openAppLibrary(dataDir);
+    expect(opened.onRustCore, isTrue);
+    expect(opened.importedV0, isTrue);
+    expect(opened.fallbackReason, isNull);
+    final lib = opened.library;
+    expect(lib, isA<RustLibrary>());
+    expect(File(p.join(dataDir, coreDbFileName)).existsSync(), isTrue);
+
+    // The v0 file is renamed, byte for byte, never deleted.
+    expect(File(v0Path).existsSync(), isFalse);
+    expect(File('$v0Path.v0.bak').readAsBytesSync(), v0Bytes);
+
+    // Folders, works, progress.
+    expect((await lib.sources()).single.path, root);
+    expect((await lib.movies().first).map((m) => m.title), [
+      'Inception',
+      'The Matrix',
+    ]);
+    final show = (await lib.shows().first).single;
+    expect(show.title, 'Breaking Bad');
+    expect(await lib.episodes(show.id).first, hasLength(2));
+    final cw = await lib.continueWatching().first;
+    expect(cw.map((r) => (r.$1.kind, r.$2.positionMs)).toSet(), {
+      (ItemKind.movie, 1000000),
+      (ItemKind.episode, 600000),
+    });
+    expect(cw.firstWhere((r) => r.$1.kind == ItemKind.movie).$1.title,
+        'The Matrix');
+
+    // Music: the import moves the file; its tags come with the scan the app
+    // runs after an import.
+    final events = await lib.scan().toList();
+    expect(events.last.isDone, isTrue);
+    expect(await lib.tracks().first, hasLength(1));
+    expect(await lib.movies().first, hasLength(2));
+    expect(await lib.continueWatching().first, hasLength(2));
+    await lib.close();
+
+    // Next start: nothing to import, the data is there.
+    final next = await openAppLibrary(dataDir);
+    expect((next.onRustCore, next.importedV0), (true, false));
+    expect(await next.library.movies().first, hasLength(2));
+    expect(await next.library.continueWatching().first, hasLength(2));
+    expect(await next.library.tracks().first, hasLength(1));
+    await next.library.close();
+  });
+
+  test('an older v0 backup is never overwritten', () async {
+    final dataDir = p.join(tmp.path, 'data');
+    final v0Path = await v0Library(dataDir);
+    File('$v0Path.v0.bak').writeAsStringSync('older backup');
+
+    final opened = await openAppLibrary(dataDir);
+    expect(opened.importedV0, isTrue);
+    expect(File('$v0Path.v0.bak').readAsStringSync(), 'older backup');
+    expect(File('$v0Path.v0.bak.1').existsSync(), isTrue);
+    expect(newestLegacyV0Backup(v0Path), '$v0Path.v0.bak.1');
+    expect(freeLegacyV0BackupPath(v0Path), '$v0Path.v0.bak.2');
+    await opened.library.close();
+  });
+
+  test('falls back to v0 when the native core cannot be loaded', () async {
+    final dataDir = p.join(tmp.path, 'data');
+    final v0Path = await v0Library(dataDir);
+
+    final opened = await openAppLibrary(
+      dataDir,
+      initCore: () async => throw ArgumentError('libpa_frb.so not found'),
+    );
+    expect(opened.onRustCore, isFalse);
+    expect(opened.fallbackReason, isA<ArgumentError>());
+    expect(opened.library, isNot(isA<RustLibrary>()));
+    expect(File(v0Path).existsSync(), isTrue);
+    expect(File(p.join(dataDir, coreDbFileName)).existsSync(), isFalse);
+    expect(await opened.library.movies().first, hasLength(2));
+    expect(await opened.library.continueWatching().first, hasLength(2));
+    await opened.library.close();
+  });
+
+  test('v0 fallback after a migration moves the backup back', () async {
+    final dataDir = p.join(tmp.path, 'data');
+    final v0Path = await v0Library(dataDir);
+    await (await openAppLibrary(dataDir)).library.close();
+    expect(File(v0Path).existsSync(), isFalse);
+
+    final opened = await openAppLibrary(dataDir, rustCore: false);
+    expect(opened.onRustCore, isFalse);
+    expect(opened.fallbackReason, isNull);
+    expect(File(v0Path).existsSync(), isTrue);
+    expect(File('$v0Path.v0.bak').existsSync(), isFalse);
+    expect(await opened.library.movies().first, hasLength(2));
+    await opened.library.close();
+
+    // Back on the core: the v0 file is imported again (nothing new) and
+    // renamed again; the core data was kept.
+    final again = await openAppLibrary(dataDir);
+    expect((again.onRustCore, again.importedV0), (true, true));
+    expect(File('$v0Path.v0.bak').existsSync(), isTrue);
+    expect(await again.library.movies().first, hasLength(2));
+    expect(await again.library.continueWatching().first, hasLength(2));
+    await again.library.close();
+  });
+
+  test('metadata language is taken as is, without a reset', () async {
+    final lib = await RustLibrary.open(':memory:');
+    expect(lib.metadataLanguage, RustLibrary.defaultMetadataLanguage);
+    await lib.setMetadataLanguage('en-US');
+    expect(lib.metadataLanguage, 'en-US');
+    await lib.setMetadataLanguage(' ');
+    expect(lib.metadataLanguage, 'ru-RU');
+    await lib.close();
+  });
 }

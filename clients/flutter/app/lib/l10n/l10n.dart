@@ -35,6 +35,12 @@ const List<LocalizationsDelegate<Object?>> kLocalizationsDelegates = [
 /// `en`, `ru`, `en-XA`.
 String localeTag(Locale l) => l.toLanguageTag();
 
+/// Language of provider metadata (TMDB titles and overviews) for the UI
+/// language [l]: `ru-RU` for Russian, `en-US` otherwise (English, the
+/// pseudo-locale and system languages the app falls back to English for).
+String metadataLanguageFor(Locale l) =>
+    l.languageCode == 'ru' ? 'ru-RU' : 'en-US';
+
 /// Parses [localeTag]; null for empty or unsupported tags.
 Locale? parseLocaleTag(String? tag) {
   if (tag == null || tag.isEmpty) return null;
