@@ -1,4 +1,4 @@
-# ADR-NNNN: Удалённый конфиг — подписанный minisign JSON из публичного репо, `minisign-verify`, anti-rollback по `serial`
+# ADR-0039: Удалённый конфиг — подписанный minisign JSON из публичного репо, `minisign-verify`, anti-rollback по `serial`
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
