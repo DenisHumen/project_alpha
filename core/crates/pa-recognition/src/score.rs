@@ -40,6 +40,10 @@ use crate::title::{Candidate, MatchTier, TitleIndex, TitleQuery, TitleRecord, Wo
 /// Candidates taken from the index per file.
 pub const TOP_K: usize = 10;
 
+/// Candidates searched for franchise entries named after an arc
+/// (`Kimetsu no Yaiba: Hashira Geiko-hen` ranks low for `Kimetsu no Yaiba`).
+const POOL_K: usize = 30;
+
 /// Consecutive franchise entries further apart than this many years are
 /// different series (remake, reboot).
 const REMAKE_GAP_YEARS: u16 = 8;
@@ -263,10 +267,10 @@ struct Franchise {
     chain: Vec<usize>,
     /// Another series with the same title exists outside this chain.
     remake: bool,
-    /// A much later entry of the chain also carries the head's bare title
-    /// (`Kino no Tabi (2017)`): a bare title with a small number may mean
-    /// either.
-    soft_remake: bool,
+    /// Episode count of a much later entry of the chain that also carries
+    /// the written title (`Kino no Tabi (2017)`): a bare title with a number
+    /// up to it may mean either series.
+    soft_remake: Option<u32>,
 }
 
 /// Scores a whole group (one folder tree) with a fresh cache.
@@ -317,12 +321,13 @@ impl Scorer {
             };
         }
         let query = TitleQuery::from_parse(&parsed);
-        let candidates = index.search(&query, TOP_K);
+        let pool = index.search(&query, POOL_K);
+        let candidates = &pool[..pool.len().min(TOP_K)];
         signals.candidates = candidates.len();
 
         let mut hyps = Vec::new();
-        for c in &candidates {
-            self.interpret(index, c, &candidates, best, &numbers, &mut hyps);
+        for c in candidates {
+            self.interpret(index, c, &pool, best, &numbers, &mut hyps);
         }
         let mut per_record: BTreeMap<usize, Hyp> = BTreeMap::new();
         for h in hyps {
@@ -419,7 +424,8 @@ impl Scorer {
                 episodes,
                 reading,
                 tier: c.tier,
-                remake: fr.remake || (fr.soft_remake && reading == Reading::Direct),
+                remake: fr.remake
+                    || (reading == Reading::Direct && fr.soft_remake.is_some_and(|n| last <= n)),
             })
         };
 
@@ -616,24 +622,28 @@ impl Scorer {
         // remake; `Bleach: Sennen Kessen-hen` (2022) continues `Bleach`.
         let mut segments: Vec<Vec<usize>> = Vec::new();
         let mut last_year: Option<u16> = None;
-        let mut soft_remake = false;
+        // Entries that follow a long gap without a season claim and carry
+        // the written title (`Kino no Tabi (2017)`): a small number under
+        // the bare title may belong to either series.
+        let mut remake_like: Vec<usize> = Vec::new();
         for r in members {
             let year = index.record(r).year;
-            let restart = match (segments.last(), last_year, year) {
-                (Some(seg), Some(a), Some(b)) if b.saturating_sub(a) >= REMAKE_GAP_YEARS => {
+            let gap = matches!((last_year, year), (Some(a), Some(b)) if b.saturating_sub(a) >= REMAKE_GAP_YEARS);
+            let restart = match segments.last() {
+                Some(seg) if gap => {
                     let head = TitleKey::new(&index.record(seg[0]).titles[0]).base;
-                    let restart = TitleKey::new(&index.record(r).titles[0]).base == head;
-                    let info = self.info(index, r);
-                    if !restart
-                        && info.bases.contains(&head)
-                        && !info.seasons.keys().any(|(s, _)| *s >= 2)
-                    {
-                        soft_remake = true;
-                    }
-                    restart
+                    TitleKey::new(&index.record(r).titles[0]).base == head
                 }
                 _ => false,
             };
+            if gap && !restart {
+                let info = self.info(index, r);
+                if query_base.as_ref().is_some_and(|q| info.bases.contains(q))
+                    && !info.seasons.keys().any(|(s, _)| *s >= 2)
+                {
+                    remake_like.push(r);
+                }
+            }
             if restart || segments.is_empty() {
                 segments.push(Vec::new());
             }
@@ -647,6 +657,11 @@ impl Scorer {
             .into_iter()
             .find(|s| s.contains(&c.record))
             .unwrap_or_else(|| vec![c.record]);
+        let soft_remake = remake_like
+            .iter()
+            .filter(|r| chain.contains(r))
+            .filter_map(|&r| index.record(r).episodes)
+            .max();
         Franchise {
             chain,
             remake,
