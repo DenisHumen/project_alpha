@@ -18,7 +18,7 @@
 //! `#[frb(sync)]`: Dart awaits them off the UI thread. Queries run while a
 //! scan is in progress (the scan has its own connection).
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use flutter_rust_bridge::frb;
