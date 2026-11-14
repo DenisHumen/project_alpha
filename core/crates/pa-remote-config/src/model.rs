@@ -303,7 +303,7 @@ impl Version {
             return None;
         }
         let pre = match pre {
-            Some(p) if p.is_empty() => return None,
+            Some("") => return None,
             Some(p) => p.split('.').map(str::to_owned).collect(),
             None => Vec::new(),
         };
