@@ -36,13 +36,29 @@ fn sidecars_of_movies_and_episodes() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path().join("media");
     media(&root, "Movies/Dune (2021)/Dune.2021.2160p.WEB-DL.mkv", 1);
-    subtitle(&root, "Movies/Dune (2021)/Dune.2021.2160p.WEB-DL.ru.forced.srt");
-    subtitle(&root, "Movies/Dune (2021)/Dune.2021.2160p.WEB-DL.en.sdh.srt");
+    subtitle(
+        &root,
+        "Movies/Dune (2021)/Dune.2021.2160p.WEB-DL.ru.forced.srt",
+    );
+    subtitle(
+        &root,
+        "Movies/Dune (2021)/Dune.2021.2160p.WEB-DL.en.sdh.srt",
+    );
     subtitle(&root, "Movies/Dune (2021)/Subs/English.srt");
-    media(&root, "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv", 3);
+    media(
+        &root,
+        "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv",
+        3,
+    );
     media(&root, "Shows/Dark/Season 1/Dark.S01E02.Lies.1080p.mkv", 4);
-    subtitle(&root, "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.rus.srt");
-    subtitle(&root, "Shows/Dark/Season 1/Dark.S01E02.Lies.1080p.eng.default.ass");
+    subtitle(
+        &root,
+        "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.rus.srt",
+    );
+    subtitle(
+        &root,
+        "Shows/Dark/Season 1/Dark.S01E02.Lies.1080p.eng.default.ass",
+    );
     // Not named after an episode: nothing says which one it is for.
     subtitle(&root, "Shows/Dark/Season 1/whatever.srt");
 
@@ -72,7 +88,12 @@ fn sidecars_of_movies_and_episodes() {
                 true,
                 false
             ),
-            ("Movies/Dune (2021)/Subs/English.srt", Some("eng"), false, false),
+            (
+                "Movies/Dune (2021)/Subs/English.srt",
+                Some("eng"),
+                false,
+                false
+            ),
         ],
         "{subs:?}"
     );
@@ -106,7 +127,11 @@ fn sidecars_of_movies_and_episodes() {
     assert_eq!(second[0].lang.as_deref(), Some("eng"));
     assert!(second[0].default);
 
-    assert!(cat.sidecar_subtitles(source.id, "nope.mkv").unwrap().is_empty());
+    assert!(
+        cat.sidecar_subtitles(source.id, "nope.mkv")
+            .unwrap()
+            .is_empty()
+    );
     assert!(
         cat.sidecar_subtitles(source.id + 1, &movie.rel_path)
             .unwrap()
