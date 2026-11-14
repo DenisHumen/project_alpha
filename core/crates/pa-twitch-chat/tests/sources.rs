@@ -355,7 +355,7 @@ async fn eventsub_keepalive_timeout_reconnects_and_resubscribes() {
     h.connector.push(Script::hanging([es!("welcome")]));
     h.connector
         .push(Script::closing([es!("welcome"), es!("chat_message")]));
-    let source = h.spawn(0);
+    let source = h.spawn(1);
     let events = drain(&source).await;
     let st = statuses(&events);
     assert_eq!(st[0], SourceStatus::Connected);
