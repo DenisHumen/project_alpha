@@ -49,11 +49,15 @@ class PaPlayerStrings {
     required this.repeatOne,
     required this.upNext,
     required this.endOfQueue,
+    required this.playNow,
+    required this.cancel,
     required String Function(String id) track,
     required String Function(String remaining, String time) remainingEndsAt,
+    required String Function(int seconds) upNextIn,
     required Map<String, String> engineInfoKeys,
   }) : _track = track,
        _remainingEndsAt = remainingEndsAt,
+       _upNextIn = upNextIn,
        _engineInfoKeys = engineInfoKeys;
 
   /// `en` or `ru`.
@@ -95,13 +99,23 @@ class PaPlayerStrings {
   final String upNext;
   final String endOfQueue;
 
+  /// Up Next card: play the next item without waiting.
+  final String playNow;
+
+  /// Up Next card: stop the countdown.
+  final String cancel;
+
   final String Function(String id) _track;
   final String Function(String remaining, String time) _remainingEndsAt;
+  final String Function(int seconds) _upNextIn;
   final Map<String, String> _engineInfoKeys;
 
   /// "-1:02:03 · ends at 21:40".
   String remainingEndsAt(String remaining, String time) =>
       _remainingEndsAt(remaining, time);
+
+  /// Up Next countdown: "Starts in 7 s".
+  String upNextIn(int seconds) => _upNextIn(seconds);
 
   /// Tooltip of the speed button.
   String speedWithRate(String rate) => '$speed ($rate)';
@@ -156,8 +170,11 @@ class PaPlayerStrings {
     repeatOne: 'Repeat one',
     upNext: 'Up next',
     endOfQueue: 'End of queue',
+    playNow: 'Play now',
+    cancel: 'Cancel',
     track: _enTrack,
     remainingEndsAt: _enEndsAt,
+    upNextIn: _enUpNextIn,
     engineInfoKeys: {},
   );
 
@@ -196,8 +213,11 @@ class PaPlayerStrings {
     repeatOne: 'Повтор одного',
     upNext: 'Далее',
     endOfQueue: 'Конец очереди',
+    playNow: 'Смотреть сейчас',
+    cancel: 'Отмена',
     track: _ruTrack,
     remainingEndsAt: _ruEndsAt,
+    upNextIn: _ruUpNextIn,
     engineInfoKeys: {
       'File': 'Файл',
       'Resolution': 'Разрешение',
@@ -218,6 +238,8 @@ class PaPlayerStrings {
   static String _ruTrack(String id) => 'Дорожка $id';
   static String _enEndsAt(String r, String t) => '-$r · ends at $t';
   static String _ruEndsAt(String r, String t) => '-$r · закончится в $t';
+  static String _enUpNextIn(int s) => 'Starts in $s s';
+  static String _ruUpNextIn(int s) => 'Начнётся через $s с';
 
   /// Locales with their own texts.
   static const supportedLocales = [Locale('en'), Locale('ru')];

@@ -11,6 +11,7 @@ import 'package:path/path.dart' as p;
 import 'library.dart';
 import 'models.dart';
 import 'music_tags.dart';
+import 'playback_session.dart';
 import 'smb.dart';
 
 /// [Library] on the Rust core (UI-024): `pa_core`'s [CoreLibrary] over the
@@ -506,6 +507,16 @@ class RustLibrary implements Library {
   Future<LibraryItem?> item(String id) async {
     final i = await _core.item(id: id);
     return i == null ? null : _item(i);
+  }
+
+  @override
+  Future<LibraryItem?> nextEpisode(String itemId) async {
+    final current = await item(itemId);
+    final showId = current?.showId;
+    if (current == null || current.kind != ItemKind.episode || showId == null) {
+      return null;
+    }
+    return nextEpisodeIn(await _items(_core.episodes(showId: showId)), current);
   }
 
   @override

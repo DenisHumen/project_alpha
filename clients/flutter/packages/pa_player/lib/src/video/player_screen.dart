@@ -17,6 +17,7 @@ import '../ui/tokens.dart';
 import 'osd_controller.dart';
 import 'osd_panels.dart';
 import 'progress_reporter.dart';
+import 'up_next.dart';
 
 /// Fullscreen video player with a tvOS-style OSD.
 ///
@@ -25,6 +26,13 @@ import 'progress_reporter.dart';
 /// Controls: mouse/touch; keyboard (Space play/pause, ←/→ ±10 s, ↑/↓ show
 /// OSD and move focus, F fullscreen, I info, Esc back); Android TV remote
 /// (Select play/pause or activate, ←/→ seek, Back closes panel / exits).
+///
+/// Playback session (PLAY-005): progress is reported every
+/// [progressInterval] while playing, on pause, seek, exit and when the app
+/// goes to the background. With [loadNext] the end of the video shows an
+/// Up Next card that counts [upNextCountdown] down and plays the next item
+/// in the same player ([continuousPlayback]); Enter plays it now, Esc
+/// cancels.
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
     super.key,
@@ -34,6 +42,9 @@ class PlayerScreen extends StatefulWidget {
     this.engineFactory,
     this.progressInterval = const Duration(seconds: 5),
     this.seekStep = const Duration(seconds: 10),
+    this.loadNext,
+    this.continuousPlayback = true,
+    this.upNextCountdown = const Duration(seconds: 10),
   });
 
   final PlayRequest request;
@@ -49,14 +60,32 @@ class PlayerScreen extends StatefulWidget {
   final Duration progressInterval;
   final Duration seekStep;
 
+  /// Loads what plays after [request] (Up Next); null result: nothing.
+  final Future<UpNextItem?> Function()? loadNext;
+
+  /// Play the next item by itself after the countdown; off: the Up Next
+  /// card waits for "Play now".
+  final bool continuousPlayback;
+  final Duration upNextCountdown;
+
   @override
   State<PlayerScreen> createState() => PlayerScreenState();
 }
 
 /// Public for tests.
-class PlayerScreenState extends State<PlayerScreen> {
+class PlayerScreenState extends State<PlayerScreen>
+    with WidgetsBindingObserver {
   late final PlayerEngine engine;
-  late final ProgressReporter _progress;
+  ProgressReporter? _progress;
+  late final UpNextController upNext;
+
+  /// What is playing now: [PlayerScreen.request] or an Up Next item.
+  late PlayRequest request;
+  late ProgressCallback _onProgress;
+  Future<UpNextItem?> Function()? _loadNext;
+  UpNextItem? _next;
+  int _nextGeneration = 0;
+  bool _endHandled = false;
   final OsdController osd = OsdController(autoHide: PaTokens.osdAutoHide);
   final FocusNode _rootFocus = FocusNode(debugLabel: 'player-root');
   final FocusNode _scrubberFocus = FocusNode(debugLabel: 'player-scrubber');
@@ -75,18 +104,52 @@ class PlayerScreenState extends State<PlayerScreen> {
     super.initState();
     final factory = widget.engineFactory ?? MediaKitEngine.create;
     engine = factory(video: true);
-    _progress = ProgressReporter(
-      engine: engine,
-      onProgress: widget.onProgress,
-      interval: widget.progressInterval,
+    request = widget.request;
+    _onProgress = widget.onProgress;
+    _loadNext = widget.loadNext;
+    upNext = UpNextController(
+      onPlay: playNext,
+      countdown: widget.upNextCountdown,
+      continuous: widget.continuousPlayback,
     );
+    _startProgress();
     engine.state.addListener(_onEngine);
     osd.addListener(_onOsd);
+    WidgetsBinding.instance.addObserver(this);
     engine.open([
-      widget.request.uri,
-    ], start: Duration(milliseconds: widget.request.startPositionMs));
+      request.uri,
+    ], start: Duration(milliseconds: request.startPositionMs));
+    _fetchNext();
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    }
+  }
+
+  void _startProgress() {
+    _progress = ProgressReporter(
+      engine: engine,
+      onProgress: _onProgress,
+      interval: widget.progressInterval,
+    );
+  }
+
+  /// Asks for the item after the current one; a late answer for an item
+  /// that is no longer playing is dropped.
+  Future<void> _fetchNext() async {
+    _next = null;
+    final load = _loadNext;
+    if (load == null) return;
+    final generation = ++_nextGeneration;
+    UpNextItem? next;
+    try {
+      next = await load();
+    } catch (_) {
+      next = null;
+    }
+    if (!mounted || generation != _nextGeneration) return;
+    _next = next;
+    if (next != null && _endHandled && !upNext.visible && !_closing) {
+      upNext.show(next);
     }
   }
 
@@ -94,17 +157,63 @@ class PlayerScreenState extends State<PlayerScreen> {
     final s = engine.state.value;
     osd.playing = s.playing;
     if (!_subtitleAdded &&
-        widget.request.subtitleUri != null &&
+        request.subtitleUri != null &&
         s.duration > Duration.zero) {
       _subtitleAdded = true;
-      engine.addExternalSubtitle(widget.request.subtitleUri!);
+      engine.addExternalSubtitle(request.subtitleUri!);
     }
     if (s.completed && !_finished && s.duration > Duration.zero) {
       _finished = true;
-      _progress.report(position: s.duration);
+      _progress?.report(position: s.duration);
       osd.show();
       widget.onFinished?.call();
     }
+    final ended = s.completed && s.duration > Duration.zero;
+    if (ended && !_endHandled) {
+      _endHandled = true;
+      final next = _next;
+      if (next != null && !_closing) upNext.show(next);
+    } else if (!ended && _endHandled) {
+      // Played again or seeking back: the card is no longer relevant.
+      _endHandled = false;
+      upNext.hide();
+    }
+  }
+
+  /// Switches the player to [next] (Up Next): the old item gets its final
+  /// report, the new one its own progress callback.
+  void playNext(UpNextItem next) {
+    if (_closing || !mounted) return;
+    _progress?.close();
+    _progress = null;
+    setState(() {
+      request = next.request;
+      _onProgress = next.onProgress;
+      _loadNext = next.loadNext;
+      _finished = false;
+      _subtitleAdded = false;
+      _endHandled = false;
+    });
+    final generation = ++_nextGeneration;
+    engine
+        .open([
+          next.request.uri,
+        ], start: Duration(milliseconds: next.request.startPositionMs))
+        .then((_) {
+          if (mounted && !_closing && generation == _nextGeneration) {
+            _startProgress();
+            _fetchNext();
+          }
+        });
+    osd.show();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) return;
+    // Backgrounded, hidden or about to be killed: save now.
+    _progress?.report();
+    if (state != AppLifecycleState.inactive) upNext.stopCountdown();
   }
 
   void _onOsd() {
@@ -121,9 +230,11 @@ class PlayerScreenState extends State<PlayerScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     engine.state.removeListener(_onEngine);
     osd.removeListener(_onOsd);
-    _progress.close();
+    _progress?.close();
+    upNext.dispose();
     osd.dispose();
     _rootFocus.dispose();
     _scrubberFocus.dispose();
@@ -159,7 +270,7 @@ class PlayerScreenState extends State<PlayerScreen> {
 
   void seekTo(Duration target) {
     engine.seek(target);
-    _progress.onSeek(target);
+    _progress?.onSeek(target);
     osd.show();
   }
 
@@ -192,7 +303,8 @@ class PlayerScreenState extends State<PlayerScreen> {
   void exit() {
     if (_closing) return;
     _closing = true;
-    _progress.report();
+    upNext.hide();
+    _progress?.report();
     final nav = Navigator.maybeOf(context);
     if (nav != null && nav.canPop()) nav.pop();
   }
@@ -210,6 +322,23 @@ class PlayerScreenState extends State<PlayerScreen> {
     final wasVisible = osd.visible;
     final repeat = e is KeyRepeatEvent;
 
+    if (upNext.visible) {
+      if (k == LogicalKeyboardKey.escape ||
+          k == LogicalKeyboardKey.goBack ||
+          k == LogicalKeyboardKey.browserBack) {
+        if (!repeat) upNext.hide();
+        return KeyEventResult.handled;
+      }
+      if (k == LogicalKeyboardKey.select ||
+          k == LogicalKeyboardKey.enter ||
+          k == LogicalKeyboardKey.numpadEnter ||
+          k == LogicalKeyboardKey.gameButtonA ||
+          k == LogicalKeyboardKey.mediaPlay ||
+          k == LogicalKeyboardKey.mediaPlayPause) {
+        if (!repeat) upNext.playNow();
+        return KeyEventResult.handled;
+      }
+    }
     if (k == LogicalKeyboardKey.escape ||
         k == LogicalKeyboardKey.goBack ||
         k == LogicalKeyboardKey.browserBack) {
@@ -344,6 +473,12 @@ class PlayerScreenState extends State<PlayerScreen> {
                       panel: osd.panel,
                     ),
                   ),
+                  ListenableBuilder(
+                    listenable: upNext,
+                    builder: (context, _) => upNext.visible
+                        ? _UpNextCard(controller: upNext)
+                        : const SizedBox.shrink(),
+                  ),
                 ],
               ),
             ),
@@ -364,6 +499,91 @@ class PlayerScreenState extends State<PlayerScreen> {
     } else {
       toggleFullscreen();
     }
+  }
+}
+
+/// The Up Next card, bottom right above the OSD bar.
+class _UpNextCard extends StatelessWidget {
+  const _UpNextCard({required this.controller});
+  final UpNextController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = PaPlayerStrings.of(context);
+    final item = controller.item;
+    if (item == null) return const SizedBox.shrink();
+    final width = MediaQuery.sizeOf(context).width;
+    final compact = _isCompactOsd(width);
+    final seconds = (controller.remaining.inMilliseconds / 1000).ceil();
+    return Positioned(
+      right: compact ? 16 : 48,
+      bottom: compact ? 168 : 132,
+      child: SafeArea(
+        child: Container(
+          key: const ValueKey('up-next'),
+          width: (width - 32).clamp(0.0, 360.0),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: PaTokens.glassStrong,
+            borderRadius: BorderRadius.circular(PaTokens.radius),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l.upNext,
+                style: const TextStyle(
+                  color: PaTokens.textSecondary,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.request.title,
+                key: const ValueKey('up-next-title'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: PaTokens.text,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (controller.phase == UpNextPhase.countdown) ...[
+                const SizedBox(height: 4),
+                Text(
+                  l.upNextIn(seconds),
+                  key: const ValueKey('up-next-countdown'),
+                  style: const TextStyle(
+                    color: PaTokens.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  FilledButton.icon(
+                    key: const ValueKey('up-next-play'),
+                    onPressed: controller.playNow,
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    label: Text(l.playNow),
+                  ),
+                  TextButton(
+                    key: const ValueKey('up-next-cancel'),
+                    onPressed: controller.hide,
+                    child: Text(l.cancel),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -403,7 +623,7 @@ class _Osd extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final engine = state.engine;
-    final req = state.widget.request;
+    final req = state.request;
     final l = PaPlayerStrings.of(context);
     final compact = _isCompactOsd(MediaQuery.sizeOf(context).width);
     final side = compact ? 16.0 : 48.0;

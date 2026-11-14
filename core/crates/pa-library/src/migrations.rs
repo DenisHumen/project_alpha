@@ -37,6 +37,7 @@ pub const MIGRATIONS: &[MigrationFile] = &[
     migration!(202611141800, "202611141800_LIB-008_search_index"),
     migration!(202611142000, "202611142000_CORE-011_jobs_runtime"),
     migration!(202611142200, "202611142200_META-013_artwork_metadata"),
+    migration!(202611142300, "202611142300_NET-011_source_manager"),
 ];
 
 impl MigrationFile {

@@ -145,6 +145,16 @@ class FakeLibrary implements Library {
   Future<Progress?> progress(String itemId) async => _progress.value[itemId];
 
   @override
+  Future<LibraryItem?> nextEpisode(String itemId) async {
+    final current = await item(itemId);
+    if (current == null || current.kind != ItemKind.episode) return null;
+    return nextEpisodeIn(
+      _items.value.where((i) => i.showId == current.showId),
+      current,
+    );
+  }
+
+  @override
   Future<List<LibraryItem>> search(String query, {int limit = 100}) async {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return const [];

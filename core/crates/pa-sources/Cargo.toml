@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-sources"
+version = "0.1.0"
+description = "Source manager: local, SMB and WebDAV sources in the library database, passwords in the OS secret store, status, connection check and speed test (NET-011)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[dependencies]
+pa-library = { path = "../pa-library" }
+pa-secrets = { path = "../pa-secrets" }
+pa-vfs = { path = "../pa-vfs" }
+pa-vfs-smb = { path = "../pa-vfs-smb" }
+pa-vfs-webdav = { path = "../pa-vfs-webdav" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
