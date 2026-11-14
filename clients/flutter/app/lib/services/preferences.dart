@@ -19,6 +19,9 @@ abstract class Preferences {
 
   /// Recent search queries (UI-011), a JSON list, newest first.
   static const searchHistory = 'search_history';
+
+  /// 'list' shows a library view (`movies`, `shows`) as a list (UI-008).
+  static String libraryLayout(String view) => 'library_layout_$view';
 }
 
 /// JSON file in the application support directory.

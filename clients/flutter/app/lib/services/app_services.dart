@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import '../integration/library.dart';
 import '../integration/player.dart';
 import '../l10n/l10n.dart';
+import '../library/library_queries.dart';
 import '../sources/discovery.dart';
 import '../sources/library_source_manager.dart';
 import '../sources/source_manager.dart';
@@ -24,13 +25,25 @@ class AppServices extends ChangeNotifier {
     Locale Function()? systemLocale,
     SourceManager? sourceManager,
     this.discovery = const NoSourceDiscovery(),
+    LibraryQueries? queries,
+    DateTime Function()? clock,
   }) : preferences = preferences ?? MemoryPreferences(),
+       queries = queries ?? LibraryQueries.forLibrary(library),
+       clock = clock ?? DateTime.now,
        sourceManager = sourceManager ?? LibrarySourceManager(library),
        systemLocale = systemLocale ?? _platformLocale,
        music =
            music ?? MusicPlayerController(engineFactory: playerEngineFactory);
 
   final Library library;
+
+  /// Queries of the library grid (UI-008): LIB-009 on the Rust core, in
+  /// memory without filters on the v0 fallback.
+  final LibraryQueries queries;
+
+  /// Current time ("new" badges); tests pin it.
+  final DateTime Function() clock;
+
   final SecureStore secureStore;
   final Preferences preferences;
   final MusicPlayerController music;

@@ -25,10 +25,15 @@ class KFocusable extends StatefulWidget {
     this.focusNode,
     this.semanticLabel,
     this.light = true,
+    this.onContextMenu,
   });
 
   final Widget Function(BuildContext context, bool focused) builder;
   final VoidCallback? onActivate;
+
+  /// Long press, right click or the menu key (UI-008); the global position
+  /// of the pointer, or the centre of the element for the key.
+  final ValueChanged<Offset>? onContextMenu;
   final ValueChanged<bool>? onFocusChange;
   final double? focusScale;
   final double? radius;
@@ -147,8 +152,23 @@ class _KFocusableState extends State<KFocusable>
           SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
           SingleActivator(LogicalKeyboardKey.numpadEnter): ActivateIntent(),
           SingleActivator(LogicalKeyboardKey.gameButtonA): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.contextMenu): _ContextMenuIntent(),
+          SingleActivator(LogicalKeyboardKey.f10, shift: true):
+              _ContextMenuIntent(),
+          SingleActivator(LogicalKeyboardKey.gameButtonY): _ContextMenuIntent(),
         },
         actions: {
+          _ContextMenuIntent: CallbackAction<_ContextMenuIntent>(
+            onInvoke: (_) {
+              final box = context.findRenderObject() as RenderBox?;
+              if (widget.onContextMenu != null && box != null && box.hasSize) {
+                widget.onContextMenu!(
+                  box.localToGlobal(box.size.center(Offset.zero)),
+                );
+              }
+              return null;
+            },
+          ),
           ActivateIntent: CallbackAction<ActivateIntent>(
             onInvoke: (_) {
               widget.onActivate?.call();
@@ -177,6 +197,15 @@ class _KFocusableState extends State<KFocusable>
                 ? () => setState(() => _pressed = false)
                 : null,
             onTap: widget.onActivate,
+            onLongPressStart: widget.onContextMenu == null
+                ? null
+                : (e) {
+                    setState(() => _pressed = false);
+                    widget.onContextMenu!(e.globalPosition);
+                  },
+            onSecondaryTapUp: widget.onContextMenu == null
+                ? null
+                : (e) => widget.onContextMenu!(e.globalPosition),
             child: AnimatedScale(
               scale: scale,
               duration: _focused ? KMotion.focus : KMotion.focusOut,
@@ -217,6 +246,10 @@ class _KFocusableState extends State<KFocusable>
       ),
     );
   }
+}
+
+class _ContextMenuIntent extends Intent {
+  const _ContextMenuIntent();
 }
 
 /// Capsule button: white fill + dark label when focused on TV (01 §4.5).
