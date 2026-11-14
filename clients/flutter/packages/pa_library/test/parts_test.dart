@@ -29,7 +29,9 @@ void main() {
   late RustLibrary lib;
 
   setUpAll(() async {
-    await RustLibrary.ensureInitialized(externalLibrary: openBuiltCoreLibrary());
+    await RustLibrary.ensureInitialized(
+      externalLibrary: openBuiltCoreLibrary(),
+    );
   });
 
   setUp(() async {
