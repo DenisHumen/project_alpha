@@ -653,8 +653,9 @@ impl Scorer {
             };
             if gap && !restart {
                 let info = self.info(index, r);
-                if query_base.as_ref().is_some_and(|q| info.bases.contains(q))
-                    && !info.seasons.iter().any(|(_, s, _)| *s >= 2)
+                if let Some(q) = &query_base
+                    && info.bases.contains(q)
+                    && !info.seasons.iter().any(|(b, s, _)| *s >= 2 && b == q)
                 {
                     remake_like.push(r);
                 }
@@ -919,7 +920,7 @@ mod tests {
             anime(3468, "Gintama", 2006, 201, &["Gintama: Season 1"]),
             anime(8126, "Gintama'", 2011, 51, &["Gintama (Episodes 202-252)", "Gintama Season 2"]),
             anime(16803, "Kimetsu no Yaiba: Mugen Ressha-hen", 2021, 7, &["Demon Slayer: Kimetsu no Yaiba Season 2"]),
-            anime(14107, "Kimetsu no Yaiba", 2019, 26, &["Demon Slayer"]),
+            anime(14107, "Kimetsu no Yaiba", 2019, 26, &["Demon Slayer", "Demon Slayer: Kimetsu no Yaiba"]),
             anime(16054, "Kimetsu no Yaiba: Yuukaku-hen", 2022, 11, &["Demon Slayer Season 2"]),
             anime(34, "Fruits Basket", 2001, 26, &["Fruits Basket (2001)"]),
             anime(14490, "Fruits Basket 1st Season", 2019, 25, &["Fruits Basket (2019)"]),
