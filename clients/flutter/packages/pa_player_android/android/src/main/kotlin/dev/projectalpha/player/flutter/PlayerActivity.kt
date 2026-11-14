@@ -63,7 +63,7 @@ class PlayerActivity : FragmentActivity() {
             root.addView(surface, FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
             engine.setVideoSurfaceView(surface)
         }
-        engine.open(request)
+        engine.openMedia(request)
         if (!nativeOsd) attachFlutterOsd(root, intent.getStringExtra(EXTRA_OSD_ENTRYPOINT) ?: DEFAULT_ENTRYPOINT)
     }
 

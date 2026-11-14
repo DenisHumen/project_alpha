@@ -89,7 +89,7 @@ class Media3Engine(
 
     override fun state(): EngineState = synchronized(stateLock) { state }
 
-    override fun open(request: OpenRequest) {
+    override fun openMedia(request: OpenRequest) {
         checkAlive()
         if (request.items.isEmpty()) throw EngineException.InvalidArgument("the playlist is empty")
         if (request.index.toInt() !in request.items.indices) {

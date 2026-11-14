@@ -95,4 +95,6 @@ cargo test -p pa-playback
 pa_playback::player_engine_contract_tests!(|| Box::new(MyHarness::new()));
 ```
 
+Движки на Swift и Kotlin гоняют тот же набор через `pa-ffi`: `run_player_engine_contract_case(name, harness)` с харнессом на платформе (пример — `clients/apple/AlphaPlayerKit/Tests`, PLAY-APL-001).
+
 `Harness` отдаёт движок, `Fixture` (два видео не короче 10 с, минимум две аудиодорожки и одни субтитры, битый источник, внешний SRT) и `advance(ms)` — у mock это виртуальные часы, у реального движка — ожидание событий.

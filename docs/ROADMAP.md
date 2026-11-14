@@ -464,7 +464,7 @@ project_alpha/
   - Что: `notify` (inotify, FSEvents, ReadDirectoryChangesW) с дебаунсом для локальных путей; SMB2 CHANGE_NOTIFY там, где поддерживается; для остальных сетевых источников — таймер, скан при открытии и pull-to-refresh.
   - deps: LIB-003 · size: M · parallel: yes · веха: M1 · ref: 04 §1.4 п.3, §1.5
   - done when: новый файл в локальной папке появляется в библиотеке меньше чем за 5 с.
-- [ ] **LIB-006** `pa-probe`: анализ контейнера
+- [x] **LIB-006** `pa-probe`: анализ контейнера
   - Что: libavformat по первым 2–8 МБ: контейнер, длительность; видео — кодек, разрешение, тип HDR (HDR10, HDR10+, HLG, DV: профиль и compat id); аудио — кодек, каналы, язык, признак Atmos/JOC; субтитры, главы, теги, вложения.
   - deps: LIB-003, PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 03 §4.2 [2], 02 §2.3
   - done when: на тест-сэмплах QA-002 все поля определяются верно.
@@ -763,7 +763,7 @@ project_alpha/
 
 ### 3.10. PLAY-APL — плеер iOS, iPadOS, macOS и tvOS
 
-- [ ] **PLAY-APL-001** `AlphaPlayerKit` и MPVKit (этап 1)
+- [x] **PLAY-APL-001** `AlphaPlayerKit` и MPVKit (этап 1)
   - Что: Swift package: MPVKit только в LGPL-варианте (не `-GPL`, проверка в CI), рендер в Metal-слой, `PlayerEngine` через UniFFI; пакет используют и Flutter-плагин, и tvOS-приложение.
   - deps: CORE-003, PLAY-003 · size: L · parallel: no · веха: M5 · ref: 02 §2.2, §3.1, §7
   - done when: MKV из QA-002 играют на симуляторах iOS и tvOS; лицензионная проверка в CI.
@@ -811,6 +811,10 @@ project_alpha/
   - Что: ручной и полуавтоматический прогон на iPhone, iPad, Mac (M-серия), Apple TV 4K (2021/2022): HDR10, DV P5/P8.1/P7, TrueHD Atmos, DTS-HD MA, AFR.
   - deps: PLAY-APL-007, PLAY-APL-008, PLAY-APL-009, QA-002 · size: M · parallel: yes · веха: M5 · ref: 02 §2.3–2.4
   - done when: результаты в `docs/dev/device-matrix.md`, блокеров нет.
+- [ ] **PLAY-APL-013** Своя LGPL-2.1 сборка FFmpeg и libmpv для iOS и tvOS вместо MPVKit
+  - Что: xcframework FFmpeg (без `--enable-version3`) и libmpv (`-Dgpl=false`) для iOS, iOS Simulator, tvOS, tvOS Simulator и macOS из `tools/ffmpeg` (цели `ios-*`, `tvos-*` уже есть) и `tools/mpv` (расширить с macOS на iOS и tvOS, MoltenVK/libplacebo); AlphaPlayerKit переходит на неё вместо MPVKit (LGPLv3, только для разработки и CI), `scripts/check-license.sh --store` становится зелёным.
+  - deps: PLAY-APL-001, PLAY-001, PLAY-002 · size: L · parallel: yes · веха: M5 · ref: 02 §3.1, ADR-0005, ADR-NNNN
+  - done when: контрактный набор и MKV из QA-002 проходят на симуляторах iOS и tvOS с нашей сборкой; лицензионная проверка в профиле store проходит в CI.
 
 ### 3.11. UI — Flutter-приложение (телефон, планшет, десктоп, общие экраны)
 
@@ -1780,6 +1784,6 @@ project_alpha/
 | PLAY | 14 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
 | PLAY-DSK | 9 | LEGAL | 10 |
-| PLAY-APL | 12 | SITE | 6 |
+| PLAY-APL | 13 | SITE | 6 |
 | UI | 24 | COMM | 6 |
-| TV | 13 | **Всего** | **364** (356 задач + 8 решений владельца) |
+| TV | 13 | **Всего** | **365** (357 задач + 8 решений владельца) |

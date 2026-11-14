@@ -208,7 +208,10 @@ pub trait PlayerEngine: Send + Sync {
     fn kind(&self) -> EngineKind;
     fn set_listener(&self, listener: Option<Arc<dyn EngineListener>>);
     fn state(&self) -> EngineState;
-    fn open(&self, request: OpenRequest) -> Result<(), EngineError>;
+    /// `PlayerEngine::open`. Renamed: UniFFI escapes the Swift keyword
+    /// `open` with backticks inside the generated C header of foreign
+    /// traits, and that header does not compile (PLAY-APL-001).
+    fn open_media(&self, request: OpenRequest) -> Result<(), EngineError>;
     fn play(&self) -> Result<(), EngineError>;
     fn pause(&self) -> Result<(), EngineError>;
     fn seek(&self, position_ms: u64) -> Result<(), EngineError>;
@@ -249,7 +252,7 @@ impl pa_playback::PlayerEngine for ForeignEngine {
         self.0.state()
     }
     fn open(&self, request: OpenRequest) -> Result<(), EngineError> {
-        self.0.open(request)
+        self.0.open_media(request)
     }
     fn play(&self) -> Result<(), EngineError> {
         self.0.play()
@@ -343,14 +346,16 @@ pub fn player_engine_contract_cases() -> Vec<String> {
 
 /// Runs one contract case against the engine of `harness`.
 ///
-/// Returns `None` when the case passes, otherwise why it failed.
+/// Returns `None` when the case passes, otherwise why it failed. The case
+/// argument is called `name`: a parameter named `case` (a Swift keyword)
+/// breaks the generated C header for Swift.
 #[uniffi::export]
 pub fn player_engine_contract_run(
-    case: String,
+    name: String,
     harness: Arc<dyn PlayerEngineHarness>,
 ) -> Option<String> {
-    let Some((_, run)) = contract::CASES.iter().find(|(n, _)| *n == case) else {
-        return Some(format!("unknown contract case `{case}`"));
+    let Some((_, run)) = contract::CASES.iter().find(|(n, _)| *n == name) else {
+        return Some(format!("unknown contract case `{name}`"));
     };
     let fx = harness.fixture();
     let (Ok(items), Ok(durations_ms)) = (
@@ -376,5 +381,114 @@ pub fn player_engine_contract_run(
             .cloned()
             .or_else(|| panic.downcast_ref::<&str>().map(|s| (*s).to_owned()))
             .unwrap_or_else(|| "panic".into())
+    })
+}
+
+/// A core engine (the mock, later Rust engines) behind the FFI trait.
+pub struct CoreEngine(pub Arc<dyn pa_playback::PlayerEngine>);
+
+/// Passes events of a core engine to a platform listener.
+struct PlatformListener(Arc<dyn EngineListener>);
+
+impl pa_playback::EngineListener for PlatformListener {
+    fn on_event(&self, event: EngineEvent) {
+        self.0.on_event(event);
+    }
+}
+
+impl PlayerEngine for CoreEngine {
+    fn kind(&self) -> EngineKind {
+        self.0.kind()
+    }
+    fn set_listener(&self, listener: Option<Arc<dyn EngineListener>>) {
+        self.0.set_listener(
+            listener.map(|l| Arc::new(PlatformListener(l)) as Arc<dyn pa_playback::EngineListener>),
+        );
+    }
+    fn state(&self) -> EngineState {
+        self.0.state()
+    }
+    fn open_media(&self, request: OpenRequest) -> Result<(), EngineError> {
+        self.0.open(request)
+    }
+    fn play(&self) -> Result<(), EngineError> {
+        self.0.play()
+    }
+    fn pause(&self) -> Result<(), EngineError> {
+        self.0.pause()
+    }
+    fn seek(&self, position_ms: u64) -> Result<(), EngineError> {
+        self.0.seek(position_ms)
+    }
+    fn set_rate(&self, rate: f64) -> Result<(), EngineError> {
+        self.0.set_rate(rate)
+    }
+    fn set_volume(&self, volume: f64) -> Result<(), EngineError> {
+        self.0.set_volume(volume)
+    }
+    fn set_repeat(&self, repeat: RepeatMode) -> Result<(), EngineError> {
+        self.0.set_repeat(repeat)
+    }
+    fn jump(&self, index: u32) -> Result<(), EngineError> {
+        self.0.jump(index)
+    }
+    fn set_audio_track(&self, id: Option<String>) -> Result<(), EngineError> {
+        self.0.set_audio_track(id)
+    }
+    fn set_subtitle_track(&self, id: Option<String>) -> Result<(), EngineError> {
+        self.0.set_subtitle_track(id)
+    }
+    fn add_external_subtitle(&self, uri: String, title: Option<String>) -> Result<(), EngineError> {
+        self.0.add_external_subtitle(uri, title)
+    }
+    fn stats(&self) -> Result<PlaybackStats, EngineError> {
+        self.0.stats()
+    }
+    fn close_engine(&self) -> Result<(), EngineError> {
+        self.0.close()
+    }
+}
+
+/// The Rust mock with its fixture and virtual clock.
+struct MockHarness {
+    mock: Arc<pa_playback::MockEngine>,
+    engine: Arc<dyn PlayerEngine>,
+    fixture: ContractFixture,
+}
+
+impl PlayerEngineHarness for MockHarness {
+    fn engine(&self) -> Arc<dyn PlayerEngine> {
+        self.engine.clone()
+    }
+    fn fixture(&self) -> ContractFixture {
+        self.fixture.clone()
+    }
+    fn advance(&self, ms: u64) {
+        self.mock.advance(ms);
+    }
+}
+
+/// A harness over a fresh `pa_playback::MockEngine` (`mock://` URIs, virtual
+/// clock): a stand-in engine for UI tests and a check on a platform that the
+/// bindings and the contract runner work (PLAY-APL-001).
+#[uniffi::export]
+pub fn mock_engine_harness() -> Arc<dyn PlayerEngineHarness> {
+    let (fixture, registry) = contract::mock_fixture();
+    let mock = Arc::new(
+        registry
+            .into_iter()
+            .fold(pa_playback::MockEngine::new(), |e, (uri, media)| {
+                e.with_media(uri, media)
+            }),
+    );
+    Arc::new(MockHarness {
+        engine: Arc::new(CoreEngine(mock.clone())),
+        mock,
+        fixture: ContractFixture {
+            items: fixture.items.to_vec(),
+            durations_ms: fixture.durations_ms.to_vec(),
+            broken: fixture.broken,
+            external_subtitle: fixture.external_subtitle,
+        },
     })
 }
