@@ -105,7 +105,11 @@ void main() {
     for (final row in [
       'Recently Added Movies',
       'Recently Added TV Shows',
-      demoShelfName, 'Science Fiction', 'Comedy', 'Drama']) {
+      demoShelfName,
+      'Science Fiction',
+      'Comedy',
+      'Drama',
+    ]) {
       await t.scrollUntilVisible(find.text(row), 300, scrollable: _homeScroll);
       expect(find.text(row), findsOneWidget);
     }
