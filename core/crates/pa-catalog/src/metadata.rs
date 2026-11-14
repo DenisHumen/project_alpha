@@ -408,28 +408,60 @@ fn title_query(work: &WorkQuery) -> TitleQuery {
     }
 }
 
+/// Candidates compared by [`rank`].
+const RANKED: usize = 5;
+
+/// Two results this close are a tie the title cannot break.
+const TIE: f64 = 0.01;
+
+/// Confidence factor of a tie between different works (a remake or a
+/// same-named work without a year): below [`AUTO`], so the match is
+/// `auto_review`.
+const AMBIGUOUS: f64 = 0.85;
+
 /// Index of the best record for `work` and its score, if any reaches
-/// [`ACCEPT`]. Ties keep the provider's order.
+/// [`ACCEPT`]. Ties keep the provider's order, but a tie between two works
+/// lowers the score below [`AUTO`].
 fn rank(work: &WorkQuery, records: Vec<TitleRecord>) -> Option<(usize, f64, String)> {
     if records.is_empty() {
         return None;
     }
     let index = TitleIndex::from_records(records);
-    let best = index.search(&title_query(work), 1).into_iter().next()?;
-    let mut score = f64::from(best.score);
-    // A movie of another year is another movie (remakes).
-    let record = index.record(best.record);
-    if work.kind == "movie"
-        && let (Some(a), Some(b)) = (work.year, record.year)
-        && a.abs_diff(i64::from(b)) > 1
+    let scored: Vec<_> = index
+        .search(&title_query(work), RANKED)
+        .into_iter()
+        .map(|c| {
+            let mut score = f64::from(c.score);
+            // A movie of another year is another movie (remakes).
+            let record = index.record(c.record);
+            if work.kind == "movie"
+                && let (Some(a), Some(b)) = (work.year, record.year)
+                && a.abs_diff(i64::from(b)) > 1
+            {
+                score *= 0.8;
+            }
+            (c, score)
+        })
+        .collect();
+    let mut best = 0;
+    for (i, (_, score)) in scored.iter().enumerate() {
+        if *score > scored[best].1 {
+            best = i;
+        }
+    }
+    let (candidate, mut score) = scored.get(best).cloned()?;
+    if scored
+        .iter()
+        .enumerate()
+        .any(|(i, (_, s))| i != best && *s >= score - TIE)
     {
-        score *= 0.8;
+        score *= AMBIGUOUS;
     }
     (score >= ACCEPT).then(|| {
         (
-            best.record,
+            candidate.record,
             score,
-            format!("{:?}", best.tier).to_lowercase(),
+            format!("{:?}", candidate.tier).to_lowercase(),
         )
     })
 }
@@ -1433,6 +1465,14 @@ mod tests {
         assert_eq!(i, 1);
         assert!(score >= AUTO, "{score}");
         assert!(rank(&work, vec![rec("Dunkirk", 2017)]).is_none());
+        // Without a year two same-named works tie: not auto.
+        let no_year = WorkQuery {
+            year: None,
+            ..work.clone()
+        };
+        let (i, score, _) = rank(&no_year, vec![rec("Dune", 2021), rec("Dune", 1984)]).unwrap();
+        assert_eq!(i, 0, "the provider's order breaks the tie");
+        assert!((ACCEPT..AUTO).contains(&score), "{score}");
         // Only a remake of another year: penalised below auto.
         let (_, score, _) = rank(&work, vec![rec("Dune", 1984)]).unwrap_or((0, 0.0, String::new()));
         assert!(score < AUTO, "{score}");

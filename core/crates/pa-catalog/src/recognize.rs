@@ -76,9 +76,23 @@ pub struct WorkPlan {
     /// Ids from NFO files: provider ([`NFO_PROVIDERS`]) → id. TMDB ids carry
     /// their kind (`movie:603`, `tv:1399`).
     pub ids: BTreeMap<String, String>,
+    /// Other titles the files are named by (the other half of a double
+    /// title, a folder title in another language, another spelling of the
+    /// same key): stored as local synonyms, so the metadata run can search
+    /// by them too.
+    pub alt_titles: Vec<String>,
 }
 
 impl WorkPlan {
+    /// Adds `title` to [`alt_titles`](Self::alt_titles) unless the work
+    /// already has it.
+    fn add_title(&mut self, title: &str) {
+        let t = title.trim();
+        if !t.is_empty() && t != self.title && !self.alt_titles.iter().any(|a| a == t) {
+            self.alt_titles.push(t.to_owned());
+        }
+    }
+
     /// A show or anime.
     #[must_use]
     pub fn is_series(&self) -> bool {
@@ -240,6 +254,7 @@ impl WorkIndex {
             }
         }
         let mut work = self.ensure(conn, plan.kind, &plan.title, plan.year, now)?;
+        add_local_titles(conn, work, plan)?;
         if !ext.is_empty() {
             let mut conflict = false;
             for (provider, kind, id) in &ext {
@@ -256,6 +271,7 @@ impl WorkIndex {
             if conflict {
                 // Same title, another work (a remake the NFO tells apart).
                 work = create_work(conn, plan.kind, &plan.title, plan.year, now)?;
+                add_local_titles(conn, work, plan)?;
             }
             for (provider, kind, id) in &ext {
                 conn.execute(
@@ -267,6 +283,20 @@ impl WorkIndex {
         }
         Ok(work)
     }
+}
+
+/// The plan's title and alternative titles as local synonyms of `work`
+/// (titles the work already has are skipped).
+fn add_local_titles(conn: &Connection, work: i64, plan: &WorkPlan) -> Result<(), Error> {
+    for t in std::iter::once(&plan.title).chain(&plan.alt_titles) {
+        conn.execute(
+            "INSERT INTO titles (work_id, text, kind, source)
+             SELECT ?1, ?2, 'synonym', 'local'
+             WHERE NOT EXISTS (SELECT 1 FROM titles WHERE work_id = ?1 AND text = ?2)",
+            params![work, t],
+        )?;
+    }
+    Ok(())
 }
 
 fn create_work(
@@ -346,6 +376,10 @@ pub fn group_works(plans: &[Option<FilePlan>]) -> (Vec<WorkPlan>, Vec<Option<usi
         }
         for (p, v) in &plan.work.ids {
             work.ids.entry(p.clone()).or_insert_with(|| v.clone());
+        }
+        work.add_title(&plan.work.title);
+        for a in &plan.work.alt_titles {
+            work.add_title(a);
         }
         for e in work.external_ids() {
             ids.entry(e).or_insert(idx);
@@ -493,6 +527,11 @@ fn plan(path: &str, p: &ParsedName, weight: f64, as_main: bool) -> Option<FilePl
         .filter(|t| !t.trim().is_empty())
         .unwrap_or_else(|| file_stem(path).to_owned());
     let title = better_cased(title, &p.alt_titles, path);
+    let alts = |work: &mut WorkPlan| {
+        for a in &p.alt_titles {
+            work.add_title(a);
+        }
+    };
     let year = p.year.map(i64::from);
     let is_episode = p.media == MediaHint::Episode
         || !p.episodes.is_empty()
@@ -504,6 +543,7 @@ fn plan(path: &str, p: &ParsedName, weight: f64, as_main: bool) -> Option<FilePl
             title,
             year,
             ids: BTreeMap::new(),
+            alt_titles: Vec::new(),
         },
         role: PlanRole::Main,
         episodes: Vec::new(),
@@ -511,7 +551,9 @@ fn plan(path: &str, p: &ParsedName, weight: f64, as_main: bool) -> Option<FilePl
         confidence: weight,
     };
     if !is_episode {
-        return Some(movie(title));
+        let mut m = movie(title);
+        alts(&mut m.work);
+        return Some(m);
     }
     let kind = episode_type(p.episode_kind);
     let season = p.season.map(i64::from).or_else(|| {
@@ -551,13 +593,16 @@ fn plan(path: &str, p: &ParsedName, weight: f64, as_main: bool) -> Option<FilePl
             kind,
         });
     }
+    let mut work = WorkPlan {
+        kind: if p.anime_hint { "anime" } else { "show" },
+        title,
+        year,
+        ids: BTreeMap::new(),
+        alt_titles: Vec::new(),
+    };
+    alts(&mut work);
     Some(FilePlan {
-        work: WorkPlan {
-            kind: if p.anime_hint { "anime" } else { "show" },
-            title,
-            year,
-            ids: BTreeMap::new(),
-        },
+        work,
         role: PlanRole::Main,
         episodes: numbers,
         episode_title: p.episode_title.clone(),
