@@ -108,6 +108,11 @@ class LibraryItem {
   /// When the item was first added to the library.
   final DateTime? addedAt;
 
+  /// Versions of a movie or episode (LIB-010): files of one work that each
+  /// play it whole (4K, 1080p, Director's Cut). More than one: the app
+  /// offers a version picker on play. 1 for shows and tracks.
+  final int versionCount;
+
   const LibraryItem({
     required this.id,
     required this.kind,
@@ -129,7 +134,34 @@ class LibraryItem {
     this.matchConfidence,
     this.tmdbId,
     this.addedAt,
+    this.versionCount = 1,
   });
+
+  /// This item playing another file: one of its versions (LIB-010).
+  LibraryItem withFile(String filePath, {String? streamUri, int? durationMs}) =>
+      LibraryItem(
+        id: id,
+        kind: kind,
+        title: title,
+        filePath: filePath,
+        streamUri: streamUri,
+        originalTitle: originalTitle,
+        year: year,
+        overview: overview,
+        posterUrl: posterUrl,
+        backdropUrl: backdropUrl,
+        showId: showId,
+        season: season,
+        episode: episode,
+        artist: artist,
+        album: album,
+        trackNumber: trackNumber,
+        durationMs: durationMs ?? this.durationMs,
+        matchConfidence: matchConfidence,
+        tmdbId: tmdbId,
+        addedAt: addedAt,
+        versionCount: versionCount,
+      );
 
   @override
   bool operator ==(Object other) =>
@@ -152,7 +184,8 @@ class LibraryItem {
       other.streamUri == streamUri &&
       other.durationMs == durationMs &&
       other.matchConfidence == matchConfidence &&
-      other.tmdbId == tmdbId;
+      other.tmdbId == tmdbId &&
+      other.versionCount == versionCount;
 
   @override
   int get hashCode => Object.hash(

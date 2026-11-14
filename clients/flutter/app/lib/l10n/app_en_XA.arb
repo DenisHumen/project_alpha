@@ -317,5 +317,20 @@
   "homeBadgeTwitchVod": "[Ţŵíţçĥ ṽíðéó·····]",
   "sourcesFormAutoScan": "[Ŕéšçáñ áúţóɱáţíçáļļý········]",
   "sourcesFormAutoScanHint": "[Ļóçáļ ƒóļðéŕš: šóóñ áƒţéŕ ƒíļéš çĥáñĝé. Ñéţŵóŕķ šóúŕçéš: éṽéŕý 15 ɱíñúţéš.······························]",
-  "sourcesAutoScanOn": "[Ŕéšçáññéð áúţóɱáţíçáļļý··········]"
+  "sourcesAutoScanOn": "[Ŕéšçáññéð áúţóɱáţíçáļļý··········]",
+  "homeFavorites": "[Ƒáṽóŕíţéš····]",
+  "libraryMenuUnfavorite": "[Ŕéɱóṽé ƒŕóɱ ƒáṽóŕíţéš·········]",
+  "libraryFavoriteAdded": "[Åððéð ţó ƒáṽóŕíţéš········]",
+  "libraryFavoriteRemoved": "[Ŕéɱóṽéð ƒŕóɱ ƒáṽóŕíţéš·········]",
+  "libraryPlaylistEmpty": "[Ñó þļáýļíšţš ýéţ·······]",
+  "libraryPlaylistNew": "[Ñéŵ þļáýļíšţ·····]",
+  "libraryPlaylistName": "[Þļáýļíšţ ñáɱé······]",
+  "libraryPlaylistCreate": "[Çŕéáţé···]",
+  "libraryPlaylistAdded": "[Åððéð ţó “····{name}”]",
+  "libraryPlaylistAlready": "[Åļŕéáðý íñ “·····{name}”]",
+  "libraryPlaylistCount": "{count, plural, one{{count} ṽíðéó··} other{{count} ṽíðéóš···}}",
+  "libraryVersionsTitle": "[Çĥóóšé á ṽéŕšíóñ·······]",
+  "libraryVersionDefault": "[Ðéƒáúļţ···]",
+  "libraryVersionMakeDefault": "[Þļáý ţĥíš ṽéŕšíóñ ƀý ðéƒáúļţ············]",
+  "libraryVersionCount": "{count, plural, one{{count} ṽéŕšíóñ···} other{{count} ṽéŕšíóñš····}}"
 }

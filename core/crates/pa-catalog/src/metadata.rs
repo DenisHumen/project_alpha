@@ -809,6 +809,7 @@ fn merge_work(tx: &Transaction<'_>, from: i64, into: i64) -> Result<(), Error> {
         "UPDATE OR IGNORE favorites SET work_id = ?2 WHERE work_id = ?1",
         "UPDATE OR IGNORE collection_items SET work_id = ?2 WHERE work_id = ?1",
         "UPDATE OR IGNORE display_preferences SET work_id = ?2 WHERE work_id = ?1",
+        "UPDATE OR IGNORE version_prefs SET work_id = ?2 WHERE work_id = ?1",
         "INSERT OR IGNORE INTO titles (work_id, lang, script, text, kind, source)
          SELECT ?2, lang, script, text, CASE kind WHEN 'main' THEN 'synonym' ELSE kind END, source
          FROM titles WHERE work_id = ?1",
@@ -1214,6 +1215,18 @@ fn apply(
     };
     pa_library::views::set_work_genres(tx, target, "tmdb", &tmdb_genres)?;
     pa_library::views::set_work_genres(tx, target, "anilist", &anilist_genres)?;
+
+    // TMDB collection of a movie (LIB-010).
+    if let Some(t) = &fetched.tmdb
+        && t.kind.as_str() == "movie"
+    {
+        let collection = t
+            .details
+            .belongs_to_collection
+            .as_ref()
+            .map(|c| (c.id, c.name.as_deref().unwrap_or("")));
+        crate::lists::link_tmdb_collection(tx, target, collection, now)?;
+    }
 
     // Artwork.
     tx.execute(

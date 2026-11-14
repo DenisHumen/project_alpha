@@ -28,6 +28,7 @@ use flutter_rust_bridge::frb;
 use pa_catalog as c;
 use pa_catalog::pa_sync::lan::service::SyncService;
 
+use crate::api::library_lists::{CoreCollection, CorePlaylist, CoreVersion};
 use crate::api::library_query::{
     CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
     CoreLibrarySort, CoreSmartShelf, CoreViewPrefs,
@@ -147,6 +148,9 @@ pub struct CoreItem {
     /// source root like `rel_path` (LIB-007 groups; episodes: the show's).
     /// Network sources: fetch it through [`CoreLibrary::stream_base_url`].
     pub local_poster: Option<String>,
+    /// Versions of a movie or episode (LIB-010): 2+ shows a version picker
+    /// on play ([`CoreLibrary::versions`]). 1 for shows and tracks.
+    pub version_count: u32,
 }
 
 fn small(v: Option<i64>) -> Option<i32> {
@@ -178,6 +182,7 @@ impl From<c::Item> for CoreItem {
             poster_url: i.poster_url,
             backdrop_url: i.backdrop_url,
             local_poster: i.local_poster,
+            version_count: i.version_count,
         }
     }
 }
@@ -891,6 +896,149 @@ impl CoreLibrary {
     /// Genres of a movie or show item.
     pub fn genres(&self, item_id: String) -> Result<Vec<String>> {
         Ok(self.catalog.genres(item_ref(&item_id)?)?)
+    }
+
+    // -----------------------------------------------------------------------
+    // versions, favorites, collections, playlists (LIB-010)
+
+    /// Versions of a movie or episode, best resolution first; the one the
+    /// item plays has `is_default`.
+    pub fn versions(&self, item_id: String) -> Result<Vec<CoreVersion>> {
+        Ok(self
+            .catalog
+            .versions(item_ref(&item_id)?)?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    /// Makes a version (`CoreVersion::file_id`) the default of a movie, or
+    /// goes back to its first file (`None`).
+    pub fn set_default_version(&self, item_id: String, file_id: Option<i64>) -> Result<()> {
+        Ok(self
+            .catalog
+            .set_default_version(item_ref(&item_id)?, file_id)?)
+    }
+
+    /// Favorite items, newest first; `pinned_only`: those on Home.
+    pub fn favorites(&self, pinned_only: bool) -> Result<Vec<CoreItem>> {
+        Ok(items(self.catalog.favorites(pinned_only)?))
+    }
+
+    pub fn is_favorite(&self, item_id: String) -> Result<bool> {
+        let Ok(id) = item_id.parse::<c::ItemRef>() else {
+            return Ok(false);
+        };
+        Ok(self.catalog.is_favorite(id)?)
+    }
+
+    /// Adds an item to the favorites or removes it; whether anything
+    /// changed.
+    pub fn set_favorite(&self, item_id: String, favorite: bool) -> Result<bool> {
+        Ok(self.catalog.set_favorite(item_ref(&item_id)?, favorite)?)
+    }
+
+    /// Shows a favorite in the Favorites row of Home or hides it there.
+    pub fn set_favorite_pinned(&self, item_id: String, pinned: bool) -> Result<bool> {
+        Ok(self
+            .catalog
+            .set_favorite_pinned(item_ref(&item_id)?, pinned)?)
+    }
+
+    /// The user's collections and the TMDB ones, by name.
+    pub fn collections(&self) -> Result<Vec<CoreCollection>> {
+        Ok(self
+            .catalog
+            .collections()?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    /// Collections that hold an item.
+    pub fn item_collections(&self, item_id: String) -> Result<Vec<CoreCollection>> {
+        Ok(self
+            .catalog
+            .item_collections(item_ref(&item_id)?)?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    pub fn collection_items(&self, id: i64) -> Result<Vec<CoreItem>> {
+        Ok(items(self.catalog.collection_items(id)?))
+    }
+
+    pub fn create_collection(&self, name: String) -> Result<CoreCollection> {
+        Ok(self.catalog.create_collection(&name)?.into())
+    }
+
+    pub fn rename_collection(&self, id: i64, name: String) -> Result<()> {
+        Ok(self.catalog.rename_collection(id, &name)?)
+    }
+
+    pub fn delete_collection(&self, id: i64) -> Result<()> {
+        Ok(self.catalog.delete_collection(id)?)
+    }
+
+    pub fn add_to_collection(&self, id: i64, item_id: String) -> Result<bool> {
+        Ok(self.catalog.add_to_collection(id, item_ref(&item_id)?)?)
+    }
+
+    pub fn remove_from_collection(&self, id: i64, item_id: String) -> Result<bool> {
+        Ok(self
+            .catalog
+            .remove_from_collection(id, item_ref(&item_id)?)?)
+    }
+
+    /// Video playlists, most recently changed first.
+    pub fn playlists(&self) -> Result<Vec<CorePlaylist>> {
+        Ok(self
+            .catalog
+            .playlists()?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    pub fn create_playlist(&self, name: String) -> Result<CorePlaylist> {
+        Ok(self.catalog.create_playlist(&name)?.into())
+    }
+
+    pub fn rename_playlist(&self, id: i64, name: String) -> Result<()> {
+        Ok(self.catalog.rename_playlist(id, &name)?)
+    }
+
+    pub fn delete_playlist(&self, id: i64) -> Result<()> {
+        Ok(self.catalog.delete_playlist(id)?)
+    }
+
+    /// Items of a playlist in order (missing files left out).
+    pub fn playlist_items(&self, id: i64) -> Result<Vec<CoreItem>> {
+        Ok(items(self.catalog.playlist_items(id)?))
+    }
+
+    /// Appends a movie, an episode or every episode of a show; returns how
+    /// many entries were added (items already there are skipped).
+    pub fn add_to_playlist(&self, id: i64, item_id: String) -> Result<u32> {
+        Ok(count(
+            self.catalog.add_to_playlist(id, item_ref(&item_id)?)?,
+        ))
+    }
+
+    pub fn remove_from_playlist(&self, id: i64, item_id: String) -> Result<u32> {
+        Ok(count(
+            self.catalog.remove_from_playlist(id, item_ref(&item_id)?)?,
+        ))
+    }
+
+    /// Orders the playlist as `item_ids`; others follow.
+    pub fn reorder_playlist(&self, id: i64, item_ids: Vec<String>) -> Result<()> {
+        let refs: Vec<c::ItemRef> = item_ids
+            .iter()
+            .filter_map(|i| i.parse::<c::ItemRef>().ok())
+            .collect();
+        Ok(self.catalog.reorder_playlist(id, &refs)?)
     }
 
     /// Imports a `pa_library` v0 database (read-only; renaming it is the

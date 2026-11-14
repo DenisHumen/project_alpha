@@ -11,6 +11,7 @@ export 'src/rust/api/discovery.dart';
 export 'src/rust/api/events.dart';
 export 'src/rust/api/images.dart';
 export 'src/rust/api/library.dart';
+export 'src/rust/api/library_lists.dart';
 export 'src/rust/api/library_query.dart';
 export 'src/rust/api/recognition.dart';
 export 'src/rust/api/secrets.dart';

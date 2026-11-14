@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'library_lists.dart';
 import 'library_query.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
@@ -26,6 +27,18 @@ abstract class CoreLibrary implements RustOpaqueInterface {
     String? username,
   });
 
+  Future<bool> addToCollection({
+    required PlatformInt64 id,
+    required String itemId,
+  });
+
+  /// Appends a movie, an episode or every episode of a show; returns how
+  /// many entries were added (items already there are skipped).
+  Future<int> addToPlaylist({
+    required PlatformInt64 id,
+    required String itemId,
+  });
+
   /// Alphabet index of a query in title order.
   Future<List<CoreAlphabetEntry>> alphabetIndex({
     required CoreLibraryQuery query,
@@ -43,6 +56,11 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   /// Stops the running scan (it keeps what it wrote).
   Future<void> cancelScan();
 
+  Future<List<CoreItem>> collectionItems({required PlatformInt64 id});
+
+  /// The user's collections and the TMDB ones, by name.
+  Future<List<CoreCollection>> collections();
+
   /// Reaches SMB and WebDAV sources through the source manager
   /// (`pa-sources`) with the passwords of the secret store whose
   /// fallback file is in `data_dir` (the same as for `CoreSources.open`).
@@ -53,11 +71,19 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   /// "Continue watching" with Up Next, latest first.
   Future<List<CoreContinueItem>> continueWatching({required int limit});
 
+  Future<CoreCollection> createCollection({required String name});
+
+  Future<CorePlaylist> createPlaylist({required String name});
+
   Future<CoreSmartShelf> createShelf({
     required String name,
     required CoreLibraryQuery query,
     required bool pinnedHome,
   });
+
+  Future<void> deleteCollection({required PlatformInt64 id});
+
+  Future<void> deletePlaylist({required PlatformInt64 id});
 
   Future<void> deleteShelf({required PlatformInt64 id});
 
@@ -66,6 +92,9 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   /// Filter values present among movies or shows, for filter chips.
   Future<CoreFacets> facets({required CoreItemKind kind});
+
+  /// Favorite items, newest first; `pinned_only`: those on Home.
+  Future<List<CoreItem>> favorites({required bool pinnedOnly});
 
   /// Fetches provider metadata for the works that need it (new, changed,
   /// stale or previously failed). Run it after [`scan`](Self::scan);
@@ -90,8 +119,13 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   /// caller's job). Safe to repeat.
   Future<CoreImportReport> importV0({required String path});
 
+  Future<bool> isFavorite({required String itemId});
+
   /// One item; `None` if unknown or its file is missing.
   Future<CoreItem?> item({required String id});
+
+  /// Collections that hold an item.
+  Future<List<CoreCollection>> itemCollections({required String itemId});
 
   Future<List<CoreItem>> movies();
 
@@ -99,6 +133,12 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   /// `pa_library` v0 file is refused: open a new file and import it.
   static Future<CoreLibrary> open({required String path}) =>
       RustLib.instance.api.crateApiLibraryCoreLibraryOpen(path: path);
+
+  /// Items of a playlist in order (missing files left out).
+  Future<List<CoreItem>> playlistItems({required PlatformInt64 id});
+
+  /// Video playlists, most recently changed first.
+  Future<List<CorePlaylist>> playlists();
 
   Future<CoreProgress?> progress({required String itemId});
 
@@ -115,8 +155,34 @@ abstract class CoreLibrary implements RustOpaqueInterface {
     required int limit,
   });
 
+  Future<bool> removeFromCollection({
+    required PlatformInt64 id,
+    required String itemId,
+  });
+
+  Future<int> removeFromPlaylist({
+    required PlatformInt64 id,
+    required String itemId,
+  });
+
   /// Removes a source with everything found in it.
   Future<void> removeSource({required PlatformInt64 id});
+
+  Future<void> renameCollection({
+    required PlatformInt64 id,
+    required String name,
+  });
+
+  Future<void> renamePlaylist({
+    required PlatformInt64 id,
+    required String name,
+  });
+
+  /// Orders the playlist as `item_ids`; others follow.
+  Future<void> reorderPlaylist({
+    required PlatformInt64 id,
+    required List<String> itemIds,
+  });
 
   /// Orders the shelves as `ids`; unlisted ones follow.
   Future<void> reorderShelves({required Int64List ids});
@@ -150,6 +216,23 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   Future<List<CoreSearchGroup>> searchGrouped({
     required String query,
     required int perGroup,
+  });
+
+  /// Makes a version (`CoreVersion::file_id`) the default of a movie, or
+  /// goes back to its first file (`None`).
+  Future<void> setDefaultVersion({
+    required String itemId,
+    PlatformInt64? fileId,
+  });
+
+  /// Adds an item to the favorites or removes it; whether anything
+  /// changed.
+  Future<bool> setFavorite({required String itemId, required bool favorite});
+
+  /// Shows a favorite in the Favorites row of Home or hides it there.
+  Future<bool> setFavoritePinned({
+    required String itemId,
+    required bool pinned,
   });
 
   Future<void> setViewPrefs({required CoreViewPrefs prefs});
@@ -194,6 +277,10 @@ abstract class CoreLibrary implements RustOpaqueInterface {
     required CoreLibraryQuery query,
     required bool pinnedHome,
   });
+
+  /// Versions of a movie or episode, best resolution first; the one the
+  /// item plays has `is_default`.
+  Future<List<CoreVersion>> versions({required String itemId});
 
   /// Saved preferences of a view, or its defaults.
   Future<CoreViewPrefs> viewPrefs({required String view});
@@ -306,6 +393,10 @@ class CoreItem {
   /// Network sources: fetch it through [`CoreLibrary::stream_base_url`].
   final String? localPoster;
 
+  /// Versions of a movie or episode (LIB-010): 2+ shows a version picker
+  /// on play ([`CoreLibrary::versions`]). 1 for shows and tracks.
+  final int versionCount;
+
   const CoreItem({
     required this.id,
     required this.kind,
@@ -329,6 +420,7 @@ class CoreItem {
     this.posterUrl,
     this.backdropUrl,
     this.localPoster,
+    required this.versionCount,
   });
 
   @override
@@ -354,7 +446,8 @@ class CoreItem {
       addedAtMs.hashCode ^
       posterUrl.hashCode ^
       backdropUrl.hashCode ^
-      localPoster.hashCode;
+      localPoster.hashCode ^
+      versionCount.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -382,7 +475,8 @@ class CoreItem {
           addedAtMs == other.addedAtMs &&
           posterUrl == other.posterUrl &&
           backdropUrl == other.backdropUrl &&
-          localPoster == other.localPoster;
+          localPoster == other.localPoster &&
+          versionCount == other.versionCount;
 }
 
 /// Kind of a library item.

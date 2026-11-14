@@ -206,6 +206,16 @@ class HomeFeed {
     return UpNextEntry(episode: next, show: show, after: lastP.updatedAt);
   }
 
+  /// Favorites pinned to Home (LIB-010), newest first; empty on a library
+  /// without favorites (the v0 fallback).
+  Stream<List<LibraryItem>> favorites() => switch (library) {
+    final LibraryLists l =>
+      l
+          .favorites(pinnedOnly: true)
+          .map((items) => items.take(rowLimit).toList()),
+    _ => Stream.value(const <LibraryItem>[]),
+  };
+
   static bool _finished(Progress p) =>
       p.watched ||
       (p.durationMs > 0 && p.positionMs / p.durationMs > continueWatchingMax);

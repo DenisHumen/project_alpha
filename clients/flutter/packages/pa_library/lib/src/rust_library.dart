@@ -9,6 +9,7 @@ import 'package:pa_core/pa_core.dart';
 import 'package:path/path.dart' as p;
 
 import 'library.dart';
+import 'library_lists.dart';
 import 'library_query.dart';
 import 'models.dart';
 import 'music_tags.dart';
@@ -33,7 +34,7 @@ import 'smb.dart' show SmbUrl;
 /// (LIB-018): nothing is mounted and the app never holds their passwords.
 /// Their files play through the core's loopback HTTP proxy
 /// ([LibraryItem.streamUri]).
-class RustLibrary implements Library {
+class RustLibrary implements Library, LibraryLists {
   final CoreLibrary _core;
   final String? _tempDir;
   final String _metadataCacheDir;
@@ -381,20 +382,26 @@ class RustLibrary implements Library {
   // -------------------------------------------------------------------------
   // items
 
-  String _filePath(CoreItem i) {
-    final local = i.localPath;
+  String _filePath(CoreItem i) =>
+      _displayPath(i.localPath, i.sourceId, i.relPath);
+
+  /// Local path, else the source address and [relPath] (network files).
+  String _displayPath(String? local, int sourceId, String relPath) {
     if (local != null) return local;
-    final uri = _sourceUris[i.sourceId.toInt()];
-    if (uri == null) return i.relPath;
+    final uri = _sourceUris[sourceId];
+    if (uri == null) return relPath;
     final root = uri.endsWith('/') ? uri.substring(0, uri.length - 1) : uri;
-    return i.relPath.isEmpty ? root : '$root/${i.relPath}';
+    return relPath.isEmpty ? root : '$root/$relPath';
   }
 
   /// Stream URL of a file on a network source; null for local files.
-  String? _streamUri(CoreItem i) {
+  String? _streamUri(CoreItem i) =>
+      _fileStreamUri(i.localPath, i.sourceId, i.relPath);
+
+  String? _fileStreamUri(String? local, int sourceId, String relPath) {
     final base = _streamBase;
-    if (i.localPath != null || base == null) return null;
-    return streamUrl(base, i.sourceId.toInt(), i.relPath);
+    if (local != null || base == null) return null;
+    return streamUrl(base, sourceId, relPath);
   }
 
   /// Proxy URL of the local poster of a network item, if the core has one.
@@ -480,6 +487,7 @@ class RustLibrary implements Library {
       addedAt: i.addedAtMs == null
           ? null
           : DateTime.fromMillisecondsSinceEpoch(i.addedAtMs!),
+      versionCount: i.versionCount,
     );
   }
 
@@ -900,6 +908,180 @@ class RustLibrary implements Library {
   static int _shelfId(String id) =>
       int.tryParse(id) ??
       (throw ArgumentError.value(id, 'id', 'no such shelf'));
+
+  // -------------------------------------------------------------------------
+  // versions, favorites, collections, playlists (LIB-010)
+
+  static int _listId(String id, String what) =>
+      int.tryParse(id) ??
+      (throw ArgumentError.value(id, 'id', 'no such $what'));
+
+  MediaVersion _version(CoreVersion v) => MediaVersion(
+    id: '${v.fileId}',
+    label: v.label,
+    resolution: v.resolution,
+    hdr: v.hdr,
+    edition: v.edition,
+    filePath: _displayPath(v.localPath, v.sourceId, v.relPath),
+    streamUri: _fileStreamUri(v.localPath, v.sourceId, v.relPath),
+    sizeBytes: v.sizeBytes,
+    durationMs: v.durationMs,
+    isDefault: v.isDefault,
+  );
+
+  static MediaCollection _collection(CoreCollection c) => MediaCollection(
+    id: '${c.id}',
+    name: c.name,
+    external: c.isExternal,
+    itemCount: c.itemCount,
+  );
+
+  static VideoPlaylist _playlist(CorePlaylist p) => VideoPlaylist(
+    id: '${p.id}',
+    name: p.name,
+    itemCount: p.itemCount,
+    updatedAt: DateTime.fromMillisecondsSinceEpoch(p.updatedAtMs),
+  );
+
+  @override
+  Future<List<MediaVersion>> versions(String itemId) async => [
+    for (final v in await _core.versions(itemId: itemId)) _version(v),
+  ];
+
+  @override
+  Future<void> setDefaultVersion(String itemId, String? versionId) async {
+    await _core.setDefaultVersion(
+      itemId: itemId,
+      fileId: versionId == null ? null : _listId(versionId, 'version'),
+    );
+    _notify();
+  }
+
+  @override
+  Stream<List<LibraryItem>> favorites({bool pinnedOnly = false}) =>
+      _watch(() => _items(_core.favorites(pinnedOnly: pinnedOnly)));
+
+  @override
+  Future<bool> isFavorite(String itemId) => _core.isFavorite(itemId: itemId);
+
+  @override
+  Future<void> setFavorite(String itemId, bool favorite) async {
+    await _core.setFavorite(itemId: itemId, favorite: favorite);
+    _notify();
+  }
+
+  @override
+  Future<void> setFavoritePinned(String itemId, bool pinned) async {
+    await _core.setFavoritePinned(itemId: itemId, pinned: pinned);
+    _notify();
+  }
+
+  @override
+  Future<List<MediaCollection>> collections() async => [
+    for (final c in await _core.collections()) _collection(c),
+  ];
+
+  @override
+  Future<List<MediaCollection>> itemCollections(String itemId) async => [
+    for (final c in await _core.itemCollections(itemId: itemId)) _collection(c),
+  ];
+
+  @override
+  Future<List<LibraryItem>> collectionItems(String id) =>
+      _items(_core.collectionItems(id: _listId(id, 'collection')));
+
+  @override
+  Future<MediaCollection> createCollection(String name) async {
+    final c = await _core.createCollection(name: name);
+    _notify();
+    return _collection(c);
+  }
+
+  @override
+  Future<void> renameCollection(String id, String name) async {
+    await _core.renameCollection(id: _listId(id, 'collection'), name: name);
+    _notify();
+  }
+
+  @override
+  Future<void> deleteCollection(String id) async {
+    await _core.deleteCollection(id: _listId(id, 'collection'));
+    _notify();
+  }
+
+  @override
+  Future<bool> addToCollection(String id, String itemId) async {
+    final added = await _core.addToCollection(
+      id: _listId(id, 'collection'),
+      itemId: itemId,
+    );
+    _notify();
+    return added;
+  }
+
+  @override
+  Future<bool> removeFromCollection(String id, String itemId) async {
+    final removed = await _core.removeFromCollection(
+      id: _listId(id, 'collection'),
+      itemId: itemId,
+    );
+    _notify();
+    return removed;
+  }
+
+  @override
+  Future<List<VideoPlaylist>> playlists() async => [
+    for (final p in await _core.playlists()) _playlist(p),
+  ];
+
+  @override
+  Future<VideoPlaylist> createPlaylist(String name) async {
+    final p = await _core.createPlaylist(name: name);
+    _notify();
+    return _playlist(p);
+  }
+
+  @override
+  Future<void> renamePlaylist(String id, String name) async {
+    await _core.renamePlaylist(id: _listId(id, 'playlist'), name: name);
+    _notify();
+  }
+
+  @override
+  Future<void> deletePlaylist(String id) async {
+    await _core.deletePlaylist(id: _listId(id, 'playlist'));
+    _notify();
+  }
+
+  @override
+  Future<List<LibraryItem>> playlistItems(String id) =>
+      _items(_core.playlistItems(id: _listId(id, 'playlist')));
+
+  @override
+  Future<int> addToPlaylist(String id, String itemId) async {
+    final n = await _core.addToPlaylist(
+      id: _listId(id, 'playlist'),
+      itemId: itemId,
+    );
+    _notify();
+    return n;
+  }
+
+  @override
+  Future<int> removeFromPlaylist(String id, String itemId) async {
+    final n = await _core.removeFromPlaylist(
+      id: _listId(id, 'playlist'),
+      itemId: itemId,
+    );
+    _notify();
+    return n;
+  }
+
+  @override
+  Future<void> reorderPlaylist(String id, List<String> itemIds) async {
+    await _core.reorderPlaylist(id: _listId(id, 'playlist'), itemIds: itemIds);
+    _notify();
+  }
 
   // -------------------------------------------------------------------------
   // change watcher (LIB-005)

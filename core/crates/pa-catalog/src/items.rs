@@ -105,6 +105,11 @@ pub struct Item {
     /// directly for local sources and through the stream proxy for network
     /// ones (LIB-019).
     pub local_poster: Option<String>,
+    /// Versions of a movie or episode (LIB-010): files of the same work
+    /// that each play the whole thing (4K, 1080p, Director's Cut). Parts of
+    /// a split file and the files of one disc are one version. 1 for shows
+    /// and tracks.
+    pub version_count: u32,
 }
 
 /// Best artwork of a kind for a work (`w.id`) or episode (`e.id`).
@@ -121,6 +126,21 @@ macro_rules! art {
         )
     };
 }
+
+/// Version key of the file `f` (LIB-010): `NULL` for the second and later
+/// parts of a split file (they belong to the version of part 1), the disc
+/// group for a file of a disc, else the file itself. Distinct keys of a work
+/// are its versions.
+macro_rules! version_key {
+    () => {
+        "(CASE WHEN EXISTS (SELECT 1 FROM file_group_members vp
+                    WHERE vp.file_id = f.id AND vp.role = 'part' AND vp.part_no > 1) THEN NULL
+       ELSE ifnull((SELECT 'g' || vg.id FROM file_group_members vm
+                      JOIN file_groups vg ON vg.id = vm.group_id
+                     WHERE vm.file_id = f.id AND vg.kind = 'disc' LIMIT 1), 'f' || f.id) END)"
+    };
+}
+pub(crate) use version_key;
 
 /// Local poster of the movie file `f` (LIB-007 `group_assets`): art named
 /// after the file (`<movie>-poster.jpg`, `<movie>.jpg`) first, then generic
@@ -195,7 +215,7 @@ fn show_folder(rel: &str) -> String {
 }
 
 /// Absolute local path of `rel` in a source with `uri`.
-fn local_path(uri: &str, rel: &str) -> Option<String> {
+pub(crate) fn local_path(uri: &str, rel: &str) -> Option<String> {
     let mut root = uri::file_uri_to_path(uri)?;
     if !rel.is_empty() {
         root.push(rel);
@@ -205,7 +225,7 @@ fn local_path(uri: &str, rel: &str) -> Option<String> {
 
 /// `files.path` is a `VfsPath` (`/Movies/x.mkv`); items carry it without the
 /// leading slash, relative to the root.
-fn relative(path: &str) -> String {
+pub(crate) fn relative(path: &str) -> String {
     path.trim_start_matches('/').to_owned()
 }
 
@@ -219,13 +239,20 @@ const MOVIE_SQL: &str = concat!(
 SELECT w.id, w.title, w.original_title, w.year, w.overview,
        (SELECT x.ext_id FROM external_ids x
          WHERE x.work_id = w.id AND x.provider = 'tmdb' AND x.ext_kind = 'movie'),
-       f.source_id, s.uri, f.path, f.duration_ms, m.confidence, f.added_at_ms, min(f.id), ",
+       f.source_id, s.uri, f.path, f.duration_ms, m.confidence, f.added_at_ms,
+       -- The row of the default version (LIB-010, profile 1), else the
+       -- first file: the other columns come from it.
+       min(CASE WHEN f.id = (SELECT vp.file_id FROM version_prefs vp
+                              WHERE vp.profile_id = 1 AND vp.work_id = w.id)
+                THEN -1 ELSE f.id END), ",
     art!("work_id", "w.id", "poster"),
     ", ",
     art!("work_id", "w.id", "backdrop"),
     ", ",
     movie_local_poster!(),
-    "
+    ", count(DISTINCT ",
+    version_key!(),
+    ")
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
 JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
@@ -264,7 +291,9 @@ SELECT e.id, e.title, e.work_id, e.season_number, ifnull(e.episode_number, e.abs
     art!("work_id", "e.work_id", "poster"),
     ", ",
     art!("episode_id", "e.id", "still"),
-    "
+    ", count(DISTINCT ",
+    version_key!(),
+    ")
 FROM episodes e
 JOIN match_episodes me ON me.episode_id = e.id
 JOIN matches m ON m.id = me.match_id AND m.state <> 'rejected'
@@ -284,6 +313,11 @@ JOIN files f ON f.id = t.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
 LEFT JOIN music_albums a ON a.id = t.album_id
 WHERE 1";
+
+/// Versions counted by SQL; at least 1 (an item has a file).
+fn version_count(n: i64) -> u32 {
+    u32::try_from(n).unwrap_or(u32::MAX).max(1)
+}
 
 fn tmdb_id(v: Option<String>) -> Option<i64> {
     v.and_then(|s| s.parse().ok())
@@ -309,6 +343,7 @@ fn movie_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         poster_url: r.get(13)?,
         backdrop_url: r.get(14)?,
         local_poster: local_rel(r.get(15)?),
+        version_count: version_count(r.get(16)?),
         show_id: None,
         season: None,
         episode: None,
@@ -339,6 +374,7 @@ fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         backdrop_url: r.get(13)?,
         // Filled from the show folder by `fill_show_posters`.
         local_poster: None,
+        version_count: 1,
         show_id: None,
         season: None,
         episode: None,
@@ -368,6 +404,7 @@ fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         poster_url: r.get(13)?,
         backdrop_url: r.get(14)?,
         local_poster: None,
+        version_count: version_count(r.get(15)?),
         original_title: None,
         year: None,
         tmdb_id: None,
@@ -403,6 +440,7 @@ fn track_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         poster_url: None,
         backdrop_url: None,
         local_poster: local_rel(r.get(11)?),
+        version_count: 1,
     })
 }
 

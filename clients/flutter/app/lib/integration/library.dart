@@ -34,6 +34,11 @@ export 'package:pa_library/pa_library.dart'
         SortField,
         WatchState,
         continueWatchingMax,
+        // LIB-010 versions, favorites, collections, playlists
+        LibraryLists,
+        MediaCollection,
+        MediaVersion,
+        VideoPlaylist,
         // UI-011 search
         SearchGroup,
         groupSearchResults,

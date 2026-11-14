@@ -21,6 +21,11 @@
 //! - library queries ([`Catalog::query`], [`query`], LIB-009): combinable
 //!   filters, sorts and paging, the alphabet index, facets, folder browsing
 //!   with "folders first", per-view preferences and smart shelves;
+//! - versions, favorites, collections and video playlists (LIB-010,
+//!   [`Catalog::versions`], [`Catalog::favorites`],
+//!   [`Catalog::collections`], [`Catalog::playlists`]): several files of
+//!   one work are one item with versions and a default version; TMDB
+//!   collections come from the metadata run;
 //! - sync of progress and "watched" between paired devices
 //!   ([`Catalog::enable_sync`], UI-019): with sync on, progress changes are
 //!   recorded as `pa-sync` ops in the outbox of the same database, and ops
@@ -51,6 +56,7 @@ mod fix;
 mod import_v0;
 mod index;
 mod items;
+mod lists;
 pub mod metadata;
 mod probe;
 mod progress;
@@ -72,6 +78,7 @@ pub use connect::{Connector, LocalConnector, SourceOpener, SourcesConnector};
 pub use error::Error;
 pub use import_v0::ImportReport;
 pub use items::{Item, ItemKind, ItemRef, SearchGroup};
+pub use lists::{CollectionInfo, CollectionKind, PlaylistInfo, Version};
 pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
 pub use pa_metadata;
 pub use pa_scanner::CancelToken;

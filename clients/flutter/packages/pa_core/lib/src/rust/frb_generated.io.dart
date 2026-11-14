@@ -7,6 +7,7 @@ import 'api/discovery.dart';
 import 'api/events.dart';
 import 'api/images.dart';
 import 'api/library.dart';
+import 'api/library_lists.dart';
 import 'api/library_query.dart';
 import 'api/recognition.dart';
 import 'api/remote_config.dart';
@@ -294,6 +295,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreAlphabetEntry dco_decode_core_alphabet_entry(dynamic raw);
 
   @protected
+  CoreCollection dco_decode_core_collection(dynamic raw);
+
+  @protected
   CoreContinueItem dco_decode_core_continue_item(dynamic raw);
 
   @protected
@@ -352,6 +356,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreMetadataUpdate dco_decode_core_metadata_update(dynamic raw);
+
+  @protected
+  CorePlaylist dco_decode_core_playlist(dynamic raw);
 
   @protected
   CoreProgress dco_decode_core_progress(dynamic raw);
@@ -429,6 +436,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreTxtEntry dco_decode_core_txt_entry(dynamic raw);
 
   @protected
+  CoreVersion dco_decode_core_version(dynamic raw);
+
+  @protected
   CoreViewPrefs dco_decode_core_view_prefs(dynamic raw);
 
   @protected
@@ -486,6 +496,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CoreAlphabetEntry> dco_decode_list_core_alphabet_entry(dynamic raw);
 
   @protected
+  List<CoreCollection> dco_decode_list_core_collection(dynamic raw);
+
+  @protected
   List<CoreContinueItem> dco_decode_list_core_continue_item(dynamic raw);
 
   @protected
@@ -507,6 +520,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreManagedSource> dco_decode_list_core_managed_source(dynamic raw);
+
+  @protected
+  List<CorePlaylist> dco_decode_list_core_playlist(dynamic raw);
 
   @protected
   List<CoreResolution> dco_decode_list_core_resolution(dynamic raw);
@@ -537,6 +553,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreTxtEntry> dco_decode_list_core_txt_entry(dynamic raw);
+
+  @protected
+  List<CoreVersion> dco_decode_list_core_version(dynamic raw);
 
   @protected
   List<CoreWatchState> dco_decode_list_core_watch_state(dynamic raw);
@@ -923,6 +942,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreCollection sse_decode_core_collection(SseDeserializer deserializer);
+
+  @protected
   CoreContinueItem sse_decode_core_continue_item(SseDeserializer deserializer);
 
   @protected
@@ -997,6 +1019,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreMetadataUpdate sse_decode_core_metadata_update(
     SseDeserializer deserializer,
   );
+
+  @protected
+  CorePlaylist sse_decode_core_playlist(SseDeserializer deserializer);
 
   @protected
   CoreProgress sse_decode_core_progress(SseDeserializer deserializer);
@@ -1082,6 +1107,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreTxtEntry sse_decode_core_txt_entry(SseDeserializer deserializer);
 
   @protected
+  CoreVersion sse_decode_core_version(SseDeserializer deserializer);
+
+  @protected
   CoreViewPrefs sse_decode_core_view_prefs(SseDeserializer deserializer);
 
   @protected
@@ -1145,6 +1173,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CoreCollection> sse_decode_list_core_collection(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<CoreContinueItem> sse_decode_list_core_continue_item(
     SseDeserializer deserializer,
   );
@@ -1174,6 +1207,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreManagedSource> sse_decode_list_core_managed_source(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CorePlaylist> sse_decode_list_core_playlist(
     SseDeserializer deserializer,
   );
 
@@ -1224,6 +1262,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CoreTxtEntry> sse_decode_list_core_txt_entry(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<CoreVersion> sse_decode_list_core_version(SseDeserializer deserializer);
 
   @protected
   List<CoreWatchState> sse_decode_list_core_watch_state(
@@ -1706,6 +1747,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_collection(
+    CoreCollection self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_continue_item(
     CoreContinueItem self,
     SseSerializer serializer,
@@ -1806,6 +1853,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     CoreMetadataUpdate self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_core_playlist(CorePlaylist self, SseSerializer serializer);
 
   @protected
   void sse_encode_core_progress(CoreProgress self, SseSerializer serializer);
@@ -1934,6 +1984,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_core_txt_entry(CoreTxtEntry self, SseSerializer serializer);
 
   @protected
+  void sse_encode_core_version(CoreVersion self, SseSerializer serializer);
+
+  @protected
   void sse_encode_core_view_prefs(CoreViewPrefs self, SseSerializer serializer);
 
   @protected
@@ -2009,6 +2062,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_core_collection(
+    List<CoreCollection> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_core_continue_item(
     List<CoreContinueItem> self,
     SseSerializer serializer,
@@ -2044,6 +2103,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_managed_source(
     List<CoreManagedSource> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_playlist(
+    List<CorePlaylist> self,
     SseSerializer serializer,
   );
 
@@ -2104,6 +2169,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_txt_entry(
     List<CoreTxtEntry> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_version(
+    List<CoreVersion> self,
     SseSerializer serializer,
   );
 
