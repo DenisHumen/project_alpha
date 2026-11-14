@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 
-# ADR-NNNN: SMB через libsmb2 — загрузка в рантайме, пул контекстов, read-ahead с параллельным prefetch
+# ADR-0033: SMB через libsmb2 — загрузка в рантайме, пул контекстов, read-ahead с параллельным prefetch
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14

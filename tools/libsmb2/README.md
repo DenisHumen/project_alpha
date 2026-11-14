@@ -7,7 +7,7 @@
 на iOS и tvOS — как embedded `smb2.framework` (и общий `smb2.xcframework`).
 Обоснование — [`docs/research/02-client-stack-playback.md`](../../docs/research/02-client-stack-playback.md)
 §3.1, §4. Rust-обёртка — крейт [`pa-smb2`](../../core/crates/pa-smb2), она загружает
-библиотеку во время выполнения ([ADR-NNNN](../../docs/adr/NNNN-libsmb2-runtime-loading.md)).
+библиотеку во время выполнения ([ADR-NNNN](../../docs/adr/0033-libsmb2-runtime-loading.md)).
 
 Структура и лицензионный гейт повторяют [`tools/ffmpeg`](../ffmpeg/README.md) и
 [`tools/mpv`](../mpv/README.md).

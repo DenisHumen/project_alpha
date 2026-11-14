@@ -13,6 +13,7 @@
 flowchart LR
   subgraph g0["core/crates — ядро"]
     pa_anime_mappings["pa-anime-mappings"]
+    pa_catalog["pa-catalog"]
     pa_discovery["pa-discovery"]
     pa_ffi["pa-ffi"]
     pa_frb["pa-frb"]
@@ -40,12 +41,18 @@ flowchart LR
     pa_eval["pa-eval"]
     pa_recognition_eval["pa-recognition-eval"]
   end
+  pa_catalog --> pa_library
+  pa_catalog --> pa_model
+  pa_catalog --> pa_recognition
+  pa_catalog --> pa_scanner
+  pa_catalog --> pa_vfs
   pa_eval --> pa_anime_mappings
   pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
   pa_ffi --> pa_playback
   pa_ffi --> pa_runtime
   pa_ffi --> pa_secrets
+  pa_frb --> pa_catalog
   pa_frb --> pa_ffi
   pa_frb --> pa_recognition
   pa_jobs --> pa_library
@@ -79,6 +86,7 @@ flowchart LR
 | Крейт | Каталог | Внешних зависимостей | Описание |
 |---|---|---|---|
 | `pa-anime-mappings` | `core/crates/pa-anime-mappings` | 4 | Anime cross-ID and episode mappings: bundled ODbL data plus runtime-downloaded upstream lists (META-008) |
+| `pa-catalog` | `core/crates/pa-catalog` | 2 | Client media library on the Rust core: scan pipeline (pa-scanner, music tags, fingerprints, local recognition with pa-recognition), item views, progress and the pa_library v0 import (UI-024) |
 | `pa-discovery` | `core/crates/pa-discovery` | 4 | LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009) |
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
