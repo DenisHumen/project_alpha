@@ -44,7 +44,7 @@ impl PlayerEngine for Platform {
     fn state(&self) -> EngineState {
         self.mock.state()
     }
-    fn open(&self, request: OpenRequest) -> Result<(), EngineError> {
+    fn open_media(&self, request: OpenRequest) -> Result<(), EngineError> {
         self.mock.open(request)
     }
     fn play(&self) -> Result<(), EngineError> {
@@ -177,4 +177,14 @@ fn reducer_and_json_match_the_core() {
         engine_event_to_json(event),
         r#"{"event":"position","position_ms":1500,"buffered_ms":6500}"#
     );
+}
+
+/// `mock_engine_harness`: the core mock behind the FFI traits
+/// (`CoreEngine`), as the Swift round-trip test uses it.
+#[test]
+fn exported_mock_harness_passes_every_case() {
+    for case in player_engine_contract_cases() {
+        let failure = player_engine_contract_run(case.clone(), pa_ffi::mock_engine_harness());
+        assert_eq!(failure, None, "{case}");
+    }
 }

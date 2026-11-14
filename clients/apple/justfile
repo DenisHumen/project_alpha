@@ -2,6 +2,7 @@
 # `apple` module: Swift: AlphaPlayerKit, TVApp, AudioKit. Needs macOS with Xcode.
 
 root := justfile_directory() / ".." / ".."
+kit := root / "clients/apple/AlphaPlayerKit"
 
 # List recipes
 info:
@@ -19,3 +20,23 @@ tv-project:
 tv-test simulator="Apple TV 4K (3rd generation)": tv-project
     xcodebuild test -project {{root}}/clients/apple/TVApp/TVApp.xcodeproj -scheme TVApp \
       -destination 'platform=tvOS Simulator,name={{simulator}}' -skipPackagePluginValidation
+
+# AlphaPlayerKit: contract fixtures (two MKVs + SRT) into DIR; needs ffmpeg (PLAY-APL-001)
+player-fixtures dir=(root / "target/pa-fixtures"):
+    {{kit}}/scripts/make-fixtures.sh {{dir}}
+
+# AlphaPlayerKit: QA-002 MKV samples into DIR (selected recipes of tools/qa/media)
+player-qa-media dir=(root / "target/pa-qa-media"):
+    python3 {{kit}}/scripts/make-qa-media.py {{dir}}
+
+# AlphaPlayerKit XCTest + licence gate (ios | tvos | macos); after `just core xcframework`
+player-test platform="ios" fixtures=(root / "target/pa-fixtures") qa=(root / "target/pa-qa-media"):
+    {{kit}}/scripts/test.sh {{platform}} {{fixtures}} {{qa}}
+
+# MPVKit licence gate on the manifest (dev profile; `--store` fails with MPVKit by design)
+player-check-license *args:
+    {{kit}}/scripts/check-license.sh manifest {{args}}
+
+# AlphaPlayerKit tests on Linux with the distro libmpv in Docker (dev only, not the Apple CI)
+player-test-linux *args:
+    {{kit}}/scripts/linux-dev-test.sh docker {{args}}

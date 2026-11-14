@@ -13,8 +13,10 @@
 # Rust-ядро в xcframework (после CORE-003)
 tools/bindings/build-xcframework.sh
 
-# Swift-пакет
-cd clients/apple/AlphaPlayerKit && swift build && swift test
+# Swift-пакет AlphaPlayerKit (PLAY-APL-001): медиа для тестов, XCTest на симуляторе, проверка LGPL
+just apple player-fixtures && just apple player-qa-media
+just apple player-test ios        # ios | tvos | macos
+just apple player-test-linux      # без Mac: те же тесты с libmpv дистрибутива в Docker (не замена Apple CI)
 
 # tvOS-приложение (TV-001): проект генерирует XcodeGen из project.yml (ADR-NNNN)
 just apple tv-core       # tools/bindings/build-xcframework.sh tvos tvos-sim

@@ -22,7 +22,7 @@ class Media3PlaybackTest(private val file: String, private val codec: String) {
     fun playsSeeksAndSwitchesTracks() {
         EngineUnderTest().use { under ->
             val engine = under.engine
-            engine.open(OpenRequest(listOf(MediaSource(Fixtures.uri(file), null)), 0u, 0uL, true))
+            engine.openMedia(OpenRequest(listOf(MediaSource(Fixtures.uri(file), null)), 0u, 0uL, true))
             under.advance(0)
             var s = engine.state()
             assertTrue("loaded: $s", s.loaded && s.playing && s.error == null)
