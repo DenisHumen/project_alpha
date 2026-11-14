@@ -355,7 +355,9 @@ mod tests {
     impl Future for ChannelFuture {
         type Output = PlatformSecretReply;
         fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-            let rx = self.0.as_ref().unwrap();
+            let Some(rx) = self.0.as_ref() else {
+                return Poll::Pending;
+            };
             match rx.try_recv() {
                 Ok(v) => Poll::Ready(v),
                 Err(std::sync::mpsc::TryRecvError::Empty) => {
