@@ -95,10 +95,15 @@ Future<AppServices> demoServices({
     playerEngineFactory: ({bool video = true}) => FakePlayerEngine(),
     sourceManager: reducedSources ? null : FakeSourceManager(library),
     discovery: discovery,
+    clock: () => demoNow,
   );
   await s.init();
   return s;
 }
+
+/// "Now" of the demo services: a day after the demo data's reference time,
+/// so "new" badges do not depend on the date the tests run.
+final demoNow = DateTime(2026, 11, 14, 20);
 
 final screenshotKey = GlobalKey();
 
