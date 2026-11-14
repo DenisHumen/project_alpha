@@ -2398,6 +2398,7 @@ dependencies = [
  "pa-library",
  "pa-metadata",
  "pa-model",
+ "pa-probe",
  "pa-proxy",
  "pa-recognition",
  "pa-scanner",
