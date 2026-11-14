@@ -24,8 +24,7 @@ String partsUri(List<String> parts) {
     throw ArgumentError.value(parts, 'parts', 'nothing to play');
   }
   if (parts.length == 1) return parts.single;
-  return edlScheme +
-      parts.map((p) => '%${utf8.encode(p).length}%$p').join(';');
+  return edlScheme + parts.map((p) => '%${utf8.encode(p).length}%$p').join(';');
 }
 
 /// The parts of an EDL URI made by [partsUri]; a plain URI is its own only

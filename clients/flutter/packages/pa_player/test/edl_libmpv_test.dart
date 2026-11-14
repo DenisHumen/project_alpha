@@ -139,7 +139,9 @@ Future<HttpServer> _serve(Directory dir) async {
     }
     res.contentLength = end - start + 1;
     try {
-      if (req.method != 'HEAD') await res.addStream(file.openRead(start, end + 1));
+      if (req.method != 'HEAD') {
+        await res.addStream(file.openRead(start, end + 1));
+      }
       await res.close();
     } catch (_) {
       // The player closed the connection (seek): nothing to do.
@@ -195,7 +197,8 @@ Future<void> _checkTimeline(String uri) async {
     await _until(
       () =>
           state.value.error != null ||
-          state.value.duration > Duration.zero && state.value.videoWidth > 0,
+          state.value.duration > Duration.zero &&
+              (state.value.videoWidth ?? 0) > 0,
       'open $uri',
     );
     expect(state.value.error, isNull);
@@ -215,14 +218,19 @@ Future<void> _checkTimeline(String uri) async {
         pos = player.state.position.inMilliseconds / 1000;
         final raw = await player.screenshot(format: null);
         if (raw == null || raw.isEmpty) continue;
-        got = _blockOf(raw, state.value.videoWidth, state.value.videoHeight);
+        got = _blockOf(
+          raw,
+          state.value.videoWidth!,
+          state.value.videoHeight!,
+        );
         if (got == want && (pos - at).abs() < 0.5) break;
       }
       expect(pos, closeTo(at, 0.5), reason: 'position after seek to $at');
       expect(
         got,
         want,
-        reason: 'frame at $at s: ${_blocks[want]}, not ${got < 0 ? '?' : _blocks[got]}',
+        reason: 'frame at $at s: ${_blocks[want]}, '
+            'not ${got < 0 ? '?' : _blocks[got]}',
       );
     }
   } finally {
