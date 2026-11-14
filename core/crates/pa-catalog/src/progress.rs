@@ -52,7 +52,10 @@ fn file_key(conn: &Connection, file_id: i64) -> Result<Option<MediaKey>, Error> 
 }
 
 /// The key progress of `item` is stored under, and its kind.
-pub(crate) fn key_of(conn: &Connection, item: ItemRef) -> Result<Option<(MediaKey, MediaKind)>, Error> {
+pub(crate) fn key_of(
+    conn: &Connection,
+    item: ItemRef,
+) -> Result<Option<(MediaKey, MediaKind)>, Error> {
     Ok(match item {
         ItemRef::Movie(work) => {
             let tmdb: Option<String> = conn

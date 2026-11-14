@@ -16,8 +16,12 @@ crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
 flutter_rust_bridge.workspace = true
+pa-catalog = { path = "../pa-catalog" }
 pa-ffi = { path = "../pa-ffi" }
 pa-recognition = { path = "../pa-recognition" }
+
+[dev-dependencies]
+tempfile.workspace = true
 
 [lints.rust]
 # Emitted by the flutter_rust_bridge macros.

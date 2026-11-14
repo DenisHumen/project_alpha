@@ -2284,6 +2284,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-catalog"
+version = "0.1.0"
+dependencies = [
+ "pa-library",
+ "pa-model",
+ "pa-recognition",
+ "pa-scanner",
+ "pa-vfs",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "pa-discovery"
 version = "0.1.0"
 dependencies = [
@@ -2322,8 +2336,10 @@ name = "pa-frb"
 version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
+ "pa-catalog",
  "pa-ffi",
  "pa-recognition",
+ "tempfile",
 ]
 
 [[package]]

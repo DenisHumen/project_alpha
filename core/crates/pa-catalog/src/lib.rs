@@ -42,8 +42,8 @@ use pa_library::rusqlite::Connection;
 
 pub use error::Error;
 pub use import_v0::ImportReport;
-pub use pa_scanner::CancelToken;
 pub use items::{Item, ItemKind, ItemRef};
+pub use pa_scanner::CancelToken;
 pub use progress::{ContinueItem, ItemProgress};
 pub use scan::{ScanPhase, ScanUpdate};
 pub use sources::Source;

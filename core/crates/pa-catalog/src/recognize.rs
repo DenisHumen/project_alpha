@@ -363,7 +363,17 @@ fn recognize_file(
         Plan::Skip => Ok(false),
         Plan::Movie { title, year } => {
             let work = index.ensure(tx, "movie", &title, year, now)?;
-            insert_match(tx, file_id, work, &[], confidence, "auto", "rule", version, now)
+            insert_match(
+                tx,
+                file_id,
+                work,
+                &[],
+                confidence,
+                "auto",
+                "rule",
+                version,
+                now,
+            )
         }
         Plan::Episodes {
             anime,
@@ -383,10 +393,16 @@ fn recognize_file(
             let single = numbers.len() == 1;
             let mut eps = Vec::with_capacity(numbers.len());
             for no in numbers {
-                let t = if single { episode_title.as_deref() } else { None };
+                let t = if single {
+                    episode_title.as_deref()
+                } else {
+                    None
+                };
                 eps.push(ensure_episode(tx, work, no, t)?);
             }
-            insert_match(tx, file_id, work, &eps, confidence, "auto", "rule", version, now)
+            insert_match(
+                tx, file_id, work, &eps, confidence, "auto", "rule", version, now,
+            )
         }
     }
 }
@@ -425,9 +441,7 @@ mod tests {
             _ => panic!("movie expected"),
         }
         match plan_of("Shows/Dark/Season 1/Dark.S01E02.Lies.1080p.mkv") {
-            Plan::Episodes {
-                title, numbers, ..
-            } => {
+            Plan::Episodes { title, numbers, .. } => {
                 assert_eq!(title, "Dark");
                 assert_eq!(numbers[0].season, Some(1));
                 assert_eq!(numbers[0].episode, Some(2));

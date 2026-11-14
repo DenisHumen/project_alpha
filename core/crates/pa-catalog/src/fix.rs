@@ -26,7 +26,9 @@ impl Catalog {
         let work = match item {
             ItemRef::Movie(w) | ItemRef::Show(w) => w,
             ItemRef::Episode(e) => tx
-                .query_row("SELECT work_id FROM episodes WHERE id = ?1", [e], |r| r.get(0))
+                .query_row("SELECT work_id FROM episodes WHERE id = ?1", [e], |r| {
+                    r.get(0)
+                })
                 .optional()?
                 .ok_or_else(|| Error::NotFound(item.to_string()))?,
             ItemRef::Track(t) => {

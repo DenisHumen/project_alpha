@@ -120,7 +120,8 @@ impl Catalog {
             let base = found;
             let mut on_event = |e: &ScanEvent| match e {
                 ScanEvent::Progress(p) => {
-                    let mut u = ScanUpdate::new(ScanPhase::Scanning, Some(src.id), base + n(p.files_seen));
+                    let mut u =
+                        ScanUpdate::new(ScanPhase::Scanning, Some(src.id), base + n(p.files_seen));
                     u.current_path = Some(p.current_dir.to_string());
                     on_update(u);
                 }

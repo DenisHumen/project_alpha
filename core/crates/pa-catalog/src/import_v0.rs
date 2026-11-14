@@ -160,8 +160,9 @@ fn ensure_file(
     let Ok(rel) = Path::new(&item.file_path).strip_prefix(root) else {
         return Ok(None);
     };
-    let rel = rel.to_string_lossy().replace('\\', "/");
-    if rel.is_empty() {
+    // Stored as a `VfsPath`, like the scanner does: `/Movies/x.mkv`.
+    let rel = format!("/{}", rel.to_string_lossy().replace('\\', "/"));
+    if rel == "/" {
         return Ok(None);
     }
     tx.execute(
@@ -213,8 +214,9 @@ impl Catalog {
         // Sources.
         let mut src_map: HashMap<String, (i64, Option<PathBuf>)> = HashMap::new();
         {
-            let mut stmt =
-                v0.prepare("SELECT id, kind, name, path, username FROM sources ORDER BY position, name")?;
+            let mut stmt = v0.prepare(
+                "SELECT id, kind, name, path, username FROM sources ORDER BY position, name",
+            )?;
             let rows = stmt.query_map([], |r| {
                 Ok((
                     r.get::<_, String>(0)?,
@@ -278,7 +280,12 @@ impl Catalog {
                         report.matched += 1;
                     }
                     let plan = match item.tmdb_id {
-                        Some(id) => KeyPlan::Key(MediaKey::TmdbMovie { id: id.unsigned_abs() }, "movie"),
+                        Some(id) => KeyPlan::Key(
+                            MediaKey::TmdbMovie {
+                                id: id.unsigned_abs(),
+                            },
+                            "movie",
+                        ),
                         None => KeyPlan::File(file, abs, "movie"),
                     };
                     keys.insert(item.id.clone(), plan);
@@ -355,11 +362,10 @@ impl Catalog {
             let (key, kind) = match keys.get(&item_id).unwrap_or(&KeyPlan::None) {
                 KeyPlan::Key(k, kind) => (k.clone(), *kind),
                 KeyPlan::File(file, path, kind) => {
-                    let existing: Option<String> = tx.query_row(
-                        "SELECT fingerprint FROM files WHERE id = ?1",
-                        [file],
-                        |r| r.get(0),
-                    )?;
+                    let existing: Option<String> =
+                        tx.query_row("SELECT fingerprint FROM files WHERE id = ?1", [file], |r| {
+                            r.get(0)
+                        })?;
                     let fp = match existing {
                         Some(fp) => fp,
                         None => match fingerprint::oshash_file(path) {

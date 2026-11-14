@@ -126,6 +126,12 @@ fn local_path(uri: &str, rel: &str) -> Option<String> {
     Some(root.to_string_lossy().into_owned())
 }
 
+/// `files.path` is a `VfsPath` (`/Movies/x.mkv`); items carry it without the
+/// leading slash, relative to the root.
+fn relative(path: &str) -> String {
+    path.trim_start_matches('/').to_owned()
+}
+
 const MOVIE_SQL: &str = "
 SELECT w.id, w.title, w.original_title, w.year, w.overview,
        (SELECT x.ext_id FROM external_ids x
@@ -177,7 +183,7 @@ fn tmdb_id(v: Option<String>) -> Option<i64> {
 
 fn movie_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
     let uri: String = r.get(7)?;
-    let rel: String = r.get(8)?;
+    let rel = relative(&r.get::<_, String>(8)?);
     Ok(Item {
         id: ItemRef::Movie(r.get(0)?),
         kind: ItemKind::Movie,
@@ -203,7 +209,7 @@ fn movie_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
 
 fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
     let uri: String = r.get(7)?;
-    let rel = show_folder(&r.get::<_, String>(8)?);
+    let rel = show_folder(&relative(&r.get::<_, String>(8)?));
     Ok(Item {
         id: ItemRef::Show(r.get(0)?),
         kind: ItemKind::Show,
@@ -229,7 +235,7 @@ fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
 
 fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
     let uri: String = r.get(6)?;
-    let rel: String = r.get(7)?;
+    let rel = relative(&r.get::<_, String>(7)?);
     Ok(Item {
         id: ItemRef::Episode(r.get(0)?),
         kind: ItemKind::Episode,
@@ -255,7 +261,7 @@ fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
 
 fn track_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
     let uri: String = r.get(8)?;
-    let rel: String = r.get(9)?;
+    let rel = relative(&r.get::<_, String>(9)?);
     Ok(Item {
         id: ItemRef::Track(r.get(0)?),
         kind: ItemKind::Track,
@@ -343,8 +349,22 @@ pub(crate) fn tracks(conn: &Connection) -> Result<Vec<Item>, Error> {
 
 pub(crate) fn item(conn: &Connection, id: ItemRef) -> Result<Option<Item>, Error> {
     let found = match id {
-        ItemRef::Movie(w) => query(conn, MOVIE_SQL, "AND w.id = ?1", "GROUP BY w.id", &[&w], movie_row)?,
-        ItemRef::Show(w) => query(conn, SHOW_SQL, "AND w.id = ?1", "GROUP BY w.id", &[&w], show_row)?,
+        ItemRef::Movie(w) => query(
+            conn,
+            MOVIE_SQL,
+            "AND w.id = ?1",
+            "GROUP BY w.id",
+            &[&w],
+            movie_row,
+        )?,
+        ItemRef::Show(w) => query(
+            conn,
+            SHOW_SQL,
+            "AND w.id = ?1",
+            "GROUP BY w.id",
+            &[&w],
+            show_row,
+        )?,
         ItemRef::Episode(e) => query(
             conn,
             EPISODE_SQL,
@@ -482,7 +502,10 @@ mod tests {
 
     #[test]
     fn show_folder_skips_season_folders() {
-        assert_eq!(show_folder("Shows/Dark/Season 1/Dark.S01E01.mkv"), "Shows/Dark");
+        assert_eq!(
+            show_folder("Shows/Dark/Season 1/Dark.S01E01.mkv"),
+            "Shows/Dark"
+        );
         assert_eq!(show_folder("Dark/S02/x.mkv"), "Dark");
         assert_eq!(show_folder("Dark/x.mkv"), "Dark");
         assert_eq!(show_folder("x.mkv"), "");
