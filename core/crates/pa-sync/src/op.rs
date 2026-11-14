@@ -178,6 +178,42 @@ fn check_json(s: &str, what: &'static str) -> Result<(), Error> {
 }
 
 impl OpBody {
+    /// The last-writer-wins register this op writes (see
+    /// [`crate::SyncState`]): two ops with the same register are ordered by
+    /// `(hlc, op_id)` and only the newer one matters. Used to compact the
+    /// outbox ([`crate::outbox::compact`]).
+    pub fn register(&self) -> String {
+        let parts: [&str; 3] = match self {
+            Self::ProgressUpsert { profile, key, .. } => {
+                return format!("progress\u{1f}{profile}\u{1f}{key}");
+            }
+            Self::Watched { profile, key } | Self::Unwatch { profile, key } => {
+                return format!("watched\u{1f}{profile}\u{1f}{key}");
+            }
+            Self::Favorite {
+                profile, target, ..
+            } => ["favorite", profile, target],
+            Self::Rating {
+                profile, target, ..
+            } => ["rating", profile, target],
+            Self::PlaylistUpsert {
+                profile, playlist, ..
+            }
+            | Self::PlaylistDelete { profile, playlist } => ["playlist", profile, playlist],
+            Self::PlaylistItems {
+                profile, playlist, ..
+            } => ["playlist_items", profile, playlist],
+            Self::FolderRule { rule_key, .. } => ["folder_rule", "", rule_key],
+            Self::Setting { key, .. } => ["setting", "", key],
+            Self::TwitchFollow {
+                profile,
+                channel_id,
+                ..
+            } => ["twitch_follow", profile, channel_id],
+        };
+        parts.join("\u{1f}")
+    }
+
     /// Checks ids, ranges and the no-secrets rule. Ops are validated before
     /// they are recorded and when they are received.
     pub fn validate(&self) -> Result<(), Error> {

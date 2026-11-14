@@ -16,6 +16,7 @@ pa-metadata = { path = "../pa-metadata" }
 pa-model = { path = "../pa-model" }
 pa-recognition = { path = "../pa-recognition" }
 pa-scanner = { path = "../pa-scanner" }
+pa-sync = { path = "../pa-sync" }
 pa-vfs = { path = "../pa-vfs" }
 serde.workspace = true
 serde_json.workspace = true

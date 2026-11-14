@@ -17,6 +17,10 @@ pub enum ServiceKind {
     /// Another app instance for LAN sync (SYNC-006): `_alpha-sync._tcp`,
     /// TXT [`PeerTxt`](crate::PeerTxt).
     SyncPeer,
+    /// An app showing a pairing invitation (UI-019): `_alpha-pair._tcp`,
+    /// TXT `id`, `k` (fingerprint of the inviter's signing key), `name`.
+    /// Lets a device that typed only the 6-digit code find the inviter.
+    Pairing,
     /// SMB file server: `_smb._tcp` (Samba via Avahi, macOS, many NAS).
     Smb,
     /// WebDAV over HTTP: `_webdav._tcp`, optional TXT `path`.
@@ -29,9 +33,10 @@ pub enum ServiceKind {
 
 impl ServiceKind {
     /// Every kind, in a stable order.
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::Server,
         Self::SyncPeer,
+        Self::Pairing,
         Self::Smb,
         Self::WebDav,
         Self::WebDavs,
@@ -47,6 +52,7 @@ impl ServiceKind {
         match self {
             Self::Server => "_projectalpha._tcp",
             Self::SyncPeer => "_alpha-sync._tcp",
+            Self::Pairing => "_alpha-pair._tcp",
             Self::Smb => "_smb._tcp",
             Self::WebDav => "_webdav._tcp",
             Self::WebDavs => "_webdavs._tcp",
@@ -59,6 +65,7 @@ impl ServiceKind {
         match self {
             Self::Server => "_projectalpha._tcp.local.",
             Self::SyncPeer => "_alpha-sync._tcp.local.",
+            Self::Pairing => "_alpha-pair._tcp.local.",
             Self::Smb => "_smb._tcp.local.",
             Self::WebDav => "_webdav._tcp.local.",
             Self::WebDavs => "_webdavs._tcp.local.",
@@ -83,7 +90,7 @@ impl ServiceKind {
             Self::WebDav => Some(80),
             Self::WebDavs => Some(443),
             Self::Nfs => Some(2049),
-            Self::Server | Self::SyncPeer => None,
+            Self::Server | Self::SyncPeer | Self::Pairing => None,
         }
     }
 

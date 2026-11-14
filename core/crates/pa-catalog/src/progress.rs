@@ -182,7 +182,12 @@ impl Catalog {
         let Some((key, kind)) = key_of(&conn, item)? else {
             return Ok(false);
         };
-        let mut sink = LocalOnly::new(LOCAL_DEVICE_ID);
+        let mut local = LocalOnly::new(LOCAL_DEVICE_ID);
+        let mut replica = self.sync_lock();
+        let sink: &mut dyn progress::ProgressSink = match replica.as_mut() {
+            Some(r) => r,
+            None => &mut local,
+        };
         let report = PositionReport {
             profile_id: PROFILE,
             key: key.clone(),
@@ -191,10 +196,11 @@ impl Catalog {
             duration_ms: u64::try_from(duration_ms).ok().filter(|d| *d > 0),
         };
         let th = Thresholds::default();
-        let state = progress::report_position(&mut conn, &mut sink, &th, &report, updated_at_ms)?;
+        let state = progress::report_position(&mut conn, sink, &th, &report, updated_at_ms)?;
         if watched && !state.watched {
-            progress::mark_watched(&mut conn, &mut sink, PROFILE, &key, updated_at_ms)?;
+            progress::mark_watched(&mut conn, sink, PROFILE, &key, updated_at_ms)?;
         }
+        drop(replica);
         if duration_ms > 0 {
             // The duration the player saw fills the file until probing (LIB-006).
             let files: &str = match item {

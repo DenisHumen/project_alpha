@@ -21,6 +21,11 @@
 //! - library queries ([`Catalog::query`], [`query`], LIB-009): combinable
 //!   filters, sorts and paging, the alphabet index, facets, folder browsing
 //!   with "folders first", per-view preferences and smart shelves;
+//! - sync of progress and "watched" between paired devices
+//!   ([`Catalog::enable_sync`], UI-019): with sync on, progress changes are
+//!   recorded as `pa-sync` ops in the outbox of the same database, and ops
+//!   from other devices are written into the library
+//!   ([`Catalog::apply_remote`]);
 //! - the change watcher ([`watch::LibraryWatcher`], LIB-005): OS change
 //!   notifications for local folders, a timer for network shares, and
 //!   incremental rescans of the changed folders
@@ -46,6 +51,7 @@ pub mod query;
 pub mod recognize;
 mod scan;
 mod sources;
+mod sync;
 pub mod uri;
 pub mod watch;
 
@@ -67,6 +73,7 @@ pub use query::{
     LibraryQuery, LibrarySort, Resolution, SmartShelf, SortField, ViewPrefs, WatchState,
 };
 pub use scan::{RescanReport, ScanPhase, ScanUpdate};
+pub use pa_sync;
 pub use sources::Source;
 
 /// Device id written with local progress changes until profiles and
@@ -83,6 +90,9 @@ pub struct Catalog {
     /// In-memory index of library queries (LIB-009) and the database state
     /// it was built from.
     index: Mutex<Option<(index::Stamp, Arc<index::Index>)>>,
+    /// The sync replica while sync is on ([`Catalog::enable_sync`]). Locked
+    /// after `conn`, never before.
+    sync: Mutex<Option<pa_sync::Replica>>,
 }
 
 impl Catalog {
@@ -104,6 +114,7 @@ impl Catalog {
             conn: Mutex::new(conn),
             scan_lock: Mutex::new(()),
             index: Mutex::new(None),
+            sync: Mutex::new(None),
         })
     }
 

@@ -17,6 +17,7 @@ lan = [
     "dep:futures-util",
     "dep:pa-discovery",
     "dep:pa-pairing",
+    "dep:pa-secrets",
     "dep:rcgen",
     "dep:rustls",
     "dep:tokio",
@@ -31,12 +32,13 @@ pa-discovery = { path = "../pa-discovery", optional = true }
 pa-library = { path = "../pa-library" }
 pa-model = { path = "../pa-model" }
 pa-pairing = { path = "../pa-pairing", optional = true }
+pa-secrets = { path = "../pa-secrets", optional = true }
 rcgen = { workspace = true, optional = true, features = ["crypto", "ring"] }
 rustls = { workspace = true, optional = true, features = ["ring", "std"] }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, optional = true, features = ["macros", "net", "rt", "sync", "time"] }
+tokio = { workspace = true, optional = true, features = ["macros", "net", "rt", "rt-multi-thread", "sync", "time"] }
 tokio-rustls = { workspace = true, optional = true, features = ["ring"] }
 tokio-tungstenite = { workspace = true, optional = true }
 tracing = { workspace = true, optional = true }
