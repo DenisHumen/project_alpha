@@ -58,7 +58,10 @@ pub fn io_err(e: impl std::fmt::Display) -> std::io::Error {
 }
 
 /// The `hello.nonce` of `side` on this connection: 32 exporter bytes, hex.
-pub fn channel_nonce<D>(conn: &ConnectionCommon<D>, side: TlsSide) -> Result<String, rustls::Error> {
+pub fn channel_nonce<D>(
+    conn: &ConnectionCommon<D>,
+    side: TlsSide,
+) -> Result<String, rustls::Error> {
     let out = conn.export_keying_material([0u8; 32], NONCE_LABEL, Some(side.context()))?;
     Ok(out.iter().map(|b| format!("{b:02x}")).collect())
 }
@@ -82,12 +85,14 @@ pub fn server_config() -> Result<rustls::ServerConfig, std::io::Error> {
 /// Client configuration that takes any certificate (see the module docs).
 pub fn client_config() -> Result<rustls::ClientConfig, std::io::Error> {
     let provider = provider();
-    Ok(rustls::ClientConfig::builder_with_provider(Arc::clone(&provider))
-        .with_protocol_versions(&[&rustls::version::TLS13])
-        .map_err(io_err)?
-        .dangerous()
-        .with_custom_certificate_verifier(Arc::new(AnyCert(provider)))
-        .with_no_client_auth())
+    Ok(
+        rustls::ClientConfig::builder_with_provider(Arc::clone(&provider))
+            .with_protocol_versions(&[&rustls::version::TLS13])
+            .map_err(io_err)?
+            .dangerous()
+            .with_custom_certificate_verifier(Arc::new(AnyCert(provider)))
+            .with_no_client_auth(),
+    )
 }
 
 /// The server name to dial with.
@@ -127,7 +132,12 @@ impl ServerCertVerifier for AnyCert {
         cert: &CertificateDer<'_>,
         dss: &DigitallySignedStruct,
     ) -> Result<HandshakeSignatureValid, rustls::Error> {
-        verify_tls13_signature(message, cert, dss, &self.0.signature_verification_algorithms)
+        verify_tls13_signature(
+            message,
+            cert,
+            dss,
+            &self.0.signature_verification_algorithms,
+        )
     }
 
     fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {

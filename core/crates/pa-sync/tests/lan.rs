@@ -89,7 +89,12 @@ impl Keys {
     fn family(&self, id: &str) -> Family {
         let (_, _, store) = self.stores.iter().find(|(d, _, _)| d == id).unwrap();
         let identity = DeviceIdentity::load(store).unwrap().unwrap();
-        Family::new(identity, self.roster.clone(), FamilyKey::generate(1).unwrap()).unwrap()
+        Family::new(
+            identity,
+            self.roster.clone(),
+            FamilyKey::generate(1).unwrap(),
+        )
+        .unwrap()
     }
 
     fn class(&self, id: &str) -> DeviceClass {
@@ -132,8 +137,7 @@ impl Dev {
     }
 
     fn sees(&self, other: &Dev, class: DeviceClass) {
-        self.node
-            .peer_up(&other.id, class, other.node.local_addr());
+        self.node.peer_up(&other.id, class, other.node.local_addr());
     }
 
     fn record(&mut self, body: OpBody) -> OpId {
@@ -213,9 +217,11 @@ async fn three_devices_converge_and_replace_a_lost_hub() {
     let tv_op = tv.record(progress(2, 2_000));
     let phone_op = phone.record(progress(3, 3_000));
     phone.record(progress(1, 41_000));
-    wait_until(&mut [&mut pc, &mut tv, &mut phone], "3 devices converge", |d| {
-        same_state(d, 3) && d[1].acked.contains(&tv_op) && d[2].acked.contains(&phone_op)
-    })
+    wait_until(
+        &mut [&mut pc, &mut tv, &mut phone],
+        "3 devices converge",
+        |d| same_state(d, 3) && d[1].acked.contains(&tv_op) && d[2].acked.contains(&phone_op),
+    )
     .await;
     let pos = &pc.replica.state().progress[&("default".to_owned(), title(1))];
     assert_eq!(pos.value.position_ms, 41_000);
@@ -228,7 +234,10 @@ async fn three_devices_converge_and_replace_a_lost_hub() {
         duration_ms: Some(8_160_000),
         rate: 1.0,
         state: PlayState::Paused,
-        hlc: phone.replica.clock_mut().tick(u64::try_from(now_ms()).unwrap()),
+        hlc: phone
+            .replica
+            .clock_mut()
+            .tick(u64::try_from(now_ms()).unwrap()),
     };
     phone.node.playback(update.clone()).unwrap();
     wait_until(&mut [&mut pc, &mut tv], "pb.update fan-out", |d| {
@@ -244,7 +253,10 @@ async fn three_devices_converge_and_replace_a_lost_hub() {
     })
     .await;
     let failover = lost.elapsed();
-    assert!(failover < Duration::from_secs(10), "failover took {failover:?}");
+    assert!(
+        failover < Duration::from_secs(10),
+        "failover took {failover:?}"
+    );
     eprintln!("closed hub replaced in {failover:?}");
 
     // Writes keep flowing through the new hub.
@@ -259,11 +271,15 @@ async fn three_devices_converge_and_replace_a_lost_hub() {
     // others push everything it lacks.
     let mut pc = Dev::start(&keys, "pc").await;
     mesh(&keys, &[&pc, &tv, &phone]);
-    wait_until(&mut [&mut pc, &mut tv, &mut phone], "restarted pc catches up", |d| {
-        d[1].node.hub().as_deref() == Some("pc")
-            && d[2].node.hub().as_deref() == Some("pc")
-            && same_state(d, 4)
-    })
+    wait_until(
+        &mut [&mut pc, &mut tv, &mut phone],
+        "restarted pc catches up",
+        |d| {
+            d[1].node.hub().as_deref() == Some("pc")
+                && d[2].node.hub().as_deref() == Some("pc")
+                && same_state(d, 4)
+        },
+    )
     .await;
     let pos = &pc.replica.state().progress[&("default".to_owned(), title(2))];
     assert_eq!(pos.value.position_ms, 22_000);
@@ -271,10 +287,7 @@ async fn three_devices_converge_and_replace_a_lost_hub() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn strangers_and_revoked_devices_are_refused() {
-    let keys = Keys::new(&[
-        ("pc", DeviceClass::Desktop),
-        ("phone", DeviceClass::Mobile),
-    ]);
+    let keys = Keys::new(&[("pc", DeviceClass::Desktop), ("phone", DeviceClass::Mobile)]);
     let other = Keys::new(&[("pc", DeviceClass::Desktop), ("evil", DeviceClass::Mobile)]);
     let mut pc = Dev::start(&keys, "pc").await;
     let mut evil = Dev::start(&other, "evil").await;
@@ -290,10 +303,7 @@ async fn strangers_and_revoked_devices_are_refused() {
     assert!(pc.replica.state().progress.is_empty());
 
     // A revoked phone cannot connect either.
-    let revoked = Keys::new(&[
-        ("pc", DeviceClass::Desktop),
-        ("phone", DeviceClass::Mobile),
-    ]);
+    let revoked = Keys::new(&[("pc", DeviceClass::Desktop), ("phone", DeviceClass::Mobile)]);
     let phone_family = revoked.family("phone");
     let mut pc_family = revoked.family("pc");
     pc_family.revoke("phone", 3).unwrap();
@@ -352,7 +362,10 @@ async fn devices_find_each_other_over_mdns() {
     .await;
     phone.record(progress(7, 7_000));
     tv.record(progress(8, 8_000));
-    wait_until(&mut [pc, tv, phone], "converge over mDNS", |d| same_state(d, 2)).await;
+    wait_until(&mut [pc, tv, phone], "converge over mDNS", |d| {
+        same_state(d, 2)
+    })
+    .await;
     assert_eq!(
         pc.node.peer_txt().fingerprint,
         Some(keys.family("pc").identity().public().fingerprint())
@@ -433,7 +446,10 @@ async fn silent_hub_is_replaced_within_10_s() {
     })
     .await;
     let failover = lost.elapsed();
-    assert!(failover < Duration::from_secs(10), "failover took {failover:?}");
+    assert!(
+        failover < Duration::from_secs(10),
+        "failover took {failover:?}"
+    );
     eprintln!("silent hub replaced in {failover:?}");
 
     phone.record(progress(5, 5_000));

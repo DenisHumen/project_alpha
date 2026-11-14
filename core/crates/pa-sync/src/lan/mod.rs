@@ -161,7 +161,10 @@ impl LanNode {
             protocol_version: u32::from(PROTOCOL_VERSION),
             device_class: self.shared.config.class,
             name: self.shared.config.name.clone(),
-            fingerprint: Some(self.shared.with_family(|f| f.identity().public().fingerprint())),
+            fingerprint: Some(
+                self.shared
+                    .with_family(|f| f.identity().public().fingerprint()),
+            ),
         }
     }
 
@@ -288,11 +291,8 @@ async fn supervise(weak: Weak<Shared>) {
             }
             Hub::Peer { device_id, addr } => {
                 if upstream.as_ref().is_none_or(|(id, _)| *id != device_id) {
-                    let task = tokio::spawn(conn::dial(
-                        Arc::clone(&shared),
-                        device_id.clone(),
-                        addr,
-                    ));
+                    let task =
+                        tokio::spawn(conn::dial(Arc::clone(&shared), device_id.clone(), addr));
                     upstream = Some((device_id, AbortOnDrop(task)));
                 }
             }
@@ -324,8 +324,7 @@ fn watch(weak: &Weak<Shared>, events: &std::sync::mpsc::Receiver<DiscoveryEvent>
                 if s.kind == ServiceKind::SyncPeer =>
             {
                 let Ok(txt) = s.peer_txt() else { continue };
-                let compatible =
-                    txt.protocol_version.abs_diff(u32::from(PROTOCOL_VERSION)) <= 1;
+                let compatible = txt.protocol_version.abs_diff(u32::from(PROTOCOL_VERSION)) <= 1;
                 if let (true, Some(ip)) = (compatible, s.primary_address()) {
                     ids.insert(s.instance.to_lowercase(), txt.id.clone());
                     shared.peer_up(&txt.id, txt.device_class, SocketAddr::new(ip, s.port));

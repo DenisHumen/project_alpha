@@ -157,7 +157,9 @@ where
             .await
             .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "handshake timed out"))?
     };
-    send(&Message::Hello(shared.lock().hello(&side, own_nonce.clone())));
+    send(&Message::Hello(
+        shared.lock().hello(&side, own_nonce.clone()),
+    ));
     let hello = match first().await? {
         (_, Message::Hello(h)) => h,
         _ => {

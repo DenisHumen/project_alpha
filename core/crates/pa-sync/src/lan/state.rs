@@ -14,12 +14,12 @@ use tokio::sync::mpsc;
 
 use super::election::Election;
 use super::{LanConfig, LanEvent};
+use crate::OpId;
 use crate::hlc::Hlc;
 use crate::proto::{
     Ack, Change, Cursor, ErrorFrame, Hello, MAX_PULL_LIMIT, Message, OpFrame, ProtoRange, Pull,
     Role, code, encode,
 };
-use crate::OpId;
 
 /// Frames to a link's writer; `None` closes the link.
 pub(crate) type LinkTx = mpsc::UnboundedSender<Option<String>>;
@@ -321,8 +321,10 @@ impl State {
         }
         self.seen.insert(slot, hlc.clone());
         if is_update {
-            self.playback
-                .insert((profile.clone(), key.clone()), (Instant::now(), raw.to_owned()));
+            self.playback.insert(
+                (profile.clone(), key.clone()),
+                (Instant::now(), raw.to_owned()),
+            );
         }
         for (id, link) in &self.links {
             if Source::Link(*id) != source {
@@ -359,7 +361,13 @@ impl State {
                 let op_id = f.op_id;
                 let seq = self.on_op(f, Source::Link(id));
                 if side == Side::Down {
-                    Self::send(&tx, &Message::Ack(Ack { op_id, seq: Some(seq) }));
+                    Self::send(
+                        &tx,
+                        &Message::Ack(Ack {
+                            op_id,
+                            seq: Some(seq),
+                        }),
+                    );
                 }
             }
             Message::Ack(a) => {
