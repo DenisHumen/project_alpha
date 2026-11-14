@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pa_core/pa_core.dart';
