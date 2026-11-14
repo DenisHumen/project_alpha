@@ -2,7 +2,7 @@
 
 # AlphaPlayerKit
 
-Apple-движки воспроизведения за контрактом ядра `PlayerEngine` (PLAY-APL, [ADR-0003](../../../docs/adr/0003-native-player-surfaces-engines.md), [ADR-0017](../../../docs/adr/0017-player-engine-contract.md), [ADR-NNNN](../../../docs/adr/NNNN-apple-engines-foreign-player-engine-mpvkit.md)). SwiftPM-пакет для iOS 15+, tvOS 15+, macOS 12+; его используют Flutter-плагин `pa_player_apple` (PLAY-APL-004) и tvOS-приложение.
+Apple-движки воспроизведения за контрактом ядра `PlayerEngine` (PLAY-APL, [ADR-0003](../../../docs/adr/0003-native-player-surfaces-engines.md), [ADR-0017](../../../docs/adr/0017-player-engine-contract.md), [ADR-NNNN](../../../docs/adr/0035-apple-engines-foreign-player-engine-mpvkit.md)). SwiftPM-пакет для iOS 15+, tvOS 15+, macOS 12+; его используют Flutter-плагин `pa_player_apple` (PLAY-APL-004) и tvOS-приложение.
 
 Этап 1 (PLAY-APL-001) — **`MPVEngine`** на libmpv из [MPVKit](https://github.com/mpvkit/MPVKit) (`EngineKind.mpv`, последний движок цепочки Auto на Apple). Дальше здесь появятся AVPlayer (PLAY-APL-002) и свой движок FFmpeg → VideoToolbox (PLAY-APL-005).
 

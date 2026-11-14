@@ -1,5 +1,5 @@
 
-# ADR-NNNN: Apple-движки — Swift-реализации `PlayerEngine` через UniFFI foreign trait; MPVKit только LGPL с точной версией
+# ADR-0035: Apple-движки — Swift-реализации `PlayerEngine` через UniFFI foreign trait; MPVKit только LGPL с точной версией
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
