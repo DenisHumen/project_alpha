@@ -10,7 +10,9 @@ impl Catalog {
     /// Renames the work of an item (an episode: its show) and/or sets its
     /// year or TMDB id. Its matches become `user_set`, so later scans keep
     /// them; the old title stays as a synonym, so files named the old way
-    /// still join this work. A track gets its title and year.
+    /// still join this work. A track gets its title and year. A new title or
+    /// TMDB id makes the next [`fetch_metadata`](Self::fetch_metadata) ask
+    /// the providers again.
     pub fn fix_match(
         &self,
         item: ItemRef,
@@ -80,6 +82,10 @@ impl Catalog {
                 "INSERT INTO external_ids (work_id, provider, ext_kind, ext_id) VALUES (?1, 'tmdb', ?2, ?3)",
                 params![work, ext_kind, id.to_string()],
             )?;
+        }
+        if title.is_some() || tmdb_id.is_some_and(|i| i > 0) {
+            // Ask the providers again with the new title or id (META-013).
+            tx.execute("DELETE FROM work_metadata WHERE work_id = ?1", [work])?;
         }
         tx.execute(
             "UPDATE matches SET state = 'user_set', decided_by = 'user', confidence = 1.0,

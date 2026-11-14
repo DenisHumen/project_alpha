@@ -3,7 +3,7 @@
 > Файл для передачи работы между компьютерами и сессиями. Обновляется мейнтейнером после каждой волны/слияния.
 > Источник истины по задачам — [ROADMAP.md](ROADMAP.md) (галочки, `just roadmap next`) и открытые PR. Решения — [adr/](adr/).
 
-Обновлено: 2026-11-14, ~00:20 UTC
+Обновлено: 2026-11-14, ~01:00 UTC
 
 ## Приоритет
 
@@ -12,6 +12,7 @@
 ## Релизы
 
 - **[Kinolune 0.1.0-alpha.1](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.1)** (2026-11-13, пре-релиз): Linux AppImage/tar.gz, Android APK (arm64, armv7, x86_64, universal; debug-подпись). Linux требует системный libmpv.
+- **[Kinolune 0.1.0-alpha.2](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.2)** (2026-11-14): наш LGPL libmpv внутри AppImage и APK.
 
 ## Готово и в main
 
@@ -25,7 +26,9 @@
 
 ## В работе (агенты, ветки на GitHub)
 
-TV-001 (каркас Apple TV, SwiftUI), PLAY-APL-001 (плеер Apple), PLAY-AND-002 (плеер Android Media3), SYNC-005 (сопряжение устройств), LIB-008 (поиск FTS5), MUS-002 (воспроизведение музыки), TWI-007 (модель Twitch в медиатеке), PLAY-013 (наш libmpv в Android-сборке). Открытые PR: `gh pr list`.
+PLAY-APL-001 (плеер Apple, PR #74 — ждёт macOS CI и гейт LGPLv3 MPVKit), META-013 (метаданные на ядре → разблокирует UI-024 ч. 2), LIB-006 (`pa-probe`: длительности и дорожки), PLAY-005 (сессия воспроизведения: resume, Up Next, запись прогресса), NET-011 (менеджер источников). Открытые PR: `gh pr list`.
+
+Слито 14 ноября: NET-002 (сборка libsmb2 + `pa-smb2`), NET-003 (SMB-бэкенд `pa-vfs-smb`; скорость на канале с потерями 29–66 Мбит/с — доводка в NET-021), NET-004 (WebDAV), SYNC-006 (LAN-синхронизация и выбор хаба), UI-024 ч. 1 (медиатека приложения на Rust-ядре), CORE-007, TV-001, PLAY-002, PLAY-013, CORE-003.
 
 Сделано за 13–14 ноября (кроме перечисленного выше): pa-vfs, pa-runtime, pa-library (схема, прогресс, «Продолжить», Up Next), pa-scanner, pa-sync (модель, протокол), хаб синхронизации на сервере, pa-secrets, pa-discovery (mDNS), pa-playback (контракт плеера), pa-metadata (TMDB, AniList, Shikimori), парсер 0.2 + индекс тайтлов, корпус v0 (2035 групп), музыка (схема + теги), Twitch (Helix + вход), LGPL libmpv на 7 платформ, xcframework (Apple) и AAR (Android), локализация ru/en, исправления UI по скриншотам.
 

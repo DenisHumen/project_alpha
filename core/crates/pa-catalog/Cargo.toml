@@ -2,7 +2,7 @@
 [package]
 name = "pa-catalog"
 version = "0.1.0"
-description = "Client media library on the Rust core: scan pipeline (pa-scanner, music tags, fingerprints, local recognition with pa-recognition), item views, progress and the pa_library v0 import (UI-024)"
+description = "Client media library on the Rust core: scan pipeline (pa-scanner, music tags, fingerprints, local recognition with pa-recognition), provider metadata (pa-metadata), item views, progress and the pa_library v0 import (UI-024)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -11,6 +11,7 @@ publish.workspace = true
 
 [dependencies]
 pa-library = { path = "../pa-library" }
+pa-metadata = { path = "../pa-metadata" }
 pa-model = { path = "../pa-model" }
 pa-recognition = { path = "../pa-recognition" }
 pa-scanner = { path = "../pa-scanner" }
