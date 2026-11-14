@@ -14,7 +14,8 @@ import '../integration/library.dart';
 import '../library/library_queries.dart';
 import 'demo_data.dart';
 
-class FakeLibrary implements Library, LibraryQueriesProvider, LibraryLists {
+class FakeLibrary
+    implements Library, LibraryQueriesProvider, LibraryLists, LibraryMusic {
   FakeLibrary({this.scanStepDelay = const Duration(milliseconds: 60)});
 
   /// A library of exactly [items] (tests: large grids), with [progress] and
@@ -433,6 +434,124 @@ class FakeLibrary implements Library, LibraryQueriesProvider, LibraryLists {
 
   @override
   Future<void> close() async {}
+
+  // -------------------------------------------------------------------------
+  // music views, plays and audio playlists (MUS-004), in memory
+
+  final _plays = _Live<Map<String, (int, DateTime)>>(const {});
+  final _musicPlaylists = _Live<List<(String, String, List<String>)>>(const []);
+
+  @override
+  Stream<List<MusicTrack>> musicTracks() => Stream.multi((c) {
+    List<LibraryItem>? items;
+    var plays = _plays.value;
+    void emit() {
+      final now = items;
+      if (now == null) return;
+      c.add([
+        for (final t in now)
+          if (t.kind == ItemKind.track) demoMusicTrack(t, plays: plays),
+      ]);
+    }
+
+    final subs = [
+      _items.stream.listen((v) {
+        items = v;
+        emit();
+      }),
+      _plays.stream.skip(1).listen((v) {
+        plays = v;
+        emit();
+      }),
+    ];
+    c.onCancel = () async {
+      for (final s in subs) {
+        await s.cancel();
+      }
+    };
+  });
+
+  @override
+  Future<void> recordTrackPlay(String trackId) async {
+    final (n, _) = _plays.value[trackId] ?? (0, DateTime.now());
+    _plays.value = {..._plays.value, trackId: (n + 1, DateTime.now())};
+  }
+
+  @override
+  bool get hasMusicPlaylists => true;
+
+  MusicPlaylist _musicPlaylistOf((String, String, List<String>) p) =>
+      MusicPlaylist(id: p.$1, name: p.$2, trackCount: p.$3.length);
+
+  @override
+  Stream<List<MusicPlaylist>> musicPlaylists() => _musicPlaylists.stream.map(
+    (l) => [for (final p in l.reversed) _musicPlaylistOf(p)],
+  );
+
+  @override
+  Future<MusicPlaylist> createMusicPlaylist(String name) async {
+    final p = ('mpl-${_nextId++}', name.trim(), <String>[]);
+    _musicPlaylists.value = [..._musicPlaylists.value, p];
+    return _musicPlaylistOf(p);
+  }
+
+  @override
+  Future<void> renameMusicPlaylist(String id, String name) async {
+    _musicPlaylists.value = [
+      for (final p in _musicPlaylists.value)
+        p.$1 == id ? (p.$1, name.trim(), p.$3) : p,
+    ];
+  }
+
+  @override
+  Future<void> deleteMusicPlaylist(String id) async {
+    _musicPlaylists.value = [
+      for (final p in _musicPlaylists.value)
+        if (p.$1 != id) p,
+    ];
+  }
+
+  @override
+  Future<List<LibraryItem>> musicPlaylistItems(String id) async {
+    for (final p in _musicPlaylists.value) {
+      if (p.$1 == id) return _itemsNow(p.$3);
+    }
+    return const [];
+  }
+
+  /// Changes the tracks of playlist [id]; returns whether they changed.
+  bool _editMusicPlaylist(String id, List<String> Function(List<String>) f) {
+    var changed = false;
+    _musicPlaylists.value = [
+      for (final p in _musicPlaylists.value)
+        if (p.$1 == id)
+          () {
+            final next = f(p.$3);
+            changed = next.length != p.$3.length;
+            return (p.$1, p.$2, next);
+          }()
+        else
+          p,
+    ];
+    return changed;
+  }
+
+  @override
+  Future<bool> addToMusicPlaylist(String id, String trackId) async =>
+      _editMusicPlaylist(
+        id,
+        (ids) => ids.contains(trackId) ? ids : [...ids, trackId],
+      );
+
+  @override
+  Future<bool> removeFromMusicPlaylist(String id, String trackId) async =>
+      _editMusicPlaylist(
+        id,
+        (ids) => [
+          for (final t in ids)
+            if (t != trackId) t,
+        ],
+      );
 
   // -------------------------------------------------------------------------
   // versions, favorites, collections, playlists (LIB-010), in memory

@@ -310,7 +310,7 @@ fn item_of_entry(conn: &Connection, entry: &Entry) -> Result<Option<Item>, Error
 }
 
 /// Present items of `entries`, in order, each once.
-fn items_of(conn: &Connection, entries: &[Entry]) -> Result<Vec<Item>, Error> {
+pub(crate) fn items_of(conn: &Connection, entries: &[Entry]) -> Result<Vec<Item>, Error> {
     let mut seen = std::collections::HashSet::new();
     let mut out = Vec::new();
     for e in entries {

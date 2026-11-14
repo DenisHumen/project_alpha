@@ -26,6 +26,8 @@ export 'src/open_library.dart'
         freeLegacyV0BackupPath,
         newestLegacyV0Backup;
 export 'src/rust_library.dart' show RustLibrary;
+export 'src/music.dart';
+export 'src/music_index.dart';
 export 'src/music_tags.dart' show TrackInfo, trackInfoFromPath, readTags;
 export 'src/parser/filename_parser.dart'
     show ParsedName, parseName, parsePath, normalizeTitle, seasonFromFolder;

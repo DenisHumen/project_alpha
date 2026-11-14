@@ -33,6 +33,7 @@ use crate::api::library_query::{
     CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
     CoreLibrarySort, CoreSmartShelf, CoreViewPrefs,
 };
+use crate::api::music::CoreMusicTrack;
 use crate::api::subtitles::CoreSidecarSubtitle;
 use crate::frb_generated::StreamSink;
 
@@ -1059,6 +1060,65 @@ impl CoreLibrary {
             .filter_map(|i| i.parse::<c::ItemRef>().ok())
             .collect();
         Ok(self.catalog.reorder_playlist(id, &refs)?)
+    }
+
+    // -- music (MUS-004) -------------------------------------------------------
+
+    /// Music tracks with album, credits, format and play counts, by artist,
+    /// album, disc and track number.
+    pub fn music_tracks(&self) -> Result<Vec<CoreMusicTrack>> {
+        Ok(self
+            .catalog
+            .music_tracks()?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    /// Counts a play of a track (it started in the player); returns the new
+    /// count, 0 if the track is not hashed yet.
+    pub fn record_track_play(&self, item_id: String) -> Result<i64> {
+        Ok(self.catalog.record_track_play(item_ref(&item_id)?)?)
+    }
+
+    /// Audio playlists, most recently changed first.
+    pub fn music_playlists(&self) -> Result<Vec<CorePlaylist>> {
+        Ok(self
+            .catalog
+            .music_playlists()?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    pub fn create_music_playlist(&self, name: String) -> Result<CorePlaylist> {
+        Ok(self.catalog.create_music_playlist(&name)?.into())
+    }
+
+    pub fn rename_music_playlist(&self, id: i64, name: String) -> Result<()> {
+        Ok(self.catalog.rename_music_playlist(id, &name)?)
+    }
+
+    pub fn delete_music_playlist(&self, id: i64) -> Result<()> {
+        Ok(self.catalog.delete_music_playlist(id)?)
+    }
+
+    /// Tracks of an audio playlist in order (missing files left out).
+    pub fn music_playlist_items(&self, id: i64) -> Result<Vec<CoreItem>> {
+        Ok(items(self.catalog.music_playlist_items(id)?))
+    }
+
+    /// `false` if the track already was in the playlist.
+    pub fn add_to_music_playlist(&self, id: i64, item_id: String) -> Result<bool> {
+        Ok(self
+            .catalog
+            .add_to_music_playlist(id, item_ref(&item_id)?)?)
+    }
+
+    pub fn remove_from_music_playlist(&self, id: i64, item_id: String) -> Result<bool> {
+        Ok(self
+            .catalog
+            .remove_from_music_playlist(id, item_ref(&item_id)?)?)
     }
 
     /// Imports a `pa_library` v0 database (read-only; renaming it is the
