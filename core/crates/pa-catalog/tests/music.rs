@@ -22,7 +22,7 @@ fn setup() -> (tempfile::TempDir, Catalog) {
     let root = dir.path().join("media");
     media(&root, "Music/Artist/Album/01 - One.flac", 1);
     media(&root, "Music/Artist/Album/02 - Two.flac", 2);
-    media(&root, "Music/Other/Single/01 - Three.mp3", 3);
+    media(&root, "Music/Other/Single/01 - Three.flac", 3);
     let cat = Catalog::open(dir.path().join("library.db")).unwrap();
     cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
         .unwrap();
@@ -60,7 +60,10 @@ fn tracks_carry_format_album_and_plays() {
     assert_eq!(one.play_count, 0);
     assert_eq!(one.last_played_at_ms, None);
     // The two tracks of the album folder share it.
-    let two = tracks.iter().find(|t| t.item.title.contains("Two")).unwrap();
+    let two = tracks
+        .iter()
+        .find(|t| t.item.title.contains("Two"))
+        .unwrap();
     assert_eq!(two.album_id, one.album_id);
 
     // Plays are counted per track and shown by the next query.

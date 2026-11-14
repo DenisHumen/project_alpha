@@ -29,11 +29,11 @@ use pa_catalog as c;
 use pa_catalog::pa_sync::lan::service::SyncService;
 
 use crate::api::library_lists::{CoreCollection, CorePlaylist, CoreVersion};
-use crate::api::music::CoreMusicTrack;
 use crate::api::library_query::{
     CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
     CoreLibrarySort, CoreSmartShelf, CoreViewPrefs,
 };
+use crate::api::music::CoreMusicTrack;
 use crate::api::subtitles::CoreSidecarSubtitle;
 use crate::frb_generated::StreamSink;
 

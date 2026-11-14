@@ -58,11 +58,7 @@ fn names(v: Option<String>) -> Vec<String> {
 /// Ordered names of a link table, joined by the unit separator.
 macro_rules! joined {
     ($select:literal) => {
-        concat!(
-            "(SELECT group_concat(n, char(31)) FROM (",
-            $select,
-            "))"
-        )
+        concat!("(SELECT group_concat(n, char(31)) FROM (", $select, "))")
     };
 }
 
