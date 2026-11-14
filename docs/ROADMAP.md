@@ -888,7 +888,7 @@ project_alpha/
   - done when: layout-тест плеера в портрете на телефоне без overflow; навигация подсвечивает активный раздел; лицензии видны; RU-скриншоты плеера на русском.
 - [ ] **UI-024** Приложение на Rust-ядре: медиатека, сканер, поиск, прогресс через `pa_core`
   - Что: заменить Dart `pa_library` v0 в приложении на Rust-ядро через `pa_core` (FRB): pa-library (схема v1, импорт v0 — LIB-015), pa-scanner, парсер+индекс тайтлов, поиск FTS5, прогресс/«Продолжить»/Up Next, музыка. Dart-пакет остаётся адаптером за тем же интерфейсом `Library`.
-  - deps: CORE-002, LIB-003, LIB-008, LIB-011, META-007 · size: L · parallel: no · веха: M1 · ref: docs/dev/release-0.1-contract.md
+  - deps: CORE-002, LIB-003, LIB-008, LIB-011, META-007 · size: L · parallel: no · веха: M2 · ref: docs/dev/release-0.1-contract.md
   - done when: приложение на Linux и Android работает целиком на Rust-ядре; тесты приложения зелёные; старая база v0 импортируется.
 - [ ] **UI-021** Доступность
   - Что: Semantics для TalkBack, VoiceOver, Narrator и Orca; порядок фокуса клавиатурой; контраст; Reduce Motion (кроссфейд вместо переходов).
