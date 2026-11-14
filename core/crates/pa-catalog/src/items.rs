@@ -8,7 +8,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use pa_library::rusqlite::{Connection, Row, ToSql, params_from_iter};
+use pa_library::rusqlite::{Connection, OptionalExtension, Row, ToSql, params, params_from_iter};
 use pa_library::search::{SearchKind, SearchOptions};
 
 use crate::{Catalog, Error, uri};
@@ -138,24 +138,38 @@ macro_rules! movie_local_poster {
     };
 }
 
-/// Local poster of the show `$work` (a column with its `works.id`): a
-/// generic poster, not season art, of a series group holding one of its
-/// present episodes; the shallowest first (the show folder above `Season N`).
-macro_rules! show_local_poster {
-    ($work:literal) => {
-        concat!(
-            "(SELECT ga.path FROM matches m3
-   JOIN files f3 ON f3.id = m3.file_id AND f3.missing_since_ms IS NULL
-   JOIN file_group_members gm ON gm.file_id = f3.id
-   JOIN file_groups g ON g.id = gm.group_id AND g.kind = 'series_folder'
-   JOIN group_assets ga ON ga.group_id = gm.group_id
-  WHERE m3.work_id = ",
-            $work,
-            " AND m3.state <> 'rejected' AND ga.role = 'art' AND ga.art_kind = 'poster'
-    AND ga.season_number IS NULL AND ga.target_path IS NULL
-  ORDER BY length(ga.path), ga.path LIMIT 1)"
-        )
-    };
+/// Local poster of a show folder: a generic poster (not season art) of the
+/// group rooted at the folder. The folder of a show with `Season N`
+/// subfolders is a group of its own, without videos (LIB-007).
+const SHOW_LOCAL_POSTER_SQL: &str = "
+SELECT ga.path FROM file_groups g
+JOIN group_assets ga ON ga.group_id = g.id
+WHERE g.source_id = ?1 AND g.root_path = ?2 AND ga.role = 'art' AND ga.art_kind = 'poster'
+  AND ga.season_number IS NULL AND ga.target_path IS NULL
+ORDER BY length(ga.path), ga.path LIMIT 1";
+
+/// Fills [`Item::local_poster`] of shows and episodes from their show folder.
+fn fill_show_posters(conn: &Connection, items: &mut [Item]) -> Result<(), Error> {
+    let mut stmt = None;
+    for item in items {
+        let folder = match item.kind {
+            ItemKind::Show => item.rel_path.clone(),
+            ItemKind::Episode => show_folder(&item.rel_path),
+            _ => continue,
+        };
+        if folder.is_empty() || item.local_poster.is_some() {
+            continue;
+        }
+        let stmt = match &mut stmt {
+            Some(s) => s,
+            None => stmt.insert(conn.prepare_cached(SHOW_LOCAL_POSTER_SQL)?),
+        };
+        let path: Option<String> = stmt
+            .query_row(params![item.source_id, format!("/{folder}")], |r| r.get(0))
+            .optional()?;
+        item.local_poster = local_rel(path);
+    }
+    Ok(())
 }
 
 fn is_season_folder(name: &str) -> bool {
@@ -232,8 +246,6 @@ SELECT w.id, w.title, w.original_title, w.year, w.overview,
     art!("work_id", "w.id", "poster"),
     ", ",
     art!("work_id", "w.id", "backdrop"),
-    ", ",
-    show_local_poster!("w.id"),
     "
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
@@ -252,8 +264,6 @@ SELECT e.id, e.title, e.work_id, e.season_number, ifnull(e.episode_number, e.abs
     art!("work_id", "e.work_id", "poster"),
     ", ",
     art!("episode_id", "e.id", "still"),
-    ", ",
-    show_local_poster!("e.work_id"),
     "
 FROM episodes e
 JOIN match_episodes me ON me.episode_id = e.id
@@ -327,7 +337,8 @@ fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         added_at_ms: r.get(11)?,
         poster_url: r.get(12)?,
         backdrop_url: r.get(13)?,
-        local_poster: local_rel(r.get(14)?),
+        // Filled from the show folder by `fill_show_posters`.
+        local_poster: None,
         show_id: None,
         season: None,
         episode: None,
@@ -356,7 +367,7 @@ fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         overview: r.get(12)?,
         poster_url: r.get(13)?,
         backdrop_url: r.get(14)?,
-        local_poster: local_rel(r.get(15)?),
+        local_poster: None,
         original_title: None,
         year: None,
         tmdb_id: None,
@@ -408,7 +419,9 @@ fn query(
     let sql = format!("{base} {filter} {tail}");
     let mut stmt = conn.prepare_cached(&sql)?;
     let rows = stmt.query_map(params_from_iter(args.iter()), row)?;
-    Ok(rows.collect::<Result<_, _>>()?)
+    let mut items: Vec<Item> = rows.collect::<Result<_, _>>()?;
+    fill_show_posters(conn, &mut items)?;
+    Ok(items)
 }
 
 /// Movies (`ItemKind::Movie`) or shows (`ItemKind::Show`) with these work
