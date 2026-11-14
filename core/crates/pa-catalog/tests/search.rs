@@ -157,7 +157,7 @@ fn library() -> (tempfile::TempDir, Catalog) {
                 .unwrap();
             matched.execute(params![file_id, show]).unwrap();
             episode
-                .execute(params![id, show, id, rng.words(EN, 1 + rng.next(3))])
+                .execute(params![id, show, id, { let n = 1 + rng.next(3); rng.words(EN, n) }])
                 .unwrap();
             match_ep.execute(params![file_id, id]).unwrap();
         }
@@ -170,7 +170,7 @@ fn library() -> (tempfile::TempDir, Catalog) {
             file.execute(params![file_id, format!("Music/{id}.flac")])
                 .unwrap();
             track
-                .execute(params![id, file_id, rng.words(EN, 1 + rng.next(4))])
+                .execute(params![id, file_id, { let n = 1 + rng.next(4); rng.words(EN, n) }])
                 .unwrap();
             track_artist
                 .execute(params![id, 1 + rng.next(500) as i64])
