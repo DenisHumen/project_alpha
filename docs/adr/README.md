@@ -41,6 +41,7 @@
 | [0033](0033-libsmb2-runtime-loading.md) | SMB через libsmb2: загрузка в рантайме, пул контекстов, read-ahead с параллельным prefetch | Предложен | NET-002, NET-003 |
 | [0034](0034-pa-probe-libavformat-runtime.md) | `pa-probe`: libavformat в рантайме, зеркало префиксов структур, окно чтения «голова + хвост» | Предложен | LIB-006 |
 | [0035](0035-apple-engines-foreign-player-engine-mpvkit.md) | Apple-движки — Swift-реализации `PlayerEngine` через UniFFI foreign trait; MPVKit только LGPL с точной версией | Предложен | PLAY-APL-001 |
+| [NNNN](NNNN-platform-secret-stores.md) | Платформенные хранилища секретов: Keystore + AES-GCM без Tink, Keychain `AfterFirstUnlock`, Dart-колбэк FRB для Flutter | Предложен | CORE-015 |
 
 ## Запланированные ADR
 
