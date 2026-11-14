@@ -287,7 +287,7 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
   }
 
   final tracks = <LibraryItem>[];
-  for (final (album, artist, year, names) in _albums) {
+  for (final (a, (album, artist, year, names)) in _albums.indexed) {
     for (var n = 0; n < names.length; n++) {
       tracks.add(
         LibraryItem(
@@ -302,6 +302,7 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
           filePath:
               '/media/Music/$artist/$album/${(n + 1).toString().padLeft(2, '0')} ${names[n]}.flac',
           durationMs: (150 + (n * 37 + album.length * 11) % 130) * 1000,
+          addedAt: t0.subtract(Duration(days: 2 + a * 9)),
         ),
       );
     }
@@ -352,3 +353,80 @@ String _slug(String s) => s
     .toLowerCase()
     .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
     .replaceAll(RegExp(r'^-|-$'), '');
+
+/// Music details of the demo albums (MUS-004): album artist, genre,
+/// composer, discs, stream format and whether the files are on the device.
+const _demoMusic =
+    <String, (String genre, String? composer, String codec, int rate, int? bits, int? kbps, bool local, int discs)>{
+      'Nocturne Avenue': ('Jazz', null, 'flac', 96000, 24, null, true, 2),
+      'Analog Dawn': ('Electronic', null, 'flac', 44100, 16, null, true, 1),
+      'Tides & Tunnels': ('Folk', null, 'alac', 48000, 24, null, false, 1),
+      'Paper Planets': ('Pop', null, 'mp3', 44100, null, 320, true, 1),
+      'Quiet Machines': ('Ambient', 'E. Marlowe', 'flac', 192000, 24, null, true, 1),
+    };
+
+/// Plays of demo tracks: (album, track number) → (count, hours ago).
+const _demoPlays = <(String, int), (int, int)>{
+  ('Nocturne Avenue', 3): (14, 2),
+  ('Nocturne Avenue', 1): (9, 30),
+  ('Analog Dawn', 2): (11, 5),
+  ('Tides & Tunnels', 1): (6, 1),
+  ('Quiet Machines', 4): (3, 50),
+  ('Paper Planets', 2): (2, 80),
+};
+
+/// A demo track with its music details; [plays] adds plays counted in
+/// this run (track id → count and last play).
+MusicTrack demoMusicTrack(
+  LibraryItem t, {
+  Map<String, (int, DateTime)> plays = const {},
+  DateTime? now,
+}) {
+  final t0 = now ?? DateTime(2026, 11, 13, 20);
+  final info = _demoMusic[t.album];
+  if (info == null) return MusicTrack.fromItem(t);
+  final (genre, composer, codec, rate, bits, kbps, local, discs) = info;
+  final n = t.trackNumber ?? 1;
+  final count = _albums.firstWhere((a) => a.$1 == t.album).$4.length;
+  final perDisc = (count / discs).ceil();
+  final disc = discs > 1 ? (n - 1) ~/ perDisc + 1 : null;
+  final base = _demoPlays[(t.album!, n)];
+  final extra = plays[t.id];
+  // A guest on one track: "appears on" of the artist page.
+  final guest = t.album == 'Analog Dawn' && n == 3 ? 'Mara Quill' : null;
+  return MusicTrack(
+    item: discs > 1 ? _renumbered(t, (n - 1) % perDisc + 1) : t,
+    albumArtists: [?t.artist],
+    albumYear: t.year,
+    artists: [?t.artist, ?guest],
+    composers: [?composer],
+    genres: [genre],
+    discNumber: disc,
+    discTotal: discs > 1 ? discs : null,
+    codec: codec,
+    lossless: codec != 'mp3',
+    sampleRateHz: rate,
+    bitDepth: bits,
+    channels: 2,
+    bitrateKbps: kbps,
+    local: local,
+    playCount: (base?.$1 ?? 0) + (extra?.$1 ?? 0),
+    lastPlayedAt:
+        extra?.$2 ??
+        (base == null ? null : t0.subtract(Duration(hours: base.$2))),
+  );
+}
+
+LibraryItem _renumbered(LibraryItem t, int n) => LibraryItem(
+  id: t.id,
+  kind: t.kind,
+  title: t.title,
+  filePath: t.filePath,
+  artist: t.artist,
+  album: t.album,
+  year: t.year,
+  trackNumber: n,
+  posterUrl: t.posterUrl,
+  durationMs: t.durationMs,
+  addedAt: t.addedAt,
+);

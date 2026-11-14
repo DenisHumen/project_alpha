@@ -46,4 +46,18 @@ export 'package:pa_library/pa_library.dart'
         searchPerGroupDefault,
         // PLAY-007 sidecar subtitles
         LibrarySubtitles,
-        SidecarSubtitle;
+        SidecarSubtitle,
+        // MUS-004 music views
+        LibraryMusic,
+        MusicAlbum,
+        MusicArtist,
+        MusicChip,
+        MusicGroup,
+        MusicIndex,
+        MusicMix,
+        MusicMixKind,
+        MusicPlaylist,
+        MusicTrack,
+        TracksOnlyMusic,
+        libraryMusic,
+        stableShuffle;
