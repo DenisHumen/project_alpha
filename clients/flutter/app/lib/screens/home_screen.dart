@@ -155,10 +155,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   items: s.items,
                   onSeeAll: switch (s.kind) {
-                    HomeShelfKind.recentMovies => () =>
-                      widget.onOpenSection?.call(1),
-                    HomeShelfKind.recentShows => () =>
-                      widget.onOpenSection?.call(2),
+                    HomeShelfKind.recentMovies =>
+                      () => widget.onOpenSection?.call(1),
+                    HomeShelfKind.recentShows =>
+                      () => widget.onOpenSection?.call(2),
                     _ => null,
                   },
                   onFocus: _feature,
@@ -359,9 +359,9 @@ class _PosterShelf extends StatelessWidget {
   }
 }
 
-void _openSources(BuildContext context) => Navigator.of(
-  context,
-).push(MaterialPageRoute<void>(builder: (_) => const SourcesScreen()));
+void _openSources(BuildContext context) =>
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const SourcesScreen()));
 
 /// Sources: a card per source; each opens the Sources screen.
 class _SourcesRow extends StatelessWidget {

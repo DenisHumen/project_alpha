@@ -73,7 +73,8 @@ void main() {
   });
 
   testWidgets('Up Next offers the episode after a finished one', (t) async {
-    setSurface(t, const Size(1280, 800));
+    // Wide enough for every card of both rows to be built.
+    setSurface(t, const Size(2600, 1400));
     final services = await demoServices();
     final library = services.library as FakeLibrary;
     await t.pumpWidget(testApp(services));
@@ -101,14 +102,11 @@ void main() {
     await t.pumpWidget(testApp(services));
     await settle(t);
 
-    expect(find.text('Recently Added Movies'), findsOneWidget);
-    expect(find.text('Recently Added TV Shows'), findsOneWidget);
-    for (final row in [demoShelfName, 'Science Fiction', 'Comedy', 'Drama']) {
-      await t.scrollUntilVisible(
-        find.text(row),
-        300,
-        scrollable: _homeScroll,
-      );
+    for (final row in [
+      'Recently Added Movies',
+      'Recently Added TV Shows',
+      demoShelfName, 'Science Fiction', 'Comedy', 'Drama']) {
+      await t.scrollUntilVisible(find.text(row), 300, scrollable: _homeScroll);
       expect(find.text(row), findsOneWidget);
     }
     await t.scrollUntilVisible(
@@ -175,12 +173,8 @@ void main() {
         addedAt: day == null ? null : DateTime(2026, 1, day),
       );
       expect(
-        newestFirst([
-          item('a', 1),
-          item('b', null),
-          item('c', 3),
-          item('d', 2),
-        ]).map((i) => i.id),
+        newestFirst([item('a', 1), item('b', null), item('c', 3), item('d', 2)])
+            .map((i) => i.id),
         ['c', 'd', 'a', 'b'],
       );
     });

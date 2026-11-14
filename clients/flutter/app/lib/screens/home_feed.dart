@@ -190,7 +190,8 @@ class HomeFeed {
     Progress? lastP;
     for (final e in episodes) {
       final p = await library.progress(e.id);
-      if (p != null && (lastP == null || p.updatedAt.isAfter(lastP.updatedAt))) {
+      if (p != null &&
+          (lastP == null || p.updatedAt.isAfter(lastP.updatedAt))) {
         last = e;
         lastP = p;
       }
@@ -231,7 +232,9 @@ class HomeFeed {
     );
     for (final (s, items) in pinned) {
       if (items.isNotEmpty) {
-        out.add(HomeShelf(kind: HomeShelfKind.smart, name: s.name, items: items));
+        out.add(
+          HomeShelf(kind: HomeShelfKind.smart, name: s.name, items: items),
+        );
       }
     }
     final genres = await _safe(

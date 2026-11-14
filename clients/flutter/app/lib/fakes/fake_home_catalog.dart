@@ -67,9 +67,7 @@ class FakeHomeCatalog implements HomeCatalog {
   ].take(limit).toList();
 
   @override
-  Future<List<(SmartShelf, List<LibraryItem>)>> pinnedShelves(
-    int limit,
-  ) async {
+  Future<List<(SmartShelf, List<LibraryItem>)>> pinnedShelves(int limit) async {
     final items = [
       for (final m in await library.movies().first)
         if ((m.durationMs ?? 0) > 0 && m.durationMs! < 120 * 60000) m,
