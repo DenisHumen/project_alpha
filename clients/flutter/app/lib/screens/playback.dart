@@ -79,8 +79,9 @@ Future<List<ExternalSubtitle>?> sidecarSubtitles(
   LibraryItem item,
 ) async {
   if (library is! LibrarySubtitles) return null;
+  final sidecars = library as LibrarySubtitles;
   try {
-    final subs = await library.sidecarSubtitles(item);
+    final subs = await sidecars.sidecarSubtitles(item);
     return [
       for (final s in subs)
         ExternalSubtitle(
