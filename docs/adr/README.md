@@ -37,6 +37,7 @@
 | [0029](0029-server-tls-pinning-port.md) | Медиасервер: HTTPS с самоподписанным сертификатом, pinning по `fp` из mDNS, порт 8487 | Предложен | SRV-004 |
 | [0030](0030-lan-sync-transport.md) | LAN-синхронизация: WebSocket поверх TLS 1.3 с привязкой к ключам сопряжения, хаб по классу устройства | Предложен | SYNC-006 |
 | [0031](0031-webdav-backend-blocking-reqwest.md) | WebDAV-бэкенд: блокирующий reqwest, свои редиректы и Digest, pinning самоподписанного сертификата | Предложен | NET-004 |
+| [NNNN](NNNN-libsmb2-runtime-loading.md) | SMB через libsmb2: загрузка в рантайме, пул контекстов, read-ahead с параллельным prefetch | Предложен | NET-002, NET-003 |
 
 ## Запланированные ADR
 

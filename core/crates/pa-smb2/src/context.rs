@@ -476,7 +476,11 @@ impl Context {
         } else {
             msg
         };
-        Error::new(op, rc.saturating_neg().max(0), nt as u32, msg)
+        // Several sync paths return a bare -1 rather than -errno; -1 is
+        // EPERM only by accident, so it carries no errno. EPERM from a real
+        // server reply always comes with its NT status.
+        let errno = if rc < -1 { rc.saturating_neg() } else { 0 };
+        Error::new(op, errno, nt as u32, msg)
     }
 }
 
