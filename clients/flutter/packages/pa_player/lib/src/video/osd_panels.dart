@@ -41,6 +41,9 @@ class OsdSidePanel extends StatelessWidget {
     required this.request,
     required this.osd,
     required this.onClose,
+    this.onSelectSubtitle,
+    this.onSubtitleFile,
+    this.onSubtitleDelay,
   });
 
   final OsdPanel panel;
@@ -48,6 +51,19 @@ class OsdSidePanel extends StatelessWidget {
   final PlayRequest request;
   final OsdController osd;
   final VoidCallback onClose;
+
+  /// Picks a subtitle track (PlayerScreen remembers it for the series);
+  /// default: straight to the engine.
+  final Future<void> Function(MediaTrack track)? onSelectSubtitle;
+
+  /// Loads a subtitle file picked in the browser.
+  final Future<void> Function(String path)? onSubtitleFile;
+
+  /// Sets the subtitle delay (PlayerScreen remembers it for the series).
+  final Future<void> Function(Duration delay)? onSubtitleDelay;
+
+  /// Step of the delay buttons.
+  static const delayStep = Duration(milliseconds: 100);
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +130,10 @@ class OsdSidePanel extends StatelessWidget {
                       SubtitleFileBrowser(
                         startDir: _dirOf(request.uri),
                         onPicked: (path) {
-                          engine.addExternalSubtitle(path);
+                          final add = onSubtitleFile;
+                          add != null
+                              ? add(path)
+                              : engine.addExternalSubtitle(path);
                           onClose();
                         },
                       ),
@@ -149,8 +168,28 @@ class OsdSidePanel extends StatelessWidget {
     ];
   }
 
+  void _selectSubtitle(MediaTrack t) {
+    final select = onSelectSubtitle;
+    select != null ? select(t) : engine.setSubtitleTrack(t);
+  }
+
+  void _setDelay(Duration d) {
+    final set = onSubtitleDelay;
+    set != null ? set(d) : engine.setSubtitleDelay(d);
+  }
+
+  static String? _tags(MediaTrack t, PaPlayerStrings l) {
+    final tags = [
+      if (t.forced) l.forcedTrack,
+      if (t.hearingImpaired) l.sdhTrack,
+      if (t.external) l.externalFile,
+    ];
+    return tags.isEmpty ? null : tags.join(' · ');
+  }
+
   List<Widget> _subtitles(EngineState s, PaPlayerStrings l) {
     final off = s.subtitleTrack == null || s.subtitleTrack!.isOff;
+    final delay = s.subtitleDelay;
     return [
       FocusListRow(
         key: const ValueKey('sub-off'),
@@ -158,7 +197,7 @@ class OsdSidePanel extends StatelessWidget {
         selected: off,
         autofocus: off,
         onPressed: () {
-          engine.setSubtitleTrack(MediaTrack.off);
+          _selectSubtitle(MediaTrack.off);
           onClose();
         },
       ),
@@ -166,13 +205,56 @@ class OsdSidePanel extends StatelessWidget {
         FocusListRow(
           key: ValueKey('sub-${t.id}'),
           title: l.trackLabel(t),
-          subtitle: t.external ? l.externalFile : null,
+          subtitle: _tags(t, l),
           selected: t == s.subtitleTrack,
           autofocus: t == s.subtitleTrack,
           onPressed: () {
-            engine.setSubtitleTrack(t);
+            _selectSubtitle(t);
             onClose();
           },
+        ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
+        child: Text(
+          l.subtitleDelay,
+          style: const TextStyle(color: PaTokens.textSecondary, fontSize: 13),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Row(
+          children: [
+            FocusIconButton(
+              key: const ValueKey('sub-delay-earlier'),
+              icon: Icons.remove_rounded,
+              tooltip: l.subtitlesEarlier,
+              size: 44,
+              onPressed: () => _setDelay(delay - delayStep),
+            ),
+            Expanded(
+              child: Text(
+                l.delayLabel(delay),
+                key: const ValueKey('sub-delay-value'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: PaTokens.text, fontSize: 15),
+              ),
+            ),
+            FocusIconButton(
+              key: const ValueKey('sub-delay-later'),
+              icon: Icons.add_rounded,
+              tooltip: l.subtitlesLater,
+              size: 44,
+              onPressed: () => _setDelay(delay + delayStep),
+            ),
+          ],
+        ),
+      ),
+      if (delay != Duration.zero)
+        FocusListRow(
+          key: const ValueKey('sub-delay-reset'),
+          title: l.resetDelay,
+          leading: const Icon(Icons.restart_alt_rounded),
+          onPressed: () => _setDelay(Duration.zero),
         ),
       FocusListRow(
         key: const ValueKey('sub-file'),

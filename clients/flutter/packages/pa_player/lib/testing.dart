@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 
 import 'src/engine/audio_profile.dart';
 import 'src/engine/player_engine.dart';
+import 'src/play_request.dart';
 
 /// In-memory engine. Tests drive it with [emit] / [advance] / [finish] and
 /// inspect [calls].
@@ -22,6 +23,18 @@ class FakePlayerEngine implements PlayerEngine {
 
   /// Last profile passed to [setAudioProfile].
   AudioProfile? audioProfile;
+
+  /// `autoLoadSubtitles` of the last [open].
+  bool? autoLoadSubtitles;
+
+  /// Subtitles passed to [addSubtitle] since the last [open].
+  final List<ExternalSubtitle> addedSubtitles = [];
+
+  /// Embedded subtitle tracks every [open] reports (before sidecars).
+  List<MediaTrack> embeddedSubtitles = const [];
+
+  /// Audio tracks every [open] reports; the first is selected.
+  List<MediaTrack> openAudioTracks = const [];
   bool disposed = false;
 
   @override
@@ -45,8 +58,11 @@ class FakePlayerEngine implements PlayerEngine {
     int index = 0,
     Duration start = Duration.zero,
     bool play = true,
+    bool autoLoadSubtitles = true,
   }) async {
     this.uris = uris;
+    this.autoLoadSubtitles = autoLoadSubtitles;
+    addedSubtitles.clear();
     calls.add('open:${uris.length}:$index:${start.inMilliseconds}:$play');
     emit(
       (s) => s.copyWith(
@@ -55,9 +71,18 @@ class FakePlayerEngine implements PlayerEngine {
         playing: play,
         completed: false,
         playlistIndex: index,
+        subtitleTracks: embeddedSubtitles,
+        subtitleTrack: MediaTrack.off,
+        subtitleLines: const [],
+        audioTracks: openAudioTracks.isEmpty ? null : openAudioTracks,
+        audioTrack: openAudioTracks.firstOrNull,
       ),
     );
   }
+
+  /// Shows a subtitle cue (as the engine does while subtitles are on).
+  void showSubtitle(List<String> lines) =>
+      emit((s) => s.copyWith(subtitleLines: lines));
 
   @override
   Future<void> play() async {
@@ -131,6 +156,36 @@ class FakePlayerEngine implements PlayerEngine {
         subtitleTrack: t,
       ),
     );
+  }
+
+  @override
+  Future<void> addSubtitle(
+    ExternalSubtitle subtitle, {
+    bool select = false,
+  }) async {
+    calls.add('addsub:${subtitle.title}${select ? ':select' : ''}');
+    addedSubtitles.add(subtitle);
+    final t = MediaTrack(
+      id: 'ext-${subtitle.title}',
+      title: subtitle.title,
+      language: subtitle.language,
+      external: true,
+      forced: subtitle.forced,
+      hearingImpaired: subtitle.hearingImpaired,
+      isDefault: subtitle.isDefault,
+    );
+    emit(
+      (s) => s.copyWith(
+        subtitleTracks: [...s.subtitleTracks, t],
+        subtitleTrack: select ? t : null,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setSubtitleDelay(Duration delay) async {
+    calls.add('subdelay:${delay.inMilliseconds}');
+    emit((s) => s.copyWith(subtitleDelay: delay));
   }
 
   @override

@@ -2,6 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../play_request.dart';
 import 'audio_profile.dart';
 
 /// Repeat mode for a playlist.
@@ -16,6 +17,9 @@ class MediaTrack {
     this.language,
     this.codec,
     this.external = false,
+    this.forced = false,
+    this.hearingImpaired = false,
+    this.isDefault = false,
   });
 
   /// Engine-specific id. `'no'` means "off" (subtitles).
@@ -26,6 +30,15 @@ class MediaTrack {
 
   /// Loaded from a separate file.
   final bool external;
+
+  /// Subtitles: forced (only the foreign-language lines).
+  final bool forced;
+
+  /// Subtitles: SDH / hearing impaired.
+  final bool hearingImpaired;
+
+  /// Marked as the default track (container flag or file name).
+  final bool isDefault;
 
   static const off = MediaTrack(id: 'no', title: 'Off');
 
@@ -70,6 +83,8 @@ class EngineState {
     this.videoHeight,
     this.info = const {},
     this.error,
+    this.subtitleLines = const [],
+    this.subtitleDelay = Duration.zero,
   });
 
   final Duration position;
@@ -102,6 +117,13 @@ class EngineState {
   final Map<String, String> info;
   final String? error;
 
+  /// Text of the subtitle shown now, one entry per line; drawn by the
+  /// player's own overlay with the user's style (PLAY-007).
+  final List<String> subtitleLines;
+
+  /// Subtitle delay: positive shows subtitles later, negative earlier.
+  final Duration subtitleDelay;
+
   EngineState copyWith({
     Duration? position,
     Duration? duration,
@@ -120,6 +142,8 @@ class EngineState {
     int? videoHeight,
     Map<String, String>? info,
     String? error,
+    List<String>? subtitleLines,
+    Duration? subtitleDelay,
   }) {
     return EngineState(
       position: position ?? this.position,
@@ -139,6 +163,8 @@ class EngineState {
       videoHeight: videoHeight ?? this.videoHeight,
       info: info ?? this.info,
       error: error ?? this.error,
+      subtitleLines: subtitleLines ?? this.subtitleLines,
+      subtitleDelay: subtitleDelay ?? this.subtitleDelay,
     );
   }
 }
@@ -150,11 +176,16 @@ abstract class PlayerEngine {
   ValueListenable<EngineState> get state;
 
   /// Replaces the playlist with [uris] and starts at [index] / [start].
+  ///
+  /// [autoLoadSubtitles]: let the engine pick up subtitle files next to a
+  /// local file by itself. Off when the caller passes the sidecars from
+  /// the library ([addSubtitle]), so they are not loaded twice.
   Future<void> open(
     List<String> uris, {
     int index = 0,
     Duration start = Duration.zero,
     bool play = true,
+    bool autoLoadSubtitles = true,
   });
 
   Future<void> play();
@@ -177,6 +208,14 @@ abstract class PlayerEngine {
 
   /// Loads and selects an external subtitle file.
   Future<void> addExternalSubtitle(String uri, {String? title});
+
+  /// Loads an external subtitle of the current file without selecting it
+  /// (unless [select]); it shows up in [EngineState.subtitleTracks] titled
+  /// [ExternalSubtitle.title], with its language and flags.
+  Future<void> addSubtitle(ExternalSubtitle subtitle, {bool select = false});
+
+  /// Shifts subtitles: positive shows them later, negative earlier.
+  Future<void> setSubtitleDelay(Duration delay);
 
   /// The video surface. Audio-only engines may return an empty box.
   Widget buildVideo(BuildContext context, {BoxFit fit = BoxFit.contain});

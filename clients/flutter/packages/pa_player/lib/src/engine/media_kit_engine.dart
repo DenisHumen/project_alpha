@@ -7,6 +7,8 @@ import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart' as mk;
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 
+import '../play_request.dart';
+import '../subtitles/subtitle_policy.dart';
 import 'audio_profile.dart';
 import 'player_engine.dart';
 
@@ -58,6 +60,10 @@ class MediaKitEngine implements PlayerEngine {
   bool _disposed = false;
   late final Future<void> _ready;
 
+  /// Subtitles added with [addSubtitle], by track title: their flags are
+  /// not in mpv's track list.
+  final Map<String, ExternalSubtitle> _external = {};
+
   /// Direct access for advanced use (diagnostics, app-specific mpv options).
   mk.Player get player => _player;
 
@@ -75,7 +81,8 @@ class MediaKitEngine implements PlayerEngine {
       // Gapless playback for music queues (mpv: "weak" by default).
       await p.setProperty('gapless-audio', 'yes');
       await p.setProperty('prefetch-playlist', 'yes');
-      // External subtitles next to the file are picked up automatically.
+      // External subtitles next to the file are picked up automatically,
+      // unless the library passes them (open(autoLoadSubtitles: false)).
       await p.setProperty('sub-auto', 'fuzzy');
       if (!video) await p.setProperty('vid', 'no');
       for (final e in mpvOptions.entries) {
@@ -108,6 +115,18 @@ class MediaKitEngine implements PlayerEngine {
       )
       ..add(s.width.listen((v) => _set(_state.value.copyWith(videoWidth: v))))
       ..add(s.height.listen((v) => _set(_state.value.copyWith(videoHeight: v))))
+      ..add(
+        s.subtitle.listen(
+          (v) => _set(
+            _state.value.copyWith(
+              subtitleLines: [
+                for (final line in v)
+                  if (line.trim().isNotEmpty) line.trim(),
+              ],
+            ),
+          ),
+        ),
+      )
       ..add(s.tracks.listen(_onTracks))
       ..add(s.track.listen(_onTrack))
       ..add(s.videoParams.listen((_) => _refreshInfo()))
@@ -128,13 +147,32 @@ class MediaKitEngine implements PlayerEngine {
     external: t.uri,
   );
 
-  static MediaTrack _sub(mk.SubtitleTrack t) => MediaTrack(
-    id: t.id,
-    title: t.title,
-    language: t.language,
-    codec: t.codec,
-    external: t.uri || t.data,
-  );
+  MediaTrack _sub(mk.SubtitleTrack t) {
+    final ext = t.title == null ? null : _external[t.title];
+    if (ext != null) {
+      return MediaTrack(
+        id: t.id,
+        title: t.title,
+        language: ext.language ?? t.language,
+        codec: t.codec,
+        external: true,
+        forced: ext.forced,
+        hearingImpaired: ext.hearingImpaired,
+        isDefault: ext.isDefault,
+      );
+    }
+    final flags = flagsFromTitle(t.title);
+    return MediaTrack(
+      id: t.id,
+      title: t.title,
+      language: t.language,
+      codec: t.codec,
+      external: t.uri || t.data,
+      forced: flags.forced,
+      hearingImpaired: flags.hearingImpaired,
+      isDefault: t.isDefault ?? false,
+    );
+  }
 
   static bool _real(String id) => id != 'auto' && id != 'no';
 
@@ -195,7 +233,18 @@ class MediaKitEngine implements PlayerEngine {
     int index = 0,
     Duration start = Duration.zero,
     bool play = true,
+    bool autoLoadSubtitles = true,
   }) async {
+    _external.clear();
+    await _ready;
+    final p = _player.platform;
+    if (!_disposed && p is mk.NativePlayer && !mpvOptions.containsKey('sub-auto')) {
+      try {
+        await p.setProperty('sub-auto', autoLoadSubtitles ? 'fuzzy' : 'no');
+      } catch (e) {
+        debugPrint('pa_player: mpv sub-auto failed: $e');
+      }
+    }
     final medias = <mk.Media>[
       for (var i = 0; i < uris.length; i++)
         mk.Media(
@@ -281,6 +330,47 @@ class MediaKitEngine implements PlayerEngine {
       );
 
   @override
+  Future<void> addSubtitle(
+    ExternalSubtitle subtitle, {
+    bool select = false,
+  }) async {
+    await _ready;
+    final p = _player.platform;
+    if (_disposed || p is! mk.NativePlayer) return;
+    _external[subtitle.title] = subtitle;
+    final uri = subtitle.uri.startsWith('file://')
+        ? Uri.parse(subtitle.uri).toFilePath()
+        : subtitle.uri;
+    try {
+      await p.command([
+        'sub-add',
+        uri,
+        select ? 'select' : 'auto',
+        subtitle.title,
+        if (subtitle.language != null) subtitle.language!,
+      ]);
+    } catch (e) {
+      debugPrint('pa_player: subtitle ${subtitle.title} not loaded: $e');
+    }
+  }
+
+  @override
+  Future<void> setSubtitleDelay(Duration delay) async {
+    await _ready;
+    final p = _player.platform;
+    if (_disposed || p is! mk.NativePlayer) return;
+    try {
+      await p.setProperty(
+        'sub-delay',
+        (delay.inMilliseconds / 1000).toStringAsFixed(3),
+      );
+      _set(_state.value.copyWith(subtitleDelay: delay));
+    } catch (e) {
+      debugPrint('pa_player: sub-delay failed: $e');
+    }
+  }
+
+  @override
   Widget buildVideo(BuildContext context, {BoxFit fit = BoxFit.contain}) {
     final c = _controller;
     if (c == null) return const SizedBox.expand();
@@ -291,15 +381,10 @@ class MediaKitEngine implements PlayerEngine {
       controls: mkv.NoVideoControls,
       // Keyboard/remote handling and wakelock live in PlayerScreen.
       wakelock: true,
+      // Subtitles are drawn by PlayerScreen's SubtitleOverlay in the user's
+      // style (PLAY-007) from EngineState.subtitleLines.
       subtitleViewConfiguration: const mkv.SubtitleViewConfiguration(
-        style: TextStyle(
-          height: 1.3,
-          fontSize: 44,
-          color: Color(0xFFFFFFFF),
-          fontWeight: FontWeight.w600,
-          shadows: [Shadow(blurRadius: 6, color: Color(0xCC000000))],
-          backgroundColor: Color(0x00000000),
-        ),
+        visible: false,
       ),
     );
   }

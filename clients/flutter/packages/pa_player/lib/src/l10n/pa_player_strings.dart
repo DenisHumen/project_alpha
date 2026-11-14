@@ -51,6 +51,15 @@ class PaPlayerStrings {
     required this.endOfQueue,
     required this.playNow,
     required this.cancel,
+    required this.subtitleDelay,
+    required this.subtitleDelayNone,
+    required this.subtitlesEarlier,
+    required this.subtitlesLater,
+    required this.resetDelay,
+    required this.forcedTrack,
+    required this.sdhTrack,
+    required String Function(String seconds) delayLater,
+    required String Function(String seconds) delayEarlier,
     required String Function(String id) track,
     required String Function(String remaining, String time) remainingEndsAt,
     required String Function(int seconds) upNextIn,
@@ -58,6 +67,8 @@ class PaPlayerStrings {
   }) : _track = track,
        _remainingEndsAt = remainingEndsAt,
        _upNextIn = upNextIn,
+       _delayLater = delayLater,
+       _delayEarlier = delayEarlier,
        _engineInfoKeys = engineInfoKeys;
 
   /// `en` or `ru`.
@@ -105,6 +116,27 @@ class PaPlayerStrings {
   /// Up Next card: stop the countdown.
   final String cancel;
 
+  /// Subtitles panel: heading of the delay control (PLAY-007).
+  final String subtitleDelay;
+
+  /// Delay value when subtitles are not shifted.
+  final String subtitleDelayNone;
+
+  /// Tooltip of the button that shows subtitles 0.1 s earlier.
+  final String subtitlesEarlier;
+
+  /// Tooltip of the button that shows subtitles 0.1 s later.
+  final String subtitlesLater;
+  final String resetDelay;
+
+  /// Tag of a forced subtitle track.
+  final String forcedTrack;
+
+  /// Tag of an SDH subtitle track.
+  final String sdhTrack;
+  final String Function(String seconds) _delayLater;
+  final String Function(String seconds) _delayEarlier;
+
   final String Function(String id) _track;
   final String Function(String remaining, String time) _remainingEndsAt;
   final String Function(int seconds) _upNextIn;
@@ -116,6 +148,16 @@ class PaPlayerStrings {
 
   /// Up Next countdown: "Starts in 7 s".
   String upNextIn(int seconds) => _upNextIn(seconds);
+
+  /// Subtitle delay with an unambiguous sign: "Subtitles 0.3 s later",
+  /// "Subtitles 0.3 s earlier", or [subtitleDelayNone].
+  String delayLabel(Duration delay) {
+    final ms = delay.inMilliseconds;
+    if (ms == 0) return subtitleDelayNone;
+    var secs = (ms.abs() / 1000).toStringAsFixed(ms.abs() % 100 == 0 ? 1 : 2);
+    if (languageCode == 'ru') secs = secs.replaceAll('.', ',');
+    return ms > 0 ? _delayLater(secs) : _delayEarlier(secs);
+  }
 
   /// Tooltip of the speed button.
   String speedWithRate(String rate) => '$speed ($rate)';
@@ -172,6 +214,15 @@ class PaPlayerStrings {
     endOfQueue: 'End of queue',
     playNow: 'Play now',
     cancel: 'Cancel',
+    subtitleDelay: 'Subtitle timing',
+    subtitleDelayNone: 'In sync with the video',
+    subtitlesEarlier: 'Show subtitles earlier',
+    subtitlesLater: 'Show subtitles later',
+    resetDelay: 'Reset',
+    forcedTrack: 'Forced',
+    sdhTrack: 'SDH',
+    delayLater: _enDelayLater,
+    delayEarlier: _enDelayEarlier,
     track: _enTrack,
     remainingEndsAt: _enEndsAt,
     upNextIn: _enUpNextIn,
@@ -215,6 +266,15 @@ class PaPlayerStrings {
     endOfQueue: 'Конец очереди',
     playNow: 'Смотреть сейчас',
     cancel: 'Отмена',
+    subtitleDelay: 'Синхронизация субтитров',
+    subtitleDelayNone: 'Совпадают с видео',
+    subtitlesEarlier: 'Показывать субтитры раньше',
+    subtitlesLater: 'Показывать субтитры позже',
+    resetDelay: 'Сбросить',
+    forcedTrack: 'Форсированные',
+    sdhTrack: 'Для слабослышащих',
+    delayLater: _ruDelayLater,
+    delayEarlier: _ruDelayEarlier,
     track: _ruTrack,
     remainingEndsAt: _ruEndsAt,
     upNextIn: _ruUpNextIn,
@@ -234,6 +294,10 @@ class PaPlayerStrings {
     },
   );
 
+  static String _enDelayLater(String s) => 'Subtitles $s s later';
+  static String _enDelayEarlier(String s) => 'Subtitles $s s earlier';
+  static String _ruDelayLater(String s) => 'Субтитры позже на $s с';
+  static String _ruDelayEarlier(String s) => 'Субтитры раньше на $s с';
   static String _enTrack(String id) => 'Track $id';
   static String _ruTrack(String id) => 'Дорожка $id';
   static String _enEndsAt(String r, String t) => '-$r · ends at $t';

@@ -74,6 +74,21 @@ void main() {
       (en.playNow, ru.playNow),
       (en.cancel, ru.cancel),
       (en.upNextIn(7), ru.upNextIn(7)),
+      (en.subtitleDelay, ru.subtitleDelay),
+      (en.subtitleDelayNone, ru.subtitleDelayNone),
+      (en.subtitlesEarlier, ru.subtitlesEarlier),
+      (en.subtitlesLater, ru.subtitlesLater),
+      (en.resetDelay, ru.resetDelay),
+      (en.forcedTrack, ru.forcedTrack),
+      (en.sdhTrack, ru.sdhTrack),
+      (
+        en.delayLabel(const Duration(milliseconds: 100)),
+        ru.delayLabel(const Duration(milliseconds: 100)),
+      ),
+      (
+        en.delayLabel(const Duration(milliseconds: -100)),
+        ru.delayLabel(const Duration(milliseconds: -100)),
+      ),
       (
         en.remainingEndsAt('1:00', '21:40'),
         ru.remainingEndsAt('1:00', '21:40'),

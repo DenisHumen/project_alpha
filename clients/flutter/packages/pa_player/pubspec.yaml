@@ -31,3 +31,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # PLAY-007: the Android caption style (CaptioningManager) for subtitles.
+  # Other platforms have no native part: SystemCaptionStyle.read() is null
+  # there (Apple: AlphaPlayerKit reads MediaAccessibility natively).
+  plugin:
+    platforms:
+      android:
+        package: app.kinolune.player
+        pluginClass: PaPlayerPlugin

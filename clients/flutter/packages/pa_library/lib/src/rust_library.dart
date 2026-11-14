@@ -17,6 +17,7 @@ import 'open_library.dart';
 import 'playback_session.dart';
 import 'search_groups.dart';
 import 'smb.dart' show SmbUrl;
+import 'subtitles.dart';
 
 /// [Library] on the Rust core (UI-024): `pa_core`'s [CoreLibrary] over the
 /// `pa-library` schema v1 — `pa-scanner` with music tags, the
@@ -34,7 +35,7 @@ import 'smb.dart' show SmbUrl;
 /// (LIB-018): nothing is mounted and the app never holds their passwords.
 /// Their files play through the core's loopback HTTP proxy
 /// ([LibraryItem.streamUri]).
-class RustLibrary implements Library, LibraryLists {
+class RustLibrary implements Library, LibraryLists, LibrarySubtitles {
   final CoreLibrary _core;
   final String? _tempDir;
   final String _metadataCacheDir;
@@ -49,6 +50,10 @@ class RustLibrary implements Library, LibraryLists {
 
   /// Addresses of the sources (by id), for the display path of network files.
   final Map<int, String> _sourceUris = {};
+
+  /// Local roots of the `file://` sources (by id), to find the source of a
+  /// local file (sidecar subtitles, PLAY-007).
+  final Map<int, String> _localRoots = {};
 
   /// Base URL of the core's stream proxy (`http://127.0.0.1:<port>/<token>`);
   /// null if it could not start (network files are then not playable).
@@ -220,6 +225,12 @@ class RustLibrary implements Library, LibraryLists {
     _sourceUris
       ..clear()
       ..addEntries(all.map((s) => MapEntry(s.id.toInt(), s.uri)));
+    _localRoots
+      ..clear()
+      ..addEntries([
+        for (final s in all)
+          if (s.localRoot != null) MapEntry(s.id.toInt(), s.localRoot!),
+      ]);
     return all.map(_source).toList();
   }
 
@@ -249,6 +260,7 @@ class RustLibrary implements Library, LibraryLists {
     if (n == null) return;
     await _core.removeSource(id: n);
     _sourceUris.remove(n);
+    _localRoots.remove(n);
     _notify();
   }
 
@@ -1081,6 +1093,70 @@ class RustLibrary implements Library, LibraryLists {
   Future<void> reorderPlaylist(String id, List<String> itemIds) async {
     await _core.reorderPlaylist(id: _listId(id, 'playlist'), itemIds: itemIds);
     _notify();
+  }
+
+  // -------------------------------------------------------------------------
+  // sidecar subtitles (PLAY-007)
+
+  @override
+  Future<List<SidecarSubtitle>> sidecarSubtitles(LibraryItem item) async {
+    final file = fileOf(item.playbackUri);
+    if (file == null) return const [];
+    final (sourceId, relPath) = file;
+    final subs = await _core.sidecarSubtitles(
+      sourceId: sourceId,
+      relPath: relPath,
+    );
+    final base = _streamBase;
+    return [
+      for (final s in subs)
+        if (s.localPath != null || base != null)
+          SidecarSubtitle(
+            uri: s.localPath ?? streamUrl(base!, sourceId, s.relPath),
+            name: s.relPath.split('/').last,
+            language: s.lang,
+            forced: s.forced,
+            hearingImpaired: s.hearingImpaired,
+            isDefault: s.isDefault,
+          ),
+    ];
+  }
+
+  /// The source and the path in it of a file the player is given: a stream
+  /// URL of this library's proxy, or a local path under a `file://`
+  /// source; null for anything else.
+  (int, String)? fileOf(String playbackUri) {
+    final base = _streamBase;
+    if (base != null && playbackUri.startsWith('$base/')) {
+      return parseStreamUrl(base, playbackUri);
+    }
+    String path = playbackUri;
+    if (path.startsWith('file://')) path = Uri.parse(path).toFilePath();
+    if (!p.isAbsolute(path)) return null;
+    (int, String)? best;
+    var bestLength = -1;
+    for (final e in _localRoots.entries) {
+      final root = p.normalize(e.value);
+      if (root.length > bestLength && p.isWithin(root, path)) {
+        best = (e.key, p.relative(path, from: root).replaceAll(r'\', '/'));
+        bestLength = root.length;
+      }
+    }
+    return best;
+  }
+
+  /// Inverse of [streamUrl]: the source id and the decoded path of a stream
+  /// URL under [base]; null if it is not one.
+  static (int, String)? parseStreamUrl(String base, String url) {
+    if (!url.startsWith('$base/')) return null;
+    final segments = url.substring(base.length + 1).split('/');
+    final id = int.tryParse(segments.first);
+    if (id == null || segments.length < 2) return null;
+    try {
+      return (id, segments.skip(1).map(Uri.decodeComponent).join('/'));
+    } on ArgumentError {
+      return null;
+    }
   }
 
   // -------------------------------------------------------------------------
