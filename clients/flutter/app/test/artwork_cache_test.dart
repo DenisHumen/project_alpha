@@ -88,8 +88,11 @@ void main() {
     final cache = _FakeCache(file);
     expect(artworkProvider(proxied, cache: cache), isA<NetworkImage>());
     expect(
-      (artworkProvider(proxied, width: 256, cache: cache) as ResizeImage)
-          .imageProvider,
+      (artworkProvider(
+        proxied,
+        width: 256,
+        cache: cache,
+      ) as ResizeImage).imageProvider,
       isA<NetworkImage>(),
     );
     expect(isLoopbackUrl(proxied), isTrue);
