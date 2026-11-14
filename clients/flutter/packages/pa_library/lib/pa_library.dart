@@ -8,6 +8,7 @@ library;
 export 'src/library.dart'
     show Library, continueWatchingMin, continueWatchingMax, showIdFor;
 export 'src/models.dart';
+export 'src/rust_library.dart' show RustLibrary;
 export 'src/music_tags.dart' show TrackInfo, trackInfoFromPath, readTags;
 export 'src/parser/filename_parser.dart'
     show ParsedName, parseName, parsePath, normalizeTitle, seasonFromFolder;
