@@ -107,7 +107,9 @@ void main() {
 
     final before = await lib.musicTracks().first;
     final first = before.firstWhere(
-      (x) => x.item.album == 'Nocturne Avenue' && x.discNumber == 1 &&
+      (x) =>
+          x.item.album == 'Nocturne Avenue' &&
+          x.discNumber == 1 &&
           x.item.trackNumber == 1,
     );
     await _tap(t, find.text('Play'));
