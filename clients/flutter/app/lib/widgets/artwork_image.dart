@@ -31,11 +31,7 @@ int? decodeWidth(BuildContext context, double logicalWidth) {
 
 /// Provider for [url] (http(s), `file://` or a local path) decoded at
 /// [width] physical pixels (`null`: full size).
-ImageProvider artworkProvider(
-  String url, {
-  int? width,
-  ArtworkCache? cache,
-}) {
+ImageProvider artworkProvider(String url, {int? width, ArtworkCache? cache}) {
   final c = cache ?? appArtworkCache;
   final remote = url.startsWith('http://') || url.startsWith('https://');
   final ImageProvider base;
