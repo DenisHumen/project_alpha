@@ -311,7 +311,10 @@ fn up_next_counts_down_and_plays_the_next_episode() {
     h.handle(actions);
     h.open(StartMode::Resume);
     h.run(5_000);
-    assert_eq!(h.saves.last().unwrap(), &("e2".into(), 5_000, SaveReason::Interval));
+    assert_eq!(
+        h.saves.last().unwrap(),
+        &("e2".into(), 5_000, SaveReason::Interval)
+    );
     assert_eq!(h.stored("e1"), Some(60_000));
 }
 
