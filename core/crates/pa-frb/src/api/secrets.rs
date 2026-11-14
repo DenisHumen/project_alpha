@@ -18,7 +18,6 @@
 
 use std::fmt;
 use std::future::Future;
-use std::pin::pin;
 use std::sync::{Arc, PoisonError, RwLock};
 use std::task::{Context, Poll, Wake, Waker};
 use std::thread::{self, Thread};
@@ -197,7 +196,9 @@ fn block_on_timeout<F: Future>(future: F, timeout: Duration) -> Option<F::Output
     let deadline = Instant::now() + timeout;
     let waker = Waker::from(Arc::new(Unpark(thread::current())));
     let mut cx = Context::from_waker(&waker);
-    let mut future = pin!(future);
+    // Box::pin, not std::pin::pin!: its `super let` expansion breaks the
+    // FRB codegen's parser.
+    let mut future = Box::pin(future);
     loop {
         if let Poll::Ready(out) = future.as_mut().poll(&mut cx) {
             return Some(out);
