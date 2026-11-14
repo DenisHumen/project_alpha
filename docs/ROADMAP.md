@@ -380,7 +380,7 @@ project_alpha/
   - Что: russh + russh-sftp (host key TOFU), suppaftp (REST для seek).
   - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 02 §4
   - done when: контракт-тесты против OpenSSH и vsftpd.
-- [ ] **NET-007** `pa-proxy`: loopback HTTP Range-сервер
+- [x] **NET-007** `pa-proxy`: loopback HTTP Range-сервер
   - Что: `127.0.0.1:<port>` со случайным токеном в пути, отдаёт любой ByteSource с поддержкой Range; лимиты соединений; запасной путь для AVPlayer и ExoPlayer.
   - deps: NET-001 · size: S · parallel: yes · веха: M1 · ref: 02 §1.4, 04 §1.2
   - done when: ffprobe и curl читают файл через прокси; запрос без токена получает 403.
@@ -513,7 +513,7 @@ project_alpha/
   - Что: скан записывает `.iso` и разделы VIDEO_TS/BDMV (`.vob`, `.m2ts`) в `files`, чтобы группы LIB-007 доходили до распознавания и приложения как один элемент; выбор основного потока для воспроизведения диска.
   - deps: LIB-007 · size: S · parallel: yes · веха: M2 · ref: ADR-0032, META-013
   - done when: папка BDMV и файл ISO появляются в приложении одним фильмом с метаданными; тест в `pa-catalog`.
-- [ ] **LIB-018** Скан и воспроизведение сетевых источников через `pa-vfs`
+- [x] **LIB-018** Скан и воспроизведение сетевых источников через `pa-vfs`
   - Что: скан `pa-catalog` читает SMB и WebDAV через бэкенды `pa-vfs` из `pa-sources` (`SourceManager::connect`), без монтирования gio; приложение перестаёт хранить пароль SMB во flutter_secure_storage (только pa-secrets); воспроизведение сетевых файлов через `pa-player-io` (ByteSource) или loopback-прокси NET-007; переключатель автоскана на экране «Источники» (LIB-005).
   - deps: NET-011, LIB-005, UI-005 · size: L · parallel: no · веха: M1 · ref: ADR-0033, UI-005 PR «Решения владельца»
   - done when: SMB- и WebDAV-источник сканируются и воспроизводятся на Linux и Android без gio; пароль хранится в одном месте; тесты против Samba/WebDAV в docker на сервере сборки.
