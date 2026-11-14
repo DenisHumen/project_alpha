@@ -132,7 +132,10 @@ fn update_settings_and_password() {
         .unwrap();
     let second_key = only_key(&secrets);
     assert_ne!(second_key, first_key);
-    assert_eq!(secret(&secrets, &second_key).as_deref(), Some("second-pass"));
+    assert_eq!(
+        secret(&secrets, &second_key).as_deref(),
+        Some("second-pass")
+    );
     assert!(s.has_password);
 
     // Anonymous: user and password removed.
@@ -255,7 +258,10 @@ fn scan_status_is_recorded() {
         .unwrap();
     let status = m.get(s.id).unwrap().status;
     assert!(!status.is_scanning());
-    assert_eq!(status.last_error.as_deref(), Some("read failed: password=***"));
+    assert_eq!(
+        status.last_error.as_deref(),
+        Some("read failed: password=***")
+    );
     assert!(status.last_error_at_ms.is_some());
     assert!(matches!(
         m.record_scan_started(999),

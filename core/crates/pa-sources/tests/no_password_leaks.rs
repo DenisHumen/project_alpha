@@ -71,9 +71,7 @@ fn password_is_not_stored_in_sqlite() {
     // Every text column, through SQL.
     {
         let conn = pa_library::open(&db).unwrap();
-        let mut stmt = conn
-            .prepare("SELECT * FROM sources")
-            .unwrap();
+        let mut stmt = conn.prepare("SELECT * FROM sources").unwrap();
         let columns = stmt.column_count();
         let mut rows = stmt.query([]).unwrap();
         while let Some(row) = rows.next().unwrap() {
@@ -88,8 +86,14 @@ fn password_is_not_stored_in_sqlite() {
     // And the raw files, including the WAL with old row versions.
     let bytes = database_bytes(dir.path());
     assert!(!bytes.is_empty());
-    assert!(!contains(&bytes, FIRST), "first password in the database files");
-    assert!(!contains(&bytes, SECOND), "second password in the database files");
+    assert!(
+        !contains(&bytes, FIRST),
+        "first password in the database files"
+    );
+    assert!(
+        !contains(&bytes, SECOND),
+        "second password in the database files"
+    );
     // The secret store has them.
     assert_eq!(secrets.keys().len(), 2);
 }

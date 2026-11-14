@@ -83,7 +83,10 @@ fn speed_test_reads_the_largest_file() {
         ..Default::default()
     };
     let report = m.speed_test(s.id, limits).unwrap();
-    assert_eq!(report.file.as_ref().map(VfsPath::as_str), Some("/Show/ep1.mkv"));
+    assert_eq!(
+        report.file.as_ref().map(VfsPath::as_str),
+        Some("/Show/ep1.mkv")
+    );
     assert_eq!(report.bytes_read, 2 * 1024 * 1024);
     assert!(report.bytes_per_sec.unwrap() > 0);
 
@@ -106,7 +109,10 @@ fn speed_test_of_an_empty_source_has_latency_only() {
         ))
         .unwrap();
     let report = m.speed_test(s.id, Default::default()).unwrap();
-    assert_eq!((report.file, report.bytes_read, report.bytes_per_sec), (None, 0, None));
+    assert_eq!(
+        (report.file, report.bytes_read, report.bytes_per_sec),
+        (None, 0, None)
+    );
     let speed = m.get(s.id).unwrap().status.speed.unwrap();
     assert_eq!(speed.bytes_per_sec, None);
 }
@@ -115,13 +121,21 @@ fn speed_test_of_an_empty_source_has_latency_only() {
 fn network_kinds_build_their_backends() {
     let m = manager();
     let dav = m
-        .create(NewSource::new(SourceKind::WebDav, "Cloud", "http://127.0.0.1:1/dav/"))
+        .create(NewSource::new(
+            SourceKind::WebDav,
+            "Cloud",
+            "http://127.0.0.1:1/dav/",
+        ))
         .unwrap();
     // Building the client does not touch the network.
     m.connect(dav.id).unwrap();
 
     let smb = m
-        .create(NewSource::new(SourceKind::Smb, "NAS", "smb://127.0.0.1:1/media"))
+        .create(NewSource::new(
+            SourceKind::Smb,
+            "NAS",
+            "smb://127.0.0.1:1/media",
+        ))
         .unwrap();
     // Without libsmb2 at run time the SMB backend is unsupported (ADR-0033).
     match m.connect(smb.id) {

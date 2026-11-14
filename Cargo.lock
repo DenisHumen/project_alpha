@@ -2536,6 +2536,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-sources"
+version = "0.1.0"
+dependencies = [
+ "pa-library",
+ "pa-secrets",
+ "pa-vfs",
+ "pa-vfs-smb",
+ "pa-vfs-webdav",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "uuid",
+]
+
+[[package]]
 name = "pa-sync"
 version = "0.1.0"
 dependencies = [

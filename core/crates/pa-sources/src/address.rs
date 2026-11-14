@@ -68,7 +68,10 @@ fn is_absolute(path: &Path) -> bool {
     let b = s.as_bytes();
     path.is_absolute()
         || s.starts_with('/')
-        || (b.len() >= 3 && b[0].is_ascii_alphabetic() && b[1] == b':' && matches!(b[2], b'/' | b'\\'))
+        || (b.len() >= 3
+            && b[0].is_ascii_alphabetic()
+            && b[1] == b':'
+            && matches!(b[2], b'/' | b'\\'))
 }
 
 /// The authority part of `rest` (after `scheme://`); refuses user info.
@@ -199,7 +202,10 @@ mod tests {
 
     #[test]
     fn local_paths() {
-        assert_eq!(ok(SourceKind::Local, "/mnt/My Movies"), "file:///mnt/My%20Movies");
+        assert_eq!(
+            ok(SourceKind::Local, "/mnt/My Movies"),
+            "file:///mnt/My%20Movies"
+        );
         assert_eq!(ok(SourceKind::Local, "file:///mnt/a"), "file:///mnt/a");
         assert_eq!(ok(SourceKind::Local, "C:\\Media"), "file:///C:/Media");
         assert_eq!(
@@ -241,7 +247,10 @@ mod tests {
     fn credentials_in_addresses_are_refused_without_echo() {
         for (kind, address) in [
             (SourceKind::Smb, "smb://anna:Pa55word@nas/media"),
-            (SourceKind::WebDav, "https://anna:Pa55word@cloud.example/dav/"),
+            (
+                SourceKind::WebDav,
+                "https://anna:Pa55word@cloud.example/dav/",
+            ),
             (SourceKind::Smb, "smb://anna@nas/media"),
         ] {
             let message = invalid(kind, address);

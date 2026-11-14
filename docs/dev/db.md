@@ -115,7 +115,7 @@ erDiagram
 
 ### `sources`
 
-Место, которое сканирует медиатека: локальная папка, SMB/NFS/WebDAV-шара, свой сервер, Plex/Jellyfin/Emby. `kind` — открытый набор (`local`, `smb`, `nfs`, `webdav`, `server`, `plex`, `jellyfin`, `emby`…). `uri` — корень без учётных данных. `credential_ref` — ключ секрета в хранилище ОС (`NET-011`); сам пароль в базе не хранится. В режиме A источник выполняет роль «библиотеки» из 03 §5 (`library_id`).
+Место, которое сканирует медиатека: локальная папка, SMB/NFS/WebDAV-шара, свой сервер, Plex/Jellyfin/Emby. `kind` — открытый набор (`local`, `smb`, `nfs`, `webdav`, `server`, `plex`, `jellyfin`, `emby`…). `uri` — корень без учётных данных. `credential_ref` — ключ секрета в хранилище ОС (`NET-011`, `source.password:<uuid>`); сам пароль в базе не хранится. Менеджер источников (`pa-sources`, `NET-011`) добавляет настройки: `options_json` (опции бэкенда — диалект, подпись и шифрование SMB, домен, пин сертификата WebDAV, таймаут, read-ahead; без секретов), `scan_into_library` (файлы идут в медиатеку; 0 — только просмотр), `auto_scan` (автоматический пересканер), `updated_at_ms`; и локальный для устройства статус, который не синхронизируется: `online`, `checked_at_ms`, `last_scan_started_at_ms`, `last_scan_finished_at_ms`, `last_error` и `last_error_at_ms` (секреты замаскированы), `speed_bytes_per_sec`, `speed_latency_ms`, `speed_measured_at_ms` (последний тест скорости). В режиме A источник выполняет роль «библиотеки» из 03 §5 (`library_id`).
 
 ### `files`
 

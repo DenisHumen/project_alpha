@@ -13,8 +13,8 @@ use pa_vfs_webdav::{TlsTrust, WebDavConfig, WebDavFs};
 use crate::manager::Stored;
 use crate::model::SpeedSample;
 use crate::{
-    Error, Result, SmbAddress, SmbEncryption, SmbVersion, SourceKind, SourceManager,
-    SourceStatus, file_uri_to_path, now_ms, scrub,
+    Error, Result, SmbAddress, SmbEncryption, SmbVersion, SourceKind, SourceManager, SourceStatus,
+    file_uri_to_path, now_ms, scrub,
 };
 
 /// Limits of [`SourceManager::speed_test`].
@@ -229,9 +229,7 @@ impl SourceManager {
         let masked = password.clone();
         let result =
             backend(&stored, password).and_then(|vfs| vfs.list(&VfsPath::root()).map(|_| ()));
-        let error = result
-            .err()
-            .map(|e| scrub(&e.to_string(), masked.as_ref()));
+        let error = result.err().map(|e| scrub(&e.to_string(), masked.as_ref()));
         self.record_check(id, error.as_deref())?;
         Ok(self.get(id)?.status)
     }
