@@ -32,7 +32,7 @@ try engine.openMedia(request: OpenRequest(
 - `settle(timeout:)` ждёт окончания загрузки и seek и шлёт свежий `Position` — для тестов и UI-тестов.
 - `MPVBuildInfo.report()` — версии mpv и FFmpeg и `mpv-configuration` для экрана лицензий.
 
-Субтитры (PLAY-007, [ADR-NNNN](../../../docs/adr/NNNN-subtitle-style-and-sidecars.md)): `addSidecarSubtitle` добавляет sidecar-файл ядра без выбора; `setSubtitleStyle(_:)` переводит `SubtitleStyle` в опции `sub-*` mpv (размер — доля высоты кадра, как в pa_player); «системный стиль» — `SystemCaptions.current().style()` из MediaAccessibility (iOS, tvOS, macOS; перечитывать по `kMACaptionAppearanceSettingsChangedNotification`); `setSubtitleDelay(milliseconds:)` — положительная задержка показывает субтитры позже.
+Субтитры (PLAY-007, [ADR-NNNN](../../../docs/adr/0042-subtitle-style-and-sidecars.md)): `addSidecarSubtitle` добавляет sidecar-файл ядра без выбора; `setSubtitleStyle(_:)` переводит `SubtitleStyle` в опции `sub-*` mpv (размер — доля высоты кадра, как в pa_player); «системный стиль» — `SystemCaptions.current().style()` из MediaAccessibility (iOS, tvOS, macOS; перечитывать по `kMACaptionAppearanceSettingsChangedNotification`); `setSubtitleDelay(milliseconds:)` — положительная задержка показывает субтитры позже.
 
 Не входит в этап 1: `AVAudioSession`, PiP, Now Playing (PLAY-APL-004), `ByteSource` → AVIO (PLAY-APL-003, сейчас — URI и loopback `pa-proxy`), HDR-вывод и AFR (PLAY-APL-006, -009).
 

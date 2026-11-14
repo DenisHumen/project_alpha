@@ -43,7 +43,7 @@ NowPlayingScreen(controller: music)
 - Мышь и касание: движение мыши или тап показывают OSD, двойной тап по краям — ±10 с, по центру — полный экран.
 - Resume: `startPositionMs` передаётся в mpv как `start` файла. Внешние субтитры из `subtitleUri` подключаются после
   открытия файла; соседние `.srt/.ass` подхватываются автоматически (`sub-auto=fuzzy`).
-- Субтитры (PLAY-007, [ADR-NNNN](../../../../docs/adr/NNNN-subtitle-style-and-sidecars.md)): sidecar-файлы из
+- Субтитры (PLAY-007, [ADR-NNNN](../../../../docs/adr/0042-subtitle-style-and-sidecars.md)): sidecar-файлы из
   медиатеки (`PlayRequest.subtitles`; сетевые — через loopback-прокси) загружаются после открытия файла, дорожку
   выбирает `pickSubtitle` (выбор, запомненный для сериала, иначе язык пользователя и forced). Текст рисует
   `SubtitleOverlay` в стиле `SubtitleSettings`: по умолчанию «системный стиль» — Android `CaptioningManager` через
