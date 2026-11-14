@@ -46,7 +46,7 @@ impl From<s::Error> for SourcesError {
     }
 }
 
-type Result<T> = std::result::Result<T, SourcesError>;
+type SourcesResult<T> = std::result::Result<T, SourcesError>;
 
 fn invalid(message: String) -> SourcesError {
     SourcesError {
@@ -97,7 +97,7 @@ impl From<s::SourceOptions> for CoreSourceOptions {
 impl TryFrom<CoreSourceOptions> for s::SourceOptions {
     type Error = SourcesError;
 
-    fn try_from(o: CoreSourceOptions) -> Result<Self> {
+    fn try_from(o: CoreSourceOptions) -> SourcesResult<Self> {
         Ok(Self {
             smb_domain: o.smb_domain.filter(|d| !d.is_empty()),
             smb_version: match o.smb_version.as_str() {
@@ -240,7 +240,7 @@ pub struct CoreSources {
 impl CoreSources {
     /// Opens the library database at `db_path` and the secret store
     /// (keychain, or the encrypted fallback file in `data_dir`).
-    pub fn open(db_path: String, data_dir: String) -> Result<CoreSources> {
+    pub fn open(db_path: String, data_dir: String) -> SourcesResult<CoreSources> {
         let opened = pa_secrets::open(pa_secrets::OpenOptions::new(Some(data_dir.into())))
             .map_err(s::Error::from)?;
         Ok(Self {
@@ -264,17 +264,17 @@ impl CoreSources {
     }
 
     /// All sources in display order.
-    pub fn list(&self) -> Result<Vec<CoreManagedSource>> {
+    pub fn list(&self) -> SourcesResult<Vec<CoreManagedSource>> {
         Ok(self.inner.list()?.into_iter().map(Into::into).collect())
     }
 
     /// One source.
-    pub fn get(&self, id: i64) -> Result<CoreManagedSource> {
+    pub fn get(&self, id: i64) -> SourcesResult<CoreManagedSource> {
         Ok(self.inner.get(id)?.into())
     }
 
     /// Adds a source.
-    pub fn create(&self, input: CoreSourceInput) -> Result<CoreManagedSource> {
+    pub fn create(&self, input: CoreSourceInput) -> SourcesResult<CoreManagedSource> {
         let kind: s::SourceKind = input.kind.parse()?;
         let new = s::NewSource {
             kind,
@@ -291,7 +291,7 @@ impl CoreSources {
     }
 
     /// Replaces the settings of source `id` (the kind cannot change).
-    pub fn update(&self, id: i64, input: CoreSourceInput) -> Result<CoreManagedSource> {
+    pub fn update(&self, id: i64, input: CoreSourceInput) -> SourcesResult<CoreManagedSource> {
         let password = match input.password {
             None => s::PasswordChange::Keep,
             Some(p) if p.is_empty() => s::PasswordChange::Clear,
@@ -311,17 +311,17 @@ impl CoreSources {
     }
 
     /// Deletes a source and its password.
-    pub fn delete(&self, id: i64) -> Result<()> {
+    pub fn delete(&self, id: i64) -> SourcesResult<()> {
         Ok(self.inner.delete(id)?)
     }
 
     /// Checks that the source is reachable; the result is in the status.
-    pub fn check(&self, id: i64) -> Result<CoreSourceStatus> {
+    pub fn check(&self, id: i64) -> SourcesResult<CoreSourceStatus> {
         Ok(self.inner.check(id)?.into())
     }
 
     /// Measures latency and read speed for at most `max_seconds`.
-    pub fn speed_test(&self, id: i64, max_seconds: u32) -> Result<CoreSpeedReport> {
+    pub fn speed_test(&self, id: i64, max_seconds: u32) -> SourcesResult<CoreSpeedReport> {
         let limits = s::SpeedTestOptions {
             max_duration: Duration::from_secs(max_seconds.clamp(1, 60).into()),
             ..Default::default()
