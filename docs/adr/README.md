@@ -44,6 +44,7 @@
 | [0036](0036-image-cache-in-core.md) | Кэш изображений в ядре (`pa-imagecache`): размеры через URL провайдера, LRU по mtime, декодирование во Flutter | Предложен | LIB-013 |
 | [0037](0037-platform-secret-stores.md) | Платформенные хранилища секретов: Keystore + AES-GCM без Tink, Keychain `AfterFirstUnlock`, Dart-колбэк FRB для Flutter | Предложен | CORE-015 |
 | [0038](0038-network-playback-loopback-proxy.md) | Сетевые источники: скан через `pa-vfs` (`Connector` в `pa-catalog`), воспроизведение через loopback HTTP Range-прокси `pa-proxy` | Предложен | LIB-018, NET-007 |
+| [NNNN](NNNN-remote-config-minisign.md) | Удалённый конфиг: подписанный minisign JSON из публичного репо, `minisign-verify`, anti-rollback по `serial`, только встроенная копия до появления ключа | Предложен | CORE-014 |
 
 ## Запланированные ADR
 
