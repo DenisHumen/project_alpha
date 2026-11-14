@@ -276,10 +276,15 @@ void main() {
     expect(find.byKey(const ValueKey('detail-favorite')), findsOneWidget);
 
     // Sections below the hero.
-    await t.dragUntilVisible(
+    await t.scrollUntilVisible(
       find.byKey(const ValueKey('detail-tech')),
-      find.byKey(detailPlayKey),
-      const Offset(0, -300),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(MovieDetailScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await settle(t, 4);
     expect(find.text('Cast & Crew'), findsOneWidget);
@@ -306,10 +311,15 @@ void main() {
     expect(find.text('Cast & Crew'), findsNothing);
     expect(find.text('Extras'), findsNothing);
     expect(find.byKey(const ValueKey('detail-title')), findsOneWidget);
-    await t.dragUntilVisible(
+    await t.scrollUntilVisible(
       find.byKey(const ValueKey('detail-tech')),
-      find.byKey(detailPlayKey),
-      const Offset(0, -300),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(MovieDetailScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await settle(t, 4);
     expect(find.text('/media/Movies/plain.avi'), findsOneWidget);
@@ -336,10 +346,15 @@ void main() {
     await settle(t, 10);
     await t.tap(find.text('Harbor Lights').first);
     await settle(t, 10);
-    await t.dragUntilVisible(
+    await t.scrollUntilVisible(
       find.byKey(const ValueKey('detail-collection')),
-      find.byKey(detailPlayKey),
-      const Offset(0, -300),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(MovieDetailScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await settle(t, 4);
     expect(find.text('Part of Coastal Tales'), findsOneWidget);

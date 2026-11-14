@@ -80,10 +80,15 @@ final _desktopShots = <_Shot>[
   // UI-009: the sections below the hero of the Detail screen.
   _Shot('movie-detail-sections', Section.movies, (t, _) async {
     await _tapText(t, 'Harbor Lights');
-    await t.dragUntilVisible(
+    await t.scrollUntilVisible(
       find.byKey(const ValueKey('detail-collection')),
-      find.byKey(detailPlayKey),
-      const Offset(0, -300),
+      300,
+      scrollable: find
+          .descendant(
+            of: find.byType(MovieDetailScreen),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await settle(t, 4);
   }),
