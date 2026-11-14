@@ -153,6 +153,7 @@ void main() {
         'show',
         'format',
         'fixMatch',
+        'twitch',
         'addSource',
         'settings',
         'about',

@@ -197,7 +197,7 @@ void main() {
       );
       await settle(tester);
       expect(find.byType(NavigationBar), findsOneWidget);
-      await tester.tap(find.text('Movies'));
+      await tester.tap(find.text('Library'));
       await settle(tester);
       expect(find.text('14 titles'), findsOneWidget);
     });

@@ -33,7 +33,7 @@ void main() {
         ),
       );
       await settle(t);
-      expect(find.byIcon(Icons.movie_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.video_library_rounded), findsOneWidget);
       expect(find.byIcon(Icons.home_rounded), findsNothing);
       expect(_indicator(t), isNot(Colors.transparent));
     });
@@ -46,15 +46,14 @@ void main() {
       await settle(t);
       expect(find.byIcon(Icons.home_rounded), findsOneWidget);
 
-      // The gear on Home opens Settings.
-      await t.tap(find.byTooltip('Settings'));
+      // The avatar on Home opens profile and settings.
+      await t.tap(find.byTooltip('Profile and settings'));
       await settle(t);
       final shell = t.state<AppShellState>(find.byType(AppShell));
       expect(shell.section, Section.settings);
       expect(find.byIcon(Icons.home_rounded), findsNothing);
       for (final icon in [
-        Icons.movie_rounded,
-        Icons.tv_rounded,
+        Icons.video_library_rounded,
         Icons.library_music_rounded,
       ]) {
         expect(find.byIcon(icon), findsNothing);
