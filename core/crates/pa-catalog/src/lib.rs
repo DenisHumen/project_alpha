@@ -46,6 +46,7 @@ mod fix;
 mod import_v0;
 mod index;
 mod items;
+mod probe;
 pub mod metadata;
 mod progress;
 pub mod query;

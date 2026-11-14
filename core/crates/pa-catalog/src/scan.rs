@@ -3,7 +3,8 @@
 //!
 //! Per source: list (`pa_scanner::scan`), read music tags
 //! (`pa_scanner::index_music`), analyze the folder structure
-//! (`pa_scanner::analyze_folders`), fingerprint new files, recognize new videos
+//! (`pa_scanner::analyze_folders`), probe new files (`pa-probe`, when
+//! FFmpeg is loadable), fingerprint new files, recognize new videos
 //! ([`crate::recognize`]). Then orphans are removed and the search index is
 //! brought up to date. The pipeline runs on its own database connection,
 //! so queries on the catalog keep working while it runs (WAL).
@@ -264,6 +265,13 @@ impl Catalog {
                 u.total = Some(n(total));
                 on_update(u);
             };
+            // LIB-006: durations and streams before recognition (the
+            // scorer uses the duration) and for the library filters.
+            if let Some(e) = crate::probe::run(&conn, src.id, vfs, cancel, &mut report_step)? {
+                let mut u = ScanUpdate::new(ScanPhase::Analyzing, Some(src.id), found);
+                u.error = Some(format!("{}: {e}", src.name));
+                on_update(u);
+            }
             crate::fingerprint::fill_missing(&mut conn, src.id, vfs, &mut report_step)?;
             crate::recognize::run(&mut conn, src.id, &mut report_step)?;
         }
@@ -359,6 +367,8 @@ impl Catalog {
             analyze_subtree(&mut conn, source_id, vfs, folder, cancel);
         }
         if out.has_changes() {
+            // A failure here is retried by the next scan.
+            let _ = crate::probe::run(&conn, source_id, vfs, cancel, &mut |_, _| {})?;
             crate::fingerprint::fill_missing(&mut conn, source_id, vfs, &mut |_, _| {})?;
             crate::recognize::run(&mut conn, source_id, &mut |_, _| {})?;
             {

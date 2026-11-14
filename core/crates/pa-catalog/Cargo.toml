@@ -14,6 +14,7 @@ notify.workspace = true
 pa-library = { path = "../pa-library" }
 pa-metadata = { path = "../pa-metadata" }
 pa-model = { path = "../pa-model" }
+pa-probe = { path = "../pa-probe" }
 pa-proxy = { path = "../pa-proxy" }
 pa-recognition = { path = "../pa-recognition" }
 pa-scanner = { path = "../pa-scanner" }
