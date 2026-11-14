@@ -2,10 +2,9 @@
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart'
-    show ExternalLibrary;
+    show ExternalLibrary, Int64List;
 import 'package:pa_core/pa_core.dart';
 import 'package:path/path.dart' as p;
 
@@ -582,7 +581,11 @@ class RustLibrary implements Library {
   static CoreItemKind _workKind(ItemKind kind) => switch (kind) {
     ItemKind.movie => CoreItemKind.movie,
     ItemKind.show => CoreItemKind.series,
-    _ => throw ArgumentError.value(kind, 'kind', 'queries list movies or shows'),
+    _ => throw ArgumentError.value(
+      kind,
+      'kind',
+      'queries list movies or shows',
+    ),
   };
 
   static ItemKind _kindOf(CoreItemKind kind) => switch (kind) {
@@ -705,7 +708,9 @@ class RustLibrary implements Library {
       ],
       audioFormats: text(f.audioFormats),
       audioLanguages: text(f.audioLanguages),
-      sources: [for (final s in f.sources) FacetCount('${s.sourceId}', s.count)],
+      sources: [
+        for (final s in f.sources) FacetCount('${s.sourceId}', s.count),
+      ],
     );
   }
 
@@ -833,7 +838,8 @@ class RustLibrary implements Library {
   Future<List<String>> genres(String itemId) => _core.genres(itemId: itemId);
 
   static int _shelfId(String id) =>
-      int.tryParse(id) ?? (throw ArgumentError.value(id, 'id', 'no such shelf'));
+      int.tryParse(id) ??
+      (throw ArgumentError.value(id, 'id', 'no such shelf'));
 
   // -------------------------------------------------------------------------
   // change watcher (LIB-005)

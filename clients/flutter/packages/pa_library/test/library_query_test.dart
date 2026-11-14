@@ -112,10 +112,7 @@ void main() {
     expect([for (final i in page.items) i.title], ['Amelie', 'Inception']);
     expect((await lib.query(movies, offset: 10)).items, isEmpty);
 
-    expect(
-      await titles(const LibraryQuery(ItemKind.show)),
-      ['Breaking Bad'],
-    );
+    expect(await titles(const LibraryQuery(ItemKind.show)), ['Breaking Bad']);
     expect(
       () => lib.query(const LibraryQuery(ItemKind.episode)),
       throwsArgumentError,
@@ -272,15 +269,17 @@ void main() {
   });
 
   test('browse lists folders first or mixed', () async {
-    Future<List<String>> names(String dir, {required bool foldersFirst}) async =>
-        [
-          for (final e in await lib.browse(
-            films.id,
-            dir: dir,
-            foldersFirst: foldersFirst,
-          ))
-            e.name,
-        ];
+    Future<List<String>> names(
+      String dir, {
+      required bool foldersFirst,
+    }) async => [
+      for (final e in await lib.browse(
+        films.id,
+        dir: dir,
+        foldersFirst: foldersFirst,
+      ))
+        e.name,
+    ];
     expect(await names('', foldersFirst: true), ['Movies', 'TV']);
     expect(await names('Movies', foldersFirst: true), [
       'Inception (2010)',
@@ -331,23 +330,23 @@ void main() {
     );
     expect(a.query, recent);
     expect((a.position, b.position), (0, 1));
-    expect([for (final s in await lib.shelves(pinnedOnly: true)) s.name], [
-      '2000s',
-    ]);
+    expect(
+      [for (final s in await lib.shelves(pinnedOnly: true)) s.name],
+      ['2000s'],
+    );
     final page = await lib.shelfItems(a.id);
-    expect([for (final i in page.items) i.title], [
-      'Inception',
-      'Ёлки',
-      'Amelie',
-    ]);
+    expect(
+      [for (final i in page.items) i.title],
+      ['Inception', 'Ёлки', 'Amelie'],
+    );
 
     await lib.reorderShelves([b.id, a.id]);
     expect([for (final s in await lib.shelves()) s.id], [b.id, a.id]);
     await lib.updateShelf(b.id, 'NAS films', b.query, pinnedHome: true);
-    expect([for (final s in await lib.shelves(pinnedOnly: true)) s.name], [
-      'NAS films',
-      '2000s',
-    ]);
+    expect(
+      [for (final s in await lib.shelves(pinnedOnly: true)) s.name],
+      ['NAS films', '2000s'],
+    );
     await lib.deleteShelf(a.id);
     expect(await lib.shelves(), hasLength(1));
     expect(

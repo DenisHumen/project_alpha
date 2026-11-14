@@ -106,8 +106,7 @@ bool _listEq<T>(List<T> a, List<T> b) {
   return true;
 }
 
-bool _setEq<T>(Set<T> a, Set<T> b) =>
-    a.length == b.length && a.containsAll(b);
+bool _setEq<T>(Set<T> a, Set<T> b) => a.length == b.length && a.containsAll(b);
 
 /// Sort of a query.
 class LibrarySort {
