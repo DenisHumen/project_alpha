@@ -19,7 +19,7 @@
 //!   order, by media key, so they survive rescans.
 
 use pa_library::lists::{self, Entry, PlaylistKind};
-use pa_library::rusqlite::{Connection, OptionalExtension, Row, params};
+use pa_library::rusqlite::{Connection, OptionalExtension, Row};
 use pa_model::MediaKey;
 
 pub use pa_library::lists::CollectionKind;
