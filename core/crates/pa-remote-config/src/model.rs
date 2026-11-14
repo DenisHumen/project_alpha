@@ -281,7 +281,7 @@ impl KillSwitch {
 
 /// A semver-like version: numeric core plus optional pre-release, ordered by
 /// semver precedence (`0.1.0-alpha.3 < 0.1.0`). Build metadata is ignored.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub(crate) struct Version {
     core: Vec<u64>,
     pre: Vec<String>,
@@ -310,6 +310,15 @@ impl Version {
         Some(Self { core, pre })
     }
 }
+
+// Equality follows the ordering: `1.2 == 1.2.0`.
+impl PartialEq for Version {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+
+impl Eq for Version {}
 
 impl PartialOrd for Version {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
