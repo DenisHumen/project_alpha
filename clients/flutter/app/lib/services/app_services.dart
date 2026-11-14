@@ -20,8 +20,7 @@ class AppServices extends ChangeNotifier {
     this.playerEngineFactory,
     Locale Function()? systemLocale,
   }) : preferences = preferences ?? MemoryPreferences(),
-       systemLocale = systemLocale ??
-           (() => WidgetsBinding.instance.platformDispatcher.locale),
+       systemLocale = systemLocale ?? _platformLocale;
        music =
            music ?? MusicPlayerController(engineFactory: playerEngineFactory);
 
@@ -33,8 +32,20 @@ class AppServices extends ChangeNotifier {
   /// UI language chosen in Settings; null = follow the system locale.
   final ValueNotifier<Locale?> locale = ValueNotifier(null);
 
-  /// The system locale, for [locale] == null (tests override it).
+  /// The system UI language, for [locale] == null (tests override it).
   final Locale Function() systemLocale;
+
+  /// The first preferred system language the app has strings for (as the
+  /// framework resolves it), else English.
+  static Locale _platformLocale() {
+    final supported = {
+      for (final l in AppLocalizations.supportedLocales) l.languageCode,
+    };
+    for (final l in WidgetsBinding.instance.platformDispatcher.locales) {
+      if (supported.contains(l.languageCode)) return l;
+    }
+    return const Locale('en');
+  }
 
   /// Whether the Twitch section is in the navigation. Off by default until
   /// the Twitch feature ships (after release 0.1); toggled in Settings.
