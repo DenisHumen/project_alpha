@@ -165,7 +165,9 @@ FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
 JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
-WHERE w.kind = 'movie'"
+WHERE w.kind = 'movie'
+  AND NOT EXISTS (SELECT 1 FROM file_group_members gm
+                  WHERE gm.file_id = f.id AND gm.role IN ('extra', 'sample', 'ignore'))"
 );
 
 const SHOW_SQL: &str = concat!(
@@ -184,7 +186,9 @@ FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
 JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
-WHERE w.kind IN ('show', 'anime')"
+WHERE w.kind IN ('show', 'anime')
+  AND NOT EXISTS (SELECT 1 FROM file_group_members gm
+                  WHERE gm.file_id = f.id AND gm.role IN ('extra', 'sample', 'ignore'))"
 );
 
 const EPISODE_SQL: &str = concat!(

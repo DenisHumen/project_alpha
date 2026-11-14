@@ -34,6 +34,21 @@ python3 "$here/tape.py" "$misses" > "$out/tmdb-search.tape.jsonl"
 # META-007: candidate recall of the local title index, no provider calls.
 # Needs the bundled anime-offline-database (data/anime-mappings/build.sh).
 python3 "$here/catalog.py" > "$out/title-catalog.jsonl"
+
+# META-013: the library's TMDB matcher with folder groups (pa-catalog) on the
+# western subset (movie, show), against a synthetic TMDB search over
+# title-catalog.jsonl (not TMDB data). Threshold 0.75 = accepted match, so
+# Recall is the accuracy; 0.92 = the library's auto threshold.
+tmdb=(--recognizer tmdb --synthetic-tmdb "$out/title-catalog.jsonl" --kinds movie,show)
+"$bin/pa-eval" run "${tmdb[@]}" --threshold 0.75 --json "$out/tmdb.json" --md "$out/tmdb.md" \
+    "$corpus/train.jsonl" "$corpus/dev.jsonl"
+"$bin/pa-eval" run "${tmdb[@]}" --threshold 0.92 --json /dev/null --md "$out/tmdb-t092.md" \
+    "$corpus/train.jsonl" "$corpus/dev.jsonl"
+"$bin/pa-eval" run "${tmdb[@]}" --threshold 0.75 --json "$out/tmdb-test.json" --md "$out/tmdb-test.md" \
+    "$corpus/test.jsonl"
+"$bin/pa-eval" run "${tmdb[@]}" --threshold 0.92 --json /dev/null --md "$out/tmdb-test-t092.md" \
+    "$corpus/test.jsonl"
+
 aod="${AOD_BUNDLE:-$root/data/anime-mappings/dist/anime-offline-ids.jsonl}"
 if [ -f "$aod" ]; then
     "$bin/pa-eval" candidates --anime "$aod" --catalog "$out/title-catalog.jsonl" \
