@@ -325,6 +325,18 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
     p('show-the-archive-s1e7', .81, dur('show-the-archive-s1e7'), 30),
     p('movie-salt-ember', .55, dur('movie-salt-ember'), 52),
     p('show-coastline-s1e2', .30, dur('show-coastline-s1e2'), 80),
+    // Finished episodes: Home's Up Next offers the following ones (UI-007).
+    for (final (id, hoursAgo) in const [
+      ('show-signal-fires-s1e3', 5),
+      ('show-orchard-street-s2e6', 40),
+    ])
+      Progress(
+        itemId: id,
+        positionMs: dur(id),
+        durationMs: dur(id),
+        updatedAt: t0.subtract(Duration(hours: hoursAgo)),
+        watched: true,
+      ),
   ];
 
   return DemoLibraryData(
