@@ -58,8 +58,7 @@ String? audioLabel(String slug) => switch (slug) {
 /// release name of the default version says.
 List<String> techBadges(TechInfo? tech, MediaVersion? version) {
   final out = <String>[];
-  final res =
-      resolutionLabel(tech?.width, tech?.height) ?? version?.resolution;
+  final res = resolutionLabel(tech?.width, tech?.height) ?? version?.resolution;
   if (res != null && res.isNotEmpty) out.add(res);
   final hdr = tech?.hdr ?? const <HdrFormat>[];
   if (hdr.isNotEmpty) {
@@ -69,9 +68,12 @@ List<String> techBadges(TechInfo? tech, MediaVersion? version) {
   }
   final audio = tech?.audioFormats ?? const <String>[];
   final object = audio.where((a) => a == 'atmos' || a == 'dts_x');
-  final codec = audio.map(audioLabel).nonNulls.where(
-    (a) => a != 'Atmos' && a != 'DTS:X', // l10n-ignore
-  );
+  final codec = audio
+      .map(audioLabel)
+      .nonNulls
+      .where(
+        (a) => a != 'Atmos' && a != 'DTS:X', // l10n-ignore
+      );
   if (object.isNotEmpty) out.add(audioLabel(object.first)!);
   if (codec.isNotEmpty) out.add(codec.first);
   return out;
@@ -128,9 +130,8 @@ class RatingsRow extends StatelessWidget {
     final l = context.l10n;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final f = NumberFormat('0.0', locale);
-    final style = Theme.of(
-      context,
-    ).textTheme.labelMedium?.copyWith(fontSize: d.type.caption + 1);
+    final style = Theme.of(context).textTheme.labelMedium
+        ?.copyWith(fontSize: d.type.caption + 1);
     return Wrap(
       key: const ValueKey('detail-ratings'),
       spacing: 16,
@@ -301,9 +302,8 @@ class _Avatar extends StatelessWidget {
       child: Center(
         child: Text(
           initials,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(color: KColors.textSecondary),
+          style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(color: KColors.textSecondary),
         ),
       ),
     );
@@ -462,8 +462,9 @@ String videoLine(AppLocalizations l, Locale locale, TechInfo t) {
   return parts.join('  ·  ');
 }
 
-String _languages(AppLocalizations l, List<String> codes) =>
-    codes.isEmpty ? l.detailTechNone : codes.map((c) => c.toUpperCase()).join(', ');
+String _languages(AppLocalizations l, List<String> codes) => codes.isEmpty
+    ? l.detailTechNone
+    : codes.map((c) => c.toUpperCase()).join(', ');
 
 /// Container, size, duration, video, audio and subtitle tracks of the file
 /// the item plays, and its path.
@@ -504,16 +505,20 @@ class TechInfoSection extends StatelessWidget {
         (l.detailTechDuration, r),
       if (t != null && videoLine(l, locale, t).isNotEmpty)
         (l.detailTechVideo, videoLine(l, locale, t)),
-      if (t != null && (t.audioFormats.isNotEmpty || t.audioLanguages.isNotEmpty))
+      if (t != null &&
+          (t.audioFormats.isNotEmpty || t.audioLanguages.isNotEmpty))
         (
           l.detailTechAudio,
           [
             if (t.audioFormats.isNotEmpty)
-              t.audioFormats.map((a) => audioLabel(a) ?? a.toUpperCase()).join(', '),
+              t.audioFormats
+                  .map((a) => audioLabel(a) ?? a.toUpperCase())
+                  .join(', '),
             if (t.audioLanguages.isNotEmpty) _languages(l, t.audioLanguages),
           ].join('  ·  '),
         ),
-      if (t != null) (l.detailTechSubtitles, _languages(l, t.subtitleLanguages)),
+      if (t != null)
+        (l.detailTechSubtitles, _languages(l, t.subtitleLanguages)),
     ];
     final labelW = d.isPhone ? 96.0 : 150.0;
     return Padding(

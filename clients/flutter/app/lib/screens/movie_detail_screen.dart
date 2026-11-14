@@ -53,6 +53,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   List<MediaVersion> _versions = const [];
   bool? _favorite;
   (MediaCollection, List<LibraryItem>)? _collection;
+
   /// The library knows details (not v0) and they were read.
   bool _probes = false;
 

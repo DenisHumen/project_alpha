@@ -232,7 +232,13 @@ void main() {
 
   testWidgets('initial focus is on Play without details (v0 data)', (t) async {
     final s = await _services();
-    await _open(t, s, 'Plain Film', ff: FormFactor.tv, size: const Size(960, 540));
+    await _open(
+      t,
+      s,
+      'Plain Film',
+      ff: FormFactor.tv,
+      size: const Size(960, 540),
+    );
     expect(_focusedButton()?.key, detailPlayKey);
     expect(find.text('Play'), findsOneWidget);
     await _close(t);

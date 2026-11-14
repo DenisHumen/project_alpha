@@ -991,9 +991,7 @@ class RustLibrary
               height: t.height,
               bitDepth: t.bitDepth,
               frameRate: t.frameRate,
-              hdr: [
-                for (final h in t.hdr) ?TechInfo.parseHdr(h),
-              ],
+              hdr: [for (final h in t.hdr) ?TechInfo.parseHdr(h)],
               audioFormats: t.audioFormats,
               audioLanguages: t.audioLangs,
               subtitleLanguages: t.subLangs,
