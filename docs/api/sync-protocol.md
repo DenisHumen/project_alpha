@@ -153,7 +153,7 @@ sequenceDiagram
 
 ## 10. P2P в LAN (режим без сервера)
 
-> Задача `SYNC-006` · решение: [ADR-NNNN](../adr/NNNN-lan-sync-transport.md) · реализация: `core/crates/pa-sync/src/lan/` (фича `lan`) · тесты: `core/crates/pa-sync/tests/lan.rs`.
+> Задача `SYNC-006` · решение: [ADR-NNNN](../adr/0030-lan-sync-transport.md) · реализация: `core/crates/pa-sync/src/lan/` (фича `lan`) · тесты: `core/crates/pa-sync/tests/lan.rs`.
 
 - **Обнаружение:** DNS-SD `_alpha-sync._tcp` (ADR-0019), TXT `txtvers=1`, `id` (`device_id`), `v` (версия протокола), `dev` (`server`/`desktop`/`tv`/`mobile`), `name`, `fp` (отпечаток ключа подписи из сопряжения, `pa_pairing::fingerprint`). Пиры с `v` дальше ±1 от своей версии не учитываются.
 - **Адрес:** WebSocket `wss://<адрес>:<порт из SRV>/sync`, TLS 1.3. Сертификат эфемерный самоподписанный, клиент принимает любой (подпись рукопожатия проверяется). Идентичность — по `hello`/`auth` ниже.
