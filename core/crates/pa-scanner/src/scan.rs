@@ -513,11 +513,13 @@ fn load_known(conn: &Connection, source_id: i64) -> Result<HashMap<String, Known
 /// Whether the full scan enters every folder of `dir` (a subtree root).
 fn subtree_scanned(dir: &VfsPath, rules: &ScanRules) -> bool {
     let mut depth = 0;
+    let mut parent = "";
     for name in dir.components() {
         depth += 1;
-        if depth > rules.max_depth || !rules.enter_folder(name) {
+        if depth > rules.max_depth || !rules.enter_folder_in(parent, name) {
             return false;
         }
+        parent = name;
     }
     true
 }
