@@ -262,6 +262,13 @@
   "sourcesErrorUnsupported": "Этот тип источника не поддерживается на этом устройстве (возможно, не хватает системного компонента).",
   "sourcesErrorNotIndexable": "Файлы из источника этого типа пока нельзя добавить в медиатеку.",
   "sourcesErrorOther": "Что-то пошло не так. Подробности ниже могут помочь.",
+
+  "homeUpNext": "Следующие серии",
+  "homeRecentShows": "Недавно добавленные сериалы",
+  "homeSources": "Источники",
+  "homeBadgeMovie": "Фильм",
+  "homeBadgeEpisode": "Серия",
+  "homeBadgeTwitchVod": "Запись Twitch",
   "sourcesFormAutoScan": "Пересканировать автоматически",
   "sourcesFormAutoScanHint": "Локальные папки — вскоре после изменения файлов, сетевые источники — раз в 15 минут.",
   "sourcesAutoScanOn": "Пересканируется автоматически"

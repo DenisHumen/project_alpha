@@ -129,6 +129,7 @@ void main() {
     await tester.pumpWidget(testApp(await _services(const Locale('ru'))));
     await settle(tester);
     expect(find.text('Продолжить просмотр'), findsOneWidget);
+    await scrollHomeTo(tester, find.text('Недавно добавленные фильмы'));
     expect(find.text('Недавно добавленные фильмы'), findsOneWidget);
     expect(find.text('Настройки'), findsOneWidget);
   });
