@@ -2,7 +2,7 @@
 [package]
 name = "pa-twitch"
 version = "0.1.0"
-description = "Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002)"
+description = "Twitch Helix API client (TWI-001), Device Code Flow sign-in (TWI-002) and playback decision with native GQL/usher HLS in full builds (TWI-004)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,8 +17,13 @@ default = ["reqwest"]
 reqwest = ["dep:reqwest", "dep:rustls"]
 # Fixture transport and manual clock for tests of this and dependent crates.
 testing = []
+# Full build flavor (ADR-0011 §5): native Twitch playback through GQL + usher
+# (TWI-004). Without it every playback decision is the official embed. To be
+# folded into the shared `store`/`full` flavors of CORE-013.
+full = []
 
 [dependencies]
+pa-remote-config = { path = "../pa-remote-config", default-features = false }
 pa-secrets = { path = "../pa-secrets" }
 reqwest = { workspace = true, optional = true, features = ["http2", "rustls-no-provider"] }
 rustls = { workspace = true, optional = true, features = ["ring", "std", "tls12"] }

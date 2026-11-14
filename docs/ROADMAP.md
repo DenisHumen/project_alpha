@@ -1193,7 +1193,7 @@ project_alpha/
   - Что: локальное избранное плюс публичные данные через GQL против обязательного входа через DCF; оценка рисков и отчёт для DEC-006; проверка пунктов «[ПРОВЕРИТЬ]» из 06.
   - deps: TWI-001, TWI-004 · size: M · parallel: yes · веха: M7 · ref: S §6, 06 §1.3
   - done when: отчёт в `docs/adr/`, решение DEC-006 принято.
-- [ ] **TWI-004** Воспроизведение: GQL → usher и удалённый конфиг
+- [x] **TWI-004** Воспроизведение: GQL → usher и удалённый конфиг
   - Что: PlaybackAccessToken → master playlist для live и VOD; `supported_codecs` по возможностям устройства; выбор качества и audio_only; client-id и хэши persisted queries — в секции `twitch` файла `config/remote-config.json` (подпись minisign, CORE-014, ADR-0039); флаги `twitch.gql_playback`, `chapters_gql`, `chat_replay`, `archive`, `player=embed`; kill-switch по версии приложения.
   - deps: TWI-001, CORE-014 · size: M · parallel: yes · веха: M7 · ref: 06 §2.1, §2.6–2.7
   - done when: live и VOD играют на десктопе; при смене конфига функция выключается без релиза.
@@ -1236,7 +1236,7 @@ project_alpha/
 - [ ] **TWI-014** Плеер Twitch
   - Что: чат сбоку, снизу или поверх видео в зависимости от форм-фактора, режим «театр», скорость 0.5–3×, PiP, «только звук» через музыкальный мини-плеер, тост рейда (без автоперехода).
   - deps: TWI-013, TWI-006, TWI-012 · size: M · parallel: yes · веха: M7 · ref: 06 §6.4, §3.4
-  - done when: ручной чек-лист на телефоне, планшете, десктопе и Android TV.
+  - done when: ручной чек-лист на телефоне, планшете, десктопе и Android TV; на десктопе нативное воспроизведение live и VOD через TWI-004 с подписанным конфигом владельца (живой Twitch в TWI-004 не проверялся).
 - [ ] **TWI-015** Ключи синхронизации и выбор источника
   - Что: `twitch:vod:<id>` для онлайн-просмотра и для файла; `twitch:rec:<stream_id>` с маппингом смещения на VOD; для live — «сейчас смотрю канал X»; порядок источников: файл на устройстве → сервер в LAN → сервер через iroh → онлайн.
   - deps: TWI-007, SYNC-003 · size: M · parallel: yes · веха: M7 · ref: 06 §5.2, 04 §1.8

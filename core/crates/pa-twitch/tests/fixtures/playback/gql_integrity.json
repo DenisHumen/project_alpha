@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "body": {
+    "errors": [ { "message": "failed integrity check", "path": ["streamPlaybackAccessToken"] } ],
+    "data": { "streamPlaybackAccessToken": null }
+  }
+}
