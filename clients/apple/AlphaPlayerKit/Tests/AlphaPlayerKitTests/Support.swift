@@ -31,10 +31,10 @@ enum TestMedia {
 
     /// The contract fixture: two items of 12 s and 10 s with two audio
     /// tracks (eng default, rus) and one subtitle track that is off.
-    static func contractFixture() throws -> EngineFixture {
+    static func contractFixture() throws -> ContractFixture {
         let dir = try directory("PA_PLAYER_FIXTURES")
         let item = { (name: String) in MediaSource(uri: dir.appendingPathComponent(name).absoluteString, title: name) }
-        return EngineFixture(
+        return ContractFixture(
             items: [item("contract-1.mkv"), item("contract-2.mkv")],
             durationsMs: [12_000, 10_000],
             broken: MediaSource(uri: dir.appendingPathComponent("missing.mkv").absoluteString, title: nil),
@@ -63,9 +63,9 @@ extension MPVEngineConfiguration {
 /// `advance` waits for pending loads and seeks.
 final class MPVHarness: PlayerEngineHarness, @unchecked Sendable {
     let mpv: MPVEngine
-    private let fx: EngineFixture
+    private let fx: ContractFixture
 
-    init(fixture: EngineFixture) throws {
+    init(fixture: ContractFixture) throws {
         mpv = try MPVEngine(configuration: .headless)
         fx = fixture
     }
@@ -74,7 +74,7 @@ final class MPVHarness: PlayerEngineHarness, @unchecked Sendable {
         mpv
     }
 
-    func fixture() -> EngineFixture {
+    func fixture() -> ContractFixture {
         fx
     }
 

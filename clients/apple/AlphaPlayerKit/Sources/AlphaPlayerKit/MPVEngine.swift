@@ -14,7 +14,7 @@ import PACore
 ///
 /// - All state lives on one serial queue. Commands run on it synchronously
 ///   and only start work in mpv; results arrive as `EngineEvent`s.
-/// - Every event goes through `EngineStateFold` (the reducer of the core)
+/// - Every event goes through `engineStateApply` (the reducer of the core)
 ///   and then to the listener, both on the engine queue, so `state()` is
 ///   always the fold of the events. The listener may call back into the
 ///   engine: calls from the engine queue run inline.
@@ -45,7 +45,8 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
     private let configuration: MPVEngineConfiguration
     private let queue = DispatchQueue(label: "dev.projectalpha.player.mpv", qos: .userInitiated)
     private let onQueue = DispatchSpecificKey<Bool>()
-    private let fold = EngineStateFold()
+    /// The fold of every event sent so far (`engineStateApply`).
+    private var folded = engineStateDefault()
     private var mpv: MPVHandle?
     private var wakeup: WakeupTarget?
     private var listener: EngineListener?
@@ -157,11 +158,11 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
     /// Applies `event` to the state and sends it. Engine queue only.
     private func emit(_ event: EngineEvent) {
         guard !closed else { return }
-        _ = fold.apply(event: event)
+        folded = engineStateApply(state: folded, event: event)
         listener?.onEvent(event: event)
     }
 
-    private var current: EngineState { fold.state() }
+    private var current: EngineState { folded }
 
     private func checkAlive() throws {
         if closed { throw EngineError.Closed }
@@ -452,7 +453,7 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
     }
 
     public func state() -> EngineState {
-        sync { fold.state() }
+        sync { folded }
     }
 
     public func openMedia(request: OpenRequest) throws {
@@ -629,7 +630,7 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
         }
     }
 
-    public func close() throws {
+    public func closeEngine() throws {
         sync {
             guard !closed else { return }
             stopTimer()

@@ -21,11 +21,11 @@ try engine.openMedia(request: OpenRequest(
 // Ядру: ForeignEngine(engine) — тот же pa_playback::PlayerEngine, что и остальные движки.
 ```
 
-`openMedia` — это `open` контракта: в FFI метод назван иначе, потому что UniFFI экранирует ключевое слово Swift `open` в C-заголовке.
+`openMedia` — это `open` контракта (UniFFI экранирует ключевое слово Swift `open` прямо в C-заголовке foreign trait, и заголовок не компилируется), `closeEngine` — `close` (в Kotlin `close()` занят `AutoCloseable`).
 
 Как `MPVEngine` ложится на контракт:
 
-- Состояние и команды — на одной последовательной очереди; команды только запускают работу в mpv, результат приходит событиями. Каждое событие проходит через `EngineStateFold` (редьюсер ядра), поэтому `state()` — всегда свёртка событий. Слушатель вызывается на очереди движка и может вызывать движок (вызовы с очереди выполняются сразу).
+- Состояние и команды — на одной последовательной очереди; команды только запускают работу в mpv, результат приходит событиями. Каждое событие проходит через `engineStateApply` (редьюсер ядра), поэтому `state()` — всегда свёртка событий. Слушатель вызывается на очереди движка и может вызывать движок (вызовы с очереди выполняются сразу).
 - В mpv всегда один файл, `keep-open=yes`: плейлист, `RepeatMode`, переход к следующему элементу и `Ended` делает движок. `playing` следует командам, а не свойству `pause` mpv.
 - Внешние субтитры и аудио выбирает ядро (LIB-007): `sub-auto=no`, `audio-file-auto=no`. Громкость до 300 % (`volume-max=300`).
 - `Position` — каждые 250 мс при воспроизведении, после seek, паузы и смены скорости.
@@ -55,7 +55,7 @@ clients/apple/AlphaPlayerKit/scripts/test.sh ios  /tmp/pa-fixtures /tmp/pa-qa-me
 clients/apple/AlphaPlayerKit/scripts/test.sh tvos /tmp/pa-fixtures /tmp/pa-qa-media
 ```
 
-- `MPVEngineContractTests` — 16 случаев `pa_playback::contract::CASES` на `MPVEngine`: Rust-раннер `runPlayerEngineContractCase` вызывает Swift-харнесс (`advance` — реальное время плюс `settle`). Звук `ao=null`, видео `vo=null`, программное декодирование — детерминированно на симуляторах CI.
+- `MPVEngineContractTests` — 16 случаев `pa_playback::contract::CASES` на `MPVEngine`: Rust-раннер `playerEngineContractRun` вызывает Swift-харнесс (`advance` — реальное время плюс `settle`). Звук `ao=null`, видео `vo=null`, программное декодирование — детерминированно на симуляторах CI.
 - `MockEngineRoundTripTests` — mock ядра через те же FFI-трейты: привязки и раннер работают на платформе.
 - `MPVMediaTests` — MKV из QA-002 (H.264 Hi10P, HEVC Main10, HDR10, AC-3, E-AC-3, TrueHD, DTS, FLAC 7.1, PGS, VobSub, мультидорожечный `t-multi`) открываются и играют; libmpv собран с `-Dgpl=false`.
 

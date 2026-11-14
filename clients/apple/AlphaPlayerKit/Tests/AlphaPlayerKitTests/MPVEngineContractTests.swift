@@ -20,11 +20,9 @@ final class MPVEngineContractTests: XCTestCase {
 
     private func run(_ name: String) throws {
         let harness = try MPVHarness(fixture: TestMedia.contractFixture())
-        defer { try? harness.mpv.close() }
-        do {
-            try runPlayerEngineContractCase(name: name, harness: harness)
-        } catch {
-            XCTFail("\(name): \(error)")
+        defer { try? harness.mpv.closeEngine() }
+        if let failure = playerEngineContractRun(case: name, harness: harness) {
+            XCTFail("\(name): \(failure)")
         }
     }
 
@@ -51,17 +49,15 @@ final class MPVEngineContractTests: XCTestCase {
 final class MockEngineRoundTripTests: XCTestCase {
     func testMockPassesEveryCaseOverFFI() throws {
         for name in playerEngineContractCases() {
-            XCTAssertNoThrow(try runPlayerEngineContractCase(name: name, harness: mockEngineHarness()), name)
+            XCTAssertNil(playerEngineContractRun(case: name, harness: mockEngineHarness()), name)
         }
     }
 
     func testStateFoldIsTheCoreReducer() {
-        let fold = EngineStateFold()
-        _ = fold.apply(event: .rateChanged(rate: 1.5))
-        let state = fold.apply(event: .loading(index: 1))
+        var state = engineStateApply(state: engineStateDefault(), event: .rateChanged(rate: 1.5))
+        state = engineStateApply(state: state, event: .loading(index: 1))
         XCTAssertEqual(state.rate, 1.5)
         XCTAssertEqual(state.playlistIndex, 1)
         XCTAssertTrue(state.buffering)
-        XCTAssertEqual(fold.state(), state)
     }
 }

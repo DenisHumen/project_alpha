@@ -33,7 +33,7 @@ final class MPVMediaTests: XCTestCase {
             var configuration = MPVEngineConfiguration.headless
             configuration.hardwareDecoding = true
             let engine = try MPVEngine(configuration: configuration)
-            defer { try? engine.close() }
+            defer { try? engine.closeEngine() }
             try engine.openMedia(request: OpenRequest(
                 items: [MediaSource(uri: file.absoluteString, title: nil)], index: 0, startPositionMs: 0, play: true
             ))
