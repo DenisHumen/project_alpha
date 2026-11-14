@@ -65,7 +65,7 @@ use pa_library::rusqlite::Connection;
 pub use connect::{Connector, LocalConnector, SourceOpener, SourcesConnector};
 pub use error::Error;
 pub use import_v0::ImportReport;
-pub use items::{Item, ItemKind, ItemRef};
+pub use items::{Item, ItemKind, ItemRef, SearchGroup};
 pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
 pub use pa_metadata;
 pub use pa_scanner::CancelToken;

@@ -62,6 +62,15 @@ final _desktopShots = <_Shot>[
     await t.enterText(find.byType(TextField), 'the');
     await settle(t, 6);
   }),
+  _Shot('search-history', Section.search, (t, _) async {
+    for (final q in ['Moonlit Bureau', 'velvet', 'orbit']) {
+      await t.enterText(find.byType(TextField), q);
+      await t.testTextInput.receiveAction(TextInputAction.search);
+      await settle(t, 2);
+    }
+    await t.tap(find.byTooltip('Clear'));
+    await settle(t, 4);
+  }),
   const _Shot('settings', Section.settings),
   _Shot('add-source', Section.settings, (t, _) async {
     await _tapText(t, 'Add source');

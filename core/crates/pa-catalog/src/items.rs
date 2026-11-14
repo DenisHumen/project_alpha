@@ -9,7 +9,7 @@ use std::fmt;
 use std::str::FromStr;
 
 use pa_library::rusqlite::{Connection, Row, ToSql, params_from_iter};
-use pa_library::search::{SearchKind, SearchOptions};
+use pa_library::search::{MAX_LIMIT, SearchKind, SearchOptions};
 
 use crate::{Catalog, Error, uri};
 
@@ -540,33 +540,83 @@ impl Catalog {
     /// out.
     pub fn search(&self, text: &str, limit: usize) -> Result<Vec<Item>, Error> {
         let conn = self.lock();
-        let opts = SearchOptions {
-            limit: limit.clamp(1, pa_library::search::MAX_LIMIT),
-            kinds: vec![
-                SearchKind::Movie,
-                SearchKind::Show,
-                SearchKind::Anime,
-                SearchKind::Episode,
-                SearchKind::Track,
-            ],
-            profile_id: None,
-        };
-        let hits = pa_library::search::search(&conn, text, &opts)?;
-        let mut out = Vec::with_capacity(hits.len());
-        for hit in hits {
-            let id = match hit.kind {
-                SearchKind::Movie => ItemRef::Movie(hit.id),
-                SearchKind::Show | SearchKind::Anime => ItemRef::Show(hit.id),
-                SearchKind::Episode => ItemRef::Episode(hit.id),
-                SearchKind::Track => ItemRef::Track(hit.id),
-                _ => continue,
-            };
-            if let Some(found) = item(&conn, id)? {
-                out.push(found);
+        let kinds = SEARCH_GROUPS
+            .iter()
+            .flat_map(|(_, kinds)| kinds.iter().copied())
+            .collect();
+        search_items(&conn, text, kinds, limit.clamp(1, MAX_LIMIT), usize::MAX)
+    }
+
+    /// Search results grouped for the Search screen (UI-011): movies, shows
+    /// (with anime), episodes and tracks, in this order, each best first and
+    /// at most `per_group` long; empty groups are left out. Each group is a
+    /// query of its own, so many matching movies do not crowd out the
+    /// episodes.
+    pub fn search_grouped(&self, text: &str, per_group: usize) -> Result<Vec<SearchGroup>, Error> {
+        let per_group = per_group.clamp(1, MAX_LIMIT);
+        // Hits whose file is missing are dropped: ask for a few more.
+        let limit = (per_group + per_group / 2 + 1).min(MAX_LIMIT);
+        let conn = self.lock();
+        let mut out = Vec::new();
+        for (kind, kinds) in SEARCH_GROUPS {
+            let items = search_items(&conn, text, kinds.to_vec(), limit, per_group)?;
+            if !items.is_empty() {
+                out.push(SearchGroup { kind, items });
             }
         }
         Ok(out)
     }
+}
+
+/// One group of [`Catalog::search_grouped`].
+#[derive(Debug, Clone, PartialEq)]
+pub struct SearchGroup {
+    pub kind: ItemKind,
+    /// Best first.
+    pub items: Vec<Item>,
+}
+
+/// Groups of [`Catalog::search_grouped`], in display order, and the search
+/// kinds behind each.
+const SEARCH_GROUPS: [(ItemKind, &[SearchKind]); 4] = [
+    (ItemKind::Movie, &[SearchKind::Movie]),
+    (ItemKind::Show, &[SearchKind::Show, SearchKind::Anime]),
+    (ItemKind::Episode, &[SearchKind::Episode]),
+    (ItemKind::Track, &[SearchKind::Track]),
+];
+
+/// Searches `kinds` (`limit` hits) and returns up to `take` of them that are
+/// items with a present file.
+fn search_items(
+    conn: &Connection,
+    text: &str,
+    kinds: Vec<SearchKind>,
+    limit: usize,
+    take: usize,
+) -> Result<Vec<Item>, Error> {
+    let opts = SearchOptions {
+        limit,
+        kinds,
+        profile_id: None,
+    };
+    let hits = pa_library::search::search(conn, text, &opts)?;
+    let mut out = Vec::with_capacity(hits.len().min(take));
+    for hit in hits {
+        if out.len() == take {
+            break;
+        }
+        let id = match hit.kind {
+            SearchKind::Movie => ItemRef::Movie(hit.id),
+            SearchKind::Show | SearchKind::Anime => ItemRef::Show(hit.id),
+            SearchKind::Episode => ItemRef::Episode(hit.id),
+            SearchKind::Track => ItemRef::Track(hit.id),
+            _ => continue,
+        };
+        if let Some(found) = item(conn, id)? {
+            out.push(found);
+        }
+    }
+    Ok(out)
 }
 
 #[cfg(test)]

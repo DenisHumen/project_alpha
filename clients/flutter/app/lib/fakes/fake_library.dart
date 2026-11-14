@@ -181,6 +181,30 @@ class FakeLibrary implements Library {
   }
 
   @override
+  Future<List<SearchGroup>> searchGrouped(
+    String query, {
+    int perGroup = searchPerGroupDefault,
+  }) async {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return const [];
+    bool has(String? s) => s?.toLowerCase().contains(q) ?? false;
+    final hits = _items.value.where(
+      (i) =>
+          has(i.title) ||
+          has(i.originalTitle) ||
+          has(i.artist) ||
+          has(i.album) ||
+          i.year?.toString() == q,
+    );
+    // Titles that start with the query first, as the core ranks them.
+    final ranked = [
+      ...hits.where((i) => i.title.toLowerCase().startsWith(q)),
+      ...hits.where((i) => !i.title.toLowerCase().startsWith(q)),
+    ];
+    return groupSearchResults(ranked, perGroup: perGroup);
+  }
+
+  @override
   Stream<List<(LibraryItem, Progress)>> continueWatching() {
     final ctrl = StreamController<List<(LibraryItem, Progress)>>();
     List<LibraryItem> items = _items.value;

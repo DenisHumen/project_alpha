@@ -95,6 +95,13 @@
   "searchPromptMessage": "Type a title, a year, an artist or an album.",
   "searchNoResults": "No results for “{query}”",
   "@searchNoResults": { "placeholders": { "query": { "type": "String" } } },
+  "searchEpisodes": "Episodes",
+  "@searchEpisodes": { "description": "Search result group of TV episodes." },
+  "searchFailed": "Search failed. Try again.",
+  "searchHistoryTitle": "Recent searches",
+  "searchHistoryClear": "Clear history",
+  "searchHistoryRemove": "Remove “{query}” from history",
+  "@searchHistoryRemove": { "placeholders": { "query": { "type": "String" } } },
 
   "detailResumeAt": "Resume {time}",
   "@detailResumeAt": {

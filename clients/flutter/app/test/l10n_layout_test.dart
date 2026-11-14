@@ -5,6 +5,7 @@
 // framework error fails the test. With KINOLUNE_SCREENSHOTS_DIR set the
 // frames are also written as PNGs (see test/tool/screenshots_test.dart).
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/l10n/l10n.dart';
@@ -36,6 +37,24 @@ final _flows = <String, (Section, _Step?)>{
     (t, _) async {
       await t.enterText(find.byType(TextField), 'o');
       await settle(t, 6);
+    },
+  ),
+  // UI-011: grouped results with episodes, and the search history.
+  'search-groups': (
+    Section.search,
+    (t, _) async {
+      await t.enterText(find.byType(TextField), 'lunar');
+      await settle(t, 6);
+    },
+  ),
+  'search-history': (
+    Section.search,
+    (t, l) async {
+      await t.enterText(find.byType(TextField), 'Moonlit Bureau');
+      await t.testTextInput.receiveAction(TextInputAction.search);
+      await settle(t, 4);
+      await t.tap(find.byTooltip(l.commonClear));
+      await settle(t, 4);
     },
   ),
   // UI-023: the player's OSD in the app language, without overflow.
