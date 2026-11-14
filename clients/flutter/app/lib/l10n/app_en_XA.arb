@@ -369,5 +369,14 @@
   "subtitlesPositionValue": "[{percent} % áƀóṽé ţĥé ƀóţţóɱ éðĝé··········]",
   "subtitlesPositionUp": "[Ṁóṽé šúƀţíţļéš úþ·······]",
   "subtitlesPositionDown": "[Ṁóṽé šúƀţíţļéš ðóŵñ········]",
-  "subtitlesReset": "[Ŕéšéţ ţó ðéƒáúļţš·······]"
+  "subtitlesReset": "[Ŕéšéţ ţó ðéƒáúļţš·······]",
+  "devicesHandoffPlayingOn": "[Þļáýíñĝ óñ···· {device}]",
+  "devicesHandoffContinueHere": "[Çóñţíñúé óñ ţĥíš ðéṽíçé··········]",
+  "devicesHandoffJumpTo": "[Ĵúɱþ ţó··· {time}?]",
+  "devicesHandoffJump": "[Ĵúɱþ··]",
+  "devicesHandoffAhead": "[{device} íš ƒúŕţĥéŕ áļóñĝ·······]",
+  "devicesHandoffPausedHere": "[Þáúšéð: çóñţíñúéš óñ········ {device}]",
+  "devicesHandoffAnotherDevice": "[áñóţĥéŕ ðéṽíçé······]",
+  "settingsTakeoverPause": "[Þáúšé ŵĥéñ áñóţĥéŕ ðéṽíçé ţáķéš óṽéŕ···············]",
+  "settingsTakeoverPauseSubtitle": "[Šţáŕţíñĝ ţĥé šáɱé ţíţļé óñ áñóţĥéŕ ðéṽíçé óƒ ţĥé ƒáɱíļý þáúšéš íţ ĥéŕé.·····························]"
 }

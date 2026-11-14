@@ -92,6 +92,26 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (services.sync.available)
+                        ValueListenableBuilder<bool>(
+                          valueListenable: services.handoff.pauseOnTakeover,
+                          builder: (context, on, _) => _NavTile(
+                            key: const ValueKey('settings-takeover-pause'),
+                            icon: Icons.pause_circle_outline,
+                            title: l.settingsTakeoverPause,
+                            subtitle: l.settingsTakeoverPauseSubtitle,
+                            onTap: () => services.setPauseOnTakeover(!on),
+                            trailing: ExcludeFocus(
+                              child: ExcludeSemantics(
+                                child: Switch(
+                                  value: on,
+                                  onChanged: services.setPauseOnTakeover,
+                                ),
+                              ),
+                            ),
+                            toggled: on,
+                          ),
+                        ),
                     ],
                   ),
                   const _TmdbSection(),
@@ -164,6 +184,7 @@ class _Section extends StatelessWidget {
 
 class _NavTile extends StatelessWidget {
   const _NavTile({
+    super.key,
     required this.icon,
     required this.title,
     this.subtitle,

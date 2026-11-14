@@ -14,6 +14,10 @@ abstract class Preferences {
   /// BCP 47 tag of the chosen UI language; absent = follow the system.
   static const locale = 'ui_locale';
 
+  /// 'false' keeps playing here when another device takes the title over
+  /// (SYNC-003); absent = pause.
+  static const takeoverPause = 'sync_takeover_pause';
+
   /// 'true' shows the Twitch section in the navigation (UI-002).
   static const showTwitch = 'nav_show_twitch';
 

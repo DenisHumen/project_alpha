@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 //
-// Pairing and LAN sync of devices (UI-019). The app talks to [DeviceSync];
+// Pairing and LAN sync of devices (UI-019) and the playback session that
+// hands a title over between them (SYNC-003). The app talks to [DeviceSync];
 // [CoreDeviceSync] runs it on the Rust core (pa-sync through pa_core), the
 // demo and tests use FakeDeviceSync (lib/fakes/fake_device_sync.dart), and
 // the v0 library fallback has [NoDeviceSync].
@@ -109,21 +110,102 @@ enum SyncEventKind {
   /// The invitation closed (expired, used up or used).
   inviteClosed,
 
-  /// What another device plays now ([SyncEvent.payload]: JSON `pb.update`).
-  /// Hook for the "continue here" banner of SYNC-003.
+  /// What another device plays now ([SyncEvent.payload]: JSON `pb.update`,
+  /// [SyncEvent.itemId]: the title here, if this library has it).
   playback,
 
-  /// Another device started a title ([SyncEvent.payload]: `pb.takeover`).
+  /// Another device of this profile started a title ([SyncEvent.payload]:
+  /// `pb.takeover`, [SyncEvent.itemId] as for [playback]).
   takeover,
 }
 
 class SyncEvent {
-  const SyncEvent(this.kind, {this.deviceId, this.name, this.payload});
+  const SyncEvent(
+    this.kind, {
+    this.deviceId,
+    this.name,
+    this.payload,
+    this.itemId,
+  });
 
   final SyncEventKind kind;
   final String? deviceId;
   final String? name;
   final String? payload;
+
+  /// [SyncEventKind.playback] / [SyncEventKind.takeover]: the library item.
+  final String? itemId;
+}
+
+/// Player state in a heartbeat (SYNC-003).
+enum SyncPlayState { playing, paused, stopped }
+
+/// Where a title continues: the newest point by HLC of the stored progress
+/// (other devices' included) and of another device's last heartbeat.
+class ResumeHint {
+  const ResumeHint({
+    required this.positionMs,
+    required this.durationMs,
+    required this.deviceId,
+    this.deviceName,
+    this.remote = false,
+    this.playing = false,
+    required this.stampMs,
+    this.stampCounter = 0,
+  });
+
+  /// Position now (a title another device still plays has moved on since
+  /// its heartbeat).
+  final int positionMs;
+
+  /// 0 if unknown.
+  final int durationMs;
+  final String deviceId;
+  final String? deviceName;
+
+  /// Set by another device.
+  final bool remote;
+
+  /// That device was playing at its last heartbeat.
+  final bool playing;
+
+  /// HLC of the point: (stampMs, stampCounter, deviceId) order.
+  final int stampMs;
+  final int stampCounter;
+
+  /// Whether this point was set after [other] (last writer wins).
+  bool isNewerThan(ResumeHint? other) {
+    if (other == null) return true;
+    if (stampMs != other.stampMs) return stampMs > other.stampMs;
+    if (stampCounter != other.stampCounter) {
+      return stampCounter > other.stampCounter;
+    }
+    return deviceId.compareTo(other.deviceId) > 0;
+  }
+}
+
+/// A title another device of the family plays right now.
+class RemotePlayback {
+  const RemotePlayback({
+    required this.itemId,
+    required this.deviceId,
+    this.deviceName,
+    required this.positionMs,
+    this.durationMs = 0,
+    required this.stampMs,
+  });
+
+  /// The title in this library; null if this library does not have it.
+  final String? itemId;
+  final String deviceId;
+  final String? deviceName;
+
+  /// Position now (moved on since the heartbeat).
+  final int positionMs;
+
+  /// 0 if unknown.
+  final int durationMs;
+  final int stampMs;
 }
 
 /// Pairing and sync of this app.
@@ -158,6 +240,30 @@ abstract class DeviceSync {
 
   /// Events from now on (broadcast).
   Stream<SyncEvent> get events;
+
+  /// Heartbeat of the playback session (SYNC-003): every 5 s while
+  /// playing and at once on pause, seek, stop and going to the background.
+  /// Ephemeral: nothing is stored. No-op while sync does not run.
+  Future<void> heartbeat(
+    String itemId, {
+    required int positionMs,
+    required int durationMs,
+    required SyncPlayState state,
+  });
+
+  /// This device starts [itemId]: the other devices of the profile pause it
+  /// if their setting allows (takeover).
+  Future<void> startPlaying(String itemId);
+
+  /// Where [itemId] continues. Pulls from the hub for at most [timeout]
+  /// first (500–800 ms before playing; zero skips the pull).
+  Future<ResumeHint?> resumeHint(
+    String itemId, {
+    Duration timeout = Duration.zero,
+  });
+
+  /// Titles other devices play right now, newest first.
+  Future<List<RemotePlayback>> playingElsewhere();
 }
 
 /// No sync (the v0 library fallback has no Rust core).
@@ -186,6 +292,22 @@ class NoDeviceSync implements DeviceSync {
   Future<void> unpair(String deviceId) async => throw _off;
   @override
   Stream<SyncEvent> get events => const Stream.empty();
+  @override
+  Future<void> heartbeat(
+    String itemId, {
+    required int positionMs,
+    required int durationMs,
+    required SyncPlayState state,
+  }) async {}
+  @override
+  Future<void> startPlaying(String itemId) async {}
+  @override
+  Future<ResumeHint?> resumeHint(
+    String itemId, {
+    Duration timeout = Duration.zero,
+  }) async => null;
+  @override
+  Future<List<RemotePlayback>> playingElsewhere() async => const [];
 }
 
 /// [DeviceSync] on the Rust core.
@@ -236,6 +358,7 @@ class CoreDeviceSync implements DeviceSync {
     deviceId: e.deviceId,
     name: e.name,
     payload: e.payload,
+    itemId: e.itemId,
   );
 
   static SyncDevice _device(CoreSyncDevice d) => SyncDevice(
@@ -293,6 +416,67 @@ class CoreDeviceSync implements DeviceSync {
 
   @override
   Stream<SyncEvent> get events => _events.stream;
+
+  @override
+  Future<void> heartbeat(
+    String itemId, {
+    required int positionMs,
+    required int durationMs,
+    required SyncPlayState state,
+  }) => _call(
+    () => _core.heartbeat(
+      itemId: itemId,
+      positionMs: positionMs,
+      durationMs: durationMs,
+      state: switch (state) {
+        SyncPlayState.playing => CorePlayState.playing,
+        SyncPlayState.paused => CorePlayState.paused,
+        SyncPlayState.stopped => CorePlayState.stopped,
+      },
+    ),
+  );
+
+  @override
+  Future<void> startPlaying(String itemId) =>
+      _call(() => _core.startPlaying(itemId: itemId));
+
+  @override
+  Future<ResumeHint?> resumeHint(
+    String itemId, {
+    Duration timeout = Duration.zero,
+  }) => _call(() async {
+    final h = await _core.resumeHint(
+      itemId: itemId,
+      timeoutMs: timeout.inMilliseconds,
+    );
+    if (h == null) return null;
+    return ResumeHint(
+      positionMs: h.positionMs.toInt(),
+      durationMs: h.durationMs.toInt(),
+      deviceId: h.deviceId,
+      deviceName: h.deviceName,
+      remote: h.remote,
+      playing: h.playing,
+      stampMs: h.stampMs.toInt(),
+      stampCounter: h.stampCounter,
+    );
+  });
+
+  @override
+  Future<List<RemotePlayback>> playingElsewhere() => _call(() async {
+    final list = await _core.playingElsewhere();
+    return [
+      for (final p in list)
+        RemotePlayback(
+          itemId: p.itemId,
+          deviceId: p.deviceId,
+          deviceName: p.deviceName,
+          positionMs: p.positionMs.toInt(),
+          durationMs: p.durationMs.toInt(),
+          stampMs: p.stampMs.toInt(),
+        ),
+    ];
+  });
 
   Future<void> dispose() async {
     await _sub?.cancel();

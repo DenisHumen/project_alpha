@@ -185,13 +185,14 @@ void main() {
       final services = await demoServices();
       await tester.pumpWidget(testApp(services, section: Section.settings));
       await settle(tester);
-      await tester.enterText(
-        find.widgetWithText(
-          TextField,
-          'TMDB API key (v3) or read access token',
-        ),
-        'abc123',
+      final field = find.widgetWithText(
+        TextField,
+        'TMDB API key (v3) or read access token',
       );
+      // Below the fold of the Settings list: scroll it to the middle.
+      await Scrollable.ensureVisible(tester.element(field), alignment: .5);
+      await tester.pump();
+      await tester.enterText(field, 'abc123');
       await tester.tap(find.text('Save'));
       await settle(tester, 3);
       expect(await services.tmdbKey(), 'abc123');

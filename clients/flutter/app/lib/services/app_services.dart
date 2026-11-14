@@ -13,6 +13,7 @@ import '../sources/discovery.dart';
 import '../sources/library_source_manager.dart';
 import '../sources/source_manager.dart';
 import '../sync/device_sync.dart';
+import '../sync/handoff.dart';
 import 'preferences.dart';
 import 'secure_store.dart';
 
@@ -68,8 +69,12 @@ class AppServices extends ChangeNotifier {
   final void Function()? onRemoteLibraryChange;
   StreamSubscription<SyncEvent>? _syncSub;
 
-  /// What other devices play now (`pb.update` / `pb.takeover`): the hook
-  /// for the "continue here" banner of SYNC-003. Nothing listens yet.
+  /// The playback session between devices (SYNC-003): heartbeats,
+  /// takeover, "Jump to …?" and the Home banner.
+  late final HandoffController handoff = HandoffController(sync);
+
+  /// What other devices play now (`pb.update` / `pb.takeover`) as raw
+  /// events; [handoff] keeps the state.
   Stream<SyncEvent> get playbackElsewhere => sync.events.where(
     (e) => e.kind == SyncEventKind.playback || e.kind == SyncEventKind.takeover,
   );
@@ -140,6 +145,8 @@ class AppServices extends ChangeNotifier {
     locale.value = parseLocaleTag(await preferences.read(Preferences.locale));
     await _syncMetadataLanguage();
     showTwitch.value = await preferences.read(Preferences.showTwitch) == 'true';
+    handoff.pauseOnTakeover.value =
+        await preferences.read(Preferences.takeoverPause) != 'false';
     subtitleSettings.value = SubtitleSettings.fromJson(
       _json(await preferences.read(Preferences.subtitleSettings)),
     );
@@ -157,6 +164,7 @@ class AppServices extends ChangeNotifier {
   /// Listens to the sync service and starts it if devices are paired.
   Future<void> startSync() async {
     _syncSub ??= sync.events.listen(_onSyncEvent);
+    handoff.start();
     try {
       await sync.start();
     } catch (e) {
@@ -411,6 +419,12 @@ class AppServices extends ChangeNotifier {
     }
   }
 
+  /// Whether a takeover by another device pauses playback here (SYNC-003).
+  Future<void> setPauseOnTakeover(bool value) async {
+    handoff.pauseOnTakeover.value = value;
+    await preferences.write(Preferences.takeoverPause, value ? null : 'false');
+  }
+
   Future<void> setShowTwitch(bool value) async {
     showTwitch.value = value;
     await preferences.write(Preferences.showTwitch, value ? 'true' : null);
@@ -419,6 +433,7 @@ class AppServices extends ChangeNotifier {
   @override
   void dispose() {
     unawaited(_syncSub?.cancel());
+    handoff.dispose();
     unawaited(library.stopWatching());
     locale.dispose();
     showTwitch.dispose();

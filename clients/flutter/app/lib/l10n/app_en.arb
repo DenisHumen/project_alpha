@@ -516,5 +516,19 @@
   "@subtitlesPositionValue": { "placeholders": { "percent": { "type": "int" } } },
   "subtitlesPositionUp": "Move subtitles up",
   "subtitlesPositionDown": "Move subtitles down",
-  "subtitlesReset": "Reset to defaults"
+  "subtitlesReset": "Reset to defaults",
+  "devicesHandoffPlayingOn": "Playing on {device}",
+  "@devicesHandoffPlayingOn": { "description": "Home banner (SYNC-003): another paired device plays a title right now.", "placeholders": { "device": { "type": "String" } } },
+  "devicesHandoffContinueHere": "Continue on this device",
+  "@devicesHandoffContinueHere": { "description": "Button of the Home banner: play the title here from where the other device is." },
+  "devicesHandoffJumpTo": "Jump to {time}?",
+  "@devicesHandoffJumpTo": { "description": "Player toast: another device is ahead in this title.", "placeholders": { "time": { "type": "String", "example": "41:11" } } },
+  "devicesHandoffJump": "Jump",
+  "devicesHandoffAhead": "{device} is further along",
+  "@devicesHandoffAhead": { "placeholders": { "device": { "type": "String" } } },
+  "devicesHandoffPausedHere": "Paused: continues on {device}",
+  "@devicesHandoffPausedHere": { "description": "Player toast: another device started this title and took over.", "placeholders": { "device": { "type": "String" } } },
+  "devicesHandoffAnotherDevice": "another device",
+  "settingsTakeoverPause": "Pause when another device takes over",
+  "settingsTakeoverPauseSubtitle": "Starting the same title on another device of the family pauses it here."
 }

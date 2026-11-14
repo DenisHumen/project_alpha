@@ -493,13 +493,18 @@ impl SyncService {
             .as_ref()
             .map(|r| Arc::clone(&r.node));
         let Some(node) = node else { return false };
+        let started = std::time::Instant::now();
         let asked = node.hub().is_some();
         let before = self.inner.pulled.load(Ordering::Acquire);
         let answered = self.rt().block_on(node.refresh(timeout));
         if answered && asked {
             // The answer's ops reach the library through the event loop:
-            // wait until it has passed the end of the answer.
-            self.rt().block_on(self.inner.applied_after(before, timeout));
+            // wait until it has passed the end of the answer (within what
+            // is left of `timeout`, plus a little for the last ops).
+            let left = timeout
+                .saturating_sub(started.elapsed())
+                .max(Duration::from_millis(50));
+            self.rt().block_on(self.inner.applied_after(before, left));
         }
         answered
     }
