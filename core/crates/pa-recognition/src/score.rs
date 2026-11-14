@@ -182,7 +182,8 @@ impl RecordInfo {
                 info.bases.push(key.base.clone());
             }
             if let Some(s) = key.season {
-                info.seasons.push((key.base.clone(), s, key.part.unwrap_or(1)));
+                info.seasons
+                    .push((key.base.clone(), s, key.part.unwrap_or(1)));
             }
             if let Some(r) = episode_range(t) {
                 info.ranges.push(r);
@@ -199,9 +200,7 @@ impl RecordInfo {
         self.seasons
             .iter()
             .filter(|(b, ss, pp)| {
-                *ss == s
-                    && part.is_none_or(|p| p == *pp)
-                    && (bases.is_empty() || bases.contains(b))
+                *ss == s && part.is_none_or(|p| p == *pp) && (bases.is_empty() || bases.contains(b))
             })
             .count() as u32
     }
@@ -945,18 +944,66 @@ mod tests {
 
     fn index() -> TitleIndex {
         TitleIndex::from_records([
-            anime(11739, "Boku no Hero Academia", 2016, 13, &["My Hero Academia"]),
-            anime(12233, "Boku no Hero Academia 2nd Season", 2017, 25, &["Boku no Hero Academia (2017)"]),
-            anime(13485, "Boku no Hero Academia 3rd Season", 2018, 25, &["Boku no Hero Academia (2018)"]),
+            anime(
+                11739,
+                "Boku no Hero Academia",
+                2016,
+                13,
+                &["My Hero Academia"],
+            ),
+            anime(
+                12233,
+                "Boku no Hero Academia 2nd Season",
+                2017,
+                25,
+                &["Boku no Hero Academia (2017)"],
+            ),
+            anime(
+                13485,
+                "Boku no Hero Academia 3rd Season",
+                2018,
+                25,
+                &["Boku no Hero Academia (2018)"],
+            ),
             anime(5841, "Clannad: After Story", 2008, 24, &[]),
             anime(5000, "Clannad", 2007, 23, &[]),
             anime(3468, "Gintama", 2006, 201, &["Gintama: Season 1"]),
-            anime(8126, "Gintama'", 2011, 51, &["Gintama (Episodes 202-252)", "Gintama Season 2"]),
-            anime(16803, "Kimetsu no Yaiba: Mugen Ressha-hen", 2021, 7, &["Demon Slayer: Kimetsu no Yaiba Season 2"]),
-            anime(14107, "Kimetsu no Yaiba", 2019, 26, &["Demon Slayer", "Demon Slayer: Kimetsu no Yaiba"]),
-            anime(16054, "Kimetsu no Yaiba: Yuukaku-hen", 2022, 11, &["Demon Slayer Season 2"]),
+            anime(
+                8126,
+                "Gintama'",
+                2011,
+                51,
+                &["Gintama (Episodes 202-252)", "Gintama Season 2"],
+            ),
+            anime(
+                16803,
+                "Kimetsu no Yaiba: Mugen Ressha-hen",
+                2021,
+                7,
+                &["Demon Slayer: Kimetsu no Yaiba Season 2"],
+            ),
+            anime(
+                14107,
+                "Kimetsu no Yaiba",
+                2019,
+                26,
+                &["Demon Slayer", "Demon Slayer: Kimetsu no Yaiba"],
+            ),
+            anime(
+                16054,
+                "Kimetsu no Yaiba: Yuukaku-hen",
+                2022,
+                11,
+                &["Demon Slayer Season 2"],
+            ),
             anime(34, "Fruits Basket", 2001, 26, &["Fruits Basket (2001)"]),
-            anime(14490, "Fruits Basket 1st Season", 2019, 25, &["Fruits Basket (2019)"]),
+            anime(
+                14490,
+                "Fruits Basket 1st Season",
+                2019,
+                25,
+                &["Fruits Basket (2019)"],
+            ),
             movie(8587, "The Lion King", 1994),
             movie(420818, "The Lion King", 2019),
             movie(603, "The Matrix", 1999),
@@ -964,7 +1011,14 @@ mod tests {
     }
 
     fn one(index: &TitleIndex, path: &str) -> FileMatch {
-        score_group(index, &[GroupFile { path, duration_ms: None }]).remove(0)
+        score_group(
+            index,
+            &[GroupFile {
+                path,
+                duration_ms: None,
+            }],
+        )
+        .remove(0)
     }
 
     fn aid(index: &TitleIndex, m: &FileMatch) -> String {
@@ -974,9 +1028,19 @@ mod tests {
     #[test]
     fn absolute_number_runs_into_later_season() {
         let ix = index();
-        let m = one(&ix, "Anime/Boku no Hero Academia/[Commie] Boku no Hero Academia - 35 (1080p).mkv");
+        let m = one(
+            &ix,
+            "Anime/Boku no Hero Academia/[Commie] Boku no Hero Academia - 35 (1080p).mkv",
+        );
         assert_eq!(aid(&ix, &m), "12233");
-        assert_eq!(m.episodes, vec![EpisodeRef { season: None, episode: 22, absolute: Some(35) }]);
+        assert_eq!(
+            m.episodes,
+            vec![EpisodeRef {
+                season: None,
+                episode: 22,
+                absolute: Some(35)
+            }]
+        );
         assert_eq!(m.signals.reading, Reading::Absolute);
         assert!(m.confidence >= 0.9, "{m:?}");
     }
@@ -984,7 +1048,10 @@ mod tests {
     #[test]
     fn small_number_stays_in_first_season() {
         let ix = index();
-        let m = one(&ix, "Anime/Boku no Hero Academia/[Commie] Boku no Hero Academia - 05 (1080p).mkv");
+        let m = one(
+            &ix,
+            "Anime/Boku no Hero Academia/[Commie] Boku no Hero Academia - 05 (1080p).mkv",
+        );
         assert_eq!(aid(&ix, &m), "11739");
         assert_eq!(m.episodes[0].episode, 5);
     }
@@ -992,7 +1059,10 @@ mod tests {
     #[test]
     fn explicit_season_picks_entry() {
         let ix = index();
-        let m = one(&ix, "TV/Boku no Hero Academia/Season 03/Boku no Hero Academia S03E04.mkv");
+        let m = one(
+            &ix,
+            "TV/Boku no Hero Academia/Season 03/Boku no Hero Academia S03E04.mkv",
+        );
         assert_eq!(aid(&ix, &m), "13485");
         assert_eq!(m.episodes[0].episode, 4);
     }
@@ -1000,7 +1070,10 @@ mod tests {
     #[test]
     fn season_overflows_into_next_entry() {
         let ix = index();
-        let m = one(&ix, "TV/Demon Slayer/Season 02/Demon.Slayer.S02E12.1080p.WEB.mkv");
+        let m = one(
+            &ix,
+            "TV/Demon Slayer/Season 02/Demon.Slayer.S02E12.1080p.WEB.mkv",
+        );
         assert_eq!(aid(&ix, &m), "16054");
         assert_eq!(m.episodes[0].episode, 5);
     }
@@ -1025,7 +1098,10 @@ mod tests {
     #[test]
     fn sequel_title_is_its_own_entry() {
         let ix = index();
-        let m = one(&ix, "Anime/Clannad - After Story/[MTBB] Clannad - After Story - 03 [1080p].mkv");
+        let m = one(
+            &ix,
+            "Anime/Clannad - After Story/[MTBB] Clannad - After Story - 03 [1080p].mkv",
+        );
         assert_eq!(aid(&ix, &m), "5841");
     }
 
@@ -1045,21 +1121,39 @@ mod tests {
     fn extra_inherits_folder_decision() {
         let ix = index();
         let files = [
-            GroupFile { path: "Movies/The Lion King (2019)/The Lion King (2019).mkv", duration_ms: None },
-            GroupFile { path: "Movies/The Lion King (2019)/Extras/Trailer 2.mkv", duration_ms: None },
+            GroupFile {
+                path: "Movies/The Lion King (2019)/The Lion King (2019).mkv",
+                duration_ms: None,
+            },
+            GroupFile {
+                path: "Movies/The Lion King (2019)/Extras/Trailer 2.mkv",
+                duration_ms: None,
+            },
         ];
         let out = score_group(&ix, &files);
-        assert_eq!(ix.record(out[0].record.unwrap()).ids["tmdb"], "movie:420818");
+        assert_eq!(
+            ix.record(out[0].record.unwrap()).ids["tmdb"],
+            "movie:420818"
+        );
         assert_eq!(out[1].record, out[0].record);
         assert_eq!(out[1].signals.reading, Reading::Inherited);
     }
 
     #[test]
     fn range_parsing() {
-        assert_eq!(episode_range("Gintama (Episodes 202-252)"), Some((202, 252)));
-        assert_eq!(episode_range("Gintama (Episoden 354-367)"), Some((354, 367)));
+        assert_eq!(
+            episode_range("Gintama (Episodes 202-252)"),
+            Some((202, 252))
+        );
+        assert_eq!(
+            episode_range("Gintama (Episoden 354-367)"),
+            Some((354, 367))
+        );
         assert_eq!(episode_range("Gintama (2011)"), None);
-        assert!(shares_prefix("kimetsu no yaiba", "kimetsu no yaiba yuukaku hen"));
+        assert!(shares_prefix(
+            "kimetsu no yaiba",
+            "kimetsu no yaiba yuukaku hen"
+        ));
         assert!(!shares_prefix("boku no hero academia", "boku no pico"));
         assert!(shares_prefix("gintama", "gintama porori hen"));
         assert!(!shares_prefix("dragon ball super", "dragon ball"));

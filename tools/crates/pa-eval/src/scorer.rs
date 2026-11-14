@@ -68,10 +68,10 @@ impl Scorer {
                             number: e.episode,
                         }),
                         tvdb_absolute: e.absolute,
-                        tmdb: m.written.get(i).map(|&(season, episode)| SeasonEpisode {
-                            season,
-                            episode,
-                        }),
+                        tmdb: m
+                            .written
+                            .get(i)
+                            .map(|&(season, episode)| SeasonEpisode { season, episode }),
                         ..Default::default()
                     }
                 } else {
