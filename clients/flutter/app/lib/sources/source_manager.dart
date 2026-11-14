@@ -35,10 +35,9 @@ enum SourceType {
     _ => null,
   };
 
-  /// Kinds the library scan can index now. WebDAV sources can be checked
-  /// and speed-tested, but the scan pipeline reads local or mounted folders
-  /// only (pa-catalog); indexing over WebDAV comes with the VFS scan.
-  bool get indexable => this == local || this == smb;
+  /// Kinds the library scan can index: the core reads local folders, SMB
+  /// and WebDAV through `pa-vfs` (LIB-018).
+  bool get indexable => available.contains(this);
 }
 
 /// SMB protocol and security options (`pa_sources::SourceOptions`).
@@ -173,6 +172,19 @@ class SourceDraft {
       'SourceDraft(${type.name}, $name, $address, user: $username, '
       'password: ${password == null ? 'null' : '***'})';
 }
+
+/// The draft that saves [m] as it is, with [password] (null: keep).
+SourceDraft draftOf(ManagedSource m, {String? password}) => SourceDraft(
+  type: m.type,
+  name: m.name,
+  address: m.address,
+  username: m.username,
+  password: password,
+  smb: m.smb,
+  tlsPin: m.tlsPin,
+  scanIntoLibrary: m.scanIntoLibrary,
+  autoScan: m.autoScan,
+);
 
 /// Result of a speed test.
 class SpeedResult {

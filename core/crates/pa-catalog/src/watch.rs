@@ -15,8 +15,8 @@
 //!   ([`Catalog::rescan_folders`]); a burst touching more than
 //!   [`WatchOptions::max_folders`] folders, an event queue overflow or a
 //!   change at the source root rescans the whole source.
-//! - **Network sources** (an SMB share mounted by the app) get no reliable
-//!   change events through a mount, so they are rescanned on a timer
+//! - **Network sources** (SMB, WebDAV; read through `pa-vfs`, LIB-018)
+//!   send no change events, so they are rescanned on a timer
 //!   ([`WatchOptions::network_interval`]). A local folder that cannot be
 //!   watched (inotify watch limit, a network file system) falls back to
 //!   the timer too.
@@ -29,7 +29,7 @@
 //! watcher (or [`LibraryWatcher::stop`]) cancels a running rescan and
 //! stops the thread.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::BTreeSet;
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::sync::mpsc::{self, Receiver, RecvTimeoutError, Sender};
@@ -86,8 +86,9 @@ pub enum WatchMode {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WatchedSource {
     pub source_id: i64,
-    /// Local path of the source root.
-    pub root: PathBuf,
+    /// Local path of the root of a local folder source; `None` for a
+    /// network source.
+    pub root: Option<PathBuf>,
     pub mode: WatchMode,
 }
 
@@ -149,13 +150,12 @@ impl std::fmt::Debug for LibraryWatcher {
 }
 
 impl LibraryWatcher {
-    /// Starts following the auto-scan sources of `catalog`. `roots` gives
-    /// the local path of sources that are not `file://` (a mounted SMB
-    /// share); a network source without one is skipped. `on_event` is
-    /// called on the watcher thread after every rescan.
+    /// Starts following the auto-scan sources of `catalog`: local folders
+    /// by events, network sources (reached through the catalog's
+    /// [`Connector`](crate::Connector)) on the timer. `on_event` is called
+    /// on the watcher thread after every rescan.
     pub fn start(
         catalog: Arc<Catalog>,
-        roots: &HashMap<i64, PathBuf>,
         options: WatchOptions,
         mut on_event: WatchCallback,
     ) -> Result<Self, Error> {
@@ -172,13 +172,11 @@ impl LibraryWatcher {
             if !s.auto_scan {
                 continue;
             }
-            let Some(root) = roots.get(&s.id).cloned().or(s.local_root.clone()) else {
-                continue;
-            };
-            let mode = if s.kind == "local" {
-                match watcher
+            let root = s.local_root.clone();
+            let mode = match &root {
+                Some(root) => match watcher
                     .as_mut()
-                    .map(|w| w.watch(&root, RecursiveMode::Recursive))
+                    .map(|w| w.watch(root, RecursiveMode::Recursive))
                 {
                     Some(Ok(())) => WatchMode::Events,
                     Some(Err(e)) => {
@@ -186,9 +184,8 @@ impl LibraryWatcher {
                         WatchMode::Timer
                     }
                     None => WatchMode::Timer,
-                }
-            } else {
-                WatchMode::Timer
+                },
+                None => WatchMode::Timer,
             };
             sources.push(WatchedSource {
                 source_id: s.id,
@@ -205,7 +202,6 @@ impl LibraryWatcher {
         let cancel = CancelToken::new();
         let run = Run {
             catalog,
-            roots: roots.clone(),
             sources: sources
                 .iter()
                 .map(|s| Followed::new(s.clone(), &options))
@@ -284,7 +280,10 @@ impl Followed {
             pending.last = Some(now);
         }
         Self {
-            canonical: std::fs::canonicalize(&source.root).ok(),
+            canonical: source
+                .root
+                .as_ref()
+                .and_then(|r| std::fs::canonicalize(r).ok()),
             source,
             pending,
             next_timer,
@@ -293,7 +292,8 @@ impl Followed {
 
     /// Path relative to the root, if `path` is inside it.
     fn relative<'p>(&self, path: &'p Path) -> Option<&'p Path> {
-        path.strip_prefix(&self.source.root).ok().or_else(|| {
+        let root = self.source.root.as_ref()?;
+        path.strip_prefix(root).ok().or_else(|| {
             self.canonical
                 .as_ref()
                 .and_then(|c| path.strip_prefix(c).ok())
@@ -318,7 +318,6 @@ impl Followed {
 
 struct Run {
     catalog: Arc<Catalog>,
-    roots: HashMap<i64, PathBuf>,
     sources: Vec<Followed>,
     options: WatchOptions,
     cancel: CancelToken,
@@ -439,19 +438,16 @@ impl Run {
     fn full_scan(&self, source: &WatchedSource) -> WatchEvent {
         let mut event = WatchEvent::new(source.source_id, true);
         let mut errors = Vec::new();
-        let result = self.catalog.scan(
-            Some(source.source_id),
-            &self.roots,
-            &self.cancel,
-            &mut |u| {
+        let result = self
+            .catalog
+            .scan(Some(source.source_id), &self.cancel, &mut |u| {
                 if let Some(e) = u.error {
                     errors.push(e);
                 }
                 if u.phase == ScanPhase::Done {
                     event.report.files_seen = u.files_found;
                 }
-            },
-        );
+            });
         if let Err(e) = result {
             errors.push(e.to_string());
         }
@@ -467,7 +463,7 @@ impl Run {
         event.folders = folders.iter().map(|f| f.as_str().to_owned()).collect();
         match self
             .catalog
-            .rescan_folders(source.source_id, &source.root, &folders, &self.cancel)
+            .rescan_folders(source.source_id, &folders, &self.cancel)
         {
             Ok(r) => event.report = r,
             Err(e) => event.error = Some(e.to_string()),

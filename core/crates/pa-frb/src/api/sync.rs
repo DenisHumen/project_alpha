@@ -12,7 +12,7 @@
 //! plain getters are `#[frb(sync)]`.
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use flutter_rust_bridge::frb;
@@ -246,24 +246,21 @@ impl CoreSync {
             }
             None => None,
         };
-        let store: Arc<dyn pa_secrets::SecretStore> =
-            match (own_store, crate::api::secrets::opened_store()) {
-                (Some(own), _) => Arc::new(own),
-                (None, Some(opened)) => opened.store,
-                (None, None) => {
-                    crate::api::secrets::secrets_open_default(Some(config.data_dir.clone()))
-                        .map_err(|e| CoreSyncError {
-                            code: "secrets".into(),
-                            message: e.message,
-                        })?;
-                    crate::api::secrets::opened_store()
-                        .map(|o| o.store)
-                        .ok_or_else(|| CoreSyncError {
-                            code: "secrets".into(),
-                            message: "the secret store did not open".into(),
-                        })?
-                }
-            };
+        // The app's store (or the shared default one, like the source
+        // manager's); its fallback file sits next to the roster's folder.
+        let store: Arc<dyn pa_secrets::SecretStore> = match own_store {
+            Some(own) => Arc::new(own),
+            None => {
+                let dir = PathBuf::from(&config.data_dir);
+                let base = dir.parent().map_or(dir.clone(), Path::to_path_buf);
+                crate::shared::secret_store(&base)
+                    .map_err(|e| CoreSyncError {
+                        code: "secrets".into(),
+                        message: e.to_string(),
+                    })?
+                    .store
+            }
+        };
         let class: DeviceClass = config.device_class.into();
         let mut service_config = ServiceConfig::new(
             PathBuf::from(&config.data_dir),

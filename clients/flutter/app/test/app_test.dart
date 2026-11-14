@@ -3,6 +3,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/fakes/fake_library.dart';
+import 'package:kinolune/fakes/fake_source_manager.dart';
 import 'package:kinolune/integration/library.dart';
 import 'package:kinolune/integration/player.dart';
 import 'package:kinolune/platform/form_factor.dart';
@@ -21,6 +22,7 @@ void main() {
       await tester.pumpWidget(testApp(await demoServices()));
       await settle(tester);
       expect(find.text('Continue Watching'), findsOneWidget);
+      await scrollHomeTo(tester, find.text('Recently Added Movies'));
       expect(find.text('Recently Added Movies'), findsOneWidget);
       expect(find.text('TV Shows'), findsWidgets);
       expect(find.byType(KinoluneLogo), findsWidgets);
@@ -37,6 +39,8 @@ void main() {
       await settle(tester);
       expect(find.text('14 titles'), findsOneWidget);
       await tester.tap(find.text('Sort: Recently added'));
+      await settle(tester, 3);
+      await tester.tap(find.text('Title').last);
       await settle(tester, 3);
       expect(find.text('Sort: Title'), findsOneWidget);
       await tester.tap(find.text('In progress'));
@@ -133,10 +137,11 @@ void main() {
       await settle(tester, 20);
       expect(services.sources.single.path, '/srv/media');
       expect(services.scanProgress?.isDone, isTrue);
+      await scrollHomeTo(tester, find.text('Recently Added Movies'));
       expect(find.text('Recently Added Movies'), findsOneWidget);
     });
 
-    testWidgets('SMB source stores the password in the secure store', (
+    testWidgets('SMB source password goes to the core, not the app store', (
       tester,
     ) async {
       setSurface(tester, const Size(1280, 800));
@@ -168,10 +173,11 @@ void main() {
       final smb = services.sources.firstWhere((s) => s.kind == SourceKind.smb);
       expect(smb.path, 'smb://nas.local/media');
       expect(smb.username, 'viewer');
-      expect(
-        await services.secureStore.read('smb_password_${smb.id}'),
-        's3cret',
-      );
+      // LIB-018: one copy, in the core's secret store.
+      expect(services.managedSource(smb.id)!.hasPassword, isTrue);
+      final fake = services.sourceManager as FakeSourceManager;
+      expect(fake.drafts.single.password, 's3cret');
+      expect(await services.secureStore.read('smb_password_${smb.id}'), isNull);
     });
 
     testWidgets('TMDB key is saved', (tester) async {

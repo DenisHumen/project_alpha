@@ -20,6 +20,7 @@ pa-catalog = { path = "../pa-catalog" }
 pa-discovery = { path = "../pa-discovery" }
 pa-ffi = { path = "../pa-ffi" }
 pa-imagecache = { path = "../pa-imagecache" }
+pa-proxy = { path = "../pa-proxy" }
 pa-recognition = { path = "../pa-recognition" }
 pa-secrets = { path = "../pa-secrets" }
 pa-sources = { path = "../pa-sources" }

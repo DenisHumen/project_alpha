@@ -281,7 +281,7 @@ class TrackTile extends StatelessWidget {
     return ListenableBuilder(
       listenable: music,
       builder: (context, _) {
-        final playing = music.current?.uri == track.filePath;
+        final playing = music.current?.uri == track.playbackUri;
         return KFocusable(
           onActivate: onTap,
           focusScale: 1.0,

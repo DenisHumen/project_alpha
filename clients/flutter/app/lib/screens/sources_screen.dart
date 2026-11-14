@@ -265,7 +265,9 @@ class _SourceCard extends StatelessWidget {
       if (!source.type.indexable)
         l.sourcesNotIndexable
       else if (!source.scanIntoLibrary)
-        l.sourcesBrowseOnly,
+        l.sourcesBrowseOnly
+      else if (source.autoScan && !services.sourceManager.reduced)
+        l.sourcesAutoScanOn,
     ];
 
     final p = services.scanProgress;

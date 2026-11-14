@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import '../integration/library.dart';
 import '../integration/player.dart';
 import '../l10n/l10n.dart';
+import '../library/library_queries.dart';
 import '../sources/discovery.dart';
 import '../sources/library_source_manager.dart';
 import '../sources/source_manager.dart';
@@ -27,13 +28,25 @@ class AppServices extends ChangeNotifier {
     this.discovery = const NoSourceDiscovery(),
     this.sync = const NoDeviceSync(),
     this.onRemoteLibraryChange,
+    LibraryQueries? queries,
+    DateTime Function()? clock,
   }) : preferences = preferences ?? MemoryPreferences(),
+       queries = queries ?? LibraryQueries.forLibrary(library),
+       clock = clock ?? DateTime.now,
        sourceManager = sourceManager ?? LibrarySourceManager(library),
        systemLocale = systemLocale ?? _platformLocale,
        music =
            music ?? MusicPlayerController(engineFactory: playerEngineFactory);
 
   final Library library;
+
+  /// Queries of the library grid (UI-008): LIB-009 on the Rust core, in
+  /// memory without filters on the v0 fallback.
+  final LibraryQueries queries;
+
+  /// Current time ("new" badges); tests pin it.
+  final DateTime Function() clock;
+
   final SecureStore secureStore;
   final Preferences preferences;
   final MusicPlayerController music;
@@ -117,6 +130,7 @@ class AppServices extends ChangeNotifier {
     showTwitch.value = await preferences.read(Preferences.showTwitch) == 'true';
     _sources = await library.sources();
     await _loadManaged();
+    await migrateLegacySmbPasswords();
     final key = await secureStore.read(SecureStore.tmdbKey);
     if (key != null && key.isNotEmpty) await library.setTmdbApiKey(key);
     _loaded = true;
@@ -161,17 +175,8 @@ class AppServices extends ChangeNotifier {
   /// With [scanOnStart] every source is scanned once now (changes made
   /// while the app was closed). Restarted when the sources change.
   Future<void> startWatching({bool scanOnStart = true}) async {
-    final passwords = <String, String>{};
-    for (final s in _sources) {
-      if (s.kind != SourceKind.smb) continue;
-      final pwd = await secureStore.read(SecureStore.smbPassword(s.id));
-      if (pwd != null && pwd.isNotEmpty) passwords[s.id] = pwd;
-    }
     try {
-      await library.startWatching(
-        smbPasswords: passwords,
-        scanOnStart: scanOnStart,
-      );
+      await library.startWatching(scanOnStart: scanOnStart);
     } catch (e) {
       // The library still works; manual scans stay available.
       debugPrint('Library watcher not started: $e');
@@ -196,32 +201,54 @@ class AppServices extends ChangeNotifier {
   ManagedSource? managedSource(String id) =>
       _managed.where((s) => s.id == id).firstOrNull;
 
-  /// Adds a source through [sourceManager]. An SMB password is also kept in
-  /// [secureStore]: the scan mounts the share with it (the core never hands
-  /// a stored password back).
+  /// Adds a source through [sourceManager]. Its password stays in the
+  /// core's secret store only (LIB-018): the core reads the share itself.
   Future<ManagedSource> createSource(SourceDraft draft) async {
     final added = await sourceManager.create(draft);
-    final pwd = draft.password;
-    if (draft.type == SourceType.smb && pwd != null && pwd.isNotEmpty) {
-      await secureStore.write(SecureStore.smbPassword(added.id), pwd);
-    }
     await refreshSources();
+    // The add dialog scans the new source itself.
+    unawaited(startWatching(scanOnStart: false));
     return added;
   }
 
   /// Saves edited settings; [SourceDraft.password] null keeps the password,
-  /// empty removes it.
+  /// empty removes it. The watcher follows the new auto-scan setting.
   Future<ManagedSource> updateSource(String id, SourceDraft draft) async {
     final saved = await sourceManager.update(id, draft);
-    final pwd = draft.password;
-    if (pwd != null) {
-      await secureStore.write(
-        SecureStore.smbPassword(id),
-        pwd.isEmpty || draft.type != SourceType.smb ? null : pwd,
-      );
-    }
     await refreshSources();
+    unawaited(startWatching(scanOnStart: false));
     return saved;
+  }
+
+  /// Moves SMB passwords that app versions before LIB-018 kept in
+  /// [secureStore] (`smb_password_<id>`) into the core's secret store, once,
+  /// then deletes the old copy. A source that already has a password in
+  /// the core keeps it; the old copy is only deleted. On the reduced
+  /// manager (no core secret store) nothing is moved or deleted.
+  Future<void> migrateLegacySmbPasswords() async {
+    if (sourceManager.reduced || !sourceManager.canEdit) return;
+    for (final m in _managed) {
+      if (m.type != SourceType.smb) continue;
+      final key = SecureStore.smbPassword(m.id);
+      final String? old;
+      try {
+        old = await secureStore.read(key);
+      } catch (e) {
+        debugPrint('Old SMB password of source ${m.id} not readable: $e');
+        continue;
+      }
+      if (old == null) continue;
+      try {
+        if (!m.hasPassword && old.isNotEmpty) {
+          await sourceManager.update(m.id, draftOf(m, password: old));
+        }
+        await secureStore.write(key, null);
+      } catch (e) {
+        // Kept for the next start.
+        debugPrint('SMB password of source ${m.id} not migrated: $e');
+      }
+    }
+    await _loadManaged();
   }
 
   /// Removes a source: its settings and password, then its library items.
@@ -256,11 +283,8 @@ class AppServices extends ChangeNotifier {
     return explicit || m.scanIntoLibrary;
   }
 
-  Future<MediaSource> addSource(MediaSource s, {String? smbPassword}) async {
+  Future<MediaSource> addSource(MediaSource s) async {
     final added = await library.addSource(s);
-    if (smbPassword != null && smbPassword.isNotEmpty) {
-      await secureStore.write(SecureStore.smbPassword(added.id), smbPassword);
-    }
     await refreshSources();
     // The add dialog scans the new source itself.
     unawaited(startWatching(scanOnStart: false));
@@ -269,7 +293,6 @@ class AppServices extends ChangeNotifier {
 
   Future<void> removeSource(String id) async {
     await library.removeSource(id);
-    await secureStore.write(SecureStore.smbPassword(id), null);
     await refreshSources();
     unawaited(startWatching(scanOnStart: false));
   }
@@ -291,11 +314,8 @@ class AppServices extends ChangeNotifier {
     var found = 0;
     try {
       for (final s in targets) {
-        final pwd = s.kind == SourceKind.smb
-            ? await secureStore.read(SecureStore.smbPassword(s.id))
-            : null;
         String? sourceError;
-        await for (final p in library.scan(sourceId: s.id, smbPassword: pwd)) {
+        await for (final p in library.scan(sourceId: s.id)) {
           _scan = p;
           sourceError ??= p.error;
           if (p.isDone) {

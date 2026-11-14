@@ -22,4 +22,15 @@ export 'package:pa_library/pa_library.dart'
         ScanProgress,
         ScanPhase,
         SmbUnsupportedException,
-        tmdbAttribution;
+        tmdbAttribution,
+        // LIB-009 queries (Home rows, UI-007)
+        FacetCount,
+        LibraryFacets,
+        LibraryFilter,
+        LibraryPage,
+        LibraryQuery,
+        LibrarySort,
+        SmartShelf,
+        SortField,
+        WatchState,
+        continueWatchingMax;

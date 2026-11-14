@@ -5,7 +5,7 @@
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
 - **Решают:** владелец проекта (мейнтейнер); участники обсуждения — по PR
-- **Связано:** `SYNC-006`, `SYNC-002`, `SYNC-005`, `SYNC-008`, `NET-009`, `SYNC-012`, [ADR-0004](0004-no-project-servers-local-sync.md), [ADR-0019](0019-lan-discovery-mdns.md), [ADR-NNNN (сопряжение)](0026-device-family-pairing.md), `docs/api/sync-protocol.md` §10
+- **Связано:** `SYNC-006`, `SYNC-002`, `SYNC-005`, `SYNC-008`, `NET-009`, `SYNC-012`, [ADR-0004](0004-no-project-servers-local-sync.md), [ADR-0019](0019-lan-discovery-mdns.md), [ADR-0026 (сопряжение)](0026-device-family-pairing.md), `docs/api/sync-protocol.md` §10
 
 ## Контекст и проблема
 

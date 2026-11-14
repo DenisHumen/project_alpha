@@ -19,6 +19,8 @@ class PosterCard extends StatelessWidget {
     this.onFocus,
     this.caption,
     this.autofocus = false,
+    this.overlay,
+    this.onContextMenu,
   });
 
   final LibraryItem item;
@@ -27,6 +29,12 @@ class PosterCard extends StatelessWidget {
   final ValueChanged<bool>? onFocus;
   final String? caption;
   final bool autofocus;
+
+  /// Drawn over the artwork (badges, UI-008).
+  final Widget? overlay;
+
+  /// Long press, right click or the menu key ([KFocusable.onContextMenu]).
+  final ValueChanged<Offset>? onContextMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -41,18 +49,24 @@ class PosterCard extends StatelessWidget {
             autofocus: autofocus,
             onActivate: onTap,
             onFocusChange: onFocus,
+            onContextMenu: onContextMenu,
             focusScale: d.focusScalePoster,
             semanticLabel: item.title,
-            builder: (context, _) => AspectRatio(
-              aspectRatio: 2 / 3,
-              child: Artwork(
+            builder: (context, _) {
+              final art = Artwork(
                 url: item.posterUrl,
                 seed: item.id,
                 style: ArtStyle.poster,
                 title: item.title,
                 subtitle: item.year?.toString(),
-              ),
-            ),
+              );
+              return AspectRatio(
+                aspectRatio: 2 / 3,
+                child: overlay == null
+                    ? art
+                    : Stack(fit: StackFit.expand, children: [art, overlay!]),
+              );
+            },
           ),
           SizedBox(height: d.isTv ? 10 : 8),
           _Caption(
