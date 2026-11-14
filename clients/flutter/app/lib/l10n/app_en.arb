@@ -363,5 +363,17 @@
   "sourcesErrorInvalidPath": "The path contains characters this source does not allow.",
   "sourcesErrorUnsupported": "This kind of source is not supported on this device (a system component may be missing).",
   "sourcesErrorNotIndexable": "Files from this kind of source cannot be added to the library yet.",
-  "sourcesErrorOther": "Something went wrong. The details below may help."
+  "sourcesErrorOther": "Something went wrong. The details below may help.",
+
+  "homeUpNext": "Up Next",
+  "@homeUpNext": { "description": "Home row: the next episode of shows the user finished an episode of." },
+  "homeRecentShows": "Recently Added TV Shows",
+  "homeSources": "Sources",
+  "@homeSources": { "description": "Home row with the library sources (folders, network shares)." },
+  "homeBadgeMovie": "Movie",
+  "@homeBadgeMovie": { "description": "Type badge on a Continue Watching card." },
+  "homeBadgeEpisode": "Episode",
+  "@homeBadgeEpisode": { "description": "Type badge on a Continue Watching or Up Next card." },
+  "homeBadgeTwitchVod": "Twitch video",
+  "@homeBadgeTwitchVod": { "description": "Type badge on a Continue Watching card for a Twitch recording (VOD)." }
 }

@@ -261,5 +261,12 @@
   "sourcesErrorInvalidPath": "Путь содержит символы, которые этот источник не допускает.",
   "sourcesErrorUnsupported": "Этот тип источника не поддерживается на этом устройстве (возможно, не хватает системного компонента).",
   "sourcesErrorNotIndexable": "Файлы из источника этого типа пока нельзя добавить в медиатеку.",
-  "sourcesErrorOther": "Что-то пошло не так. Подробности ниже могут помочь."
+  "sourcesErrorOther": "Что-то пошло не так. Подробности ниже могут помочь.",
+
+  "homeUpNext": "Следующие серии",
+  "homeRecentShows": "Недавно добавленные сериалы",
+  "homeSources": "Источники",
+  "homeBadgeMovie": "Фильм",
+  "homeBadgeEpisode": "Серия",
+  "homeBadgeTwitchVod": "Запись Twitch"
 }
