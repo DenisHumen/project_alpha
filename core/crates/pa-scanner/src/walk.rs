@@ -28,8 +28,8 @@ impl WalkFilter for ScanRules {
     fn max_depth(&self) -> usize {
         self.max_depth
     }
-    fn enter(&self, _parent: &VfsPath, name: &str) -> bool {
-        self.enter_folder(name)
+    fn enter(&self, parent: &VfsPath, name: &str) -> bool {
+        self.enter_folder_in(parent.as_str(), name)
     }
     fn keep(&self, name: &str) -> bool {
         self.classify(name).is_some()

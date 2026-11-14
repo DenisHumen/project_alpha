@@ -6,9 +6,10 @@
 //! without opening files:
 //!
 //! - **disc structures** — a folder containing `BDMV/` or `VIDEO_TS/` is one
-//!   item named by that folder (A12); its main title is the longest
+//!   item named by that folder (A12); its main title is the largest
 //!   `BDMV/STREAM/*.m2ts`, or the VOBs of the largest DVD title set as
-//!   parts. An `.iso` file is one item;
+//!   parts; the other streams of the disc are ignored leftovers (LIB-017,
+//!   see `disc_titles`). An `.iso` file is one item;
 //! - **parts** — `cd1`/`cd2`, `part1`, `pt1`, `disc1`, `disk1` of one name
 //!   in one folder are joined into one item (A13), numbered 1..N without
 //!   gaps;
@@ -386,71 +387,106 @@ fn disc_root_of<'a, 'b>(
     })
 }
 
-/// The main title of a disc: the longest BDMV stream, or the VOBs of the
-/// largest DVD title set (one main, or parts in order).
+/// The titles of a disc (LIB-017). The main title is chosen from the
+/// listing alone, so it does not change once `pa-probe` adds durations:
+///
+/// - **BDMV**: the largest `BDMV/STREAM/*.m2ts` (the longest one on equal
+///   sizes). Playlists (`.mpls`) are not read: on most discs the feature is
+///   one big stream, and seamless-branching discs (one film cut into many
+///   clips) play their biggest clip only;
+/// - **VIDEO_TS**: the title set (`VTS_<set>_<n>.VOB`, `n ≥ 1`) with the
+///   most bytes; its VOBs are the main title (one) or its parts in order.
+///
+/// Every other video of the disc (menus, bonus clips, other title sets) is
+/// [`Role::Ignore`]: recorded in `files` but never an item of its own.
 fn disc_titles(unit: DiscUnit, inner: &[&Item<'_>]) -> Vec<GroupEntry> {
     let entry = |it: &Item<'_>, role| {
         let mut e = GroupEntry::new(it.file.path.clone(), role);
         e.size = it.file.size;
         e
     };
-    match unit {
-        DiscUnit::Bdmv => inner
+    let videos: Vec<&Item<'_>> = inner
+        .iter()
+        .copied()
+        .filter(|it| it.ty == FileType::Video)
+        .collect();
+    let mut out: Vec<GroupEntry> = match unit {
+        DiscUnit::Bdmv => videos
             .iter()
             .filter(|it| {
-                it.ty == FileType::Video
-                    && it
-                        .dirs
-                        .last()
-                        .is_some_and(|d| d.eq_ignore_ascii_case("stream"))
+                it.dirs
+                    .last()
+                    .is_some_and(|d| d.eq_ignore_ascii_case("stream"))
             })
-            .max_by_key(|it| (it.duration().unwrap_or(0), it.file.size))
+            .max_by(|a, b| {
+                (a.file.size, a.duration().unwrap_or(0))
+                    .cmp(&(b.file.size, b.duration().unwrap_or(0)))
+                    // The first in path order on a full tie.
+                    .then_with(|| b.file.path.cmp(&a.file.path))
+            })
             .map(|it| vec![entry(it, Role::Main)])
             .unwrap_or_default(),
-        DiscUnit::VideoTs | DiscUnit::Iso => {
-            // VTS_<set>_<n>.VOB, n ≥ 1 (n = 0 is the title set menu).
-            let mut sets: BTreeMap<u32, Vec<(u32, &Item<'_>)>> = BTreeMap::new();
-            for it in inner {
-                let upper = it.stem.to_ascii_uppercase();
-                let Some(rest) = upper.strip_prefix("VTS_") else {
-                    continue;
-                };
-                let Some((set, n)) = rest.split_once('_') else {
-                    continue;
-                };
-                if !it.name.to_ascii_lowercase().ends_with(".vob") {
-                    continue;
+        DiscUnit::VideoTs | DiscUnit::Iso => dvd_title_set(&videos)
+            .map(|set| {
+                if set.len() == 1 {
+                    return vec![entry(set[0], Role::Main)];
                 }
-                if let (Ok(set), Ok(n)) = (set.parse::<u32>(), n.parse::<u32>())
-                    && n > 0
-                {
-                    sets.entry(set).or_default().push((n, it));
-                }
-            }
-            let Some(mut best) = sets.into_values().max_by_key(|v| {
-                (
-                    v.iter()
-                        .map(|(_, it)| it.duration().unwrap_or(0))
-                        .sum::<u64>(),
-                    v.iter().map(|(_, it)| it.file.size).sum::<u64>(),
-                )
-            }) else {
-                return Vec::new();
-            };
-            best.sort_by_key(|(n, _)| *n);
-            if best.len() == 1 {
-                return vec![entry(best[0].1, Role::Main)];
-            }
-            best.iter()
-                .zip(1u32..)
-                .map(|((_, it), no)| {
-                    let mut e = entry(it, Role::Part);
-                    e.part = Some(no);
-                    e
-                })
-                .collect()
+                set.iter()
+                    .zip(1u32..)
+                    .map(|(it, no)| {
+                        let mut e = entry(it, Role::Part);
+                        e.part = Some(no);
+                        e
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
+    };
+    let chosen: HashSet<&str> = out.iter().map(|e| e.path.as_str()).collect();
+    let rest: Vec<GroupEntry> = videos
+        .iter()
+        .filter(|it| !chosen.contains(it.file.path.as_str()))
+        .map(|it| entry(it, Role::Ignore))
+        .collect();
+    out.extend(rest);
+    out
+}
+
+/// The VOBs of the main DVD title set in order: of the sets
+/// `VTS_<set>_<n>.VOB` (`n ≥ 1`; `n = 0` is the set's menu), the one with
+/// the most bytes, then the longest, then the lowest set number.
+fn dvd_title_set<'a, 'b>(videos: &[&'b Item<'a>]) -> Option<Vec<&'b Item<'a>>> {
+    let mut sets: BTreeMap<u32, Vec<(u32, &'b Item<'a>)>> = BTreeMap::new();
+    for it in videos {
+        let upper = it.stem.to_ascii_uppercase();
+        let Some(rest) = upper.strip_prefix("VTS_") else {
+            continue;
+        };
+        let Some((set, n)) = rest.split_once('_') else {
+            continue;
+        };
+        if !it.name.to_ascii_lowercase().ends_with(".vob") {
+            continue;
+        }
+        if let (Ok(set), Ok(n)) = (set.parse::<u32>(), n.parse::<u32>())
+            && n > 0
+        {
+            sets.entry(set).or_default().push((n, it));
         }
     }
+    let weight = |v: &[(u32, &Item<'_>)]| {
+        (
+            v.iter().map(|(_, it)| it.file.size).sum::<u64>(),
+            v.iter()
+                .map(|(_, it)| it.duration().unwrap_or(0))
+                .sum::<u64>(),
+        )
+    };
+    let (_, mut best) = sets
+        .into_iter()
+        .max_by(|(sa, a), (sb, b)| weight(a).cmp(&weight(b)).then(sb.cmp(sa)))?;
+    best.sort_by_key(|(n, _)| *n);
+    Some(best.into_iter().map(|(_, it)| it).collect())
 }
 
 /// Folder and name skeleton of a part stack.
@@ -1280,6 +1316,72 @@ mod tests {
         assert_eq!(g[0].root, "DVD/X");
         let parts: Vec<_> = g[0].playable().map(|e| (e.role, e.part)).collect();
         assert_eq!(parts, [(Role::Part, Some(1)), (Role::Part, Some(2))]);
+        // LIB-017: the menus are recorded but ignored.
+        for menu in ["DVD/X/VIDEO_TS/VIDEO_TS.VOB", "DVD/X/VIDEO_TS/VTS_01_0.VOB"] {
+            assert_eq!(role_of(&g, menu).unwrap().role, Role::Ignore, "{menu}");
+        }
+    }
+
+    #[test]
+    fn disc_main_title_is_chosen_by_size() {
+        let listed = |p: &str, size: u64, d: Option<u64>| ListedFile {
+            path: p.to_owned(),
+            size,
+            duration_ms: d,
+        };
+        // Blu-ray: the largest stream, whatever pa-probe says later, so the
+        // main title does not move between scans.
+        for durations in [false, true] {
+            let d = |ms| durations.then_some(ms);
+            let g = analyze(
+                &[
+                    listed("/M/Heat (1995)/BDMV/index.bdmv", 1, None),
+                    listed(
+                        "/M/Heat (1995)/BDMV/STREAM/00000.m2ts",
+                        9_000,
+                        d(10_200_000),
+                    ),
+                    listed(
+                        "/M/Heat (1995)/BDMV/STREAM/00001.m2ts",
+                        90_000,
+                        d(10_000_000),
+                    ),
+                    listed("/M/Heat (1995)/BDMV/STREAM/00002.m2ts", 50, d(20_000)),
+                ],
+                &StructureOptions::default(),
+            );
+            assert_eq!(g.len(), 1);
+            let main: Vec<_> = g[0].playable().map(|e| e.path.as_str()).collect();
+            assert_eq!(main, ["/M/Heat (1995)/BDMV/STREAM/00001.m2ts"]);
+            for other in ["00000", "00002"] {
+                let e = role_of(&g, &format!("/M/Heat (1995)/BDMV/STREAM/{other}.m2ts")).unwrap();
+                assert_eq!(e.role, Role::Ignore, "{other}");
+            }
+        }
+        // DVD: the title set with the most bytes, its VOBs as parts.
+        let g = analyze(
+            &[
+                listed("/M/Alien (1979)/VIDEO_TS/VIDEO_TS.IFO", 1, None),
+                listed("/M/Alien (1979)/VIDEO_TS/VTS_01_1.VOB", 300, None),
+                listed("/M/Alien (1979)/VIDEO_TS/VTS_02_0.VOB", 10, None),
+                listed("/M/Alien (1979)/VIDEO_TS/VTS_02_1.VOB", 1_000, None),
+                listed("/M/Alien (1979)/VIDEO_TS/VTS_02_2.VOB", 400, None),
+            ],
+            &StructureOptions::default(),
+        );
+        assert_eq!(g.len(), 1);
+        let parts: Vec<_> = g[0]
+            .playable()
+            .map(|e| (e.path.rsplit('/').next().unwrap(), e.part))
+            .collect();
+        assert_eq!(
+            parts,
+            [("VTS_02_1.VOB", Some(1)), ("VTS_02_2.VOB", Some(2))]
+        );
+        for other in ["VTS_01_1.VOB", "VTS_02_0.VOB"] {
+            let e = role_of(&g, &format!("/M/Alien (1979)/VIDEO_TS/{other}")).unwrap();
+            assert_eq!(e.role, Role::Ignore, "{other}");
+        }
     }
 
     #[test]

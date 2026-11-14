@@ -1,6 +1,6 @@
 # Флейворы сборки `store` и `full`
 
-Что входит в какой флейвор и почему — [ADR-0007](../adr/0007-store-full-build-flavors.md) и [ADR-0011](../adr/0011-maintainer-decisions-release-0-1.md) §5. Как это устроено в сборке — [ADR-NNNN](../adr/0041-build-flavor-mechanism.md) (CORE-013). Здесь — практика.
+Что входит в какой флейвор и почему — [ADR-0007](../adr/0007-store-full-build-flavors.md) и [ADR-0011](../adr/0011-maintainer-decisions-release-0-1.md) §5. Как это устроено в сборке — [ADR-0041](../adr/0041-build-flavor-mechanism.md) (CORE-013). Здесь — практика.
 
 | Флейвор | Каналы | Что есть |
 |---|---|---|

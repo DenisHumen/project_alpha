@@ -46,6 +46,14 @@
 //!   anything; [`SourceOpener`] serves them to the loopback HTTP proxy
 //!   (`pa-proxy`) for playback.
 //!
+//! Discs (LIB-017): a Blu-ray folder (`BDMV/`), a DVD folder (`VIDEO_TS/`)
+//! and a disc image (`.iso`) are one movie each, named by the disc folder or
+//! image. The scan records the disc streams; the folder analysis picks the
+//! main title (the largest `.m2ts`, the largest DVD title set) and the
+//! item plays that file like any other, directly or through the proxy. A
+//! disc image is listed but marked [`Unplayable::DiscImage`]: the LGPL
+//! player build has no disc navigation.
+//!
 //! Recognition in the scan is local: works are created from parsed titles,
 //! without providers. The metadata run then matches them against TMDB (and
 //! anime against AniList and Shikimori) and attaches what it finds to the
@@ -84,7 +92,7 @@ use pa_library::rusqlite::Connection;
 pub use connect::{Connector, LocalConnector, SourceOpener, SourcesConnector};
 pub use error::Error;
 pub use import_v0::ImportReport;
-pub use items::{Item, ItemKind, ItemRef, SearchGroup};
+pub use items::{Item, ItemKind, ItemRef, SearchGroup, Unplayable};
 pub use lists::{CollectionInfo, CollectionKind, PlaylistInfo, Version};
 pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
 pub use music::MusicTrack;
