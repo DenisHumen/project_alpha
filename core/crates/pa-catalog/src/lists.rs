@@ -55,6 +55,12 @@ pub struct Version {
 }
 
 impl Version {
+    /// Why the player cannot play this version (LIB-017: a disc image).
+    #[must_use]
+    pub fn unplayable(&self) -> Option<crate::Unplayable> {
+        crate::Unplayable::of_path(&self.rel_path)
+    }
+
     /// Short label: resolution, HDR and edition (`4K · HDR10 · Director's
     /// Cut`), else the release source, else the file name.
     #[must_use]
