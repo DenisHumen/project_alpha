@@ -1225,7 +1225,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "901eec2d226107dad1c55b30f7421c4687bebcf70ed43ca44d1b447ca087b238"
 dependencies = [
  "hex",
- "md-5",
+ "md-5 0.10.6",
  "proc-macro2",
  "quote",
  "syn 2.0.119",
@@ -2020,6 +2020,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "md-5"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69b6441f590336821bb897fb28fc622898ccceb1d6cea3fde5ea86b090c4de98"
+dependencies = [
+ "cfg-if",
+ "digest 0.11.3",
+]
+
+[[package]]
 name = "mdns-sd"
 version = "0.21.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2512,12 +2522,22 @@ dependencies = [
 name = "pa-sync"
 version = "0.1.0"
 dependencies = [
+ "futures-util",
+ "pa-discovery",
  "pa-library",
  "pa-model",
+ "pa-pairing",
+ "pa-secrets",
  "proptest",
+ "rcgen",
+ "rustls",
  "serde",
  "serde_json",
  "thiserror",
+ "tokio",
+ "tokio-rustls",
+ "tokio-tungstenite",
+ "tracing",
  "uuid",
 ]
 
@@ -2538,6 +2558,23 @@ dependencies = [
 [[package]]
 name = "pa-vfs"
 version = "0.1.0"
+
+[[package]]
+name = "pa-vfs-webdav"
+version = "0.1.0"
+dependencies = [
+ "getrandom 0.4.3",
+ "httpdate",
+ "md-5 0.11.0",
+ "pa-discovery",
+ "pa-vfs",
+ "quick-xml",
+ "rcgen",
+ "reqwest",
+ "rustls",
+ "sha2",
+ "tempfile",
+]
 
 [[package]]
 name = "parking"
@@ -2908,7 +2945,9 @@ checksum = "16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029"
 dependencies = [
  "base64 0.23.1",
  "bytes",
+ "futures-channel",
  "futures-core",
+ "futures-util",
  "h2",
  "http",
  "http-body",

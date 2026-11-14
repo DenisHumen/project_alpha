@@ -368,9 +368,9 @@ project_alpha/
   - Что: NTLMSSP, подпись и шифрование SMB3 (`smb3_set_seal`), листинг, чтение с read-ahead и параллельным prefetch (буфер 32–256 МБ, настраиваемый), SMB1 только по явному флагу с предупреждением.
   - deps: NET-002, CI-012 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
   - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь).
-- [ ] **NET-004** WebDAV бэкенд
+- [x] **NET-004** WebDAV бэкенд
   - Что: reqwest + quick-xml (PROPFIND), Basic и Digest, Range, редиректы, самоподписанные сертификаты с TOFU.
-  - deps: NET-001, CI-012 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
+  - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
   - done when: контракт-тесты против nginx, Apache, `rclone serve` и Nextcloud.
 - [ ] **NET-005** NFS v3/v4 бэкенд (libnfs) [P1]
   - Что: libnfs (LGPL, динамически), userspace-клиент без mount.
@@ -607,6 +607,10 @@ project_alpha/
   - Что: перевести `draft`-записи корпуса v0 (`tools/recognition-eval/corpus`) в `verified`: позиции `tmdb` сериалов (сейчас из эфирного порядка TVmaze) и `tmdb`/`tvdb_absolute` аниме (правила `titles.yaml`) сверить с API TMDB/TVDB через клиент META-009; добавить вторую схему OVA/спешлам, где она есть; расхождения — в `titles.yaml` и `notes`; затем пересчитать бейзлайны.
   - deps: META-002, META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §6.1
   - done when: все записи A1–A4, A9 и A16 `verified` (или `disputed` с `notes`); `corpus-validate --strict` без ошибок.
+- [x] **META-026** Скорер кандидатов v0 по локальному индексу: работа, запись франшизы и эпизод
+  - Что: выделено из META-014 (та ждёт META-013 и LIB-006): sans-IO модуль `pa_recognition::score` — для каждого файла группы топ-10 `TitleIndex` по N-best гипотезам парсера → интерпретации кандидата (тип и год; для аниме — франшиза из записей с общим базовым ключом названия: номер внутри записи, абсолютный номер через франшизу, явный сезон → n-я запись, перелив номера в следующие записи) → ручные веса, уверенность из лучшего балла и отрыва от другой работы; файлы без своего названия берут решение папки. Адаптер `pa-eval run --recognizer scorer` (офлайн, без провайдеров). Признаки длительности, языка и хэша, запись в Match и совместные ограничения по группе остаются в META-014.
+  - deps: META-003, META-007, META-008 · size: M · parallel: yes · веха: M2 · ref: 03 §4.2 [5]
+  - done when: на train + dev тихие ошибки ≤ 1 % при пороге авто 0.9, Coverage выше `naive`; test прогнан один раз, отчёт в `baselines/v0/`.
 
 ### 3.7. PLAY — общий плеерный слой
 
@@ -888,7 +892,7 @@ project_alpha/
   - done when: layout-тест плеера в портрете на телефоне без overflow; навигация подсвечивает активный раздел; лицензии видны; RU-скриншоты плеера на русском.
 - [ ] **UI-024** Приложение на Rust-ядре: медиатека, сканер, поиск, прогресс через `pa_core`
   - Что: заменить Dart `pa_library` v0 в приложении на Rust-ядро через `pa_core` (FRB): pa-library (схема v1, импорт v0 — LIB-015), pa-scanner, парсер+индекс тайтлов, поиск FTS5, прогресс/«Продолжить»/Up Next, музыка. Dart-пакет остаётся адаптером за тем же интерфейсом `Library`.
-  - deps: CORE-002, LIB-003, LIB-008, LIB-011, META-007 · size: L · parallel: no · веха: M1 · ref: docs/dev/release-0.1-contract.md
+  - deps: CORE-002, LIB-003, LIB-008, LIB-011, META-007 · size: L · parallel: no · веха: M2 · ref: docs/dev/release-0.1-contract.md
   - done when: приложение на Linux и Android работает целиком на Rust-ядре; тесты приложения зелёные; старая база v0 импортируется.
 - [ ] **UI-021** Доступность
   - Что: Semantics для TalkBack, VoiceOver, Narrator и Orca; порядок фокуса клавиатурой; контраст; Reduce Motion (кроссфейд вместо переходов).
@@ -976,7 +980,7 @@ project_alpha/
   - Что: общие ключи через QR или 6-значный код в LAN, список устройств, отзыв устройства, ротация ключей; без облака.
   - deps: SYNC-001, CORE-007 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: отозванное устройство больше не может подключиться (тест).
-- [ ] **SYNC-006** P2P-транспорт в LAN и выбор хаба
+- [x] **SYNC-006** P2P-транспорт в LAN и выбор хаба
   - Что: mDNS `_alpha-sync._tcp` (ADR-0019; `_projectalpha-sync` длиннее 15 символов RFC 6763), WebSocket между устройствами, шифрование (Noise или TLS с ключами из pairing); хабом становится любое включённое устройство (приоритет: сервер, десктоп, ТВ, телефон).
   - deps: SYNC-002, SYNC-005, NET-009 · size: L · parallel: yes · веха: M3 · ref: S §2
   - done when: три устройства в LAN сходятся; при выключении хаба выбирается новый меньше чем за 10 с.

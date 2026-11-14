@@ -484,6 +484,16 @@ impl Journal {
         }
     }
 
+    /// Journal id.
+    pub fn log(&self) -> &str {
+        &self.log
+    }
+
+    /// Stored frames in `seq` order.
+    pub fn iter(&self) -> impl Iterator<Item = &OpFrame> {
+        self.frames.iter()
+    }
+
     /// Stores an op frame. Returns its `seq` and whether it is new; a
     /// duplicate keeps its first `seq` (so the ack is the same).
     pub fn append(&mut self, frame: &OpFrame) -> (u64, bool) {
