@@ -676,24 +676,43 @@ pub fn search(
 
     let mut candidates = Vec::new();
     // Full-text match.
-    let sql = format!(
-        "SELECT d.entity, d.ref_id, d.kind, d.text, d.plain_key, d.loose_key, d.weight, f.rank \
-         FROM (SELECT rowid, rank FROM search_fts WHERE search_fts MATCH ?1 ORDER BY rank LIMIT ?2) f \
-         JOIN search_docs d ON d.id = f.rowid WHERE d.kind IN ({kind_list})"
-    );
-    // Without a kind filter or per-kind cap the inner LIMIT is exact; with
-    // one, fetch more.
-    let fts_limit = if opts.kinds.is_empty() && opts.per_kind.is_none() {
-        FTS_CANDIDATES
+    if opts.per_kind.is_some() {
+        // The best candidates of each kind, so a crowded kind does not take
+        // every slot: bm25 is computed once for all matches either way.
+        let sql = format!(
+            "SELECT entity, ref_id, kind, text, plain_key, loose_key, weight, rank FROM \
+             (SELECT d.entity, d.ref_id, d.kind, d.text, d.plain_key, d.loose_key, d.weight, \
+                     f.rank AS rank, \
+                     row_number() OVER (PARTITION BY d.kind ORDER BY f.rank) AS n \
+              FROM search_fts f JOIN search_docs d ON d.id = f.rowid \
+              WHERE search_fts MATCH ?1 AND d.kind IN ({kind_list})) \
+             WHERE n <= ?2"
+        );
+        collect(
+            conn,
+            &sql,
+            params![q.fts_expr(), FTS_CANDIDATES as i64],
+            &mut candidates,
+        )?;
     } else {
-        FTS_CANDIDATES * 4
-    };
-    collect(
-        conn,
-        &sql,
-        params![q.fts_expr(), fts_limit as i64],
-        &mut candidates,
-    )?;
+        let sql = format!(
+            "SELECT d.entity, d.ref_id, d.kind, d.text, d.plain_key, d.loose_key, d.weight, f.rank \
+             FROM (SELECT rowid, rank FROM search_fts WHERE search_fts MATCH ?1 ORDER BY rank LIMIT ?2) f \
+             JOIN search_docs d ON d.id = f.rowid WHERE d.kind IN ({kind_list})"
+        );
+        // Without a kind filter the inner LIMIT is exact; with one, fetch more.
+        let fts_limit = if opts.kinds.is_empty() {
+            FTS_CANDIDATES
+        } else {
+            FTS_CANDIDATES * 4
+        };
+        collect(
+            conn,
+            &sql,
+            params![q.fts_expr(), fts_limit as i64],
+            &mut candidates,
+        )?;
+    }
 
     // Exact and starts-with lookups: short titles that bm25 does not favour
     // (`Up` among thousands of `up*`).

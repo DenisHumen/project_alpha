@@ -220,6 +220,12 @@ fn grouped_search_over_50_000_items_is_fast() {
         assert_eq!(g.items.len(), 20, "{:?}", g.kind);
         assert!(g.items.iter().all(|i| i.kind == g.kind), "{:?}", g.kind);
     }
+    // Even one letter, matching most of the library, fills every group.
+    for q in ["t", "т"] {
+        let groups = cat.search_grouped(q, 20).unwrap();
+        assert_eq!(groups.len(), 4, "{q}");
+        assert!(groups.iter().all(|g| g.items.len() == 20), "{q}");
+    }
     // A Russian query finds works through their aliases.
     let ru = cat.search_grouped("тайна", 5).unwrap();
     assert!(
