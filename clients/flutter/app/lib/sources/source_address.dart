@@ -29,7 +29,9 @@ final _windowsPath = RegExp(r'^([A-Za-z]:[\\/]|\\\\)');
 /// A local folder: an absolute path (POSIX, `C:\…` or `\\server\share`).
 AddressResult localAddress(String input) {
   final path = input.trim();
-  if (path.isEmpty) return const AddressResult.fail(SourceFormError.folderEmpty);
+  if (path.isEmpty) {
+    return const AddressResult.fail(SourceFormError.folderEmpty);
+  }
   if (!path.startsWith('/') && !_windowsPath.hasMatch(path)) {
     return const AddressResult.fail(SourceFormError.folderNotAbsolute);
   }
@@ -100,7 +102,9 @@ AddressResult webdavAddress(String input) {
   if (uri == null || (uri.scheme != 'https' && uri.scheme != 'http')) {
     return const AddressResult.fail(SourceFormError.urlScheme);
   }
-  if (uri.host.isEmpty) return const AddressResult.fail(SourceFormError.urlScheme);
+  if (uri.host.isEmpty) {
+    return const AddressResult.fail(SourceFormError.urlScheme);
+  }
   if (uri.userInfo.isNotEmpty) {
     return const AddressResult.fail(SourceFormError.credentialsInAddress);
   }
@@ -124,7 +128,10 @@ AddressResult? tlsPin(String input) {
 String suggestSourceName(String address) {
   final s = address.replaceAll('\\', '/');
   final uri = Uri.tryParse(s);
-  if (uri != null && uri.hasScheme && uri.scheme != 'file' && s.contains('://')) {
+  if (uri != null &&
+      uri.hasScheme &&
+      uri.scheme != 'file' &&
+      s.contains('://')) {
     final segs = uri.pathSegments.where((p) => p.isNotEmpty).toList();
     return segs.isEmpty ? uri.host : segs.last;
   }

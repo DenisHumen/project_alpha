@@ -242,13 +242,9 @@ class _SourceCard extends StatelessWidget {
           };
 
     final session = services.sessionScans[source.id];
-    final lastScan = [
-      st.lastScanFinishedAt,
-      session?.at,
-    ].whereType<DateTime>().fold<DateTime?>(
-      null,
-      (a, b) => a == null || b.isAfter(a) ? b : a,
-    );
+    final lastScan = [st.lastScanFinishedAt, session?.at]
+        .whereType<DateTime>()
+        .fold<DateTime?>(null, (a, b) => a == null || b.isAfter(a) ? b : a);
     final rawError =
         st.currentError ??
         (session != null && session.at == lastScan ? session.error : null);
@@ -338,20 +334,14 @@ class _SourceCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                switch (p.phase) {
-                  ScanPhase.connecting => l.settingsScanConnecting,
-                  ScanPhase.metadata => l.settingsScanMetadata(
-                    p.processed,
-                    p.total ?? p.filesFound,
-                  ),
-                  _ => l.settingsScanFiles(
-                    p.processed,
-                    p.total ?? p.filesFound,
-                  ),
-                },
-                style: theme.textTheme.labelSmall,
-              ),
+              Text(switch (p.phase) {
+                ScanPhase.connecting => l.settingsScanConnecting,
+                ScanPhase.metadata => l.settingsScanMetadata(
+                  p.processed,
+                  p.total ?? p.filesFound,
+                ),
+                _ => l.settingsScanFiles(p.processed, p.total ?? p.filesFound),
+              }, style: theme.textTheme.labelSmall),
             ],
             const SizedBox(height: 10),
             Wrap(

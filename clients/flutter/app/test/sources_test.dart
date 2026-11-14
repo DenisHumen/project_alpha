@@ -194,7 +194,11 @@ void main() {
 
     test('SMB address from fields or a pasted address', () {
       expect(
-        smbAddress(host: 'nas.local', share: '/media/', folder: 'Movies/').address,
+        smbAddress(
+          host: 'nas.local',
+          share: '/media/',
+          folder: 'Movies/',
+        ).address,
         'smb://nas.local/media/Movies',
       );
       expect(
@@ -206,7 +210,10 @@ void main() {
         'smb://nas/media',
       );
       expect(smbAddress(host: '', share: 'x').error, SourceFormError.hostEmpty);
-      expect(smbAddress(host: 'nas', share: '').error, SourceFormError.shareEmpty);
+      expect(
+        smbAddress(host: 'nas', share: '').error,
+        SourceFormError.shareEmpty,
+      );
       expect(
         smbAddress(host: 'anna@nas', share: 'x').error,
         SourceFormError.credentialsInAddress,
@@ -246,7 +253,11 @@ void main() {
       ListTile tile(String text) => tester.widget<ListTile>(
         find.ancestor(of: find.text(text), matching: find.byType(ListTile)),
       );
-      for (final t in [en.sourcesTypeLocal, en.sourcesTypeSmb, en.sourcesTypeWebdav]) {
+      for (final t in [
+        en.sourcesTypeLocal,
+        en.sourcesTypeSmb,
+        en.sourcesTypeWebdav,
+      ]) {
         expect(tile(t).enabled, isTrue, reason: t);
       }
       for (final t in [

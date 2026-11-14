@@ -74,8 +74,10 @@ class OnboardingScreen extends StatelessWidget {
                               primary: true,
                               icon: Icons.create_new_folder_outlined,
                               label: l.onboardingAddFolder,
-                              onPressed: () =>
-                                  showAddSourceDialog(context, type: SourceType.local),
+                              onPressed: () => showAddSourceDialog(
+                                context,
+                                type: SourceType.local,
+                              ),
                             ),
                             KButton(
                               icon: Icons.auto_awesome_outlined,
