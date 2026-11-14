@@ -199,6 +199,37 @@ fn offline_source_keeps_items() {
     assert_eq!(cat.movies().unwrap().len(), 2);
 }
 
+/// `(started, finished, last_error)` of the only source (NET-011 status).
+fn scan_status(dir: &Path) -> (Option<i64>, Option<i64>, Option<String>) {
+    let conn = pa_library::open(dir.join("db/library.db")).unwrap();
+    conn.query_row(
+        "SELECT last_scan_started_at_ms, last_scan_finished_at_ms, last_error FROM sources",
+        [],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+    )
+    .unwrap()
+}
+
+#[test]
+fn scan_records_its_times_and_fatal_error_in_the_source_status() {
+    let (dir, cat) = setup();
+    assert_eq!(scan_status(dir.path()), (None, None, None));
+    scan_all(&cat);
+    let (started, finished, error) = scan_status(dir.path());
+    assert!(started.is_some());
+    assert!(finished >= started, "{started:?} {finished:?}");
+    assert_eq!(error, None);
+
+    std::fs::rename(dir.path().join("media"), dir.path().join("away")).unwrap();
+    scan_all(&cat);
+    let (_, finished, error) = scan_status(dir.path());
+    assert!(finished.is_some());
+    assert!(
+        error.as_deref().unwrap().starts_with("folder not found: "),
+        "{error:?}"
+    );
+}
+
 #[test]
 fn item_ids_are_strings_of_their_rows() {
     let (_dir, cat) = setup();

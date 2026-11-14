@@ -65,10 +65,12 @@ final _desktopShots = <_Shot>[
   const _Shot('settings', Section.settings),
   _Shot('add-source', Section.settings, (t, _) async {
     await _tapText(t, 'Add source');
-    await _tapText(t, 'SMB share (beta)');
+    await _tapText(t, 'SMB share (Windows, NAS)');
+    await t.enterText(find.widgetWithText(TextField, 'Server'), 'nas.local');
+    await t.enterText(find.widgetWithText(TextField, 'Shared folder'), 'media');
     await t.enterText(
-      find.widgetWithText(TextField, 'Share address'),
-      'smb://nas.local/media/Movies',
+      find.widgetWithText(TextField, 'Folder inside the share (optional)'),
+      'Movies',
     );
     await t.enterText(
       find.widgetWithText(TextField, 'Username (optional)'),
