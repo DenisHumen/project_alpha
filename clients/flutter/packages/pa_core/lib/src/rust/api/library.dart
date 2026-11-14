@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `count`, `item_ref`, `items`, `signed`, `small`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// `true` if `path` is a database of the Dart `pa_library` v0.
 Future<bool> isLegacyV0Library({required String path}) =>
@@ -33,6 +33,14 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   /// Episodes of a show item.
   Future<List<CoreItem>> episodes({required String showId});
+
+  /// Fetches provider metadata for the works that need it (new, changed,
+  /// stale or previously failed). Run it after [`scan`](Self::scan);
+  /// [`cancel_scan`](Self::cancel_scan) stops it too. The stream ends
+  /// with a `done` update.
+  Stream<CoreMetadataUpdate> fetchMetadata({
+    required CoreMetadataSettings settings,
+  });
 
   /// Manual fix of an item's work (an episode: its show).
   Future<void> fixMatch({
@@ -66,6 +74,11 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   /// Removes a source with everything found in it.
   Future<void> removeSource({required PlatformInt64 id});
+
+  /// Makes the next metadata run ask again: for every work (`all`, e.g.
+  /// after a language change) or only for works no provider matched
+  /// (e.g. after a new TMDB key).
+  Future<void> resetMetadata({required bool all});
 
   /// Stores a player position report. `false`: the item has no stable key
   /// yet and nothing was stored.
@@ -190,6 +203,12 @@ class CoreItem {
   final PlatformInt64? tmdbId;
   final PlatformInt64? addedAtMs;
 
+  /// Poster URL (https or `file://`); episodes: the show's.
+  final String? posterUrl;
+
+  /// Backdrop URL; episodes: the episode still.
+  final String? backdropUrl;
+
   const CoreItem({
     required this.id,
     required this.kind,
@@ -210,6 +229,8 @@ class CoreItem {
     this.matchConfidence,
     this.tmdbId,
     this.addedAtMs,
+    this.posterUrl,
+    this.backdropUrl,
   });
 
   @override
@@ -232,7 +253,9 @@ class CoreItem {
       durationMs.hashCode ^
       matchConfidence.hashCode ^
       tmdbId.hashCode ^
-      addedAtMs.hashCode;
+      addedAtMs.hashCode ^
+      posterUrl.hashCode ^
+      backdropUrl.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -257,7 +280,9 @@ class CoreItem {
           durationMs == other.durationMs &&
           matchConfidence == other.matchConfidence &&
           tmdbId == other.tmdbId &&
-          addedAtMs == other.addedAtMs;
+          addedAtMs == other.addedAtMs &&
+          posterUrl == other.posterUrl &&
+          backdropUrl == other.backdropUrl;
 }
 
 /// Kind of a library item.
@@ -268,6 +293,87 @@ enum CoreItemKind {
   series,
   episode,
   track,
+}
+
+/// Settings of a metadata run.
+class CoreMetadataSettings {
+  /// The user's own TMDB key (v3 key or v4 token); `None` uses the key
+  /// built into the app, if any. Without any key only anime is matched
+  /// (AniList, Shikimori).
+  final String? tmdbApiKey;
+
+  /// Metadata language, e.g. `ru-RU` or `en-US`.
+  final String language;
+
+  /// Directory of the provider response cache (`provider-cache.sqlite`);
+  /// disposable, so the platform cache directory.
+  final String cacheDir;
+
+  const CoreMetadataSettings({
+    this.tmdbApiKey,
+    required this.language,
+    required this.cacheDir,
+  });
+
+  @override
+  int get hashCode =>
+      tmdbApiKey.hashCode ^ language.hashCode ^ cacheDir.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoreMetadataSettings &&
+          runtimeType == other.runtimeType &&
+          tmdbApiKey == other.tmdbApiKey &&
+          language == other.language &&
+          cacheDir == other.cacheDir;
+}
+
+/// Progress of [`CoreLibrary::fetch_metadata`]; the last update has
+/// `done` set.
+class CoreMetadataUpdate {
+  final int processed;
+  final int total;
+  final bool done;
+  final int matched;
+  final int notFound;
+  final int failed;
+
+  /// Why the run stopped early (rejected key, offline), or a failure.
+  final String? error;
+
+  const CoreMetadataUpdate({
+    required this.processed,
+    required this.total,
+    required this.done,
+    required this.matched,
+    required this.notFound,
+    required this.failed,
+    this.error,
+  });
+
+  @override
+  int get hashCode =>
+      processed.hashCode ^
+      total.hashCode ^
+      done.hashCode ^
+      matched.hashCode ^
+      notFound.hashCode ^
+      failed.hashCode ^
+      error.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoreMetadataUpdate &&
+          runtimeType == other.runtimeType &&
+          processed == other.processed &&
+          total == other.total &&
+          done == other.done &&
+          matched == other.matched &&
+          notFound == other.notFound &&
+          failed == other.failed &&
+          error == other.error;
 }
 
 /// Playback state of an item.

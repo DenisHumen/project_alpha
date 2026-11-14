@@ -47,6 +47,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<CoreMetadataUpdate>
+  dco_decode_StreamSink_core_metadata_update_Sse(dynamic raw);
+
+  @protected
   RustStreamSink<CoreScanUpdate> dco_decode_StreamSink_core_scan_update_Sse(
     dynamic raw,
   );
@@ -68,6 +72,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItem dco_decode_box_autoadd_core_item(dynamic raw);
+
+  @protected
+  CoreMetadataSettings dco_decode_box_autoadd_core_metadata_settings(
+    dynamic raw,
+  );
 
   @protected
   CoreProgress dco_decode_box_autoadd_core_progress(dynamic raw);
@@ -110,6 +119,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItemKind dco_decode_core_item_kind(dynamic raw);
+
+  @protected
+  CoreMetadataSettings dco_decode_core_metadata_settings(dynamic raw);
+
+  @protected
+  CoreMetadataUpdate dco_decode_core_metadata_update(dynamic raw);
 
   @protected
   CoreProgress dco_decode_core_progress(dynamic raw);
@@ -265,6 +280,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<CoreMetadataUpdate>
+  sse_decode_StreamSink_core_metadata_update_Sse(SseDeserializer deserializer);
+
+  @protected
   RustStreamSink<CoreScanUpdate> sse_decode_StreamSink_core_scan_update_Sse(
     SseDeserializer deserializer,
   );
@@ -288,6 +307,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItem sse_decode_box_autoadd_core_item(SseDeserializer deserializer);
+
+  @protected
+  CoreMetadataSettings sse_decode_box_autoadd_core_metadata_settings(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CoreProgress sse_decode_box_autoadd_core_progress(
@@ -332,6 +356,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItemKind sse_decode_core_item_kind(SseDeserializer deserializer);
+
+  @protected
+  CoreMetadataSettings sse_decode_core_metadata_settings(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreMetadataUpdate sse_decode_core_metadata_update(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CoreProgress sse_decode_core_progress(SseDeserializer deserializer);
@@ -509,6 +543,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_core_metadata_update_Sse(
+    RustStreamSink<CoreMetadataUpdate> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_core_scan_update_Sse(
     RustStreamSink<CoreScanUpdate> self,
     SseSerializer serializer,
@@ -535,6 +575,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_core_item(
     CoreItem self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_core_metadata_settings(
+    CoreMetadataSettings self,
     SseSerializer serializer,
   );
 
@@ -600,6 +646,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_core_item_kind(CoreItemKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_metadata_settings(
+    CoreMetadataSettings self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_metadata_update(
+    CoreMetadataUpdate self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_core_progress(CoreProgress self, SseSerializer serializer);
