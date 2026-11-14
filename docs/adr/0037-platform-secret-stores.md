@@ -1,4 +1,4 @@
-# ADR-NNNN: Платформенные хранилища секретов — Keystore + AES-GCM без Tink, Keychain `AfterFirstUnlock`, колбэк FRB для Flutter
+# ADR-0037: Платформенные хранилища секретов — Keystore + AES-GCM без Tink, Keychain `AfterFirstUnlock`, колбэк FRB для Flutter
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
