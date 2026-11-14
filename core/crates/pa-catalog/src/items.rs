@@ -365,7 +365,14 @@ pub(crate) fn works_by_ids(
     let json = serde_json::to_string(ids).map_err(|e| Error::Invalid(e.to_string()))?;
     let filter = "AND w.id IN (SELECT value FROM json_each(?1))";
     let found = match kind {
-        ItemKind::Movie => query(conn, MOVIE_SQL, filter, "GROUP BY w.id", &[&json], movie_row)?,
+        ItemKind::Movie => query(
+            conn,
+            MOVIE_SQL,
+            filter,
+            "GROUP BY w.id",
+            &[&json],
+            movie_row,
+        )?,
         ItemKind::Show => query(conn, SHOW_SQL, filter, "GROUP BY w.id", &[&json], show_row)?,
         other => return Err(Error::Invalid(format!("not a work kind: {other:?}"))),
     };

@@ -351,7 +351,13 @@ impl Index {
         Ok(index)
     }
 
-    fn file_matches(&self, file: &FileRow, f: &LibraryFilter, audio: &[u32], langs: &[u32]) -> bool {
+    fn file_matches(
+        &self,
+        file: &FileRow,
+        f: &LibraryFilter,
+        audio: &[u32],
+        langs: &[u32],
+    ) -> bool {
         (f.sources.is_empty() || f.sources.contains(&file.source))
             && (f.resolutions.is_empty()
                 || file.resolution.is_some_and(|r| f.resolutions.contains(&r)))
@@ -514,8 +520,7 @@ impl Index {
                 count,
             })
             .collect();
-        out.genres
-            .sort_by(|a, b| a.value.to_lowercase().cmp(&b.value.to_lowercase()));
+        out.genres.sort_by_key(|g| g.value.to_lowercase());
         out.resolutions = Resolution::ALL
             .into_iter()
             .filter_map(|r| res.get(&r).map(|&count| FacetValue { value: r, count }))

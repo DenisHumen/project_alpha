@@ -360,7 +360,16 @@ mod tests {
         };
         assert_eq!(
             info.audio_formats(),
-            ["truehd", "atmos", "dts_hd_ma", "dts_hd_hra", "dts", "eac3", "pcm", "ac3"]
+            [
+                "truehd",
+                "atmos",
+                "dts_hd_ma",
+                "dts_hd_hra",
+                "dts",
+                "eac3",
+                "pcm",
+                "ac3"
+            ]
         );
     }
 

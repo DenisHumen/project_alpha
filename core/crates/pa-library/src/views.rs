@@ -88,7 +88,11 @@ fn prefs_row(r: &Row<'_>) -> rusqlite::Result<ViewPrefs> {
 }
 
 /// Saved preferences of `view`, `None` if the profile never saved any.
-pub fn view_prefs(conn: &Connection, profile_id: i64, view: &str) -> Result<Option<ViewPrefs>, Error> {
+pub fn view_prefs(
+    conn: &Connection,
+    profile_id: i64,
+    view: &str,
+) -> Result<Option<ViewPrefs>, Error> {
     Ok(conn
         .prepare_cached(
             "SELECT view, sort, descending, folders_first, filter_json, updated_at_ms
@@ -177,7 +181,11 @@ const SHELF_COLUMNS: &str =
 
 /// Shelves of a profile by position; with `pinned_only`, only those pinned
 /// to Home.
-pub fn shelves(conn: &Connection, profile_id: i64, pinned_only: bool) -> Result<Vec<SmartShelf>, Error> {
+pub fn shelves(
+    conn: &Connection,
+    profile_id: i64,
+    pinned_only: bool,
+) -> Result<Vec<SmartShelf>, Error> {
     let mut stmt = conn.prepare_cached(&format!(
         "SELECT {SHELF_COLUMNS} FROM smart_shelves
          WHERE profile_id = ?1 AND (?2 = 0 OR pinned_home = 1)
@@ -257,7 +265,12 @@ pub fn delete_shelf(conn: &Connection, id: i64) -> Result<bool, Error> {
 
 /// Puts the profile's shelves in the order of `ids` (positions 0, 1, …);
 /// shelves not listed keep their relative order after them.
-pub fn reorder_shelves(conn: &mut Connection, profile_id: i64, ids: &[i64], now_ms: i64) -> Result<(), Error> {
+pub fn reorder_shelves(
+    conn: &mut Connection,
+    profile_id: i64,
+    ids: &[i64],
+    now_ms: i64,
+) -> Result<(), Error> {
     let tx = conn.transaction()?;
     let current: Vec<i64> = {
         let mut stmt = tx.prepare_cached(

@@ -188,16 +188,73 @@ fn library() -> Fixture {
         &["rus", "eng"],
         100,
     );
-    let inception = fx.file(1, "/Movies/Inception.mkv", 2, None, Some(FHD), &["eac3"], &["eng"], 200);
-    fx.file(2, "/Кино/Амели.avi", 3, None, Some(HD), &["ac3"], &["fra"], 300);
-    fx.file(2, "/Кино/Ёлки.mkv", 4, None, Some(SD), &["aac"], &["rus"], 400);
+    let inception = fx.file(
+        1,
+        "/Movies/Inception.mkv",
+        2,
+        None,
+        Some(FHD),
+        &["eac3"],
+        &["eng"],
+        200,
+    );
+    fx.file(
+        2,
+        "/Кино/Амели.avi",
+        3,
+        None,
+        Some(HD),
+        &["ac3"],
+        &["fra"],
+        300,
+    );
+    fx.file(
+        2,
+        "/Кино/Ёлки.mkv",
+        4,
+        None,
+        Some(SD),
+        &["aac"],
+        &["rus"],
+        400,
+    );
     fx.file(2, "/Кино/12 стульев.mkv", 5, None, None, &[], &[], 500);
-    fx.file(1, "/Movies/Dune.1080p.mkv", 6, None, Some(FHD), &["eac3"], &["eng"], 50);
-    fx.file(2, "/Кино/Dune.2160p.mkv", 6, None, Some(UHD_HDR10), &["truehd"], &["eng"], 600);
-    fx.file(1, "/Movies/alien.mkv", 7, None, Some(FHD), &["dts_hd_ma"], &["eng"], 700);
+    fx.file(
+        1,
+        "/Movies/Dune.1080p.mkv",
+        6,
+        None,
+        Some(FHD),
+        &["eac3"],
+        &["eng"],
+        50,
+    );
+    fx.file(
+        2,
+        "/Кино/Dune.2160p.mkv",
+        6,
+        None,
+        Some(UHD_HDR10),
+        &["truehd"],
+        &["eng"],
+        600,
+    );
+    fx.file(
+        1,
+        "/Movies/alien.mkv",
+        7,
+        None,
+        Some(FHD),
+        &["dts_hd_ma"],
+        &["eng"],
+        700,
+    );
     let gone = fx.file(1, "/Movies/Part 10.mkv", 8, None, Some(FHD), &[], &[], 800);
     fx.conn
-        .execute("UPDATE files SET missing_since_ms = 1 WHERE id = ?1", [gone])
+        .execute(
+            "UPDATE files SET missing_since_ms = 1 WHERE id = ?1",
+            [gone],
+        )
         .unwrap();
 
     fx.work(20, "show", "Dark", Some(2017), &["Drama", "Sci-Fi"]);
@@ -206,14 +263,53 @@ fn library() -> Fixture {
     fx.episode(201, 20, 1, 1);
     fx.episode(202, 20, 1, 2);
     fx.episode(211, 21, 1, 1);
-    fx.file(1, "/TV/Dark/Season 1/Dark.S01E01.mkv", 20, Some(201), Some(FHD), &["eac3"], &["deu"], 900);
-    fx.file(1, "/TV/Dark/Season 1/Dark.S01E02.mkv", 20, Some(202), Some(FHD), &["eac3"], &["deu"], 901);
-    let friends = fx.file(1, "/TV/Friends/Friends.S01E01.mkv", 21, Some(211), Some(HD), &["ac3"], &["eng"], 902);
+    fx.file(
+        1,
+        "/TV/Dark/Season 1/Dark.S01E01.mkv",
+        20,
+        Some(201),
+        Some(FHD),
+        &["eac3"],
+        &["deu"],
+        900,
+    );
+    fx.file(
+        1,
+        "/TV/Dark/Season 1/Dark.S01E02.mkv",
+        20,
+        Some(202),
+        Some(FHD),
+        &["eac3"],
+        &["deu"],
+        901,
+    );
+    let friends = fx.file(
+        1,
+        "/TV/Friends/Friends.S01E01.mkv",
+        21,
+        Some(211),
+        Some(HD),
+        &["ac3"],
+        &["eng"],
+        902,
+    );
 
     fx.progress("tmdb:movie:603", "movie", 7_000_000, true, 5_000);
-    fx.progress(&format!("file:{inception:08x}"), "movie", 2_400_000, false, 6_000);
+    fx.progress(
+        &format!("file:{inception:08x}"),
+        "movie",
+        2_400_000,
+        false,
+        6_000,
+    );
     fx.progress("tmdb:episode:70523:1:1", "episode", 3_000_000, true, 7_000);
-    fx.progress(&format!("file:{friends:08x}"), "episode", 3_000_000, true, 8_000);
+    fx.progress(
+        &format!("file:{friends:08x}"),
+        "episode",
+        3_000_000,
+        true,
+        8_000,
+    );
     fx
 }
 
@@ -240,7 +336,15 @@ fn titles_sort_across_scripts_articles_and_numbers() {
     // only file is missing is not listed.
     assert_eq!(
         fx.titles(&movies(LibraryFilter::default())),
-        ["12 стульев", "alien", "Dune", "Inception", "The Matrix", "Амели", "Ёлки"]
+        [
+            "12 стульев",
+            "alien",
+            "Dune",
+            "Inception",
+            "The Matrix",
+            "Амели",
+            "Ёлки"
+        ]
     );
 }
 
@@ -397,11 +501,13 @@ fn filter_combinations() {
         ["Амели", "Ёлки"]
     );
     // Unprobed files match no video or audio filter.
-    assert!(!f(LibraryFilter {
-        resolutions: Resolution::ALL.to_vec(),
-        ..Default::default()
-    })
-    .contains(&"12 стульев".to_owned()));
+    assert!(
+        !f(LibraryFilter {
+            resolutions: Resolution::ALL.to_vec(),
+            ..Default::default()
+        })
+        .contains(&"12 стульев".to_owned())
+    );
     assert!(
         f(LibraryFilter {
             genres: vec!["Western".into()],
@@ -472,20 +578,52 @@ fn sorts_and_paging() {
     // Missing years last in both directions; ties by title A→Z.
     assert_eq!(
         sorted(SortField::Year, false),
-        ["12 стульев", "The Matrix", "Амели", "Inception", "Ёлки", "Dune", "alien"]
+        [
+            "12 стульев",
+            "The Matrix",
+            "Амели",
+            "Inception",
+            "Ёлки",
+            "Dune",
+            "alien"
+        ]
     );
     assert_eq!(
         sorted(SortField::Year, true),
-        ["Dune", "Inception", "Ёлки", "Амели", "The Matrix", "12 стульев", "alien"]
+        [
+            "Dune",
+            "Inception",
+            "Ёлки",
+            "Амели",
+            "The Matrix",
+            "12 стульев",
+            "alien"
+        ]
     );
     // Added: the newest present file of the work (Dune: 600).
     assert_eq!(
         sorted(SortField::Added, true),
-        ["alien", "Dune", "12 стульев", "Ёлки", "Амели", "Inception", "The Matrix"]
+        [
+            "alien",
+            "Dune",
+            "12 стульев",
+            "Ёлки",
+            "Амели",
+            "Inception",
+            "The Matrix"
+        ]
     );
     assert_eq!(
         sorted(SortField::Title, true),
-        ["Ёлки", "Амели", "The Matrix", "Inception", "Dune", "alien", "12 стульев"]
+        [
+            "Ёлки",
+            "Амели",
+            "The Matrix",
+            "Inception",
+            "Dune",
+            "alien",
+            "12 стульев"
+        ]
     );
     // Last watched: Inception (6000), Matrix (5000), then the rest by title.
     assert_eq!(
@@ -499,7 +637,10 @@ fn sorts_and_paging() {
     assert_eq!(page.total, 7);
     assert_eq!(page.offset, 2);
     assert_eq!(
-        page.items.iter().map(|i| i.title.as_str()).collect::<Vec<_>>(),
+        page.items
+            .iter()
+            .map(|i| i.title.as_str())
+            .collect::<Vec<_>>(),
         ["Dune", "Inception", "The Matrix"]
     );
     assert_eq!(page.items[0].id, ItemRef::Movie(6));
@@ -517,7 +658,10 @@ fn sorts_and_paging() {
 #[test]
 fn alphabet_index_follows_title_order() {
     let fx = library();
-    let idx = fx.cat.alphabet_index(&movies(LibraryFilter::default())).unwrap();
+    let idx = fx
+        .cat
+        .alphabet_index(&movies(LibraryFilter::default()))
+        .unwrap();
     let got: Vec<(&str, usize, usize)> = idx
         .iter()
         .map(|e| (e.letter.as_str(), e.offset, e.count))
@@ -549,7 +693,11 @@ fn alphabet_index_follows_title_order() {
 fn facets_list_present_values() {
     let fx = library();
     let f = fx.cat.facets(ItemKind::Movie).unwrap();
-    let genres: Vec<(&str, usize)> = f.genres.iter().map(|g| (g.value.as_str(), g.count)).collect();
+    let genres: Vec<(&str, usize)> = f
+        .genres
+        .iter()
+        .map(|g| (g.value.as_str(), g.count))
+        .collect();
     // `comedy` and `Comedy` are one genre.
     assert_eq!(
         genres,
@@ -578,7 +726,11 @@ fn facets_list_present_values() {
     );
     assert_eq!(f.audio_formats[0].value, "eac3");
     assert_eq!(f.audio_formats[0].count, 2);
-    assert!(f.audio_formats.iter().any(|a| a.value == "atmos" && a.count == 1));
+    assert!(
+        f.audio_formats
+            .iter()
+            .any(|a| a.value == "atmos" && a.count == 1)
+    );
     assert_eq!(f.audio_languages[0].value, "eng");
     let sources: Vec<(i64, usize)> = f.sources.iter().map(|s| (s.value, s.count)).collect();
     assert_eq!(sources, [(1, 4), (2, 4)]);
@@ -603,11 +755,21 @@ fn browse_lists_folders_first_or_mixed() {
     assert_eq!(names("", by_title, true), ["Movies", "TV"]);
     assert_eq!(
         names("Movies", by_title, true),
-        ["The Matrix (1999)", "alien.mkv", "Dune.1080p.mkv", "Inception.mkv"]
+        [
+            "The Matrix (1999)",
+            "alien.mkv",
+            "Dune.1080p.mkv",
+            "Inception.mkv"
+        ]
     );
     assert_eq!(
         names("/Movies/", by_title, false),
-        ["alien.mkv", "Dune.1080p.mkv", "Inception.mkv", "The Matrix (1999)"]
+        [
+            "alien.mkv",
+            "Dune.1080p.mkv",
+            "Inception.mkv",
+            "The Matrix (1999)"
+        ]
     );
     let newest = LibrarySort {
         field: SortField::Added,
@@ -615,7 +777,12 @@ fn browse_lists_folders_first_or_mixed() {
     };
     assert_eq!(
         names("Movies", newest, false),
-        ["alien.mkv", "Inception.mkv", "The Matrix (1999)", "Dune.1080p.mkv"]
+        [
+            "alien.mkv",
+            "Inception.mkv",
+            "The Matrix (1999)",
+            "Dune.1080p.mkv"
+        ]
     );
     let entries = fx.cat.browse(1, "Movies", by_title, true).unwrap();
     let matrix = &entries[0];
@@ -626,7 +793,10 @@ fn browse_lists_folders_first_or_mixed() {
     let inception = entries.iter().find(|e| e.name == "Inception.mkv").unwrap();
     assert_eq!(inception.item, Some(ItemRef::Movie(2)));
     assert_eq!(inception.rel_path, "Movies/Inception.mkv");
-    let ep = fx.cat.browse(1, "TV/Dark/Season 1", by_title, true).unwrap();
+    let ep = fx
+        .cat
+        .browse(1, "TV/Dark/Season 1", by_title, true)
+        .unwrap();
     assert_eq!(ep[0].item, Some(ItemRef::Episode(201)));
     // The missing file is not listed.
     assert!(!names("Movies", by_title, true).contains(&"Part 10.mkv".to_owned()));
@@ -665,7 +835,10 @@ fn view_prefs_are_kept_per_view() {
     fx.cat.set_view_prefs(&folder_prefs).unwrap();
     assert_eq!(fx.cat.view_prefs("movies").unwrap(), movies_prefs);
     assert_eq!(fx.cat.view_prefs("folder:1").unwrap(), folder_prefs);
-    assert_eq!(fx.cat.view_prefs("shows").unwrap().sort, LibrarySort::default());
+    assert_eq!(
+        fx.cat.view_prefs("shows").unwrap().sort,
+        LibrarySort::default()
+    );
     // Overwrite.
     let mut changed = movies_prefs.clone();
     changed.sort.field = SortField::Year;
@@ -674,9 +847,15 @@ fn view_prefs_are_kept_per_view() {
     assert_eq!(fx.cat.view_prefs("movies").unwrap(), changed);
     // A sort slug from a newer build falls back to title.
     fx.conn
-        .execute("UPDATE view_prefs SET sort = 'rating_v9' WHERE view = 'movies'", [])
+        .execute(
+            "UPDATE view_prefs SET sort = 'rating_v9' WHERE view = 'movies'",
+            [],
+        )
         .unwrap();
-    assert_eq!(fx.cat.view_prefs("movies").unwrap().sort.field, SortField::Title);
+    assert_eq!(
+        fx.cat.view_prefs("movies").unwrap().sort.field,
+        SortField::Title
+    );
     let bad = ViewPrefs {
         view: String::new(),
         ..changed
@@ -706,29 +885,50 @@ fn smart_shelves_save_queries_and_pin_to_home() {
     let b = fx.cat.create_shelf("Comedy", &comedy, false).unwrap();
     let c = fx
         .cat
-        .create_shelf("Unwatched shows", &shows(LibraryFilter {
-            watched: vec![WatchState::Unwatched, WatchState::InProgress],
-            ..Default::default()
-        }), true)
+        .create_shelf(
+            "Unwatched shows",
+            &shows(LibraryFilter {
+                watched: vec![WatchState::Unwatched, WatchState::InProgress],
+                ..Default::default()
+            }),
+            true,
+        )
         .unwrap();
     assert_eq!((a.position, b.position, c.position), (0, 1, 2));
     assert_eq!(a.query, uhd);
 
-    let pinned: Vec<String> = fx.cat.shelves(true).unwrap().into_iter().map(|s| s.name).collect();
+    let pinned: Vec<String> = fx
+        .cat
+        .shelves(true)
+        .unwrap()
+        .into_iter()
+        .map(|s| s.name)
+        .collect();
     assert_eq!(pinned, ["4K", "Unwatched shows"]);
     let page = fx.cat.shelf_items(a.id, 0, 10).unwrap();
     assert_eq!(
-        page.items.iter().map(|i| i.title.as_str()).collect::<Vec<_>>(),
+        page.items
+            .iter()
+            .map(|i| i.title.as_str())
+            .collect::<Vec<_>>(),
         ["Dune", "The Matrix"]
     );
     let page = fx.cat.shelf_items(c.id, 0, 10).unwrap();
     assert_eq!(page.items[0].title, "Dark");
 
     fx.cat.reorder_shelves(&[c.id, a.id]).unwrap();
-    let order: Vec<i64> = fx.cat.shelves(false).unwrap().iter().map(|s| s.id).collect();
+    let order: Vec<i64> = fx
+        .cat
+        .shelves(false)
+        .unwrap()
+        .iter()
+        .map(|s| s.id)
+        .collect();
     assert_eq!(order, [c.id, a.id, b.id]);
 
-    fx.cat.update_shelf(b.id, "Comedies", &comedy, true).unwrap();
+    fx.cat
+        .update_shelf(b.id, "Comedies", &comedy, true)
+        .unwrap();
     assert_eq!(fx.cat.shelves(true).unwrap().len(), 3);
     assert!(fx.cat.update_shelf(999, "x", &comedy, true).is_err());
     assert!(fx.cat.create_shelf("  ", &comedy, true).is_err());
@@ -758,14 +958,46 @@ impl Lcg {
 #[test]
 fn queries_over_20_000_items_are_fast() {
     const WORDS: &[&str] = &[
-        "the", "dark", "night", "star", "love", "war", "king", "last", "city", "lost", "тайна",
-        "ночь", "звезда", "любовь", "война", "король", "ёлка", "город", "игра", "1999", "2",
+        "the",
+        "dark",
+        "night",
+        "star",
+        "love",
+        "war",
+        "king",
+        "last",
+        "city",
+        "lost",
+        "тайна",
+        "ночь",
+        "звезда",
+        "любовь",
+        "война",
+        "король",
+        "ёлка",
+        "город",
+        "игра",
+        "1999",
+        "2",
     ];
     const GENRES: &[&str] = &[
-        "Action", "Comedy", "Drama", "Sci-Fi", "Thriller", "Horror", "Romance", "Animation",
+        "Action",
+        "Comedy",
+        "Drama",
+        "Sci-Fi",
+        "Thriller",
+        "Horror",
+        "Romance",
+        "Animation",
     ];
     const VIDEOS: &[Video] = &[UHD_DV, UHD_HDR10, FHD, FHD, FHD, HD, SD];
-    const AUDIO: &[&[&str]] = &[&["truehd", "atmos"], &["eac3"], &["ac3"], &["aac"], &["dts_hd_ma"]];
+    const AUDIO: &[&[&str]] = &[
+        &["truehd", "atmos"],
+        &["eac3"],
+        &["ac3"],
+        &["aac"],
+        &["dts_hd_ma"],
+    ];
     const LANGS: &[&[&str]] = &[&["rus", "eng"], &["eng"], &["rus"], &["jpn", "eng"]];
 
     let mut fx = Fixture::new();
@@ -807,7 +1039,9 @@ fn queries_over_20_000_items_are_fast() {
             )
             .unwrap();
         let mut match_ep = tx
-            .prepare("INSERT INTO match_episodes (match_id, position, episode_id) VALUES (?1, 0, ?2)")
+            .prepare(
+                "INSERT INTO match_episodes (match_id, position, episode_id) VALUES (?1, 0, ?2)",
+            )
             .unwrap();
         let mut progress = tx
             .prepare(
@@ -823,7 +1057,9 @@ fn queries_over_20_000_items_are_fast() {
         for id in 1..=20_000i64 {
             let is_show = id > 18_000;
             let n = 1 + rng.next(4) as usize;
-            let title: Vec<&str> = (0..n).map(|_| WORDS[rng.next(WORDS.len() as u64) as usize]).collect();
+            let title: Vec<&str> = (0..n)
+                .map(|_| WORDS[rng.next(WORDS.len() as u64) as usize])
+                .collect();
             let year = (rng.next(10) > 0).then(|| 1950 + rng.next(75) as i64);
             work.execute(params![
                 id,
@@ -839,15 +1075,24 @@ fn queries_over_20_000_items_are_fast() {
             }
             let has_tmdb = rng.next(2) == 0;
             if has_tmdb {
-                tmdb.execute(params![id, if is_show { "tv" } else { "movie" }, id.to_string()])
-                    .unwrap();
+                tmdb.execute(params![
+                    id,
+                    if is_show { "tv" } else { "movie" },
+                    id.to_string()
+                ])
+                .unwrap();
             }
-            let files = if is_show { 1 + rng.next(10) } else { 1 + rng.next(2) };
+            let files = if is_show {
+                1 + rng.next(10)
+            } else {
+                1 + rng.next(2)
+            };
             for k in 0..files {
                 file_id += 1;
                 let v = VIDEOS[rng.next(VIDEOS.len() as u64) as usize];
-                let video = serde_json::json!({"codec": "hevc", "width": v.0, "height": v.1, "hdr": v.2})
-                    .to_string();
+                let video =
+                    serde_json::json!({"codec": "hevc", "width": v.0, "height": v.1, "hdr": v.2})
+                        .to_string();
                 let probed = rng.next(10) > 0;
                 file.execute(params![
                     file_id,
@@ -856,14 +1101,22 @@ fn queries_over_20_000_items_are_fast() {
                     rng.next(1_000_000) as i64,
                     60_000 * (1 + rng.next(180) as i64),
                     probed.then_some(video),
-                    probed.then(|| serde_json::to_string(AUDIO[rng.next(AUDIO.len() as u64) as usize]).unwrap()),
-                    probed.then(|| serde_json::to_string(LANGS[rng.next(LANGS.len() as u64) as usize]).unwrap()),
+                    probed.then(|| serde_json::to_string(
+                        AUDIO[rng.next(AUDIO.len() as u64) as usize]
+                    )
+                    .unwrap()),
+                    probed.then(|| serde_json::to_string(
+                        LANGS[rng.next(LANGS.len() as u64) as usize]
+                    )
+                    .unwrap()),
                 ])
                 .unwrap();
                 matched.execute(params![file_id, id]).unwrap();
                 if is_show {
                     episode_id += 1;
-                    episode.execute(params![episode_id, id, k as i64 + 1]).unwrap();
+                    episode
+                        .execute(params![episode_id, id, k as i64 + 1])
+                        .unwrap();
                     match_ep.execute(params![file_id, episode_id]).unwrap();
                 }
                 // A quarter of the items have progress, half of it finished.
@@ -894,7 +1147,10 @@ fn queries_over_20_000_items_are_fast() {
         .conn
         .query_row("SELECT count(*) FROM files", [], |r| r.get(0))
         .unwrap();
-    println!("fixture: 20 000 works, {files} files in {:?}", started.elapsed());
+    println!(
+        "fixture: 20 000 works, {files} files in {:?}",
+        started.elapsed()
+    );
 
     let cases: Vec<(&str, LibraryQuery)> = vec![
         ("all movies by title", movies(LibraryFilter::default())),
@@ -984,13 +1240,23 @@ fn queries_over_20_000_items_are_fast() {
     }
     // The first query after a change rebuilds the in-memory index.
     let t = Instant::now();
-    fx.cat.query(&movies(LibraryFilter::default()), 0, 100).unwrap();
-    println!("{:>32}: {:?} (not bounded)", "first query, index build", t.elapsed());
+    fx.cat
+        .query(&movies(LibraryFilter::default()), 0, 100)
+        .unwrap();
+    println!(
+        "{:>32}: {:?} (not bounded)",
+        "first query, index build",
+        t.elapsed()
+    );
 
     let mut worst = Duration::ZERO;
     for (name, q) in &cases {
         let (page, took) = best(|| fx.cat.query(q, 0, 100).unwrap());
-        println!("{name:>32}: {:>5} of {:>5} in {took:?}", page.items.len(), page.total);
+        println!(
+            "{name:>32}: {:>5} of {:>5} in {took:?}",
+            page.items.len(),
+            page.total
+        );
         assert!(page.total > 0, "{name}");
         worst = worst.max(took);
         let (_, deep) = best(|| fx.cat.query(q, page.total.saturating_sub(50), 100).unwrap());
@@ -999,17 +1265,34 @@ fn queries_over_20_000_items_are_fast() {
     }
     let q = movies(LibraryFilter::default());
     let (idx, took) = best(|| fx.cat.alphabet_index(&q).unwrap());
-    println!("{:>32}: {} letters in {took:?}", "alphabet index", idx.len());
+    println!(
+        "{:>32}: {} letters in {took:?}",
+        "alphabet index",
+        idx.len()
+    );
     worst = worst.max(took);
     assert!(idx.len() > 10);
     assert_eq!(idx.iter().map(|e| e.count).sum::<usize>(), 18_000);
 
     let t = Instant::now();
     let f = fx.cat.facets(ItemKind::Movie).unwrap();
-    println!("{:>32}: {} genres in {:?} (not bounded)", "facets", f.genres.len(), t.elapsed());
+    println!(
+        "{:>32}: {} genres in {:?} (not bounded)",
+        "facets",
+        f.genres.len(),
+        t.elapsed()
+    );
     let t = Instant::now();
-    let root = fx.cat.browse(1, "Lib", LibrarySort::default(), true).unwrap();
-    println!("{:>32}: {} entries in {:?} (not bounded)", "browse", root.len(), t.elapsed());
+    let root = fx
+        .cat
+        .browse(1, "Lib", LibrarySort::default(), true)
+        .unwrap();
+    println!(
+        "{:>32}: {} entries in {:?} (not bounded)",
+        "browse",
+        root.len(),
+        t.elapsed()
+    );
 
     assert!(worst < bound, "slowest query took {worst:?}");
 }

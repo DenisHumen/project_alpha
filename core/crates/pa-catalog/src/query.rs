@@ -468,20 +468,22 @@ pub(crate) fn browse(
         let added: i64 = r.get(2)?;
         let rest = &path[lo.len()..];
         if let Some((name, _)) = rest.split_once('/') {
-            let e = folders.entry(name.to_owned()).or_insert_with(|| FolderEntry {
-                name: name.to_owned(),
-                rel_path: if dir.is_empty() {
-                    name.to_owned()
-                } else {
-                    format!("{dir}/{name}")
-                },
-                is_folder: true,
-                item: None,
-                size_bytes: 0,
-                file_count: 0,
-                added_at_ms: 0,
-                duration_ms: None,
-            });
+            let e = folders
+                .entry(name.to_owned())
+                .or_insert_with(|| FolderEntry {
+                    name: name.to_owned(),
+                    rel_path: if dir.is_empty() {
+                        name.to_owned()
+                    } else {
+                        format!("{dir}/{name}")
+                    },
+                    is_folder: true,
+                    item: None,
+                    size_bytes: 0,
+                    file_count: 0,
+                    added_at_ms: 0,
+                    duration_ms: None,
+                });
             e.size_bytes += size;
             e.file_count += 1;
             e.added_at_ms = e.added_at_ms.max(added);
@@ -550,7 +552,12 @@ fn shelf_of(s: views::SmartShelf) -> Result<SmartShelf, Error> {
 
 impl Catalog {
     /// One page of a query: `limit` items from `offset`, and the total.
-    pub fn query(&self, query: &LibraryQuery, offset: usize, limit: usize) -> Result<ItemPage, Error> {
+    pub fn query(
+        &self,
+        query: &LibraryQuery,
+        offset: usize,
+        limit: usize,
+    ) -> Result<ItemPage, Error> {
         let conn = self.lock();
         let index = self.index(&conn)?;
         run_query(&conn, &index, query, offset, limit)
@@ -661,7 +668,14 @@ impl Catalog {
         pinned_home: bool,
     ) -> Result<(), Error> {
         check_kind(query)?;
-        if !views::update_shelf(&self.lock(), id, name, &query.to_json(), pinned_home, now_ms())? {
+        if !views::update_shelf(
+            &self.lock(),
+            id,
+            name,
+            &query.to_json(),
+            pinned_home,
+            now_ms(),
+        )? {
             return Err(Error::NotFound(format!("shelf {id}")));
         }
         Ok(())
@@ -682,7 +696,8 @@ impl Catalog {
     /// One page of a shelf's query.
     pub fn shelf_items(&self, id: i64, offset: usize, limit: usize) -> Result<ItemPage, Error> {
         let conn = self.lock();
-        let shelf = views::shelf(&conn, id)?.ok_or_else(|| Error::NotFound(format!("shelf {id}")))?;
+        let shelf =
+            views::shelf(&conn, id)?.ok_or_else(|| Error::NotFound(format!("shelf {id}")))?;
         let index = self.index(&conn)?;
         run_query(
             &conn,
