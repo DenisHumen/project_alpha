@@ -14,6 +14,7 @@ use pa_model::{
 
 const TABLES: &[&str] = &[
     "anime_entries",
+    "artwork",
     "collection_items",
     "collections",
     "display_preferences",
@@ -60,6 +61,7 @@ const TABLES: &[&str] = &[
     "twitch_search",
     "twitch_streamers",
     "twitch_videos",
+    "work_metadata",
     "works",
 ];
 
