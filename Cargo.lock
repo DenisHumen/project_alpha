@@ -2455,6 +2455,7 @@ dependencies = [
 name = "pa-ffi"
 version = "0.1.0"
 dependencies = [
+ "pa-discovery",
  "pa-flavor",
  "pa-playback",
  "pa-runtime",

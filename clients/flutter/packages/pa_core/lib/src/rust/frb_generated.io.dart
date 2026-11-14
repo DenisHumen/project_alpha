@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/discovery.dart';
 import 'api/events.dart';
 import 'api/images.dart';
 import 'api/library.dart';
@@ -28,6 +29,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_CoreDiscoveryPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscoveryPtr;
+
+  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_CoreImageCachePtr => wire
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCachePtr;
 
@@ -49,6 +54,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  CoreDiscovery
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    dynamic raw,
+  );
 
   @protected
   CoreImageCache
@@ -77,6 +88,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CoreSync
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSync(
+    dynamic raw,
+  );
+
+  @protected
+  CoreDiscovery
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
     dynamic raw,
   );
 
@@ -111,6 +128,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  FutureOr<void> Function(bool)
+  dco_decode_DartFn_Inputs_bool_Output_unit_AnyhowException(dynamic raw);
+
+  @protected
   FutureOr<PlatformSecretReply> Function(PlatformSecretCall)
   dco_decode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
     dynamic raw,
@@ -121,6 +142,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
+
+  @protected
+  CoreDiscovery
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    dynamic raw,
+  );
 
   @protected
   CoreImageCache
@@ -172,6 +199,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<List<CoreDiscoveredService>>
+  dco_decode_StreamSink_list_core_discovered_service_Sse(dynamic raw);
+
+  @protected
   RustStreamSink<int> dco_decode_StreamSink_u_32_Sse(dynamic raw);
 
   @protected
@@ -188,6 +219,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool dco_decode_box_autoadd_bool(dynamic raw);
+
+  @protected
+  CoreDiscoveryConfig dco_decode_box_autoadd_core_discovery_config(dynamic raw);
 
   @protected
   CoreItem dco_decode_box_autoadd_core_item(dynamic raw);
@@ -266,6 +300,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreDeviceClass dco_decode_core_device_class(dynamic raw);
 
   @protected
+  CoreDiscoveredService dco_decode_core_discovered_service(dynamic raw);
+
+  @protected
+  CoreDiscoveryConfig dco_decode_core_discovery_config(dynamic raw);
+
+  @protected
+  CoreDiscoveryError dco_decode_core_discovery_error(dynamic raw);
+
+  @protected
   CoreFacets dco_decode_core_facets(dynamic raw);
 
   @protected
@@ -332,6 +375,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreSecretStoreInfo dco_decode_core_secret_store_info(dynamic raw);
 
   @protected
+  CoreServiceKind dco_decode_core_service_kind(dynamic raw);
+
+  @protected
   CoreSmartShelf dco_decode_core_smart_shelf(dynamic raw);
 
   @protected
@@ -378,6 +424,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreTwitchFlags dco_decode_core_twitch_flags(dynamic raw);
+
+  @protected
+  CoreTxtEntry dco_decode_core_txt_entry(dynamic raw);
 
   @protected
   CoreViewPrefs dco_decode_core_view_prefs(dynamic raw);
@@ -440,6 +489,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CoreContinueItem> dco_decode_list_core_continue_item(dynamic raw);
 
   @protected
+  List<CoreDiscoveredService> dco_decode_list_core_discovered_service(
+    dynamic raw,
+  );
+
+  @protected
   List<CoreFolderEntry> dco_decode_list_core_folder_entry(dynamic raw);
 
   @protected
@@ -464,6 +518,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CoreSearchGroup> dco_decode_list_core_search_group(dynamic raw);
 
   @protected
+  List<CoreServiceKind> dco_decode_list_core_service_kind(dynamic raw);
+
+  @protected
   List<CoreSmartShelf> dco_decode_list_core_smart_shelf(dynamic raw);
 
   @protected
@@ -477,6 +534,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreTextFacet> dco_decode_list_core_text_facet(dynamic raw);
+
+  @protected
+  List<CoreTxtEntry> dco_decode_list_core_txt_entry(dynamic raw);
 
   @protected
   List<CoreWatchState> dco_decode_list_core_watch_state(dynamic raw);
@@ -609,6 +669,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
+  CoreDiscovery
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreImageCache
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
     SseDeserializer deserializer,
@@ -635,6 +701,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CoreSync
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSync(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreDiscovery
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
     SseDeserializer deserializer,
   );
 
@@ -673,6 +745,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Map<String, String> sse_decode_Map_String_String_None(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreDiscovery
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
     SseDeserializer deserializer,
   );
 
@@ -726,6 +804,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<List<CoreDiscoveredService>>
+  sse_decode_StreamSink_list_core_discovered_service_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RustStreamSink<int> sse_decode_StreamSink_u_32_Sse(
     SseDeserializer deserializer,
   );
@@ -744,6 +828,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   bool sse_decode_box_autoadd_bool(SseDeserializer deserializer);
+
+  @protected
+  CoreDiscoveryConfig sse_decode_box_autoadd_core_discovery_config(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CoreItem sse_decode_box_autoadd_core_item(SseDeserializer deserializer);
@@ -840,6 +929,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreDeviceClass sse_decode_core_device_class(SseDeserializer deserializer);
 
   @protected
+  CoreDiscoveredService sse_decode_core_discovered_service(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreDiscoveryConfig sse_decode_core_discovery_config(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreDiscoveryError sse_decode_core_discovery_error(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreFacets sse_decode_core_facets(SseDeserializer deserializer);
 
   @protected
@@ -920,6 +1024,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreServiceKind sse_decode_core_service_kind(SseDeserializer deserializer);
+
+  @protected
   CoreSmartShelf sse_decode_core_smart_shelf(SseDeserializer deserializer);
 
   @protected
@@ -970,6 +1077,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreTwitchFlags sse_decode_core_twitch_flags(SseDeserializer deserializer);
+
+  @protected
+  CoreTxtEntry sse_decode_core_txt_entry(SseDeserializer deserializer);
 
   @protected
   CoreViewPrefs sse_decode_core_view_prefs(SseDeserializer deserializer);
@@ -1040,6 +1150,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CoreDiscoveredService> sse_decode_list_core_discovered_service(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<CoreFolderEntry> sse_decode_list_core_folder_entry(
     SseDeserializer deserializer,
   );
@@ -1078,6 +1193,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CoreServiceKind> sse_decode_list_core_service_kind(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   List<CoreSmartShelf> sse_decode_list_core_smart_shelf(
     SseDeserializer deserializer,
   );
@@ -1097,6 +1217,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreTextFacet> sse_decode_list_core_text_facet(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CoreTxtEntry> sse_decode_list_core_txt_entry(
     SseDeserializer deserializer,
   );
 
@@ -1263,6 +1388,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    CoreDiscovery self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
     CoreImageCache self,
     SseSerializer serializer,
@@ -1293,6 +1425,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSync(
     CoreSync self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    CoreDiscovery self,
     SseSerializer serializer,
   );
 
@@ -1332,6 +1471,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_DartFn_Inputs_bool_Output_unit_AnyhowException(
+    FutureOr<void> Function(bool) self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void
   sse_encode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
     FutureOr<PlatformSecretReply> Function(PlatformSecretCall) self,
@@ -1344,6 +1489,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_Map_String_String_None(
     Map<String, String> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    CoreDiscovery self,
     SseSerializer serializer,
   );
 
@@ -1407,6 +1559,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_list_core_discovered_service_Sse(
+    RustStreamSink<List<CoreDiscoveredService>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_u_32_Sse(
     RustStreamSink<int> self,
     SseSerializer serializer,
@@ -1426,6 +1584,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_bool(bool self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_core_discovery_config(
+    CoreDiscoveryConfig self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_box_autoadd_core_item(
@@ -1554,6 +1718,24 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_discovered_service(
+    CoreDiscoveredService self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_discovery_config(
+    CoreDiscoveryConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_discovery_error(
+    CoreDiscoveryError self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_facets(CoreFacets self, SseSerializer serializer);
 
   @protected
@@ -1662,6 +1844,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_service_kind(
+    CoreServiceKind self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_smart_shelf(
     CoreSmartShelf self,
     SseSerializer serializer,
@@ -1741,6 +1929,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     CoreTwitchFlags self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_core_txt_entry(CoreTxtEntry self, SseSerializer serializer);
 
   @protected
   void sse_encode_core_view_prefs(CoreViewPrefs self, SseSerializer serializer);
@@ -1824,6 +2015,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_core_discovered_service(
+    List<CoreDiscoveredService> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_core_folder_entry(
     List<CoreFolderEntry> self,
     SseSerializer serializer,
@@ -1869,6 +2066,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_core_service_kind(
+    List<CoreServiceKind> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_core_smart_shelf(
     List<CoreSmartShelf> self,
     SseSerializer serializer,
@@ -1895,6 +2098,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_text_facet(
     List<CoreTextFacet> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_txt_entry(
+    List<CoreTxtEntry> self,
     SseSerializer serializer,
   );
 
@@ -2101,6 +2310,40 @@ class RustLibWire implements BaseWire {
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
     : _lookup = dynamicLibrary.lookup;
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscoveryPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscoveryPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscoveryPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscovery =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreDiscoveryPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   void
   rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
