@@ -4,8 +4,9 @@
 //! The default rules are the release-0.1 Dart scanner's
 //! (`clients/flutter/packages/pa_library/lib/src/scanner.dart`): media by
 //! extension; samples, trailers and Plex-style extras skipped; disc
-//! structures (BDMV, VIDEO_TS) skipped until LIB-007 treats them as one
-//! item; NAS and OS service folders and hidden entries skipped.
+//! structures (BDMV, VIDEO_TS) skipped (`analyze_folders`, LIB-007, makes
+//! each one item in `pa_library::groups`); NAS and OS service folders and
+//! hidden entries skipped.
 
 /// Kind of media file, decided by extension.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -211,7 +212,7 @@ fn is_tail_separator(c: char) -> bool {
 
 /// Splits `name` into the stem and the extension after the last `.`
 /// (none for dotfiles like `.mkv` or names without a dot).
-fn split_ext(name: &str) -> (&str, Option<&str>) {
+pub(crate) fn split_ext(name: &str) -> (&str, Option<&str>) {
     match name.rfind('.') {
         Some(0) | None => (name, None),
         Some(i) => (&name[..i], Some(&name[i + 1..])),

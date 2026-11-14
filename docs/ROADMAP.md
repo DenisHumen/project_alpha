@@ -468,7 +468,7 @@ project_alpha/
   - Что: libavformat по первым 2–8 МБ: контейнер, длительность; видео — кодек, разрешение, тип HDR (HDR10, HDR10+, HLG, DV: профиль и compat id); аудио — кодек, каналы, язык, признак Atmos/JOC; субтитры, главы, теги, вложения.
   - deps: LIB-003, PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 03 §4.2 [2], 02 §2.3
   - done when: на тест-сэмплах QA-002 все поля определяются верно.
-- [ ] **LIB-007** Структурный анализ папок
+- [x] **LIB-007** Структурный анализ папок
   - Что: дисковые структуры (BDMV, VIDEO_TS, ISO) как один элемент; склейка частей (cd1/part1/disc1); extras (`-trailer`, Featurettes, NCOP/NCED, sample, «файл меньше N % длительности соседей»); sidecar-субтитры (`movie.ru.forced.srt`); NFO; локальный арт (poster, fanart, clearlogo).
   - deps: LIB-003 · size: M · parallel: yes · веха: M1 · ref: 03 §4.2 [1], 01 §1.5
   - done when: таблица тест-кейсов A10, A12 и A13 из таксономии проходит.

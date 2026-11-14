@@ -26,6 +26,7 @@ const TABLES: &[&str] = &[
     "file_groups",
     "files",
     "folder_rules",
+    "group_assets",
     "jobs",
     "match_candidates",
     "match_episodes",
@@ -383,6 +384,9 @@ fn build_graph(conn: &Connection) -> Graph {
                    (101, 10, 'Shows/Show/S01E02.mkv', 1000, NULL, NULL, {now});
         INSERT INTO file_groups (id, source_id, root_path, kind) VALUES (20, 10, 'Shows/Show', 'series_folder');
         INSERT INTO file_group_members (group_id, file_id, role) VALUES (20, 100, 'main'), (20, 101, 'main');
+        INSERT INTO group_assets (group_id, path, file_id, role, target_path, lang, forced)
+            VALUES (20, 'Shows/Show/S01E01.ru.forced.srt', NULL, 'subtitle', 'Shows/Show/S01E01.mkv', 'rus', 1),
+                   (20, 'Shows/Show/S01E02.mkv', 101, 'ignore', NULL, NULL, 0);
         INSERT INTO parse_results (file_id, parser_version, hypotheses_json, parsed_at_ms)
             VALUES (100, '1', '[{{\"title\":\"Show\"}}]', {now});
 
@@ -529,6 +533,7 @@ fn deleting_a_source_removes_its_files_but_keeps_the_catalog() {
         "files",
         "file_groups",
         "file_group_members",
+        "group_assets",
         "parse_results",
         "matches",
         "match_episodes",
@@ -823,6 +828,9 @@ fn checks_reject_bad_values() {
         "INSERT INTO jobs (type, state, created_at_ms, updated_at_ms) VALUES ('cleanup', 'stuck', 0, 0)",
         "INSERT INTO jobs (type, params_json, created_at_ms, updated_at_ms) VALUES ('cleanup', '{', 0, 0)",
         "INSERT INTO collections (name, kind, created_at_ms, updated_at_ms) VALUES ('s', 'smart', 0, 0)",
+        "INSERT INTO file_groups (source_id, root_path, kind, disc_unit) VALUES (1, 'x', 'disc', 'hddvd')",
+        "INSERT INTO group_assets (group_id, path, role) VALUES (1, 'x.srt', 'sidecar')",
+        "INSERT INTO group_assets (group_id, path, role, art_kind) VALUES (1, 'x.jpg', 'art', 'wallpaper')",
         "INSERT INTO music_artists (name, name_key, mbid, created_at_ms) VALUES ('a', 'a', 'B1A9C0E9-D987-4042-AE91-78D6A3267D69', 0)",
         "INSERT INTO music_albums (album_key, title, art_kind, created_at_ms, updated_at_ms) VALUES ('k', 't', 'folder', 0, 0)",
         "INSERT INTO music_albums (album_key, title, art_kind, art_path, created_at_ms, updated_at_ms) VALUES ('k', 't', 'web', 'x', 0, 0)",

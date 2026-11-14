@@ -2,7 +2,7 @@
 [package]
 name = "pa-scanner"
 version = "0.1.0"
-description = "Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003); music tags and index (MUS-001)"
+description = "Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003); music tags and index (MUS-001); structural folder analysis (LIB-007)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -16,4 +16,5 @@ pa-vfs = { path = "../pa-vfs" }
 
 [dev-dependencies]
 pa-model = { path = "../pa-model" }
+serde_json.workspace = true
 tempfile.workspace = true
