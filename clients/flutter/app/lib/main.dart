@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -23,17 +25,18 @@ Future<void> main() async {
   final formFactor = await detectFormFactor();
   final dir = await getApplicationSupportDirectory();
   final Library library;
+  var rescan = false;
   if (AppConfig.demo) {
     library = FakeLibrary.demo();
-  } else if (AppConfig.rustCore) {
-    library = await RustLibrary.open(
-      '${dir.path}/kinolune-core.db',
-      legacyV0Path: '${dir.path}/kinolune.db',
-      // Keep v0 while the Rust core is opt-in, so the app can go back.
-      renameLegacyV0: false,
-    );
   } else {
-    library = await Library.open('${dir.path}/kinolune.db');
+    // Rust core by default (UI-024); the v0 database is imported on the first
+    // start and kept as kinolune.db.v0.bak. v0 is the fallback.
+    final opened = await openAppLibrary(dir.path, rustCore: AppConfig.rustCore);
+    library = opened.library;
+    rescan = opened.importedV0;
+    if (opened.fallbackReason != null) {
+      debugPrint('Library on the v0 fallback: ${opened.fallbackReason}');
+    }
   }
   final services = AppServices(
     library: library,
@@ -41,6 +44,9 @@ Future<void> main() async {
     preferences: FilePreferences('${dir.path}/preferences.json'),
   );
   await services.init();
+  // Music tags and network-share items of an imported v0 library come with
+  // a scan.
+  if (rescan) unawaited(services.scan());
   runApp(
     KinoluneApp(
       services: services,

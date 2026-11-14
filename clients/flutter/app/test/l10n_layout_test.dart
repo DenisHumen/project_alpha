@@ -6,6 +6,7 @@
 // frames are also written as PNGs (see test/tool/screenshots_test.dart).
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/l10n/l10n.dart';
 import 'package:kinolune/platform/form_factor.dart';
 import 'package:kinolune/services/app_services.dart';
@@ -130,21 +131,25 @@ void main() {
       preferences: prefs,
     );
     await services.init();
+    final lib = services.library as FakeLibrary;
     await tester.pumpWidget(testApp(services, section: Section.settings));
     await settle(tester);
-    // System locale ru-RU → Russian.
+    // System locale ru-RU → Russian, metadata too (UI-024).
     expect(find.text('Настройки'), findsWidgets);
+    expect(lib.metadataLanguage, 'ru-RU');
     await tester.ensureVisible(find.text('English'));
     await settle(tester, 4);
     await tester.tap(find.text('English'));
     await settle(tester, 4);
     expect(find.text('Settings'), findsWidgets);
     expect(prefs.values[Preferences.locale], 'en');
+    expect(lib.metadataLanguage, 'en-US');
     // Back to the system language.
     await tester.tap(find.text('System default'));
     await settle(tester, 4);
     expect(find.text('Настройки'), findsWidgets);
     expect(prefs.values.containsKey(Preferences.locale), isFalse);
+    expect(lib.metadataLanguage, 'ru-RU');
   });
 
   testWidgets('saved language is restored on start', (tester) async {
