@@ -4,7 +4,8 @@
 # tools/libsmb2/build.sh as a shared library for Linux, Windows, Android
 # (3 ABIs) and Apple (macOS dylib; iOS and tvOS embedded frameworks incl.
 # simulators, plus one smb2.xcframework), runs the licence and linkage gate
-# on every artifact and uploads the result. libsmb2 builds in about a minute,
+# on every artifact and uploads the result; release-app.yml calls it to bundle
+# libsmb2 into the app (LIB-019). libsmb2 builds in about a minute,
 # so only the source tarball is cached.
 name: libsmb2 (LGPL)
 
@@ -17,13 +18,21 @@ on:
       - "tools/libsmb2/**"
       - ".github/workflows/libsmb2.yml"
   workflow_dispatch:
+  # release-app.yml (LIB-019): the app bundles these artifacts. `release`
+  # builds only what the app ships (Linux x86_64, Android ABIs, sources).
+  workflow_call:
+    inputs:
+      release:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
+  # As a called workflow, github.workflow is the caller's name: no clash.
   group: libsmb2-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   ANDROID_NDK_PACKAGE: "ndk;28.2.13676358" # r28c
@@ -60,6 +69,14 @@ jobs:
           d="$RUNNER_TEMP/fake-static"; mkdir -p "$d"
           printf '%s\n' 'BUILD_SHARED_LIBS:BOOL=OFF' 'ENABLE_LIBKRB5:BOOL=OFF' 'ENABLE_GSSAPI:BOOL=OFF' > "$d/CMakeCache.txt"
           if tools/libsmb2/check-license.sh --config "$d"; then echo "::error::static CMakeCache passed"; exit 1; fi
+      - name: Corresponding-source bundle
+        run: tools/libsmb2/build.sh sources
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libsmb2-sources
+          path: tools/libsmb2/out/project_alpha-libsmb2-sources-*.tar.xz
+          retention-days: 7
+          if-no-files-found: error
 
   docker:
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
@@ -70,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [linux-x86_64, windows-x86_64]
+        target: ${{ fromJSON(inputs.release && '["linux-x86_64"]' || '["linux-x86_64","windows-x86_64"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -121,6 +138,8 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/${ANDROID_NDK_PACKAGE/;//}" >> "$GITHUB_ENV"
       - name: Build and check
         run: PA_SMB2_JOBS="$(nproc)" tools/libsmb2/build.sh "${{ matrix.target }}"
+      - name: Android packaging check (SONAME, NEEDED, 16 KB pages)
+        run: tools/libsmb2/bundle.sh check-android "tools/libsmb2/out/${{ matrix.target }}"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: libsmb2-${{ matrix.target }}
@@ -129,7 +148,7 @@ jobs:
           if-no-files-found: error
 
   apple:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    if: ${{ !inputs.release && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     name: apple
     needs: sources
     runs-on: macos-15

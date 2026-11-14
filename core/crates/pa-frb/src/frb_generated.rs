@@ -5074,6 +5074,7 @@ impl SseDecode for crate::api::library::CoreItem {
         let mut var_addedAtMs = <Option<i64>>::sse_decode(deserializer);
         let mut var_posterUrl = <Option<String>>::sse_decode(deserializer);
         let mut var_backdropUrl = <Option<String>>::sse_decode(deserializer);
+        let mut var_localPoster = <Option<String>>::sse_decode(deserializer);
         return crate::api::library::CoreItem {
             id: var_id,
             kind: var_kind,
@@ -5096,6 +5097,7 @@ impl SseDecode for crate::api::library::CoreItem {
             added_at_ms: var_addedAtMs,
             poster_url: var_posterUrl,
             backdrop_url: var_backdropUrl,
+            local_poster: var_localPoster,
         };
     }
 }
@@ -7270,6 +7272,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::library::CoreItem {
             self.added_at_ms.into_into_dart().into_dart(),
             self.poster_url.into_into_dart().into_dart(),
             self.backdrop_url.into_into_dart().into_dart(),
+            self.local_poster.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -8904,6 +8907,7 @@ impl SseEncode for crate::api::library::CoreItem {
         <Option<i64>>::sse_encode(self.added_at_ms, serializer);
         <Option<String>>::sse_encode(self.poster_url, serializer);
         <Option<String>>::sse_encode(self.backdrop_url, serializer);
+        <Option<String>>::sse_encode(self.local_poster, serializer);
     }
 }
 

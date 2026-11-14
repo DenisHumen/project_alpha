@@ -413,3 +413,75 @@ fn folder_groups_shape_recognition() {
         .unwrap();
     assert_eq!(works, 3);
 }
+
+#[test]
+fn items_carry_local_posters_from_folder_groups() {
+    // LIB-019: posters next to the files come from the LIB-007 groups, as
+    // paths relative to the source root, so the app can serve them for
+    // network sources through the stream proxy.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("media");
+    library_folder(&root);
+    let image = |rel: &str| {
+        let path = root.join(rel);
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(path, b"\x89PNG\r\n\x1a\n").unwrap();
+    };
+    image("Movies/Dune (2021)/poster.jpg");
+    image("Movies/Dune (2021)/fanart.jpg");
+    // Loose movies at one level: only art named after the file counts.
+    image("Movies/The Matrix 1999-poster.jpg");
+    media(&root, "Movies/Heat 1995.mkv", 7);
+    image("Movies/folder.jpg");
+    image("Shows/Dark/poster.jpg");
+    image("Shows/Dark/season01-poster.jpg");
+    image("Music/Artist/Album/cover.jpg");
+
+    let cat = Catalog::open(dir.path().join("db/library.db")).unwrap();
+    cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
+        .unwrap();
+    scan_all(&cat);
+
+    let movies = cat.movies().unwrap();
+    let poster = |title: &str| {
+        movies
+            .iter()
+            .find(|m| m.title == title)
+            .unwrap_or_else(|| panic!("{title} in {movies:?}"))
+            .local_poster
+            .clone()
+    };
+    assert_eq!(
+        poster("Dune").as_deref(),
+        Some("Movies/Dune (2021)/poster.jpg")
+    );
+    assert_eq!(
+        poster("The Matrix").as_deref(),
+        Some("Movies/The Matrix 1999-poster.jpg")
+    );
+    assert_eq!(poster("Heat"), None, "a generic image of a loose folder");
+
+    let shows = cat.shows().unwrap();
+    assert_eq!(
+        shows[0].local_poster.as_deref(),
+        Some("Shows/Dark/poster.jpg"),
+        "{shows:?}"
+    );
+    let eps = cat.episodes(shows[0].id).unwrap();
+    assert!(
+        eps.iter()
+            .all(|e| e.local_poster.as_deref() == Some("Shows/Dark/poster.jpg")),
+        "{eps:?}"
+    );
+    // The same for every query path (item, works_by_ids).
+    assert_eq!(
+        cat.item(shows[0].id).unwrap().unwrap().local_poster,
+        shows[0].local_poster
+    );
+
+    let tracks = cat.tracks().unwrap();
+    assert_eq!(
+        tracks[0].local_poster.as_deref(),
+        Some("Music/Artist/Album/cover.jpg")
+    );
+}

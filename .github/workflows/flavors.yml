@@ -130,7 +130,7 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: |
           if [ -f pubspec.lock ]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
-          # A check build: libmpv is third-party and the same in both flavors.
+          # A check build: libmpv and libsmb2 are third-party and the same in both flavors.
           flutter build appbundle --release \
             --target-platform android-arm,android-arm64,android-x64 \
             --dart-define=KINOLUNE_FLAVOR="$KINOLUNE_FLAVOR" \

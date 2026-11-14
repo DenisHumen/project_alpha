@@ -301,6 +301,11 @@ class CoreItem {
   /// Backdrop URL; episodes: the episode still.
   final String? backdropUrl;
 
+  /// Local poster or album cover next to the files, relative to the
+  /// source root like `rel_path` (LIB-007 groups; episodes: the show's).
+  /// Network sources: fetch it through [`CoreLibrary::stream_base_url`].
+  final String? localPoster;
+
   const CoreItem({
     required this.id,
     required this.kind,
@@ -323,6 +328,7 @@ class CoreItem {
     this.addedAtMs,
     this.posterUrl,
     this.backdropUrl,
+    this.localPoster,
   });
 
   @override
@@ -347,7 +353,8 @@ class CoreItem {
       tmdbId.hashCode ^
       addedAtMs.hashCode ^
       posterUrl.hashCode ^
-      backdropUrl.hashCode;
+      backdropUrl.hashCode ^
+      localPoster.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -374,7 +381,8 @@ class CoreItem {
           tmdbId == other.tmdbId &&
           addedAtMs == other.addedAtMs &&
           posterUrl == other.posterUrl &&
-          backdropUrl == other.backdropUrl;
+          backdropUrl == other.backdropUrl &&
+          localPoster == other.localPoster;
 }
 
 /// Kind of a library item.

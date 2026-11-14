@@ -11,13 +11,14 @@
 | `android/sign.sh` | Переподпись APK ключом из секретов (apksigner, v1+v2+v3) или оставляет debug-подпись |
 | `android/check-native-licences.sh` | Лицензионный гейт APK: только наш набор libmpv из `tools/mpv`, FFmpeg — отдельными `libav*/libsw*` с «LGPL version 2.1 or later» без `--enable-gpl/nonfree/version3`, libmpv — `-Dgpl=false` без вшитого FFmpeg; иначе релиз падает |
 | `lgpl-sources.sh` | Исходники libmpv/FFmpeg для релиза: архив `tools/mpv/build.sh sources`, сверенный с `BUILDINFO.txt` вложенных сборок (см. ниже) |
+| `libsmb2-sources.sh` | То же для libsmb2 (LIB-019): архив `tools/libsmb2/build.sh sources`, сверенный с `BUILDINFO.txt` |
 | `THIRD-PARTY-NOTICES.md`, `fetch-licences.sh` | Уведомления и тексты лицензий (скачиваются из SPDX license-list-data по закреплённому тегу с проверкой SHA-256); кладутся в tar.gz, AppImage и в `kinolune-<v>-licenses.tar.gz` |
 
 Версия Flutter закреплена в `env.FLUTTER_VERSION` обоих workflow (сейчас 3.50.0) — менять вместе.
 
 ## Артефакты релиза
 
-`kinolune-<v>-x86_64.AppImage`, `kinolune-<v>-linux-x86_64.tar.gz`, `kinolune-<v>-android-{arm64-v8a,armeabi-v7a,x86_64,universal}.apk`, `kinolune-<v>-licenses.tar.gz`, `kinolune-<v>-libmpv-sources.tar.xz`, `SHA256SUMS`. Заметки релиза: текст аннотированного тега + таблица загрузок, статус подписи, состав LGPL-компонентов и отчёт гейта.
+`kinolune-<v>-x86_64.AppImage`, `kinolune-<v>-linux-x86_64.tar.gz`, `kinolune-<v>-android-{arm64-v8a,armeabi-v7a,x86_64,universal}.apk`, `kinolune-<v>-licenses.tar.gz`, `kinolune-<v>-libmpv-sources.tar.xz`, `kinolune-<v>-libsmb2-sources.tar.xz`, `SHA256SUMS`. Заметки релиза: текст аннотированного тега + таблица загрузок, статус подписи, состав LGPL-компонентов и отчёт гейта.
 
 - `versionCode` Android = номер запуска workflow (`github.run_number`), монотонно растёт; split-APK получают `+1000×ABI` (так делает Flutter). Обновляться стоит в пределах одного вида APK (split или universal).
 - Версия с суффиксом (`0.1.0-rc.1`) публикуется как pre-release.
@@ -50,9 +51,26 @@
   кладётся в Linux-архивы как `licenses/FLUTTER-NOTICES.txt`; в Android он доступен на экране
   лицензий приложения (`showLicensePage`).
 
-Локальная сборка APK: собрать `tools/mpv/build.sh android-<abi>` (или `docker-build.sh`) либо скачать
-CI-артефакты `libmpv-android-*`, выполнить `bundle.sh android` (см. README пакета), затем
-`flutter build apk --release`.
+## Лицензия libsmb2 (LGPL, LIB-019)
+
+SMB-источники работают через LGPL-2.1+ libsmb2 из [`tools/libsmb2`](../../tools/libsmb2/README.md)
+(ADR-0033): ядро загружает её в рантайме, наши бинарники её не линкуют. `release-app.yml` вызывает
+`libsmb2.yml` (`release: true` — Linux x86_64, три Android-ABI и архив исходников).
+
+- **Android.** `tools/libsmb2/bundle.sh android` кладёт `libsmb2.so` в те же `jniLibs`, что и libmpv;
+  release-сборка без неё падает, гейт `check-native-licences.sh` требует `libsmb2.so` в каждом APK и ABI
+  и проверяет, что никакая другая библиотека не определяет `smb2_*` (нет статической копии).
+- **Linux.** `package.sh` с `PA_LIBSMB2_DIR=<libsmb2-linux-x86_64>` кладёт `lib/libsmb2.so.1`, лицензии и
+  `BUILDINFO.txt` — в `licenses/libsmb2/`. `pa-smb2` ищет `lib/libsmb2.so.1` рядом с исполняемым файлом
+  раньше системной. Smoke-тест релиза загружает её и проверяет, что `libpa_frb.so` не содержит `smb2_*`.
+- **Исходники.** `libsmb2-sources.sh` сверяет архив `libsmb2-sources` того же запуска с `BUILDINFO.txt`
+  и кладёт его в релиз как `kinolune-<v>-libsmb2-sources.tar.xz`; заметка — в заметках релиза и
+  `LIBSMB2.md` архива лицензий, тексты лицензий — в `licenses/libsmb2/`.
+
+Локальная сборка APK: `clients/flutter/app/tool/native_libs.sh fetch` (свежие CI-артефакты) или
+`build` (из рецептов `tools/mpv` и `tools/libsmb2`) кладёт libmpv и libsmb2 в jniLibs, затем
+`flutter build apk`. Вручную: собрать `tools/mpv/build.sh android-<abi>` и `tools/libsmb2/build.sh android-<abi>`
+(или `docker-build.sh`) либо скачать CI-артефакты, выполнить оба `bundle.sh android` (см. README пакета).
 
 ## Шаги владельца
 

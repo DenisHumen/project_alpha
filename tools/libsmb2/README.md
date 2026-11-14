@@ -23,6 +23,7 @@
 | `check-license.sh`, `check_smb2.c` | Гейт: разделяемая библиотека, зависимости только системные, нужные функции экспортируются, тексты LGPL на месте; для нативного таргета — `ldd`/`otool -L` тестовой программы и её запуск |
 | `docker/Dockerfile`, `docker-build.sh` | Сборочный образ Ubuntu 24.04 (Linux, Windows через mingw-w64, Android с NDK) |
 | `patches/libsmb2/*.patch` | Наши патчи (сейчас один: сборка через mingw-w64) |
+| `bundle.sh` | Упаковка в приложение (LIB-019): Linux-бандл, `jniLibs` APK, проверка Android-артефакта |
 
 ## Конфигурация
 
@@ -77,10 +78,18 @@ tools/libsmb2/build.sh ios-arm64 && tools/libsmb2/build.sh xcframework   # то�
 ## Где библиотеку ищет приложение
 
 `pa-smb2` открывает её через `libloading` в момент первого SMB-подключения (`Smb2Lib::shared`):
-сначала путь из `PA_SMB2_LIB`, затем имена платформы — `libsmb2.so.1` (Linux), `libsmb2.so`
+сначала путь из `PA_SMB2_LIB`, на Linux затем копия рядом с исполняемым файлом
+(`lib/libsmb2.so.1` бандла, `bundled_paths`), потом имена платформы — `libsmb2.so.1` (Linux), `libsmb2.so`
 (Android, из `jniLibs`), `libsmb2.1.dylib` через `@rpath` (macOS), `@rpath/smb2.framework/smb2`
 (iOS, tvOS), `libsmb2.dll` рядом с exe (Windows). Без библиотеки SMB-источники недоступны,
-остальное приложение работает. Упаковку в клиенты делают задачи платформ (как для FFmpeg и libmpv).
+остальное приложение работает.
+
+Упаковка (LIB-019): `bundle.sh linux <out> <flutter-bundle>` кладёт `lib/libsmb2.so.1` и лицензии в
+Linux-бандл (`packaging/app/linux/package.sh` с `PA_LIBSMB2_DIR`), `bundle.sh android <jniLibs> <out>...`
+— `libsmb2.so` в `jniLibs/<abi>/` APK после проверки `bundle.sh check-android` (SONAME без версии,
+только системные зависимости, страницы 16 КБ). Релиз приложения вызывает `libsmb2.yml` и кладёт
+архив исходников рядом с бинарниками (`packaging/app/libsmb2-sources.sh`); для локальных сборок —
+`clients/flutter/app/tool/native_libs.sh`.
 
 ## Лицензионная проверка и «линкуется динамически»
 
