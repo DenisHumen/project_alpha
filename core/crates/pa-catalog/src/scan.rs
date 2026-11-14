@@ -267,13 +267,14 @@ impl Catalog {
             };
             // LIB-006: durations and streams before recognition (the
             // scorer uses the duration) and for the library filters.
-            if let Some(e) = crate::probe::run(&conn, src.id, vfs, cancel, &mut report_step)? {
+            let probe_error = crate::probe::run(&conn, src.id, vfs, cancel, &mut report_step)?;
+            crate::fingerprint::fill_missing(&mut conn, src.id, vfs, &mut report_step)?;
+            crate::recognize::run(&mut conn, src.id, &mut report_step)?;
+            if let Some(e) = probe_error {
                 let mut u = ScanUpdate::new(ScanPhase::Analyzing, Some(src.id), found);
                 u.error = Some(format!("{}: {e}", src.name));
                 on_update(u);
             }
-            crate::fingerprint::fill_missing(&mut conn, src.id, vfs, &mut report_step)?;
-            crate::recognize::run(&mut conn, src.id, &mut report_step)?;
         }
         {
             let tx = conn.transaction()?;
