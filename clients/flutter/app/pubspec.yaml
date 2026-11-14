@@ -17,6 +17,8 @@ dependencies:
     sdk: flutter
   pa_library:
     path: ../packages/pa_library
+  pa_platform_secrets:
+    path: ../packages/pa_platform_secrets
   pa_player:
     path: ../packages/pa_player
   pa_design:
