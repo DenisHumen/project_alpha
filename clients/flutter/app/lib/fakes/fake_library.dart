@@ -439,9 +439,7 @@ class FakeLibrary
   // music views, plays and audio playlists (MUS-004), in memory
 
   final _plays = _Live<Map<String, (int, DateTime)>>(const {});
-  final _musicPlaylists = _Live<List<(String, String, List<String>)>>(
-    const [],
-  );
+  final _musicPlaylists = _Live<List<(String, String, List<String>)>>(const []);
 
   @override
   Stream<List<MusicTrack>> musicTracks() => Stream.multi((c) {
@@ -547,10 +545,13 @@ class FakeLibrary
 
   @override
   Future<bool> removeFromMusicPlaylist(String id, String trackId) async =>
-      _editMusicPlaylist(id, (ids) => [
-        for (final t in ids)
-          if (t != trackId) t,
-      ]);
+      _editMusicPlaylist(
+        id,
+        (ids) => [
+          for (final t in ids)
+            if (t != trackId) t,
+        ],
+      );
 
   // -------------------------------------------------------------------------
   // versions, favorites, collections, playlists (LIB-010), in memory

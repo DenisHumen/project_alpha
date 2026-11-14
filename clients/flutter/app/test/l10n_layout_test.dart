@@ -64,6 +64,35 @@ final _flows = <String, (Section, _Step?)>{
   'show-detail': (Section.shows, (t, _) => _tap(t, 'Moonlit Bureau')),
   'music': (Section.music, null),
   'album': (Section.music, (t, _) => _tap(t, 'Nocturne Avenue')),
+  // MUS-004: the Library with the chips, a track list and an artist page.
+  'music-library': (
+    Section.music,
+    (t, _) async {
+      await t.tap(find.byKey(const ValueKey('music-tab-library')));
+      await settle(t, 6);
+      await t.tap(find.byKey(const ValueKey('music-chip-hiRes')));
+      await settle(t, 6);
+    },
+  ),
+  'music-tracks': (
+    Section.music,
+    (t, _) async {
+      await t.tap(find.byKey(const ValueKey('music-tab-library')));
+      await settle(t, 6);
+      await t.tap(find.byKey(const ValueKey('music-section-tracks')));
+      await settle(t, 6);
+    },
+  ),
+  'music-artist': (
+    Section.music,
+    (t, _) async {
+      await t.tap(find.byKey(const ValueKey('music-tab-library')));
+      await settle(t, 6);
+      await t.tap(find.byKey(const ValueKey('music-section-artists')));
+      await settle(t, 6);
+      await _tap(t, 'Mara Quill');
+    },
+  ),
   'search': (
     Section.search,
     (t, _) async {

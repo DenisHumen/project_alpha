@@ -357,12 +357,33 @@ String _slug(String s) => s
 /// Music details of the demo albums (MUS-004): album artist, genre,
 /// composer, discs, stream format and whether the files are on the device.
 const _demoMusic =
-    <String, (String genre, String? composer, String codec, int rate, int? bits, int? kbps, bool local, int discs)>{
+    <
+      String,
+      (
+        String genre,
+        String? composer,
+        String codec,
+        int rate,
+        int? bits,
+        int? kbps,
+        bool local,
+        int discs,
+      )
+    >{
       'Nocturne Avenue': ('Jazz', null, 'flac', 96000, 24, null, true, 2),
       'Analog Dawn': ('Electronic', null, 'flac', 44100, 16, null, true, 1),
       'Tides & Tunnels': ('Folk', null, 'alac', 48000, 24, null, false, 1),
       'Paper Planets': ('Pop', null, 'mp3', 44100, null, 320, true, 1),
-      'Quiet Machines': ('Ambient', 'E. Marlowe', 'flac', 192000, 24, null, true, 1),
+      'Quiet Machines': (
+        'Ambient',
+        'E. Marlowe',
+        'flac',
+        192000,
+        24,
+        null,
+        true,
+        1,
+      ),
     };
 
 /// Plays of demo tracks: (album, track number) → (count, hours ago).

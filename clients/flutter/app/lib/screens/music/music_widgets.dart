@@ -149,7 +149,12 @@ class TrackTile extends StatelessWidget {
 /// The stream format of an album or track (`FLAC 24/96`), outlined; Hi-Res
 /// formats in the accent colour.
 class FormatBadge extends StatelessWidget {
-  const FormatBadge(this.label, {super.key, this.hiRes = false, this.compact = false});
+  const FormatBadge(
+    this.label, {
+    super.key,
+    this.hiRes = false,
+    this.compact = false,
+  });
 
   final String label;
   final bool hiRes;
@@ -170,9 +175,8 @@ class FormatBadge extends StatelessWidget {
       child: Text(
         label,
         maxLines: 1,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: color, letterSpacing: .4),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: color, letterSpacing: .4),
       ),
     );
   }
@@ -420,7 +424,9 @@ class MusicPage extends StatelessWidget {
               ),
             ),
             ...slivers,
-            SliverToBoxAdapter(child: SizedBox(height: d.pageInsets.bottom + 90)),
+            SliverToBoxAdapter(
+              child: SizedBox(height: d.pageInsets.bottom + 90),
+            ),
           ],
         ),
       ),

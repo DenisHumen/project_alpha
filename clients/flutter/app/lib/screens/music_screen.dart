@@ -26,7 +26,15 @@ import 'music/music_widgets.dart';
 export 'music/music_widgets.dart' show TrackTile;
 
 /// Sections of the music library.
-enum MusicSection { playlists, artists, albums, tracks, genres, composers, folders }
+enum MusicSection {
+  playlists,
+  artists,
+  albums,
+  tracks,
+  genres,
+  composers,
+  folders,
+}
 
 class MusicScreen extends StatefulWidget {
   const MusicScreen({super.key});
@@ -156,9 +164,8 @@ class _MusicScreenState extends State<MusicScreen> {
               padding: musicPagePadding(d, bottom: d.rowGap),
               child: Text(
                 l.musicHomeEmpty,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: KColors.textSecondary,
-                ),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: KColors.textSecondary),
               ),
             ),
           if (recent.isNotEmpty)
@@ -185,10 +192,7 @@ class _MusicScreenState extends State<MusicScreen> {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
-                    _TrackColumns(
-                      tracks: frequent,
-                      columns: d.isPhone ? 1 : 2,
-                    ),
+                    _TrackColumns(tracks: frequent, columns: d.isPhone ? 1 : 2),
                   ],
                 ),
               ),
@@ -466,9 +470,8 @@ class _MusicScreenState extends State<MusicScreen> {
                     padding: const EdgeInsets.all(10),
                     child: Text(
                       l.musicPlaylistsEmpty,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: KColors.textSecondary,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(color: KColors.textSecondary),
                     ),
                   ),
                 for (final p in lists)

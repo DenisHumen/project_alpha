@@ -189,7 +189,9 @@ class AlbumScreen extends StatelessWidget {
     final l = context.l10n;
     final tracks = album.tracks;
     final format = album.formatLabel;
-    final artist = album.artist == null ? null : index.artistNamed(album.artist!);
+    final artist = album.artist == null
+        ? null
+        : index.artistNamed(album.artist!);
     final more = [
       for (final a in artist?.albums ?? const <MusicAlbum>[])
         if (a.key != album.key) a,
@@ -215,8 +217,7 @@ class AlbumScreen extends StatelessWidget {
                 formatRuntime(l, album.durationMs),
               ].where((s) => s.isNotEmpty).join('  ·  '),
               badges: [
-                if (format != null)
-                  FormatBadge(format, hiRes: album.isHiRes),
+                if (format != null) FormatBadge(format, hiRes: album.isHiRes),
               ],
               buttons: [
                 ..._playButtons(context, tracks, autofocus: !d.isPhone),
@@ -260,13 +261,13 @@ class AlbumScreen extends StatelessWidget {
             sliver: SliverList.list(
               children: [
                 for (var i = 0; i < tracks.length; i++)
-                  if ((tracks[i].discNumber ?? 1) == disc ||
-                      discs.length == 1)
+                  if ((tracks[i].discNumber ?? 1) == disc || discs.length == 1)
                     musicTrackRow(
                       context,
                       tracks,
                       i,
-                      subtitle: tracks[i].artists.length > 1 ||
+                      subtitle:
+                          tracks[i].artists.length > 1 ||
                               tracks[i].artist != album.artist
                           ? tracks[i].artists.join(', ')
                           : null,
@@ -418,8 +419,13 @@ class TrackListScreen extends StatelessWidget {
           padding: musicPagePadding(d),
           sliver: SliverList.builder(
             itemCount: tracks.length,
-            itemBuilder: (context, i) =>
-                musicTrackRow(context, tracks, i, showArt: true, badge: !d.isPhone),
+            itemBuilder: (context, i) => musicTrackRow(
+              context,
+              tracks,
+              i,
+              showArt: true,
+              badge: !d.isPhone,
+            ),
           ),
         ),
       ],
