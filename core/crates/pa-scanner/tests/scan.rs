@@ -514,3 +514,60 @@ fn bench_local_ten_thousand_files() {
     eprintln!("local 10k files: first {first:?}, rescan {again:?}");
     assert!(first < Duration::from_secs(60) && again < Duration::from_secs(10));
 }
+
+fn run_subtree(conn: &mut Connection, vfs: &dyn Vfs, dir: &str, now: i64) -> ScanReport {
+    let options = ScanOptions {
+        subtree: Some(VfsPath::parse(dir).unwrap()),
+        ..opts(now)
+    };
+    scan(conn, 1, vfs, &options, &CancelToken::new(), &mut |_| {}).unwrap()
+}
+
+#[test]
+fn a_subtree_rescan_touches_only_that_folder() {
+    let vfs = MemVfs::with(&[
+        ("/Movies/Dune (2021)/Dune (2021).mkv", 100),
+        ("/Movies/Heat (1995)/Heat (1995).mkv", 100),
+        ("/Shows/Dark/Season 1/Dark.S01E01.mkv", 70),
+    ]);
+    let mut conn = library();
+    assert_eq!(run(&mut conn, &vfs, T0).added, 3);
+
+    // Changes inside and outside the rescanned folder.
+    vfs.put("/Movies/Dune (2021)/Dune (2021) part2.mkv", 50, T0);
+    vfs.remove("/Movies/Heat (1995)/Heat (1995).mkv");
+    vfs.put("/Shows/Dark/Season 1/Dark.S01E02.mkv", 70, T0);
+    let r = run_subtree(&mut conn, &vfs, "/Movies/Dune (2021)", T0 + 1);
+    assert_eq!((r.files_seen, r.added, r.unchanged), (2, 1, 1));
+    assert_eq!(r.marked_missing, 0, "Heat is outside the subtree");
+    assert_eq!(rows(&conn).len(), 4);
+    assert!(!rows(&conn).iter().any(|r| r.2));
+
+    // A removed folder marks its rows missing; the rest stays.
+    vfs.remove("/Movies/Dune (2021)/Dune (2021).mkv");
+    vfs.remove("/Movies/Dune (2021)/Dune (2021) part2.mkv");
+    let r = run_subtree(&mut conn, &vfs, "/Movies/Dune (2021)", T0 + 2);
+    assert_eq!((r.files_seen, r.marked_missing), (0, 2));
+    let missing: Vec<_> = rows(&conn)
+        .into_iter()
+        .filter(|r| r.2)
+        .map(|r| r.0)
+        .collect();
+    assert_eq!(
+        missing,
+        vec![
+            "/Movies/Dune (2021)/Dune (2021) part2.mkv".to_owned(),
+            "/Movies/Dune (2021)/Dune (2021).mkv".to_owned(),
+        ]
+    );
+
+    // A rescan from a parent folder covers everything below it.
+    assert_eq!(run_subtree(&mut conn, &vfs, "/Shows", T0 + 3).added, 1);
+
+    // Folders the full scan skips are not scanned on their own either.
+    vfs.put("/Movies/.hidden/Secret.mkv", 1, T0);
+    vfs.put("/Movies/Extras/Making.mkv", 1, T0);
+    let hidden = run_subtree(&mut conn, &vfs, "/Movies/.hidden", T0 + 4);
+    let extras = run_subtree(&mut conn, &vfs, "/Movies/Extras", T0 + 4);
+    assert_eq!((hidden.files_seen, extras.files_seen), (0, 0));
+}

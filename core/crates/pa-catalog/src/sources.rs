@@ -20,9 +20,14 @@ pub struct Source {
     pub username: Option<String>,
     /// Local path of the root for `file://` sources.
     pub local_root: Option<PathBuf>,
+    /// Rescanned automatically (NET-011 `auto_scan`, and the source is
+    /// enabled and scanned into the library): the change watcher
+    /// ([`crate::watch`]) follows it.
+    pub auto_scan: bool,
 }
 
-const COLUMNS: &str = "id, kind, name, uri, username";
+const COLUMNS: &str =
+    "id, kind, name, uri, username, (enabled AND scan_into_library AND auto_scan)";
 
 fn source_from_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Source> {
     let uri: String = r.get(3)?;
@@ -33,6 +38,7 @@ fn source_from_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Source> {
         local_root: uri::file_uri_to_path(&uri),
         uri,
         username: r.get(4)?,
+        auto_scan: r.get(5)?,
     })
 }
 
