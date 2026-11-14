@@ -21,6 +21,7 @@ pa-ffi = { path = "../pa-ffi" }
 pa-imagecache = { path = "../pa-imagecache" }
 pa-proxy = { path = "../pa-proxy" }
 pa-recognition = { path = "../pa-recognition" }
+pa-remote-config = { path = "../pa-remote-config" }
 pa-secrets = { path = "../pa-secrets" }
 pa-sources = { path = "../pa-sources" }
 
