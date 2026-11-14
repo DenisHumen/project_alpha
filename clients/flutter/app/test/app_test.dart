@@ -173,10 +173,7 @@ void main() {
       expect(services.managedSource(smb.id)!.hasPassword, isTrue);
       final fake = services.sourceManager as FakeSourceManager;
       expect(fake.drafts.single.password, 's3cret');
-      expect(
-        await services.secureStore.read('smb_password_${smb.id}'),
-        isNull,
-      );
+      expect(await services.secureStore.read('smb_password_${smb.id}'), isNull);
     });
 
     testWidgets('TMDB key is saved', (tester) async {
