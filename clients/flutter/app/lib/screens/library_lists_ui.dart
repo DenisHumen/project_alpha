@@ -32,12 +32,12 @@ Future<void> setFavorite(
   messenger
     ?..removeCurrentSnackBar()
     ..showSnackBar(
-    SnackBar(
-      content: Text(
-        favorite ? l.libraryFavoriteAdded : l.libraryFavoriteRemoved,
+      SnackBar(
+        content: Text(
+          favorite ? l.libraryFavoriteAdded : l.libraryFavoriteRemoved,
+        ),
       ),
-    ),
-  );
+    );
 }
 
 /// Picks a video playlist (or makes a new one) and adds [item] to it: a
@@ -64,14 +64,14 @@ Future<void> showAddToPlaylistDialog(
   messenger
     ?..removeCurrentSnackBar()
     ..showSnackBar(
-    SnackBar(
-      content: Text(
-        added > 0
-            ? l.libraryPlaylistAdded(playlist.name)
-            : l.libraryPlaylistAlready(playlist.name),
+      SnackBar(
+        content: Text(
+          added > 0
+              ? l.libraryPlaylistAdded(playlist.name)
+              : l.libraryPlaylistAlready(playlist.name),
+        ),
       ),
-    ),
-  );
+    );
 }
 
 sealed class _PlaylistChoice {
