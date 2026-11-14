@@ -48,6 +48,7 @@ flowchart LR
     pa_eval["pa-eval"]
     pa_recognition_eval["pa-recognition-eval"]
   end
+  pa_catalog -. dev .-> pa_discovery
   pa_catalog --> pa_library
   pa_catalog --> pa_metadata
   pa_catalog --> pa_model
@@ -57,6 +58,8 @@ flowchart LR
   pa_catalog --> pa_scanner
   pa_catalog -. dev .-> pa_secrets
   pa_catalog --> pa_sources
+  pa_catalog -. dev .-> pa_sync
+  pa_catalog --> pa_sync
   pa_catalog --> pa_vfs
   pa_eval --> pa_anime_mappings
   pa_eval --> pa_catalog
@@ -67,6 +70,7 @@ flowchart LR
   pa_ffi --> pa_runtime
   pa_ffi --> pa_secrets
   pa_frb --> pa_catalog
+  pa_frb --> pa_discovery
   pa_frb --> pa_ffi
   pa_frb --> pa_imagecache
   pa_frb --> pa_proxy
@@ -74,6 +78,7 @@ flowchart LR
   pa_frb --> pa_remote_config
   pa_frb --> pa_secrets
   pa_frb --> pa_sources
+  pa_frb --> pa_sync
   pa_jobs --> pa_library
   pa_library --> pa_model
   pa_library --> pa_recognition
@@ -106,6 +111,7 @@ flowchart LR
   pa_sync --> pa_model
   pa_sync --> pa_pairing
   pa_sync -. dev .-> pa_secrets
+  pa_sync --> pa_secrets
   pa_twitch --> pa_secrets
   pa_twitch -. dev .-> pa_twitch
   pa_twitch_chat -. dev .-> pa_twitch
@@ -124,7 +130,7 @@ flowchart LR
 | `pa-discovery` | `core/crates/pa-discovery` | 4 | LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009) |
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
-| `pa-frb` | `core/crates/pa-frb` | 1 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |
+| `pa-frb` | `core/crates/pa-frb` | 2 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |
 | `pa-imagecache` | `core/crates/pa-imagecache` | 3 | Disk LRU cache of provider artwork (posters, backdrops, stills) with provider size variants and offline use (LIB-013) |
 | `pa-jobs` | `core/crates/pa-jobs` | 2 | Persistent job queue of the core: priorities, per-type concurrency limits, retries with backoff, pause and cancel, progress events, survives restart (CORE-011) |
 | `pa-library` | `core/crates/pa-library` | 1 | Media library storage: SQLite schema v1, embedded migrations, connection setup (LIB-001); progress, Continue watching and Up Next (LIB-011); music library (MUS-001); Twitch data model (TWI-007); FTS5 search (LIB-008) |
