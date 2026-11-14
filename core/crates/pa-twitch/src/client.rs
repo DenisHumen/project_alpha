@@ -263,8 +263,8 @@ impl FollowedStreamer {
 }
 
 #[derive(Deserialize)]
-struct Envelope<T> {
-    data: T,
+pub(crate) struct Envelope<T> {
+    pub(crate) data: T,
     #[serde(default)]
     pagination: Option<PaginationField>,
     #[serde(default)]
@@ -308,7 +308,7 @@ struct ErrorBody {
     error: String,
 }
 
-type Query = Vec<(&'static str, String)>;
+pub(crate) type Query = Vec<(&'static str, String)>;
 
 /// Async Helix client. Cheap to share behind an `Arc`; all state (token,
 /// rate-limit bucket, caches) is internally synchronised.
@@ -400,7 +400,12 @@ impl HelixClient {
 
     // ----- request loop ---------------------------------------------------
 
-    fn build_request(&self, method: Method, path: &str, query: &Query) -> Result<HttpRequest> {
+    pub(crate) fn build_request(
+        &self,
+        method: Method,
+        path: &str,
+        query: &Query,
+    ) -> Result<HttpRequest> {
         let token = self
             .token
             .read()
@@ -441,7 +446,11 @@ impl HelixClient {
 
     /// Sends one request with the rate-limit bucket and retries applied.
     /// Returns the 2xx response, or `Ok(None)` for `404` when `allow_404`.
-    async fn send(&self, request: HttpRequest, allow_404: bool) -> Result<Option<HttpResponse>> {
+    pub(crate) async fn send(
+        &self,
+        request: HttpRequest,
+        allow_404: bool,
+    ) -> Result<Option<HttpResponse>> {
         let mut attempt = 0;
         loop {
             let wait = self

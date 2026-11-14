@@ -14,6 +14,7 @@ import 'models.dart';
 import 'music_tags.dart';
 import 'open_library.dart';
 import 'playback_session.dart';
+import 'search_groups.dart';
 import 'smb.dart' show SmbUrl;
 
 /// [Library] on the Rust core (UI-024): `pa_core`'s [CoreLibrary] over the
@@ -576,6 +577,22 @@ class RustLibrary implements Library {
   Future<List<LibraryItem>> search(String query, {int limit = 100}) async {
     if (query.trim().isEmpty) return const [];
     return _items(_core.search(query: query, limit: limit.clamp(1, 500)));
+  }
+
+  @override
+  Future<List<SearchGroup>> searchGrouped(
+    String query, {
+    int perGroup = searchPerGroupDefault,
+  }) async {
+    if (query.trim().isEmpty) return const [];
+    final groups = await _core.searchGrouped(
+      query: query,
+      perGroup: perGroup.clamp(1, 500),
+    );
+    return [
+      for (final g in groups)
+        SearchGroup(_kindOf(g.kind), g.items.map(_item).toList()),
+    ];
   }
 
   @override

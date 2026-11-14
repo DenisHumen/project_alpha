@@ -431,6 +431,24 @@ void main() {
     expect(await lib.search('  '), isEmpty);
   });
 
+  test('searchGrouped groups v0 results by kind (UI-011)', () async {
+    await lib.addSource(
+      MediaSource(
+        id: 'm',
+        kind: SourceKind.localFolder,
+        name: 'Media',
+        path: media,
+      ),
+    );
+    await scanAll();
+    final groups = await lib.searchGrouped('matrix');
+    expect(groups.map((g) => g.kind), [ItemKind.movie]);
+    expect(groups.single.items.single.title, 'The Matrix');
+    final queen = await lib.searchGrouped('queen');
+    expect(queen.single.kind, ItemKind.track);
+    expect(await lib.searchGrouped('  '), isEmpty);
+  });
+
   test('recentlyAdded', () async {
     await lib.addSource(
       MediaSource(

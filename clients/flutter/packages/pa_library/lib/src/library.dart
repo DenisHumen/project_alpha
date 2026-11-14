@@ -15,6 +15,7 @@ import 'music_tags.dart';
 import 'parser/filename_parser.dart';
 import 'playback_session.dart';
 import 'scanner.dart';
+import 'search_groups.dart';
 import 'smb.dart';
 import 'tmdb.dart';
 
@@ -86,6 +87,14 @@ abstract class Library {
 
   /// Case-insensitive search over movies, shows, episodes and tracks.
   Future<List<LibraryItem>> search(String query, {int limit = 100});
+
+  /// Search results grouped for the Search screen (UI-011): movies, shows,
+  /// episodes and tracks ([searchGroupOrder]), each best first and at most
+  /// [perGroup] long; empty groups are left out.
+  Future<List<SearchGroup>> searchGrouped(
+    String query, {
+    int perGroup = searchPerGroupDefault,
+  });
 
   Future<void> saveProgress(Progress p);
 
@@ -1015,6 +1024,16 @@ ORDER BY p.updated_at DESC LIMIT 50''',
       }
     }
     return out;
+  }
+
+  @override
+  Future<List<SearchGroup>> searchGrouped(
+    String query, {
+    int perGroup = searchPerGroupDefault,
+  }) async {
+    // v0 has no index: one scan ranked by kind and title, then grouped.
+    final all = await search(query, limit: 1 << 30);
+    return groupSearchResults(all, perGroup: perGroup);
   }
 
   @override

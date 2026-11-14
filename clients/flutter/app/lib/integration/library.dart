@@ -33,4 +33,9 @@ export 'package:pa_library/pa_library.dart'
         SmartShelf,
         SortField,
         WatchState,
-        continueWatchingMax;
+        continueWatchingMax,
+        // UI-011 search
+        SearchGroup,
+        groupSearchResults,
+        searchGroupOrder,
+        searchPerGroupDefault;

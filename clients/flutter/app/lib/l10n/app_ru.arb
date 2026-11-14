@@ -88,6 +88,11 @@
   "searchPromptTitle": "Поиск по медиатеке",
   "searchPromptMessage": "Введите название, год, исполнителя или альбом.",
   "searchNoResults": "По запросу «{query}» ничего не найдено",
+  "searchEpisodes": "Эпизоды",
+  "searchFailed": "Не удалось выполнить поиск. Попробуйте ещё раз.",
+  "searchHistoryTitle": "Недавние запросы",
+  "searchHistoryClear": "Очистить историю",
+  "searchHistoryRemove": "Удалить «{query}» из истории",
 
   "detailResumeAt": "Продолжить с {time}",
   "detailFromBeginning": "С начала",
