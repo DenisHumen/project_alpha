@@ -135,6 +135,8 @@ final _flows = <String, (Section, _Step?)>{
       await settle(t, 4);
       await t.tap(find.text(l.subtitlesStyleTitle).last);
       await settle(t, 10);
+      await t.ensureVisible(find.text(l.subtitlesSystemStyle).last);
+      await settle(t, 4);
       await _tap(t, l.subtitlesSystemStyle);
     },
   ),

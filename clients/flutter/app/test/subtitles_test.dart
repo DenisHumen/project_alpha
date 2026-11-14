@@ -129,16 +129,19 @@ void main() {
     await t.tap(find.byKey(const ValueKey('subtitles-size-4'))); // 150 %
     await settle(t);
     await t.ensureVisible(find.byKey(const ValueKey('subtitles-font-2')));
+    await settle(t, 4);
     await t.tap(find.byKey(const ValueKey('subtitles-font-2'))); // monospace
     await settle(t);
     await t.ensureVisible(
       find.byKey(const ValueKey('subtitles-background-2')),
     );
+    await settle(t, 4);
     await t.tap(find.byKey(const ValueKey('subtitles-background-2')));
     await settle(t);
     await t.ensureVisible(
       find.byKey(const ValueKey('subtitles-position-up')),
     );
+    await settle(t, 4);
     await t.tap(find.byKey(const ValueKey('subtitles-position-up')));
     await settle(t);
 
@@ -181,7 +184,8 @@ void main() {
     playVideo(context, item);
     await settle(t);
     expect(find.byType(PlayerScreen), findsOneWidget);
-    expect(library.asked, [item.playbackUri]);
+    // The next episode's are fetched too, for Up Next.
+    expect(library.asked.first, item.playbackUri);
     expect(engine.autoLoadSubtitles, isFalse);
     expect([for (final s in engine.addedSubtitles) s.language], [
       'rus',

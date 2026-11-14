@@ -103,7 +103,10 @@ class _SubtitleSettingsScreenState extends State<SubtitleSettingsScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _Preview(appearance: s.resolve(_system)),
+                      _Preview(
+                        appearance: s.resolve(_system),
+                        maxWidth: d.isTv ? 320 : 480,
+                      ),
                       const SizedBox(height: 16),
                       _SwitchTile(
                         key: const ValueKey('subtitles-system'),
@@ -249,14 +252,15 @@ class _SubtitleSettingsScreenState extends State<SubtitleSettingsScreen>
 
 /// A 16:9 frame with sample subtitles in the chosen look.
 class _Preview extends StatelessWidget {
-  const _Preview({required this.appearance});
+  const _Preview({required this.appearance, required this.maxWidth});
   final SubtitleAppearance appearance;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
     final l = context.l10n;
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
+      constraints: BoxConstraints(maxWidth: maxWidth),
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: ClipRRect(
