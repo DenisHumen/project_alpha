@@ -1764,6 +1764,6 @@ project_alpha/
 | PLAY | 12 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
 | PLAY-DSK | 8 | LEGAL | 10 |
-| PLAY-APL | 12 | SITE | 6 |
+| PLAY-APL | 13 | SITE | 6 |
 | UI | 22 | COMM | 6 |
 | TV | 13 | **Всего** | **350** (342 задачи + 8 решений владельца) |
