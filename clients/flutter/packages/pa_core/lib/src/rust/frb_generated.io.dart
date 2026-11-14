@@ -7,6 +7,7 @@ import 'api/events.dart';
 import 'api/library.dart';
 import 'api/library_query.dart';
 import 'api/recognition.dart';
+import 'api/secrets.dart';
 import 'api/sources.dart';
 import 'api/version.dart';
 import 'dart:async';
@@ -57,6 +58,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     dynamic raw,
   );
+
+  @protected
+  FutureOr<PlatformSecretReply> Function(PlatformSecretCall)
+  dco_decode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
+    dynamic raw,
+  );
+
+  @protected
+  Object dco_decode_DartOpaque(dynamic raw);
 
   @protected
   CoreLibrary
@@ -121,6 +131,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreProgress dco_decode_box_autoadd_core_progress(dynamic raw);
+
+  @protected
+  CoreSecretStoreInfo dco_decode_box_autoadd_core_secret_store_info(
+    dynamic raw,
+  );
 
   @protected
   CoreSourceInput dco_decode_box_autoadd_core_source_input(dynamic raw);
@@ -225,6 +240,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreScanUpdate dco_decode_core_scan_update(dynamic raw);
 
   @protected
+  CoreSecretStoreInfo dco_decode_core_secret_store_info(dynamic raw);
+
+  @protected
   CoreSmartShelf dco_decode_core_smart_shelf(dynamic raw);
 
   @protected
@@ -295,6 +313,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_isize(dynamic raw);
 
   @protected
   LibraryError dco_decode_library_error(dynamic raw);
@@ -383,6 +404,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreProgress? dco_decode_opt_box_autoadd_core_progress(dynamic raw);
 
   @protected
+  CoreSecretStoreInfo? dco_decode_opt_box_autoadd_core_secret_store_info(
+    dynamic raw,
+  );
+
+  @protected
   DiscKind? dco_decode_opt_box_autoadd_disc_kind(dynamic raw);
 
   @protected
@@ -414,6 +440,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ParsedName dco_decode_parsed_name(dynamic raw);
+
+  @protected
+  PlatformSecretCall dco_decode_platform_secret_call(dynamic raw);
+
+  @protected
+  PlatformSecretReply dco_decode_platform_secret_reply(dynamic raw);
+
+  @protected
+  SecretsError dco_decode_secrets_error(dynamic raw);
 
   @protected
   SourcesError dco_decode_sources_error(dynamic raw);
@@ -462,6 +497,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     SseDeserializer deserializer,
   );
+
+  @protected
+  Object sse_decode_DartOpaque(SseDeserializer deserializer);
 
   @protected
   CoreLibrary
@@ -534,6 +572,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreProgress sse_decode_box_autoadd_core_progress(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreSecretStoreInfo sse_decode_box_autoadd_core_secret_store_info(
     SseDeserializer deserializer,
   );
 
@@ -658,6 +701,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreScanUpdate sse_decode_core_scan_update(SseDeserializer deserializer);
 
   @protected
+  CoreSecretStoreInfo sse_decode_core_secret_store_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreSmartShelf sse_decode_core_smart_shelf(SseDeserializer deserializer);
 
   @protected
@@ -734,6 +782,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
 
   @protected
   LibraryError sse_decode_library_error(SseDeserializer deserializer);
@@ -854,6 +905,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreSecretStoreInfo? sse_decode_opt_box_autoadd_core_secret_store_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DiscKind? sse_decode_opt_box_autoadd_disc_kind(SseDeserializer deserializer);
 
   @protected
@@ -889,6 +945,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ParsedName sse_decode_parsed_name(SseDeserializer deserializer);
+
+  @protected
+  PlatformSecretCall sse_decode_platform_secret_call(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PlatformSecretReply sse_decode_platform_secret_reply(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  SecretsError sse_decode_secrets_error(SseDeserializer deserializer);
 
   @protected
   SourcesError sse_decode_sources_error(SseDeserializer deserializer);
@@ -944,6 +1013,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     CoreSources self,
     SseSerializer serializer,
   );
+
+  @protected
+  void
+  sse_encode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
+    FutureOr<PlatformSecretReply> Function(PlatformSecretCall) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_DartOpaque(Object self, SseSerializer serializer);
 
   @protected
   void
@@ -1031,6 +1110,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_core_progress(
     CoreProgress self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_core_secret_store_info(
+    CoreSecretStoreInfo self,
     SseSerializer serializer,
   );
 
@@ -1197,6 +1282,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_secret_store_info(
+    CoreSecretStoreInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_smart_shelf(
     CoreSmartShelf self,
     SseSerializer serializer,
@@ -1300,6 +1391,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
 
   @protected
   void sse_encode_library_error(LibraryError self, SseSerializer serializer);
@@ -1452,6 +1546,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_core_secret_store_info(
+    CoreSecretStoreInfo? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_disc_kind(
     DiscKind? self,
     SseSerializer serializer,
@@ -1495,6 +1595,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_parsed_name(ParsedName self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_platform_secret_call(
+    PlatformSecretCall self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_platform_secret_reply(
+    PlatformSecretReply self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_secrets_error(SecretsError self, SseSerializer serializer);
 
   @protected
   void sse_encode_sources_error(SourcesError self, SseSerializer serializer);
