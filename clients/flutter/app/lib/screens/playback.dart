@@ -7,6 +7,7 @@ import '../integration/player.dart';
 import '../l10n/l10n.dart';
 import '../services/app_services.dart';
 import '../widgets/format.dart';
+import 'library_lists_ui.dart';
 
 /// Opens the fullscreen player (pa_player) on the root navigator and saves
 /// progress to the library (PLAY-005: every 5 s, on pause, seek, exit and in
@@ -15,9 +16,12 @@ import '../widgets/format.dart';
 /// countdown, resuming where it was left.
 Future<void> playVideo(
   BuildContext context,
-  LibraryItem item, {
+  LibraryItem original, {
   int startPositionMs = 0,
 }) async {
+  // LIB-010: a movie with several versions asks which one to play.
+  final item = await chooseVersion(context, original);
+  if (item == null || !context.mounted) return;
   final services = Services.read(context);
   final l = context.l10n;
   final library = services.library;

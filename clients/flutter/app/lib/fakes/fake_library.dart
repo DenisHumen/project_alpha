@@ -14,15 +14,19 @@ import '../integration/library.dart';
 import '../library/library_queries.dart';
 import 'demo_data.dart';
 
-class FakeLibrary implements Library, LibraryQueriesProvider {
+class FakeLibrary implements Library, LibraryQueriesProvider, LibraryLists {
   FakeLibrary({this.scanStepDelay = const Duration(milliseconds: 60)});
 
-  /// A library of exactly [items] (tests: large grids), with [progress].
+  /// A library of exactly [items] (tests: large grids), with [progress] and
+  /// the [versions] of items that have several (LIB-010; the first one
+  /// plays by default).
   FakeLibrary.items(
     List<LibraryItem> items, {
     List<Progress> progress = const [],
+    Map<String, List<MediaVersion>> versions = const {},
     this.scanStepDelay = Duration.zero,
   }) {
+    _versions.addAll(versions);
     _sources.add(
       const MediaSource(
         id: 'src-demo',
@@ -404,6 +408,7 @@ class FakeLibrary implements Library, LibraryQueriesProvider {
             matchConfidence: 1.0,
             tmdbId: tmdbId ?? i.tmdbId,
             addedAt: i.addedAt,
+            versionCount: i.versionCount,
           )
         else
           i,
@@ -428,6 +433,239 @@ class FakeLibrary implements Library, LibraryQueriesProvider {
 
   @override
   Future<void> close() async {}
+
+  // -------------------------------------------------------------------------
+  // versions, favorites, collections, playlists (LIB-010), in memory
+
+  final Map<String, List<MediaVersion>> _versions = {};
+  final Map<String, String> _defaultVersions = {};
+
+  /// Favorites, newest first: item id and "pinned to Home".
+  final _favorites = _Live<List<(String, bool)>>(const []);
+  final Map<String, (String, List<String>)> _playlists = {};
+  final Map<String, (String, List<String>)> _collections = {};
+
+  LibraryItem? _itemNow(String id) {
+    for (final i in _items.value) {
+      if (i.id == id) return i;
+    }
+    return null;
+  }
+
+  List<LibraryItem> _itemsNow(Iterable<String> ids) => [
+    for (final id in ids) ?_itemNow(id),
+  ];
+
+  @override
+  Future<List<MediaVersion>> versions(String itemId) async {
+    final all = _versions[itemId] ?? const <MediaVersion>[];
+    if (all.isEmpty) return const [];
+    final chosen = _defaultVersions[itemId] ?? all.first.id;
+    return [
+      for (final v in all)
+        MediaVersion(
+          id: v.id,
+          label: v.label,
+          resolution: v.resolution,
+          hdr: v.hdr,
+          edition: v.edition,
+          filePath: v.filePath,
+          streamUri: v.streamUri,
+          sizeBytes: v.sizeBytes,
+          durationMs: v.durationMs,
+          isDefault: v.id == chosen,
+        ),
+    ];
+  }
+
+  @override
+  Future<void> setDefaultVersion(String itemId, String? versionId) async {
+    final all = _versions[itemId] ?? const <MediaVersion>[];
+    if (versionId != null && !all.any((v) => v.id == versionId)) {
+      throw ArgumentError.value(versionId, 'versionId', 'no such version');
+    }
+    if (versionId == null) {
+      _defaultVersions.remove(itemId);
+    } else {
+      _defaultVersions[itemId] = versionId;
+    }
+    final v = (await versions(itemId)).where((v) => v.isDefault).firstOrNull;
+    if (v == null) return;
+    _items.value = [
+      for (final i in _items.value)
+        i.id == itemId
+            ? i.withFile(v.filePath, streamUri: v.streamUri)
+            : i,
+    ];
+  }
+
+  @override
+  Stream<List<LibraryItem>> favorites({bool pinnedOnly = false}) =>
+      combineLatest2(
+        _favorites.stream,
+        _items.stream,
+        (favs, _) => _itemsNow([
+          for (final (id, pinned) in favs)
+            if (pinned || !pinnedOnly) id,
+        ]),
+      );
+
+  @override
+  Future<bool> isFavorite(String itemId) async =>
+      _favorites.value.any((f) => f.$1 == itemId);
+
+  @override
+  Future<void> setFavorite(String itemId, bool favorite) async {
+    final rest = [
+      for (final f in _favorites.value)
+        if (f.$1 != itemId) f,
+    ];
+    final had = rest.length != _favorites.value.length;
+    if (favorite == had) return;
+    _favorites.value = favorite ? [(itemId, true), ...rest] : rest;
+  }
+
+  @override
+  Future<void> setFavoritePinned(String itemId, bool pinned) async {
+    _favorites.value = [
+      for (final f in _favorites.value) f.$1 == itemId ? (f.$1, pinned) : f,
+    ];
+  }
+
+  MediaCollection _collectionOf(String id) {
+    final (name, ids) = _collections[id]!;
+    return MediaCollection(id: id, name: name, itemCount: ids.length);
+  }
+
+  @override
+  Future<List<MediaCollection>> collections() async =>
+      [for (final id in _collections.keys) _collectionOf(id)]
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+  @override
+  Future<List<MediaCollection>> itemCollections(String itemId) async => [
+    for (final MapEntry(:key, :value) in _collections.entries)
+      if (value.$2.contains(itemId)) _collectionOf(key),
+  ];
+
+  @override
+  Future<List<LibraryItem>> collectionItems(String id) async =>
+      _itemsNow(_collections[id]?.$2 ?? const []);
+
+  @override
+  Future<MediaCollection> createCollection(String name) async {
+    final id = 'col-${_nextId++}';
+    _collections[id] = (name.trim(), []);
+    return _collectionOf(id);
+  }
+
+  @override
+  Future<void> renameCollection(String id, String name) async {
+    final c = _collections[id];
+    if (c != null) _collections[id] = (name.trim(), c.$2);
+  }
+
+  @override
+  Future<void> deleteCollection(String id) async {
+    _collections.remove(id);
+  }
+
+  @override
+  Future<bool> addToCollection(String id, String itemId) async {
+    final ids = _collections[id]?.$2;
+    if (ids == null || ids.contains(itemId)) return false;
+    ids.add(itemId);
+    return true;
+  }
+
+  @override
+  Future<bool> removeFromCollection(String id, String itemId) async =>
+      _collections[id]?.$2.remove(itemId) ?? false;
+
+  VideoPlaylist _playlistOf(String id) {
+    final (name, ids) = _playlists[id]!;
+    return VideoPlaylist(id: id, name: name, itemCount: ids.length);
+  }
+
+  @override
+  Future<List<VideoPlaylist>> playlists() async => [
+    for (final id in _playlists.keys.toList().reversed) _playlistOf(id),
+  ];
+
+  @override
+  Future<VideoPlaylist> createPlaylist(String name) async {
+    final id = 'pl-${_nextId++}';
+    _playlists[id] = (name.trim(), []);
+    return _playlistOf(id);
+  }
+
+  @override
+  Future<void> renamePlaylist(String id, String name) async {
+    final p = _playlists[id];
+    if (p != null) _playlists[id] = (name.trim(), p.$2);
+  }
+
+  @override
+  Future<void> deletePlaylist(String id) async {
+    _playlists.remove(id);
+  }
+
+  @override
+  Future<List<LibraryItem>> playlistItems(String id) async =>
+      _itemsNow(_playlists[id]?.$2 ?? const []);
+
+  /// A movie or episode, or every episode of a show.
+  List<String> _playable(String itemId) {
+    final item = _itemNow(itemId);
+    if (item == null) return const [];
+    if (item.kind != ItemKind.show) return [itemId];
+    return [
+      for (final i in _items.value)
+        if (i.kind == ItemKind.episode && i.showId == itemId) i.id,
+    ];
+  }
+
+  @override
+  Future<int> addToPlaylist(String id, String itemId) async {
+    final ids = _playlists[id]?.$2;
+    if (ids == null) throw ArgumentError.value(id, 'id', 'no such playlist');
+    var added = 0;
+    for (final i in _playable(itemId)) {
+      if (!ids.contains(i)) {
+        ids.add(i);
+        added++;
+      }
+    }
+    return added;
+  }
+
+  @override
+  Future<int> removeFromPlaylist(String id, String itemId) async {
+    final ids = _playlists[id]?.$2;
+    if (ids == null) return 0;
+    var removed = 0;
+    for (final i in _playable(itemId)) {
+      if (ids.remove(i)) removed++;
+    }
+    return removed;
+  }
+
+  @override
+  Future<void> reorderPlaylist(String id, List<String> itemIds) async {
+    final ids = _playlists[id]?.$2;
+    if (ids == null) return;
+    final first = [
+      for (final i in itemIds)
+        if (ids.contains(i)) i,
+    ];
+    final rest = [
+      for (final i in ids)
+        if (!first.contains(i)) i,
+    ];
+    ids
+      ..clear()
+      ..addAll([...first, ...rest]);
+  }
 }
 
 /// A tiny "behaviour subject": new listeners get the current value first.

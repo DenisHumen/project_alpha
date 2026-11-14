@@ -73,11 +73,16 @@ final _progress = [
 Future<AppServices> _services(
   List<LibraryItem> items, {
   List<Progress> progress = const [],
+  Map<String, List<MediaVersion>> versions = const {},
   bool filters = true,
   LibraryQueries Function(LibraryQueries q)? wrap,
   Preferences? preferences,
 }) async {
-  final lib = FakeLibrary.items(items, progress: progress);
+  final lib = FakeLibrary.items(
+    items,
+    progress: progress,
+    versions: versions,
+  );
   final LibraryQueries q = MemoryLibraryQueries(
     lib,
     supportsFilters: filters,
@@ -366,13 +371,19 @@ void main() {
       bool enabled(String a) => t
           .widget<PopupMenuItem<Object?>>(find.byKey(ValueKey('item-menu-$a')))
           .enabled;
-      expect(enabled('play'), isTrue);
-      expect(enabled('markWatched'), isTrue);
-      expect(enabled('editMetadata'), isTrue);
-      for (final a in ['favorite', 'playlist', 'download', 'delete']) {
+      for (final a in [
+        'play',
+        'markWatched',
+        'editMetadata',
+        'favorite',
+        'playlist',
+      ]) {
+        expect(enabled(a), isTrue, reason: a);
+      }
+      for (final a in ['download', 'delete']) {
         expect(enabled(a), isFalse, reason: a);
       }
-      expect(find.text('soon'), findsNWidgets(4));
+      expect(find.text('soon'), findsNWidgets(2));
 
       expect(
         find.byKey(const ValueKey('badge-watched-m-charlie')),
@@ -410,6 +421,88 @@ void main() {
       expect(find.byType(PlayerScreen), findsOneWidget);
       await t.pumpWidget(const SizedBox());
       await settle(t, 2);
+    });
+
+    testWidgets('two files of one film: one card, a version picker on play', (
+      t,
+    ) async {
+      const hd = '/media/Movies/Dune/Dune.2021.1080p.mkv';
+      const uhd = '/media/Movies/Dune/Dune.2021.2160p.HDR10.mkv';
+      final dune = LibraryItem(
+        id: 'm-dune',
+        kind: ItemKind.movie,
+        title: 'Dune',
+        year: 2021,
+        filePath: hd,
+        durationMs: 155 * 60000,
+        addedAt: _now,
+        versionCount: 2,
+      );
+      final s = await _services(
+        [..._items, dune],
+        versions: {
+          'm-dune': const [
+            MediaVersion(id: 'v1', label: '1080p', filePath: hd),
+            MediaVersion(id: 'v2', label: '4K · HDR10', filePath: uhd),
+          ],
+        },
+      );
+      await _pump(t, s);
+      // One card for the film.
+      expect(_title('Dune'), findsOneWidget);
+      expect(find.byKey(const ValueKey('m-dune')), findsOneWidget);
+
+      await t.tap(_poster('m-dune'), buttons: kSecondaryMouseButton);
+      await settle(t, 4);
+      await _tapKey(t, 'item-menu-play');
+      expect(find.text('Choose a version'), findsOneWidget);
+      expect(find.byKey(const ValueKey('version-v1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('version-v2')), findsOneWidget);
+      expect(find.text('Default'), findsOneWidget);
+
+      // Make 4K the default, then play it.
+      await t.tap(find.byKey(const ValueKey('version-default-v2')));
+      await settle(t, 4);
+      expect(find.byKey(const ValueKey('version-default-v2')), findsNothing);
+      expect(find.byKey(const ValueKey('version-default-v1')), findsOneWidget);
+      await t.tap(find.byKey(const ValueKey('version-v2')));
+      await settle(t, 4);
+      final player = t.widget<PlayerScreen>(find.byType(PlayerScreen));
+      expect(player.request.uri, uhd);
+      final lib = s.library as FakeLibrary;
+      expect((await lib.item('m-dune'))!.filePath, uhd);
+      await t.pumpWidget(const SizedBox());
+      await settle(t, 2);
+    });
+
+    testWidgets('favorite and add to a new playlist', (t) async {
+      final s = await _services(_items);
+      final lib = s.library as FakeLibrary;
+      await _pump(t, s);
+
+      await t.tap(_poster('m-bravo'), buttons: kSecondaryMouseButton);
+      await settle(t, 4);
+      expect(find.text('Add to favorites'), findsOneWidget);
+      await _tapKey(t, 'item-menu-favorite');
+      expect(await lib.isFavorite('m-bravo'), isTrue);
+      expect(find.text('Added to favorites'), findsOneWidget);
+
+      await t.tap(_poster('m-bravo'), buttons: kSecondaryMouseButton);
+      await settle(t, 4);
+      expect(find.text('Remove from favorites'), findsOneWidget);
+      await _tapKey(t, 'item-menu-playlist');
+      expect(find.text('No playlists yet'), findsOneWidget);
+      await t.enterText(
+        find.byKey(const ValueKey('playlist-new-name')),
+        'Weekend',
+      );
+      await _tapKey(t, 'playlist-create');
+      final playlists = await lib.playlists();
+      expect([for (final p in playlists) p.name], ['Weekend']);
+      expect([
+        for (final i in await lib.playlistItems(playlists.single.id)) i.id,
+      ], ['m-bravo']);
+      expect(find.text('Added to “Weekend”'), findsOneWidget);
     });
 
     testWidgets('menu key and Edit metadata', (t) async {

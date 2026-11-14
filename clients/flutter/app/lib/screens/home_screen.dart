@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 //
 // Home (UI-007): hero, the shared Continue row, Up Next, recently added,
-// smart shelves pinned to Home, genre rows, music and sources. Each row
-// follows its own library stream ([HomeFeed]), so a change (saved progress,
-// a watcher rescan) updates that row in place.
+// favorites and smart shelves pinned to Home, genre rows, music and
+// sources. Each row follows its own library stream ([HomeFeed]), so a
+// change (saved progress, a watcher rescan) updates that row in place.
 
 import 'package:material_ui/material_ui.dart';
 
@@ -137,7 +137,19 @@ class _HomeScreenState extends State<HomeScreen> {
             onFocus: (item, f) => _feature(item, f),
           ),
         ),
-        // TODO(LIB): a Favorites row once the library exposes favorites.
+        _Watch<List<LibraryItem>>(
+          key: const ValueKey('home-favorites'),
+          identity: feed,
+          create: feed.favorites,
+          builder: (context, items) => (items == null || items.isEmpty)
+              ? const SizedBox.shrink()
+              : _PosterShelf(
+                  key: const ValueKey('home-shelf-favorites'),
+                  title: l.homeFavorites,
+                  items: items,
+                  onFocus: _feature,
+                ),
+        ),
         _Watch<List<HomeShelf>>(
           key: const ValueKey('home-shelves'),
           identity: feed,

@@ -335,5 +335,20 @@
   "homeBadgeTwitchVod": "Запись Twitch",
   "sourcesFormAutoScan": "Пересканировать автоматически",
   "sourcesFormAutoScanHint": "Локальные папки — вскоре после изменения файлов, сетевые источники — раз в 15 минут.",
-  "sourcesAutoScanOn": "Пересканируется автоматически"
+  "sourcesAutoScanOn": "Пересканируется автоматически",
+  "homeFavorites": "Избранное",
+  "libraryMenuUnfavorite": "Убрать из избранного",
+  "libraryFavoriteAdded": "Добавлено в избранное",
+  "libraryFavoriteRemoved": "Убрано из избранного",
+  "libraryPlaylistEmpty": "Плейлистов пока нет",
+  "libraryPlaylistNew": "Новый плейлист",
+  "libraryPlaylistName": "Название плейлиста",
+  "libraryPlaylistCreate": "Создать",
+  "libraryPlaylistAdded": "Добавлено в «{name}»",
+  "libraryPlaylistAlready": "Уже в «{name}»",
+  "libraryPlaylistCount": "{count, plural, one{{count} видео} few{{count} видео} many{{count} видео} other{{count} видео}}",
+  "libraryVersionsTitle": "Выберите версию",
+  "libraryVersionDefault": "По умолчанию",
+  "libraryVersionMakeDefault": "Играть эту версию по умолчанию",
+  "libraryVersionCount": "{count, plural, one{{count} версия} few{{count} версии} many{{count} версий} other{{count} версии}}"
 }

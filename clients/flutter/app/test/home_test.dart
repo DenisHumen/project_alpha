@@ -96,6 +96,32 @@ void main() {
     expect(_upNext('show-coastline-s1e3'), findsOneWidget);
   });
 
+  testWidgets('favorites pinned to Home form a row (LIB-010)', (t) async {
+    setSurface(t, const Size(1280, 800));
+    final services = await demoServices();
+    final library = services.library as FakeLibrary;
+    await t.pumpWidget(testApp(services));
+    await settle(t);
+    expect(find.text('Favorites'), findsNothing);
+
+    await library.setFavorite('movie-harbor-lights', true);
+    await settle(t, 4);
+    final row = find.byKey(const ValueKey('home-shelf-favorites'));
+    await t.scrollUntilVisible(row, 300, scrollable: _homeScroll);
+    expect(find.text('Favorites'), findsOneWidget);
+    final title = (await library.item('movie-harbor-lights'))!.title;
+    expect(
+      find.descendant(of: row, matching: find.text(title)),
+      findsWidgets,
+    );
+
+    // Unpinned from Home: still a favorite, the row goes.
+    await library.setFavoritePinned('movie-harbor-lights', false);
+    await settle(t, 4);
+    expect(find.text('Favorites'), findsNothing);
+    expect(await library.isFavorite('movie-harbor-lights'), isTrue);
+  });
+
   testWidgets('genre rows, pinned smart shelves and sources', (t) async {
     setSurface(t, const Size(1280, 800));
     final services = await demoServices();
