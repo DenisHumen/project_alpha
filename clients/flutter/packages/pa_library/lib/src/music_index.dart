@@ -95,7 +95,7 @@ class MusicArtist {
   /// Other albums with a track of this artist (compilations, features).
   final List<MusicAlbum> appearsOn = [];
 
-  /// Tracks of this artist (track or album artist).
+  /// Tracks of this artist (track or album artist), in library order.
   final List<MusicTrack> tracks = [];
 
   String? get artUrl => albums.isNotEmpty
@@ -371,11 +371,9 @@ class MusicIndex {
         }
       }
     }
-    // Tracks in library order: by track artist, else by album artist.
+    // Tracks in library order, of their track and album artists.
     for (final t in tracks) {
-      final names = t.artists.isNotEmpty
-          ? t.artists
-          : (t.albumArtists.isNotEmpty ? t.albumArtists : [?t.artist]);
+      final names = [...t.artists, ...t.albumArtists, ?t.artist];
       final seen = <String>{};
       for (final n in names) {
         if (n.trim().isEmpty || !seen.add(foldName(n))) continue;
