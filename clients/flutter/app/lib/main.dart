@@ -20,6 +20,7 @@ import 'services/preferences.dart';
 import 'services/secure_store.dart';
 import 'sources/core_source_manager.dart';
 import 'sources/source_manager.dart';
+import 'widgets/artwork_image.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,14 @@ Future<void> main() async {
     // Keystore through this callback; desktop uses the OS keychain itself.
     // Before CoreSources.open, which takes the store opened here.
     if (opened.onRustCore) await _openCoreSecrets(dir.path);
+    // Posters and backdrops through the core's disk cache (LIB-013); without
+    // the core they load straight from the network.
+    try {
+      final cache = await getApplicationCacheDirectory();
+      appArtworkCache = await RustArtworkCache.open('${cache.path}/artwork');
+    } catch (e) {
+      debugPrint('Artwork cache unavailable: $e');
+    }
     // UI-005: the Rust source manager over the same database. Without it
     // (v0 fallback, or the secret store cannot open) the Sources screen
     // runs reduced: local folders only.

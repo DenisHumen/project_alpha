@@ -4,10 +4,10 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/events.dart';
+import 'api/images.dart';
 import 'api/library.dart';
 import 'api/library_query.dart';
 import 'api/recognition.dart';
-import 'api/secrets.dart';
 import 'api/sources.dart';
 import 'api/version.dart';
 import 'dart:async';
@@ -72,7 +72,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -682293069;
+  int get rustContentHash => 1558250854;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -84,6 +84,36 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
+  String? crateApiImagesCoreImageCacheCached({
+    required CoreImageCache that,
+    required String url,
+    int? width,
+  });
+
+  Future<void> crateApiImagesCoreImageCacheClear({
+    required CoreImageCache that,
+  });
+
+  Future<CoreImageCache> crateApiImagesCoreImageCacheOpen({
+    required String dir,
+    required BigInt maxBytes,
+  });
+
+  Future<String> crateApiImagesCoreImageCacheResolve({
+    required CoreImageCache that,
+    required String url,
+    int? width,
+  });
+
+  Future<void> crateApiImagesCoreImageCacheSetMaxBytes({
+    required CoreImageCache that,
+    required BigInt maxBytes,
+  });
+
+  CoreImageCacheUsage crateApiImagesCoreImageCacheUsage({
+    required CoreImageCache that,
+  });
+
   Future<CoreSource> crateApiLibraryCoreLibraryAddSource({
     required CoreLibrary that,
     PlatformInt64? id,
@@ -345,32 +375,16 @@ abstract class RustLibApi extends BaseApi {
     required bool useFolders,
   });
 
-  Future<PlatformSecretReply> crateApiSecretsPlatformSecretReplyDefault();
-
-  Future<bool> crateApiSecretsSecretDelete({required String key});
-
-  Future<String?> crateApiSecretsSecretGet({required String key});
-
-  Future<void> crateApiSecretsSecretSet({
-    required String key,
-    required String value,
-  });
-
-  Future<void> crateApiSecretsSecretsClose();
-
-  Future<CoreSecretStoreInfo?> crateApiSecretsSecretsInfo();
-
-  Future<CoreSecretStoreInfo> crateApiSecretsSecretsOpenDefault({
-    String? dataDir,
-  });
-
-  Future<CoreSecretStoreInfo> crateApiSecretsSecretsOpenPlatform({
-    String? dataDir,
-    required FutureOr<PlatformSecretReply> Function(PlatformSecretCall)
-    callback,
-  });
-
   Stream<int> crateApiEventsTickStream({required int count});
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_CoreImageCache;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_CoreImageCache;
+
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_CoreImageCachePtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_CoreLibrary;
@@ -398,6 +412,222 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
+  String? crateApiImagesCoreImageCacheCached({
+    required CoreImageCache that,
+    required String url,
+    int? width,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+            that,
+            serializer,
+          );
+          sse_encode_String(url, serializer);
+          sse_encode_opt_box_autoadd_u_32(width, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiImagesCoreImageCacheCachedConstMeta,
+        argValues: [that, url, width],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiImagesCoreImageCacheCachedConstMeta =>
+      const TaskConstMeta(
+        debugName: "CoreImageCache_cached",
+        argNames: ["that", "url", "width"],
+      );
+
+  @override
+  Future<void> crateApiImagesCoreImageCacheClear({
+    required CoreImageCache that,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+            that,
+            serializer,
+          );
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 2,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_image_cache_error,
+        ),
+        constMeta: kCrateApiImagesCoreImageCacheClearConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiImagesCoreImageCacheClearConstMeta =>
+      const TaskConstMeta(
+        debugName: "CoreImageCache_clear",
+        argNames: ["that"],
+      );
+
+  @override
+  Future<CoreImageCache> crateApiImagesCoreImageCacheOpen({
+    required String dir,
+    required BigInt maxBytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(dir, serializer);
+          sse_encode_u_64(maxBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData:
+              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache,
+          decodeErrorData: sse_decode_image_cache_error,
+        ),
+        constMeta: kCrateApiImagesCoreImageCacheOpenConstMeta,
+        argValues: [dir, maxBytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiImagesCoreImageCacheOpenConstMeta =>
+      const TaskConstMeta(
+        debugName: "CoreImageCache_open",
+        argNames: ["dir", "maxBytes"],
+      );
+
+  @override
+  Future<String> crateApiImagesCoreImageCacheResolve({
+    required CoreImageCache that,
+    required String url,
+    int? width,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+            that,
+            serializer,
+          );
+          sse_encode_String(url, serializer);
+          sse_encode_opt_box_autoadd_u_32(width, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_image_cache_error,
+        ),
+        constMeta: kCrateApiImagesCoreImageCacheResolveConstMeta,
+        argValues: [that, url, width],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiImagesCoreImageCacheResolveConstMeta =>
+      const TaskConstMeta(
+        debugName: "CoreImageCache_resolve",
+        argNames: ["that", "url", "width"],
+      );
+
+  @override
+  Future<void> crateApiImagesCoreImageCacheSetMaxBytes({
+    required CoreImageCache that,
+    required BigInt maxBytes,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+            that,
+            serializer,
+          );
+          sse_encode_u_64(maxBytes, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiImagesCoreImageCacheSetMaxBytesConstMeta,
+        argValues: [that, maxBytes],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiImagesCoreImageCacheSetMaxBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "CoreImageCache_set_max_bytes",
+        argNames: ["that", "maxBytes"],
+      );
+
+  @override
+  CoreImageCacheUsage crateApiImagesCoreImageCacheUsage({
+    required CoreImageCache that,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+            that,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_core_image_cache_usage,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiImagesCoreImageCacheUsageConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiImagesCoreImageCacheUsageConstMeta =>
+      const TaskConstMeta(
+        debugName: "CoreImageCache_usage",
+        argNames: ["that"],
+      );
+
+  @override
   Future<CoreSource> crateApiLibraryCoreLibraryAddSource({
     required CoreLibrary that,
     PlatformInt64? id,
@@ -422,7 +652,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 1,
+            funcId: 7,
             port: port_,
           );
         },
@@ -460,7 +690,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 2,
+            funcId: 8,
             port: port_,
           );
         },
@@ -504,7 +734,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 3,
+            funcId: 9,
             port: port_,
           );
         },
@@ -540,7 +770,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 4,
+            funcId: 10,
             port: port_,
           );
         },
@@ -578,7 +808,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 5,
+            funcId: 11,
             port: port_,
           );
         },
@@ -620,7 +850,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 6,
+            funcId: 12,
             port: port_,
           );
         },
@@ -658,7 +888,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 13,
             port: port_,
           );
         },
@@ -696,7 +926,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 14,
             port: port_,
           );
         },
@@ -734,7 +964,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 15,
             port: port_,
           );
         },
@@ -775,7 +1005,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 10,
+              funcId: 16,
               port: port_,
             );
           },
@@ -821,7 +1051,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 17,
             port: port_,
           );
         },
@@ -859,7 +1089,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 12,
+            funcId: 18,
             port: port_,
           );
         },
@@ -897,7 +1127,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 13,
+            funcId: 19,
             port: port_,
           );
         },
@@ -935,7 +1165,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 20,
             port: port_,
           );
         },
@@ -971,7 +1201,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 21,
             port: port_,
           );
         },
@@ -999,7 +1229,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 16,
+            funcId: 22,
             port: port_,
           );
         },
@@ -1035,7 +1265,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 17,
+            funcId: 23,
             port: port_,
           );
         },
@@ -1077,7 +1307,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 24,
             port: port_,
           );
         },
@@ -1117,7 +1347,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 25,
             port: port_,
           );
         },
@@ -1155,7 +1385,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 26,
             port: port_,
           );
         },
@@ -1193,7 +1423,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 27,
             port: port_,
           );
         },
@@ -1231,7 +1461,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 28,
             port: port_,
           );
         },
@@ -1277,7 +1507,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 29,
             port: port_,
           );
         },
@@ -1327,7 +1557,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 24,
+              funcId: 30,
               port: port_,
             );
           },
@@ -1369,7 +1599,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 31,
             port: port_,
           );
         },
@@ -1407,7 +1637,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 26,
+            funcId: 32,
             port: port_,
           );
         },
@@ -1449,7 +1679,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 27,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1487,7 +1717,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1523,7 +1753,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 35,
             port: port_,
           );
         },
@@ -1556,7 +1786,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 36,
             port: port_,
           );
         },
@@ -1594,7 +1824,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 31,
+              funcId: 37,
               port: port_,
             );
           },
@@ -1632,7 +1862,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1668,7 +1898,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1709,7 +1939,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 40,
             port: port_,
           );
         },
@@ -1747,7 +1977,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 35,
+            funcId: 41,
             port: port_,
           );
         },
@@ -1785,7 +2015,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 36,
+            funcId: 42,
             port: port_,
           );
         },
@@ -1823,7 +2053,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 37,
+            funcId: 43,
             port: port_,
           );
         },
@@ -1861,7 +2091,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 44,
             port: port_,
           );
         },
@@ -1899,7 +2129,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 45,
             port: port_,
           );
         },
@@ -1935,7 +2165,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 40,
+            funcId: 46,
             port: port_,
           );
         },
@@ -1967,7 +2197,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 41,
+            funcId: 47,
             port: port_,
           );
         },
@@ -1999,7 +2229,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2030,7 +2260,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_String,
@@ -2068,7 +2298,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 44,
+            funcId: 50,
             port: port_,
           );
         },
@@ -2108,7 +2338,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 45,
+            funcId: 51,
             port: port_,
           );
         },
@@ -2138,7 +2368,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 46,
+            funcId: 52,
             port: port_,
           );
         },
@@ -2168,7 +2398,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 47,
+            funcId: 53,
             port: port_,
           );
         },
@@ -2195,7 +2425,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 54)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2217,7 +2447,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 55)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2242,7 +2472,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 50,
+            funcId: 56,
             port: port_,
           );
         },
@@ -2270,7 +2500,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 51,
+            funcId: 57,
             port: port_,
           );
         },
@@ -2303,7 +2533,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 52,
+            funcId: 58,
             port: port_,
           );
         },
@@ -2337,7 +2567,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 53,
+            funcId: 59,
             port: port_,
           );
         },
@@ -2359,250 +2589,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<PlatformSecretReply> crateApiSecretsPlatformSecretReplyDefault() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 54,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_platform_secret_reply,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSecretsPlatformSecretReplyDefaultConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsPlatformSecretReplyDefaultConstMeta =>
-      const TaskConstMeta(
-        debugName: "platform_secret_reply_default",
-        argNames: [],
-      );
-
-  @override
-  Future<bool> crateApiSecretsSecretDelete({required String key}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 55,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_secrets_error,
-        ),
-        constMeta: kCrateApiSecretsSecretDeleteConstMeta,
-        argValues: [key],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsSecretDeleteConstMeta =>
-      const TaskConstMeta(debugName: "secret_delete", argNames: ["key"]);
-
-  @override
-  Future<String?> crateApiSecretsSecretGet({required String key}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 56,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_String,
-          decodeErrorData: sse_decode_secrets_error,
-        ),
-        constMeta: kCrateApiSecretsSecretGetConstMeta,
-        argValues: [key],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsSecretGetConstMeta =>
-      const TaskConstMeta(debugName: "secret_get", argNames: ["key"]);
-
-  @override
-  Future<void> crateApiSecretsSecretSet({
-    required String key,
-    required String value,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(key, serializer);
-          sse_encode_String(value, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 57,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_secrets_error,
-        ),
-        constMeta: kCrateApiSecretsSecretSetConstMeta,
-        argValues: [key, value],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsSecretSetConstMeta =>
-      const TaskConstMeta(debugName: "secret_set", argNames: ["key", "value"]);
-
-  @override
-  Future<void> crateApiSecretsSecretsClose() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 58,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSecretsSecretsCloseConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsSecretsCloseConstMeta =>
-      const TaskConstMeta(debugName: "secrets_close", argNames: []);
-
-  @override
-  Future<CoreSecretStoreInfo?> crateApiSecretsSecretsInfo() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 59,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_box_autoadd_core_secret_store_info,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSecretsSecretsInfoConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsSecretsInfoConstMeta =>
-      const TaskConstMeta(debugName: "secrets_info", argNames: []);
-
-  @override
-  Future<CoreSecretStoreInfo> crateApiSecretsSecretsOpenDefault({
-    String? dataDir,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_opt_String(dataDir, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 60,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_core_secret_store_info,
-          decodeErrorData: sse_decode_secrets_error,
-        ),
-        constMeta: kCrateApiSecretsSecretsOpenDefaultConstMeta,
-        argValues: [dataDir],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsSecretsOpenDefaultConstMeta =>
-      const TaskConstMeta(
-        debugName: "secrets_open_default",
-        argNames: ["dataDir"],
-      );
-
-  @override
-  Future<CoreSecretStoreInfo> crateApiSecretsSecretsOpenPlatform({
-    String? dataDir,
-    required FutureOr<PlatformSecretReply> Function(PlatformSecretCall)
-    callback,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_opt_String(dataDir, serializer);
-          sse_encode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
-            callback,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 61,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_core_secret_store_info,
-          decodeErrorData: sse_decode_secrets_error,
-        ),
-        constMeta: kCrateApiSecretsSecretsOpenPlatformConstMeta,
-        argValues: [dataDir, callback],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApiSecretsSecretsOpenPlatformConstMeta =>
-      const TaskConstMeta(
-        debugName: "secrets_open_platform",
-        argNames: ["dataDir", "callback"],
-      );
-
-  @override
   Stream<int> crateApiEventsTickStream({required int count}) {
     final sink = RustStreamSink<int>();
     unawaited(
@@ -2615,7 +2601,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 62,
+              funcId: 60,
               port: port_,
             );
           },
@@ -2637,40 +2623,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     argNames: ["count", "sink"],
   );
 
-  Future<void> Function(int, dynamic)
-  encode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
-    FutureOr<PlatformSecretReply> Function(PlatformSecretCall) raw,
-  ) {
-    return (callId, rawArg0) async {
-      final arg0 = dco_decode_platform_secret_call(rawArg0);
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_CoreImageCache => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache;
 
-      Box<PlatformSecretReply>? rawOutput;
-      Box<AnyhowException>? rawError;
-      try {
-        rawOutput = Box(await raw(arg0));
-      } catch (e, s) {
-        rawError = Box(AnyhowException("$e\n\n$s"));
-      }
-
-      final serializer = SseSerializer(generalizedFrbRustBinding);
-      assert((rawOutput != null) ^ (rawError != null));
-      if (rawOutput != null) {
-        serializer.buffer.putUint8(0);
-        sse_encode_platform_secret_reply(rawOutput.value, serializer);
-      } else {
-        serializer.buffer.putUint8(1);
-        sse_encode_AnyhowException(rawError!.value, serializer);
-      }
-      final output = serializer.intoRaw();
-
-      generalizedFrbRustBinding.dartFnDeliverOutput(
-        callId: callId,
-        ptr: output.ptr,
-        rustVecLen: output.rustVecLen,
-        dataLen: output.dataLen,
-      );
-    };
-  }
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_CoreImageCache => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_CoreLibrary => wire
@@ -2695,6 +2654,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CoreImageCache
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CoreImageCacheImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   CoreLibrary
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     dynamic raw,
@@ -2710,6 +2678,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return CoreSourcesImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  CoreImageCache
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CoreImageCacheImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -2731,18 +2708,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  FutureOr<PlatformSecretReply> Function(PlatformSecretCall)
-  dco_decode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
+  CoreImageCache
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    throw UnimplementedError('');
-  }
-
-  @protected
-  Object dco_decode_DartOpaque(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return decodeDartOpaque(raw, generalizedFrbRustBinding);
+    return CoreImageCacheImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -2865,14 +2836,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CoreProgress dco_decode_box_autoadd_core_progress(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_core_progress(raw);
-  }
-
-  @protected
-  CoreSecretStoreInfo dco_decode_box_autoadd_core_secret_store_info(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_core_secret_store_info(raw);
   }
 
   @protected
@@ -3031,6 +2994,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CoreHdrFilter dco_decode_core_hdr_filter(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return CoreHdrFilter.values[raw as int];
+  }
+
+  @protected
+  CoreImageCacheUsage dco_decode_core_image_cache_usage(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return CoreImageCacheUsage(
+      bytes: dco_decode_u_64(arr[0]),
+      files: dco_decode_u_64(arr[1]),
+      maxBytes: dco_decode_u_64(arr[2]),
+    );
   }
 
   @protected
@@ -3247,21 +3223,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       total: dco_decode_opt_box_autoadd_i_64(arr[4]),
       currentPath: dco_decode_opt_String(arr[5]),
       error: dco_decode_opt_String(arr[6]),
-    );
-  }
-
-  @protected
-  CoreSecretStoreInfo dco_decode_core_secret_store_info(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 5)
-      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
-    return CoreSecretStoreInfo(
-      backend: dco_decode_String(arr[0]),
-      secure: dco_decode_bool(arr[1]),
-      fallbackReason: dco_decode_opt_String(arr[2]),
-      migrated: dco_decode_u_32(arr[3]),
-      discardedCorrupted: dco_decode_bool(arr[4]),
     );
   }
 
@@ -3542,9 +3503,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  PlatformInt64 dco_decode_isize(dynamic raw) {
+  ImageCacheError dco_decode_image_cache_error(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeI64(raw);
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return ImageCacheError(
+      message: dco_decode_String(arr[0]),
+      offline: dco_decode_bool(arr[1]),
+    );
   }
 
   @protected
@@ -3723,16 +3690,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  CoreSecretStoreInfo? dco_decode_opt_box_autoadd_core_secret_store_info(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null
-        ? null
-        : dco_decode_box_autoadd_core_secret_store_info(raw);
-  }
-
-  @protected
   DiscKind? dco_decode_opt_box_autoadd_disc_kind(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_disc_kind(raw);
@@ -3830,45 +3787,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  PlatformSecretCall dco_decode_platform_secret_call(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return PlatformSecretCall(
-      op: dco_decode_String(arr[0]),
-      key: dco_decode_String(arr[1]),
-      value: dco_decode_opt_String(arr[2]),
-    );
-  }
-
-  @protected
-  PlatformSecretReply dco_decode_platform_secret_reply(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 4)
-      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
-    return PlatformSecretReply(
-      value: dco_decode_opt_String(arr[0]),
-      existed: dco_decode_bool(arr[1]),
-      errorCode: dco_decode_opt_String(arr[2]),
-      errorMessage: dco_decode_opt_String(arr[3]),
-    );
-  }
-
-  @protected
-  SecretsError dco_decode_secrets_error(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
-    return SecretsError(
-      code: dco_decode_String(arr[0]),
-      message: dco_decode_String(arr[1]),
-    );
-  }
-
-  @protected
   SourcesError dco_decode_sources_error(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -3924,6 +3842,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CoreImageCache
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return CoreImageCacheImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
   CoreLibrary
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     SseDeserializer deserializer,
@@ -3942,6 +3872,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return CoreSourcesImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  CoreImageCache
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return CoreImageCacheImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -3972,10 +3914,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  Object sse_decode_DartOpaque(SseDeserializer deserializer) {
+  CoreImageCache
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    SseDeserializer deserializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    var inner = sse_decode_isize(deserializer);
-    return decodeDartOpaque(inner, generalizedFrbRustBinding);
+    return CoreImageCacheImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
   }
 
   @protected
@@ -4111,14 +4058,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_core_progress(deserializer));
-  }
-
-  @protected
-  CoreSecretStoreInfo sse_decode_box_autoadd_core_secret_store_info(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_core_secret_store_info(deserializer));
   }
 
   @protected
@@ -4294,6 +4233,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_i_32(deserializer);
     return CoreHdrFilter.values[inner];
+  }
+
+  @protected
+  CoreImageCacheUsage sse_decode_core_image_cache_usage(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_bytes = sse_decode_u_64(deserializer);
+    var var_files = sse_decode_u_64(deserializer);
+    var var_maxBytes = sse_decode_u_64(deserializer);
+    return CoreImageCacheUsage(
+      bytes: var_bytes,
+      files: var_files,
+      maxBytes: var_maxBytes,
+    );
   }
 
   @protected
@@ -4552,25 +4506,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       total: var_total,
       currentPath: var_currentPath,
       error: var_error,
-    );
-  }
-
-  @protected
-  CoreSecretStoreInfo sse_decode_core_secret_store_info(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_backend = sse_decode_String(deserializer);
-    var var_secure = sse_decode_bool(deserializer);
-    var var_fallbackReason = sse_decode_opt_String(deserializer);
-    var var_migrated = sse_decode_u_32(deserializer);
-    var var_discardedCorrupted = sse_decode_bool(deserializer);
-    return CoreSecretStoreInfo(
-      backend: var_backend,
-      secure: var_secure,
-      fallbackReason: var_fallbackReason,
-      migrated: var_migrated,
-      discardedCorrupted: var_discardedCorrupted,
     );
   }
 
@@ -4881,9 +4816,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  PlatformInt64 sse_decode_isize(SseDeserializer deserializer) {
+  ImageCacheError sse_decode_image_cache_error(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getPlatformInt64();
+    var var_message = sse_decode_String(deserializer);
+    var var_offline = sse_decode_bool(deserializer);
+    return ImageCacheError(message: var_message, offline: var_offline);
   }
 
   @protected
@@ -5231,19 +5168,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  CoreSecretStoreInfo? sse_decode_opt_box_autoadd_core_secret_store_info(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_core_secret_store_info(deserializer));
-    } else {
-      return null;
-    }
-  }
-
-  @protected
   DiscKind? sse_decode_opt_box_autoadd_disc_kind(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -5419,42 +5343,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  PlatformSecretCall sse_decode_platform_secret_call(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_op = sse_decode_String(deserializer);
-    var var_key = sse_decode_String(deserializer);
-    var var_value = sse_decode_opt_String(deserializer);
-    return PlatformSecretCall(op: var_op, key: var_key, value: var_value);
-  }
-
-  @protected
-  PlatformSecretReply sse_decode_platform_secret_reply(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_value = sse_decode_opt_String(deserializer);
-    var var_existed = sse_decode_bool(deserializer);
-    var var_errorCode = sse_decode_opt_String(deserializer);
-    var var_errorMessage = sse_decode_opt_String(deserializer);
-    return PlatformSecretReply(
-      value: var_value,
-      existed: var_existed,
-      errorCode: var_errorCode,
-      errorMessage: var_errorMessage,
-    );
-  }
-
-  @protected
-  SecretsError sse_decode_secrets_error(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_code = sse_decode_String(deserializer);
-    var var_message = sse_decode_String(deserializer);
-    return SecretsError(code: var_code, message: var_message);
-  }
-
-  @protected
   SourcesError sse_decode_sources_error(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_code = sse_decode_String(deserializer);
@@ -5508,6 +5396,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    CoreImageCache self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as CoreImageCacheImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     CoreLibrary self,
     SseSerializer serializer,
@@ -5528,6 +5429,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as CoreSourcesImpl).frbInternalSseEncode(move: true),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    CoreImageCache self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as CoreImageCacheImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
@@ -5560,30 +5474,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-  sse_encode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
-    FutureOr<PlatformSecretReply> Function(PlatformSecretCall) self,
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    CoreImageCache self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_DartOpaque(
-      encode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
-        self,
-      ),
-      serializer,
-    );
-  }
-
-  @protected
-  void sse_encode_DartOpaque(Object self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_isize(
-      PlatformPointerUtil.ptrToPlatformInt64(
-        encodeDartOpaque(
-          self,
-          portManager.dartHandlerPort,
-          generalizedFrbRustBinding,
-        ),
-      ),
+    sse_encode_usize(
+      (self as CoreImageCacheImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -5769,15 +5666,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_box_autoadd_core_secret_store_info(
-    CoreSecretStoreInfo self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_core_secret_store_info(self, serializer);
-  }
-
-  @protected
   void sse_encode_box_autoadd_core_source_input(
     CoreSourceInput self,
     SseSerializer serializer,
@@ -5941,6 +5829,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.index, serializer);
+  }
+
+  @protected
+  void sse_encode_core_image_cache_usage(
+    CoreImageCacheUsage self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_64(self.bytes, serializer);
+    sse_encode_u_64(self.files, serializer);
+    sse_encode_u_64(self.maxBytes, serializer);
   }
 
   @protected
@@ -6131,19 +6030,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_i_64(self.total, serializer);
     sse_encode_opt_String(self.currentPath, serializer);
     sse_encode_opt_String(self.error, serializer);
-  }
-
-  @protected
-  void sse_encode_core_secret_store_info(
-    CoreSecretStoreInfo self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.backend, serializer);
-    sse_encode_bool(self.secure, serializer);
-    sse_encode_opt_String(self.fallbackReason, serializer);
-    sse_encode_u_32(self.migrated, serializer);
-    sse_encode_bool(self.discardedCorrupted, serializer);
   }
 
   @protected
@@ -6390,9 +6276,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer) {
+  void sse_encode_image_cache_error(
+    ImageCacheError self,
+    SseSerializer serializer,
+  ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putPlatformInt64(self);
+    sse_encode_String(self.message, serializer);
+    sse_encode_bool(self.offline, serializer);
   }
 
   @protected
@@ -6713,19 +6603,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_opt_box_autoadd_core_secret_store_info(
-    CoreSecretStoreInfo? self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-
-    sse_encode_bool(self != null, serializer);
-    if (self != null) {
-      sse_encode_box_autoadd_core_secret_store_info(self, serializer);
-    }
-  }
-
-  @protected
   void sse_encode_opt_box_autoadd_disc_kind(
     DiscKind? self,
     SseSerializer serializer,
@@ -6870,36 +6747,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_platform_secret_call(
-    PlatformSecretCall self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.op, serializer);
-    sse_encode_String(self.key, serializer);
-    sse_encode_opt_String(self.value, serializer);
-  }
-
-  @protected
-  void sse_encode_platform_secret_reply(
-    PlatformSecretReply self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_opt_String(self.value, serializer);
-    sse_encode_bool(self.existed, serializer);
-    sse_encode_opt_String(self.errorCode, serializer);
-    sse_encode_opt_String(self.errorMessage, serializer);
-  }
-
-  @protected
-  void sse_encode_secrets_error(SecretsError self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.code, serializer);
-    sse_encode_String(self.message, serializer);
-  }
-
-  @protected
   void sse_encode_sources_error(SourcesError self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.code, serializer);
@@ -6940,6 +6787,50 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putBigUint64(self);
   }
+}
+
+@sealed
+class CoreImageCacheImpl extends RustOpaque implements CoreImageCache {
+  // Not to be used by end users
+  CoreImageCacheImpl.frbInternalDcoDecode(List<dynamic> wire)
+    : super.frbInternalDcoDecode(wire, _kStaticData);
+
+  // Not to be used by end users
+  CoreImageCacheImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+
+  static final _kStaticData = RustArcStaticData(
+    rustArcIncrementStrongCount:
+        RustLib.instance.api.rust_arc_increment_strong_count_CoreImageCache,
+    rustArcDecrementStrongCount:
+        RustLib.instance.api.rust_arc_decrement_strong_count_CoreImageCache,
+    rustArcDecrementStrongCountPtr:
+        RustLib.instance.api.rust_arc_decrement_strong_count_CoreImageCachePtr,
+  );
+
+  /// Local path of `url` if it is already on disk (or local), without
+  /// touching the network.
+  String? cached({required String url, int? width}) => RustLib.instance.api
+      .crateApiImagesCoreImageCacheCached(that: this, url: url, width: width);
+
+  /// Deletes every cached image.
+  Future<void> clear() =>
+      RustLib.instance.api.crateApiImagesCoreImageCacheClear(that: this);
+
+  /// Local path of the image at `url` (https, `file://` or a local path)
+  /// for `width` physical pixels on screen; downloads it if needed.
+  Future<String> resolve({required String url, int? width}) => RustLib
+      .instance
+      .api
+      .crateApiImagesCoreImageCacheResolve(that: this, url: url, width: width);
+
+  /// Changes the size limit (evicts at once).
+  Future<void> setMaxBytes({required BigInt maxBytes}) => RustLib.instance.api
+      .crateApiImagesCoreImageCacheSetMaxBytes(that: this, maxBytes: maxBytes);
+
+  /// Current size and limit.
+  CoreImageCacheUsage usage() =>
+      RustLib.instance.api.crateApiImagesCoreImageCacheUsage(that: this);
 }
 
 @sealed
