@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- Android 12+: keep Keystore-encrypted secrets out of cloud backup and device transfer (ADR-0037). -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="kinolune_secrets.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="kinolune_secrets.xml" />
+    </device-transfer>
+</data-extraction-rules>

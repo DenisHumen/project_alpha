@@ -349,7 +349,7 @@ project_alpha/
   - Что: загрузка подписанного JSON из публичного репо (`config/`, через GitHub Pages или raw), проверка подписи minisign встроенным ключом, ETag, кэш, откат на встроенную копию, флаги kill-switch.
   - deps: CORE-006 · size: S · parallel: yes · веха: M2 · ref: S §3 (Twitch), 06 §2.6
   - done when: тесты: неверная подпись отклоняется; офлайн берётся последняя валидная копия.
-- [ ] **CORE-015** Платформенные хранилища секретов: Android Keystore и Apple Keychain
+- [x] **CORE-015** Платформенные хранилища секретов: Android Keystore и Apple Keychain
   - Что: реализации колбэка `PlatformSecretStore` из CORE-007 — Android (Keystore-ключ + Tink AEAD поверх приватного DataStore) и iOS/iPadOS/tvOS (Keychain, `kSecAttrAccessibleAfterFirstUnlock`); вызов `secrets_open` при старте приложения; доступ к секретам из Flutter (`pa_core` через FRB) на мобильных.
   - deps: CORE-007 · size: M · parallel: yes · веха: M1 · ref: 04 §5.1, docs/dev/secrets.md
   - done when: instrumented-тест на эмуляторе Android и XCTest на симуляторе iOS: запись, чтение, перезапись, удаление, переживает перезапуск процесса.
@@ -492,7 +492,7 @@ project_alpha/
   - Что: Profile (аватар, хэш PIN на Argon2, детский, лимит рейтинга, белый список библиотек и папок, политика «нет рейтинга — скрыто», скрытие арта); все запросы библиотеки учитывают профиль.
   - deps: LIB-001 · size: M · parallel: yes · веха: M1 · ref: 01 §3 п.2, п.6
   - done when: детский профиль не видит ни одного элемента вне белого списка ни через один API (поиск, «Продолжить», файлы).
-- [ ] **LIB-013** Кэш изображений
+- [x] **LIB-013** Кэш изображений
   - Что: дисковый LRU с лимитом, декодирование и ресайз вне UI-потока, AVIF и WebP, размеры под плотности; на tvOS — в Caches с переживанием очистки.
   - deps: CORE-006 · size: S · parallel: yes · веха: M1 · ref: 04 §1.4 п.4
   - done when: лимит соблюдается; при прокрутке сетки 10 000 постеров нет пропусков кадров из-за декодирования.

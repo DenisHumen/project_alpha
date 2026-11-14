@@ -8,14 +8,14 @@ use crate::{Backend, Result, SecretKey, SecretStore, SecretString};
 
 /// Secure storage implemented on the platform side.
 ///
-/// - Android: Android Keystore key + Tink AEAD over a private
-///   `SharedPreferences`/DataStore file.
+/// - Android: Android Keystore AES-256 key, AES-GCM over a private
+///   `SharedPreferences` file (`clients/android/secrets`, CORE-015).
 /// - iOS, iPadOS, tvOS: Keychain generic passwords with
 ///   `kSecAttrAccessibleAfterFirstUnlock`, so background downloads can read
 ///   them.
 ///
-/// The FFI facade adapts a UniFFI callback interface to this trait. Calls are
-/// blocking and may come from any core thread.
+/// `pa-ffi` adapts a UniFFI callback interface to this trait, `pa-frb` a
+/// Dart callback. Calls are blocking and may come from any core thread.
 pub trait PlatformKeystore: Send + Sync {
     /// The value, `None` if missing.
     fn load(&self, key: &str) -> Result<Option<String>>;

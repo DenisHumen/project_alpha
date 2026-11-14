@@ -2398,12 +2398,8 @@ dependencies = [
  "pa-library",
  "pa-metadata",
  "pa-model",
- "pa-probe",
- "pa-proxy",
  "pa-recognition",
  "pa-scanner",
- "pa-secrets",
- "pa-sources",
  "pa-vfs",
  "serde",
  "serde_json",
@@ -2454,11 +2450,21 @@ dependencies = [
  "flutter_rust_bridge",
  "pa-catalog",
  "pa-ffi",
- "pa-proxy",
+ "pa-imagecache",
  "pa-recognition",
  "pa-secrets",
  "pa-sources",
  "tempfile",
+]
+
+[[package]]
+name = "pa-imagecache"
+version = "0.1.0"
+dependencies = [
+ "sha2",
+ "tempfile",
+ "thiserror",
+ "ureq",
 ]
 
 [[package]]
@@ -2551,15 +2557,6 @@ dependencies = [
  "serde",
  "serde_json",
  "toml",
-]
-
-[[package]]
-name = "pa-proxy"
-version = "0.1.0"
-dependencies = [
- "pa-vfs",
- "tempfile",
- "uuid",
 ]
 
 [[package]]

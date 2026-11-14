@@ -19,3 +19,6 @@ dev_dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
+  # CORE-015: integration_test/platform_secrets_test.dart (Android).
+  pa_platform_secrets:
+    path: ../../pa_platform_secrets

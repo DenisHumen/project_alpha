@@ -4,9 +4,11 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/events.dart';
+import 'api/images.dart';
 import 'api/library.dart';
 import 'api/library_query.dart';
 import 'api/recognition.dart';
+import 'api/secrets.dart';
 import 'api/sources.dart';
 import 'api/version.dart';
 import 'dart:async';
@@ -24,6 +26,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_CoreImageCachePtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCachePtr;
+
+  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_CoreLibraryPtr => wire
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr;
 
@@ -33,6 +39,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  CoreImageCache
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    dynamic raw,
+  );
 
   @protected
   CoreLibrary
@@ -47,6 +59,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreImageCache
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    dynamic raw,
+  );
+
+  @protected
   CoreLibrary
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     dynamic raw,
@@ -55,6 +73,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CoreSources
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
+    dynamic raw,
+  );
+
+  @protected
+  FutureOr<PlatformSecretReply> Function(PlatformSecretCall)
+  dco_decode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
+    dynamic raw,
+  );
+
+  @protected
+  Object dco_decode_DartOpaque(dynamic raw);
+
+  @protected
+  CoreImageCache
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
     dynamic raw,
   );
 
@@ -123,6 +156,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreProgress dco_decode_box_autoadd_core_progress(dynamic raw);
 
   @protected
+  CoreSecretStoreInfo dco_decode_box_autoadd_core_secret_store_info(
+    dynamic raw,
+  );
+
+  @protected
   CoreSourceInput dco_decode_box_autoadd_core_source_input(dynamic raw);
 
   @protected
@@ -180,6 +218,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreHdrFilter dco_decode_core_hdr_filter(dynamic raw);
 
   @protected
+  CoreImageCacheUsage dco_decode_core_image_cache_usage(dynamic raw);
+
+  @protected
   CoreImportReport dco_decode_core_import_report(dynamic raw);
 
   @protected
@@ -223,6 +264,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreScanUpdate dco_decode_core_scan_update(dynamic raw);
+
+  @protected
+  CoreSecretStoreInfo dco_decode_core_secret_store_info(dynamic raw);
 
   @protected
   CoreSmartShelf dco_decode_core_smart_shelf(dynamic raw);
@@ -292,6 +336,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  ImageCacheError dco_decode_image_cache_error(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_isize(dynamic raw);
 
   @protected
   LibraryError dco_decode_library_error(dynamic raw);
@@ -377,6 +427,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreProgress? dco_decode_opt_box_autoadd_core_progress(dynamic raw);
 
   @protected
+  CoreSecretStoreInfo? dco_decode_opt_box_autoadd_core_secret_store_info(
+    dynamic raw,
+  );
+
+  @protected
   DiscKind? dco_decode_opt_box_autoadd_disc_kind(dynamic raw);
 
   @protected
@@ -410,6 +465,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ParsedName dco_decode_parsed_name(dynamic raw);
 
   @protected
+  PlatformSecretCall dco_decode_platform_secret_call(dynamic raw);
+
+  @protected
+  PlatformSecretReply dco_decode_platform_secret_reply(dynamic raw);
+
+  @protected
+  SecretsError dco_decode_secrets_error(dynamic raw);
+
+  @protected
   SourcesError dco_decode_sources_error(dynamic raw);
 
   @protected
@@ -434,6 +498,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
+  CoreImageCache
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreLibrary
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     SseDeserializer deserializer,
@@ -446,6 +516,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreImageCache
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreLibrary
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     SseDeserializer deserializer,
@@ -454,6 +530,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CoreSources
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  Object sse_decode_DartOpaque(SseDeserializer deserializer);
+
+  @protected
+  CoreImageCache
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
     SseDeserializer deserializer,
   );
 
@@ -532,6 +617,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreSecretStoreInfo sse_decode_box_autoadd_core_secret_store_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreSourceInput sse_decode_box_autoadd_core_source_input(
     SseDeserializer deserializer,
   );
@@ -597,6 +687,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreHdrFilter sse_decode_core_hdr_filter(SseDeserializer deserializer);
 
   @protected
+  CoreImageCacheUsage sse_decode_core_image_cache_usage(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreImportReport sse_decode_core_import_report(SseDeserializer deserializer);
 
   @protected
@@ -650,6 +745,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreScanUpdate sse_decode_core_scan_update(SseDeserializer deserializer);
+
+  @protected
+  CoreSecretStoreInfo sse_decode_core_secret_store_info(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CoreSmartShelf sse_decode_core_smart_shelf(SseDeserializer deserializer);
@@ -725,6 +825,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  ImageCacheError sse_decode_image_cache_error(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_isize(SseDeserializer deserializer);
 
   @protected
   LibraryError sse_decode_library_error(SseDeserializer deserializer);
@@ -840,6 +946,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreSecretStoreInfo? sse_decode_opt_box_autoadd_core_secret_store_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DiscKind? sse_decode_opt_box_autoadd_disc_kind(SseDeserializer deserializer);
 
   @protected
@@ -877,6 +988,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ParsedName sse_decode_parsed_name(SseDeserializer deserializer);
 
   @protected
+  PlatformSecretCall sse_decode_platform_secret_call(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  PlatformSecretReply sse_decode_platform_secret_reply(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  SecretsError sse_decode_secrets_error(SseDeserializer deserializer);
+
+  @protected
   SourcesError sse_decode_sources_error(SseDeserializer deserializer);
 
   @protected
@@ -905,6 +1029,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    CoreImageCache self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     CoreLibrary self,
     SseSerializer serializer,
@@ -919,6 +1050,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    CoreImageCache self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     CoreLibrary self,
     SseSerializer serializer,
@@ -928,6 +1066,23 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     CoreSources self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_DartFn_Inputs_platform_secret_call_Output_platform_secret_reply_AnyhowException(
+    FutureOr<PlatformSecretReply> Function(PlatformSecretCall) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_DartOpaque(Object self, SseSerializer serializer);
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    CoreImageCache self,
     SseSerializer serializer,
   );
 
@@ -1021,6 +1176,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_core_secret_store_info(
+    CoreSecretStoreInfo self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_core_source_input(
     CoreSourceInput self,
     SseSerializer serializer,
@@ -1108,6 +1269,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_core_hdr_filter(CoreHdrFilter self, SseSerializer serializer);
 
   @protected
+  void sse_encode_core_image_cache_usage(
+    CoreImageCacheUsage self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_import_report(
     CoreImportReport self,
     SseSerializer serializer,
@@ -1179,6 +1346,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_core_scan_update(
     CoreScanUpdate self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_secret_store_info(
+    CoreSecretStoreInfo self,
     SseSerializer serializer,
   );
 
@@ -1280,6 +1453,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_image_cache_error(
+    ImageCacheError self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_isize(PlatformInt64 self, SseSerializer serializer);
 
   @protected
   void sse_encode_library_error(LibraryError self, SseSerializer serializer);
@@ -1426,6 +1608,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_core_secret_store_info(
+    CoreSecretStoreInfo? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_disc_kind(
     DiscKind? self,
     SseSerializer serializer,
@@ -1471,6 +1659,21 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_parsed_name(ParsedName self, SseSerializer serializer);
 
   @protected
+  void sse_encode_platform_secret_call(
+    PlatformSecretCall self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_platform_secret_reply(
+    PlatformSecretReply self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_secrets_error(SecretsError self, SseSerializer serializer);
+
+  @protected
   void sse_encode_sources_error(SourcesError self, SseSerializer serializer);
 
   @protected
@@ -1505,6 +1708,40 @@ class RustLibWire implements BaseWire {
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
     : _lookup = dynamicLibrary.lookup;
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCachePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCachePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCachePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCachePtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   void
   rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
