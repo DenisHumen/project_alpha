@@ -7,6 +7,8 @@
 //! [`ParsedName`](parse::ParsedName) hypotheses with weights; stage \[4\],
 //! title normalization and the local title index ([`title`]), which turns
 //! those hypotheses into ranked work candidates without network requests;
+//! stage \[5\], the scorer v0 ([`score`]), which picks the work, the
+//! franchise entry and the episode for every file of a group;
 //! and the [`provider`] boundary through which later stages ask metadata
 //! providers for data without doing I/O themselves.
 //!
@@ -29,4 +31,5 @@
 
 pub mod parse;
 pub mod provider;
+pub mod score;
 pub mod title;
