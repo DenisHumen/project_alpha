@@ -2428,6 +2428,7 @@ dependencies = [
 name = "pa-playback"
 version = "0.1.0"
 dependencies = [
+ "pa-model",
  "serde",
  "serde_json",
  "thiserror",

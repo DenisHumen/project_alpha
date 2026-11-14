@@ -18,7 +18,9 @@ import 'support/test_app.dart';
 void main() {
   testWidgets('episode: progress saved, Up Next plays the next one', (t) async {
     setSurface(t, const Size(1280, 800));
-    final engine = FakePlayerEngine(loadedDuration: const Duration(minutes: 40));
+    final engine = FakePlayerEngine(
+      loadedDuration: const Duration(minutes: 40),
+    );
     final library = FakeLibrary.demo(scanStepDelay: Duration.zero);
     final services = AppServices(
       library: library,
@@ -70,10 +72,7 @@ void main() {
       engine.advance(const Duration(seconds: 1));
       await t.pump(const Duration(seconds: 1));
     }
-    expect(
-      (await library.progress(next.id))!.positionMs,
-      greaterThan(600000),
-    );
+    expect((await library.progress(next.id))!.positionMs, greaterThan(600000));
 
     await t.pumpWidget(const SizedBox());
     await settle(t, 2);

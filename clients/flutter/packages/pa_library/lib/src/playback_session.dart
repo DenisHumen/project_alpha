@@ -36,7 +36,10 @@ int _compare(LibraryItem a, LibraryItem b) {
 /// after a regular episode the next regular one across seasons (S1E10 →
 /// S2E1), skipping specials; after a special (season 0) the next special.
 /// Episodes of the same file (multi-episode files) are skipped.
-LibraryItem? nextEpisodeIn(Iterable<LibraryItem> episodes, LibraryItem current) {
+LibraryItem? nextEpisodeIn(
+  Iterable<LibraryItem> episodes,
+  LibraryItem current,
+) {
   final regular = _isRegular(current);
   final candidates =
       episodes

@@ -438,10 +438,7 @@ class RustLibrary implements Library {
     if (current == null || current.kind != ItemKind.episode || showId == null) {
       return null;
     }
-    return nextEpisodeIn(
-      await _items(_core.episodes(showId: showId)),
-      current,
-    );
+    return nextEpisodeIn(await _items(_core.episodes(showId: showId)), current);
   }
 
   @override

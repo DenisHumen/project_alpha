@@ -145,7 +145,9 @@ void main() {
       if (s % 131 == 70) h.state(t).togglePlay();
       if (s % 131 == 90) h.state(t).togglePlay();
       h.engine.advance(
-        h.engine.state.value.playing ? const Duration(seconds: 1) : Duration.zero,
+        h.engine.state.value.playing
+            ? const Duration(seconds: 1)
+            : Duration.zero,
       );
       await t.pump(const Duration(seconds: 1));
       final pos = h.engine.state.value.position.inMilliseconds;
@@ -182,10 +184,7 @@ void main() {
     expect(h.engine.uris, ['/tv/e2.mkv']);
     expect(find.byKey(const ValueKey('up-next')), findsNothing);
     expect(find.byKey(const ValueKey('osd-title')), findsOneWidget);
-    expect(
-      t.widget<Text>(find.byKey(const ValueKey('osd-title'))).data,
-      'E2',
-    );
+    expect(t.widget<Text>(find.byKey(const ValueKey('osd-title'))).data, 'E2');
 
     // Progress now goes to e2.
     await _play(t, h, 5);
