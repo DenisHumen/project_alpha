@@ -4,10 +4,11 @@
 // (no bundled third-party art). Placeholders are seeded by a string, so a
 // title always gets the same colours and shapes.
 
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
+
+import 'artwork_image.dart';
 
 enum ArtStyle { poster, backdrop, album }
 
@@ -122,19 +123,15 @@ class Artwork extends StatelessWidget {
     );
     if (u == null || u.isEmpty) return fallback;
     Widget err(BuildContext _, Object _, StackTrace? _) => fallback;
-    if (u.startsWith('http://') || u.startsWith('https://')) {
-      return Image.network(
-        u,
+    // Remote art comes from the core's disk cache in the size on screen and
+    // is decoded at that size off the UI thread (LIB-013).
+    return LayoutBuilder(
+      builder: (context, c) => Image(
+        image: artworkProvider(u, width: decodeWidth(context, c.maxWidth)),
         fit: BoxFit.cover,
         errorBuilder: err,
         gaplessPlayback: true,
-      );
-    }
-    return Image.file(
-      File(u),
-      fit: BoxFit.cover,
-      errorBuilder: err,
-      gaplessPlayback: true,
+      ),
     );
   }
 }

@@ -19,6 +19,7 @@ import 'services/preferences.dart';
 import 'services/secure_store.dart';
 import 'sources/core_source_manager.dart';
 import 'sources/source_manager.dart';
+import 'widgets/artwork_image.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,14 @@ Future<void> main() async {
     rescan = opened.importedV0;
     if (opened.fallbackReason != null) {
       debugPrint('Library on the v0 fallback: ${opened.fallbackReason}');
+    }
+    // Posters and backdrops through the core's disk cache (LIB-013); without
+    // the core they load straight from the network.
+    try {
+      final cache = await getApplicationCacheDirectory();
+      appArtworkCache = await RustArtworkCache.open('${cache.path}/artwork');
+    } catch (e) {
+      debugPrint('Artwork cache unavailable: $e');
     }
     // UI-005: the Rust source manager over the same database. Without it
     // (v0 fallback, or the secret store cannot open) the Sources screen
