@@ -23,4 +23,5 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+pa-secrets = { path = "../pa-secrets" }
 tempfile.workspace = true
