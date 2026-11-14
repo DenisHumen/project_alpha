@@ -12,7 +12,8 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    // mDNS of LAN sync (UI-019): Wi-Fi drops multicast without this lock.
+    // mDNS of LAN sync (UI-019) and source discovery (NET-020): Wi-Fi drops
+    // multicast without this lock. Dart counts the holders.
     private var multicastLock: WifiManager.MulticastLock? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -35,7 +36,7 @@ class MainActivity : FlutterActivity() {
         if (hold) {
             if (multicastLock == null) {
                 val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-                multicastLock = wifi.createMulticastLock("kinolune-sync").apply {
+                multicastLock = wifi.createMulticastLock("kinolune-mdns").apply {
                     setReferenceCounted(false)
                     acquire()
                 }

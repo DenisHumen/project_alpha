@@ -21,7 +21,9 @@ import 'platform/libmpv_check.dart';
 import 'services/app_services.dart';
 import 'services/preferences.dart';
 import 'services/secure_store.dart';
+import 'sources/core_discovery.dart';
 import 'sources/core_source_manager.dart';
+import 'sources/discovery.dart';
 import 'sources/source_manager.dart';
 import 'sync/device_info.dart';
 import 'sync/device_sync.dart';
@@ -37,6 +39,7 @@ Future<void> main() async {
   final Library library;
   SourceManager? sourceManager;
   DeviceSync sync = const NoDeviceSync();
+  SourceDiscovery discovery = const NoSourceDiscovery();
   var rescan = false;
   if (AppConfig.demo) {
     library = FakeLibrary.demo();
@@ -96,6 +99,15 @@ Future<void> main() async {
       } catch (e) {
         debugPrint('Device sync unavailable: $e');
       }
+      // NET-020: shares and servers on the LAN for the add-source flow
+      // (mDNS through the core; browses only while that flow is open).
+      if (sourceManager != null) {
+        try {
+          discovery = await CoreSourceDiscovery.open();
+        } catch (e) {
+          debugPrint('LAN discovery unavailable: $e');
+        }
+      }
     }
   }
   final services = AppServices(
@@ -103,6 +115,7 @@ Future<void> main() async {
     secureStore: PlatformSecureStore(),
     preferences: FilePreferences('${dir.path}/preferences.json'),
     sourceManager: sourceManager,
+    discovery: discovery,
     sync: sync,
   );
   await services.init();
