@@ -360,7 +360,7 @@ project_alpha/
   - Что: `Vfs` (list, stat, open → `ByteSource{read_at, size}`), `LocalFs`, общий контракт-тест-сьют, который обязаны проходить все бэкенды.
   - deps: REPO-001, CORE-005 · size: S · parallel: no · веха: M1 · ref: 02 §1.4, 04 §1.3
   - done when: контракт-тесты проходят на LocalFs под Linux, Windows и macOS.
-- [ ] **NET-002** libsmb2: сборка и `smb2-sys`
+- [x] **NET-002** libsmb2: сборка и `smb2-sys`
   - Что: вендоринг libsmb2 (LGPL-2.1), сборка динамической библиотеки для всех таргетов (на iOS и tvOS — embedded framework), безопасная Rust-обёртка.
   - deps: NET-001, CI-004 · size: M · parallel: yes · веха: M1 · ref: 02 §3.1, §4
   - done when: на всех таргетах бинарь линкуется динамически (проверка `otool`/`ldd`/`dumpbin`).
