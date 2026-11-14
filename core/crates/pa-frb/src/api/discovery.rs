@@ -240,7 +240,8 @@ impl CoreDiscovery {
         config: CoreDiscoveryConfig,
         multicast_lock: impl Fn(bool) -> DartFnFuture<()> + Send + Sync + 'static,
     ) -> DiscoveryResult<CoreDiscovery> {
-        let lock: Arc<dyn MulticastLock> = Arc::new(DartMulticastLock::new(Box::new(multicast_lock)));
+        let lock: Arc<dyn MulticastLock> =
+            Arc::new(DartMulticastLock::new(Box::new(multicast_lock)));
         Self::with_lock(config, Some(lock))
     }
 
@@ -398,7 +399,6 @@ fn spawn_snapshots(
     }
 }
 
-
 fn apply(visible: &mut BTreeMap<(ServiceKind, String), CoreDiscoveredService>, ev: DiscoveryEvent) {
     match ev {
         DiscoveryEvent::Found(s) | DiscoveryEvent::Updated(s) => {
@@ -459,7 +459,12 @@ mod tests {
             .into_iter()
             .map(Into::into)
             .collect();
-        for ty in ["_smb._tcp", "_webdav._tcp", "_webdavs._tcp", "_projectalpha._tcp"] {
+        for ty in [
+            "_smb._tcp",
+            "_webdav._tcp",
+            "_webdavs._tcp",
+            "_projectalpha._tcp",
+        ] {
             assert!(kinds.iter().any(|k| k.service_type() == ty), "{ty}");
         }
     }
@@ -590,17 +595,17 @@ mod tests {
         assert_eq!(d.services(), list);
 
         d.stop(vec![CoreServiceKind::WebDav]);
-        until("WebDAV lost", || {
-            (d.services().len() == 1).then_some(())
-        });
+        until("WebDAV lost", || (d.services().len() == 1).then_some(()));
         d.close();
         assert_eq!(*lock.0.lock().unwrap(), [true, false]);
         assert!(d.services().is_empty());
         assert_eq!(d.browse(vec![]).unwrap_err().code, "closed");
         // The watch stream ends with the discovery.
-        until("watch ended", || match out.recv_timeout(Duration::from_secs(1)) {
-            Err(mpsc::RecvTimeoutError::Disconnected) => Some(()),
-            _ => None,
+        until("watch ended", || {
+            match out.recv_timeout(Duration::from_secs(1)) {
+                Err(mpsc::RecvTimeoutError::Disconnected) => Some(()),
+                _ => None,
+            }
         });
         announcer.close();
     }
@@ -614,7 +619,8 @@ mod tests {
     fn lan_samba() {
         let want = std::env::var("PA_LAN_SMB_INSTANCE").unwrap_or_else(|_| "NET-020 Samba".into());
         let lock = Arc::new(CountingLock::default());
-        let d = CoreDiscovery::with_lock(CoreDiscoveryConfig::default(), Some(lock.clone())).unwrap();
+        let d =
+            CoreDiscovery::with_lock(CoreDiscoveryConfig::default(), Some(lock.clone())).unwrap();
         d.browse(discovery_source_kinds()).unwrap();
         let found = until(&format!("{want:?} found"), || {
             d.services()
@@ -642,7 +648,9 @@ mod tests {
         lock.acquire();
         lock.release();
         lock.acquire();
-        until("three calls", || (calls.lock().unwrap().len() == 3).then_some(()));
+        until("three calls", || {
+            (calls.lock().unwrap().len() == 3).then_some(())
+        });
         assert_eq!(*calls.lock().unwrap(), [true, false, true]);
     }
 }

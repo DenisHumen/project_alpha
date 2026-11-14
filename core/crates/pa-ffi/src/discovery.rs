@@ -378,7 +378,6 @@ fn spawn_snapshots(rx: Receiver<DiscoveryEvent>, listener: Arc<dyn DiscoveryList
     }
 }
 
-
 fn apply(visible: &mut BTreeMap<(ServiceKind, String), LanService>, ev: DiscoveryEvent) {
     match ev {
         DiscoveryEvent::Found(s) | DiscoveryEvent::Updated(s) => {
@@ -416,13 +415,19 @@ mod tests {
                 });
             }
             assert_eq!(sink.service_type(), service_type);
-            self.log.lock().unwrap().push(format!("start {service_type}"));
+            self.log
+                .lock()
+                .unwrap()
+                .push(format!("start {service_type}"));
             self.sinks.lock().unwrap().push(sink);
             Ok(())
         }
 
         fn stop_browse(&self, service_type: String) {
-            self.log.lock().unwrap().push(format!("stop {service_type}"));
+            self.log
+                .lock()
+                .unwrap()
+                .push(format!("stop {service_type}"));
         }
     }
 
