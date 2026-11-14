@@ -26,12 +26,15 @@ pub struct CoreVersion {
     pub edition: Option<String>,
     /// The version the item plays.
     pub is_default: bool,
+    /// Why the player cannot play this version, as `CoreItem::unplayable`.
+    pub unplayable: Option<String>,
 }
 
 impl From<c::Version> for CoreVersion {
     fn from(v: c::Version) -> Self {
         Self {
             label: v.label(),
+            unplayable: v.unplayable().map(|u| u.code().to_owned()),
             file_id: v.file_id,
             source_id: v.source_id,
             rel_path: v.rel_path,

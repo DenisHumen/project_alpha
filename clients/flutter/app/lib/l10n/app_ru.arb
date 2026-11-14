@@ -388,5 +388,9 @@
   "subtitlesPositionValue": "{percent} % от нижнего края",
   "subtitlesPositionUp": "Поднять субтитры",
   "subtitlesPositionDown": "Опустить субтитры",
-  "subtitlesReset": "Сбросить настройки"
+  "subtitlesReset": "Сбросить настройки",
+  "libraryUnplayableTitle": "Этот файл не воспроизводится",
+  "libraryUnplayableDiscImage": "Образы дисков (.iso) не воспроизводятся. Распакуйте диск в папку (BDMV или VIDEO_TS) или перепакуйте основной фильм в MKV.",
+  "libraryUnplayableOther": "Kinolune пока не умеет воспроизводить этот файл.",
+  "libraryUnplayableOk": "Понятно"
 }

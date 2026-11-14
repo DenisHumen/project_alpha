@@ -33,7 +33,7 @@ use crate::api::library_query::{
     CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
     CoreLibrarySort, CoreSmartShelf, CoreViewPrefs,
 };
-use crate::api::subtitles::CoreSidecarSubtitle;
+use crate::api::subtitles::{CorePlayPart, CoreSidecarSubtitle};
 use crate::frb_generated::StreamSink;
 
 /// Error of a library call; Dart receives it as an exception.
@@ -152,6 +152,10 @@ pub struct CoreItem {
     /// Versions of a movie or episode (LIB-010): 2+ shows a version picker
     /// on play ([`CoreLibrary::versions`]). 1 for shows and tracks.
     pub version_count: u32,
+    /// Why the player cannot play the item's file, `None` if it can
+    /// (LIB-017, LIB-020): a stable code (`disc_image`) the app translates.
+    /// The app shows the reason instead of opening the player.
+    pub unplayable: Option<String>,
 }
 
 fn small(v: Option<i64>) -> Option<i32> {
@@ -184,6 +188,7 @@ impl From<c::Item> for CoreItem {
             backdrop_url: i.backdrop_url,
             local_poster: i.local_poster,
             version_count: i.version_count,
+            unplayable: i.unplayable.map(|u| u.code().to_owned()),
         }
     }
 }
@@ -913,6 +918,19 @@ impl CoreLibrary {
         Ok(self
             .catalog
             .sidecar_subtitles(source_id, &rel_path)?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    /// The files that play the file `rel_path` of source `source_id` (as
+    /// in `CoreItem` and `CoreVersion`) as one movie (LIB-020): every part
+    /// of a split file (`cd1`, `cd2`) or of a DVD title set (VOBs) in
+    /// order, else the file alone. Empty for an unknown file.
+    pub fn play_parts(&self, source_id: i64, rel_path: String) -> Result<Vec<CorePlayPart>> {
+        Ok(self
+            .catalog
+            .play_parts(source_id, &rel_path)?
             .into_iter()
             .map(Into::into)
             .collect())

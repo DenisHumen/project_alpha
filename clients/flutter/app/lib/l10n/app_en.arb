@@ -516,5 +516,9 @@
   "@subtitlesPositionValue": { "placeholders": { "percent": { "type": "int" } } },
   "subtitlesPositionUp": "Move subtitles up",
   "subtitlesPositionDown": "Move subtitles down",
-  "subtitlesReset": "Reset to defaults"
+  "subtitlesReset": "Reset to defaults",
+  "libraryUnplayableTitle": "This file can't be played",
+  "libraryUnplayableDiscImage": "Disc images (.iso) can't be played. Extract the disc to a folder (BDMV or VIDEO_TS) or remux the main title to MKV.",
+  "libraryUnplayableOther": "Kinolune can't play this file yet.",
+  "libraryUnplayableOk": "OK"
 }

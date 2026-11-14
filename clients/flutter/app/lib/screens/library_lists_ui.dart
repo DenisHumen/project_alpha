@@ -200,6 +200,7 @@ Future<LibraryItem?> chooseVersion(
     picked.filePath,
     streamUri: picked.streamUri,
     durationMs: picked.durationMs,
+    unplayable: picked.unplayable,
   );
 }
 

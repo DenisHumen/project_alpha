@@ -10,6 +10,7 @@ import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import '../play_request.dart';
 import '../subtitles/subtitle_policy.dart';
 import 'audio_profile.dart';
+import 'parts.dart';
 import 'player_engine.dart';
 
 /// Initialises libmpv bindings. Call once in `main()` before `runApp`.
@@ -207,9 +208,7 @@ class MediaKitEngine implements PlayerEngine {
     final info = <String, String>{
       if (st.playlist.medias.isNotEmpty &&
           st.playlist.index < st.playlist.medias.length)
-        'File': Uri.decodeFull(
-          st.playlist.medias[st.playlist.index].uri.split('/').last,
-        ),
+        'File': mediaDisplayName(st.playlist.medias[st.playlist.index].uri),
       if (v.w != null && v.h != null) 'Resolution': '${v.w}×${v.h}',
       if (videoTrack?.codec != null) 'Video codec': videoTrack!.codec!,
       if (videoTrack?.fps != null)

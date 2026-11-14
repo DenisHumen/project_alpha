@@ -23,4 +23,6 @@ export 'package:pa_player/pa_player.dart'
         SubtitleMemory,
         SubtitleOverlay,
         SubtitleSettings,
-        SystemCaptionStyle;
+        SystemCaptionStyle,
+        // LIB-020 split movies as one timeline
+        partsUri;
