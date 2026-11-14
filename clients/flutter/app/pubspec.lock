@@ -553,6 +553,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  pa_platform_secrets:
+    dependency: "direct main"
+    description:
+      path: "../packages/pa_platform_secrets"
+      relative: true
+    source: path
+    version: "0.1.0"
   pa_player:
     dependency: "direct main"
     description:

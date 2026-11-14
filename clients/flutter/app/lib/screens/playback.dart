@@ -37,7 +37,7 @@ Future<void> playVideo(
 
 PlayRequest _request(AppLocalizations l, LibraryItem item, int startMs) =>
     PlayRequest(
-      uri: item.filePath,
+      uri: item.playbackUri,
       title: item.kind == ItemKind.episode
           ? '${episodeCode(l, item)}  ${item.title}'
           : item.title,
@@ -81,7 +81,7 @@ void playTracks(BuildContext context, List<LibraryItem> tracks, int index) {
   Services.read(context).music.play([
     for (final t in tracks)
       PlayRequest(
-        uri: t.filePath,
+        uri: t.playbackUri,
         title: t.title,
         artist: t.artist,
         album: t.album,

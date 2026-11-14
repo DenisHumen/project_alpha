@@ -17,6 +17,7 @@ flowchart LR
     pa_discovery["pa-discovery"]
     pa_ffi["pa-ffi"]
     pa_frb["pa-frb"]
+    pa_imagecache["pa-imagecache"]
     pa_jobs["pa-jobs"]
     pa_library["pa-library"]
     pa_metadata["pa-metadata"]
@@ -25,6 +26,7 @@ flowchart LR
     pa_playback["pa-playback"]
     pa_player_io["pa-player-io"]
     pa_probe["pa-probe"]
+    pa_proxy["pa-proxy"]
     pa_recognition["pa-recognition"]
     pa_runtime["pa-runtime"]
     pa_scanner["pa-scanner"]
@@ -47,8 +49,12 @@ flowchart LR
   pa_catalog --> pa_library
   pa_catalog --> pa_metadata
   pa_catalog --> pa_model
+  pa_catalog --> pa_probe
+  pa_catalog --> pa_proxy
   pa_catalog --> pa_recognition
   pa_catalog --> pa_scanner
+  pa_catalog -. dev .-> pa_secrets
+  pa_catalog --> pa_sources
   pa_catalog --> pa_vfs
   pa_eval --> pa_anime_mappings
   pa_eval --> pa_catalog
@@ -60,6 +66,8 @@ flowchart LR
   pa_ffi --> pa_secrets
   pa_frb --> pa_catalog
   pa_frb --> pa_ffi
+  pa_frb --> pa_imagecache
+  pa_frb --> pa_proxy
   pa_frb --> pa_recognition
   pa_frb --> pa_secrets
   pa_frb --> pa_sources
@@ -73,6 +81,7 @@ flowchart LR
   pa_probe --> pa_library
   pa_probe --> pa_player_io
   pa_probe --> pa_vfs
+  pa_proxy --> pa_vfs
   pa_recognition --> pa_anime_mappings
   pa_scanner --> pa_library
   pa_scanner -. dev .-> pa_model
@@ -105,11 +114,12 @@ flowchart LR
 | Крейт | Каталог | Внешних зависимостей | Описание |
 |---|---|---|---|
 | `pa-anime-mappings` | `core/crates/pa-anime-mappings` | 4 | Anime cross-ID and episode mappings: bundled ODbL data plus runtime-downloaded upstream lists (META-008) |
-| `pa-catalog` | `core/crates/pa-catalog` | 4 | Client media library on the Rust core: scan pipeline (pa-scanner, music tags, fingerprints, local recognition with pa-recognition), provider metadata (pa-metadata), item views, progress and the pa_library v0 import (UI-024), change watcher (LIB-005) |
+| `pa-catalog` | `core/crates/pa-catalog` | 4 | Client media library on the Rust core: scan pipeline (pa-scanner, music tags, fingerprints, local recognition with pa-recognition), provider metadata (pa-metadata), item views, progress and the pa_library v0 import (UI-024), change watcher (LIB-005), sources through pa-vfs connectors and the playback opener (LIB-018) |
 | `pa-discovery` | `core/crates/pa-discovery` | 4 | LAN discovery over mDNS/DNS-SD: own servers, sync peers, SMB, WebDAV and NFS shares; platform browser hook (NET-009) |
 | `pa-eval` | `tools/crates/pa-eval` | 2 | Offline eval runner for the recognition corpus: metrics, reports, regression check (META-003) |
 | `pa-ffi` | `core/crates/pa-ffi` | 3 | UniFFI facade of the project_alpha core: one API for Kotlin and Swift |
 | `pa-frb` | `core/crates/pa-frb` | 1 | flutter_rust_bridge facade of the project_alpha core for the Dart package pa_core |
+| `pa-imagecache` | `core/crates/pa-imagecache` | 3 | Disk LRU cache of provider artwork (posters, backdrops, stills) with provider size variants and offline use (LIB-013) |
 | `pa-jobs` | `core/crates/pa-jobs` | 2 | Persistent job queue of the core: priorities, per-type concurrency limits, retries with backoff, pause and cancel, progress events, survives restart (CORE-011) |
 | `pa-library` | `core/crates/pa-library` | 1 | Media library storage: SQLite schema v1, embedded migrations, connection setup (LIB-001); progress, Continue watching and Up Next (LIB-011); music library (MUS-001); Twitch data model (TWI-007); FTS5 search (LIB-008) |
 | `pa-metadata` | `core/crates/pa-metadata` | 5 | Metadata provider clients outside the sans-IO core: TMDB, AniList, Shikimori, rate limiting, ProviderCache (META-009, META-010) |
@@ -118,6 +128,7 @@ flowchart LR
 | `pa-playback` | `core/crates/pa-playback` | 2 | PlayerEngine contract, capability matrix and Auto engine selection, mock engine and engine contract tests (PLAY-003); playback session with progress saves and Up Next (PLAY-005) |
 | `pa-player-io` | `core/crates/pa-player-io` | 0 | ByteSource adapters for players: FFmpeg AVIOContext callbacks and the mpv stream_cb protocol (NET-008) |
 | `pa-probe` | `core/crates/pa-probe` | 3 | Container analysis over libavformat (LGPL FFmpeg loaded at run time) through pa-vfs: duration, codecs, HDR and Dolby Vision, audio, subtitles, chapters, tags, attachments (LIB-006) |
+| `pa-proxy` | `core/crates/pa-proxy` | 1 | Loopback HTTP Range server that streams any pa-vfs ByteSource to players that only take a URL (NET-007) |
 | `pa-recognition` | `core/crates/pa-recognition` | 3 | Media recognition core (sans-IO): filename parser with N-best hypotheses, title normalization and local title index, Provider boundary |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |

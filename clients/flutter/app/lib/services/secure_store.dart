@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Secrets (SMB passwords, TMDB key) in the platform keystore: Android
+/// Secrets of the app (the TMDB key) in the platform keystore: Android
 /// Keystore-backed storage, libsecret on Linux. If the keystore is not
 /// available (e.g. no Secret Service on a headless desktop) values are kept in
 /// memory for the session only.
@@ -14,6 +14,10 @@ abstract class SecureStore {
   Future<void> write(String key, String? value);
 
   static const tmdbKey = 'tmdb_api_key';
+
+  /// Where app versions before LIB-018 kept SMB passwords. Read once to move
+  /// them into the core's secret store, then deleted
+  /// (`AppServices.migrateLegacySmbPasswords`).
   static String smbPassword(String sourceId) => 'smb_password_$sourceId';
 }
 

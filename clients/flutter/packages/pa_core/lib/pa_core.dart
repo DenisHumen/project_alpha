@@ -8,9 +8,11 @@
 library;
 
 export 'src/rust/api/events.dart';
+export 'src/rust/api/images.dart';
 export 'src/rust/api/library.dart';
 export 'src/rust/api/library_query.dart';
 export 'src/rust/api/recognition.dart';
+export 'src/rust/api/secrets.dart';
 export 'src/rust/api/sources.dart';
 export 'src/rust/api/version.dart';
 export 'src/rust/frb_generated.dart' show RustLib;

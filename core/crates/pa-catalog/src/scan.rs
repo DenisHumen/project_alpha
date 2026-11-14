@@ -3,17 +3,21 @@
 //!
 //! Per source: list (`pa_scanner::scan`), read music tags
 //! (`pa_scanner::index_music`), analyze the folder structure
-//! (`pa_scanner::analyze_folders`), fingerprint new files, recognize new videos
+//! (`pa_scanner::analyze_folders`), probe new files (`pa-probe`, when
+//! FFmpeg is loadable), fingerprint new files, recognize new videos
 //! ([`crate::recognize`]). Then orphans are removed and the search index is
 //! brought up to date. The pipeline runs on its own database connection,
 //! so queries on the catalog keep working while it runs (WAL).
+//!
+//! Every source is read through the catalog's [`Connector`](crate::Connector)
+//! (LIB-018): local folders directly, SMB and WebDAV through `pa-vfs`
+//! backends, nothing mounted.
 
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use pa_library::rusqlite::params;
 use pa_scanner::{CancelToken, FolderOptions, MusicOptions, ScanError, ScanEvent, ScanOptions};
-use pa_vfs::{LocalFs, VfsPath};
+use pa_vfs::{Vfs, VfsPath};
 
 use crate::{Catalog, Error, sources};
 
@@ -124,19 +128,28 @@ impl Drop for ScanStatus<'_> {
     }
 }
 
+/// The text of a connection failure as the scan status shows it.
+fn connect_error(e: &Error) -> String {
+    match e {
+        // Already a full sentence (`folder not found: …`, `source 3: …`).
+        Error::Io(m) => m.clone(),
+        e => e.to_string(),
+    }
+}
+
 fn n(v: usize) -> u64 {
     u64::try_from(v).unwrap_or(u64::MAX)
 }
 
 impl Catalog {
-    /// Scans source `source_id`, or every source. `roots` gives the local
-    /// path of sources that are not `file://` (a mounted SMB share). Scans
-    /// are serialized. Errors of one source are reported as updates and the
-    /// scan goes on; the last update is [`ScanPhase::Done`].
+    /// Scans source `source_id`, or every source, each through the
+    /// [`Connector`](crate::Connector). Scans are serialized. Errors of one
+    /// source (offline drive, unreachable share, rejected password) are
+    /// reported as updates and the scan goes on; the last update is
+    /// [`ScanPhase::Done`].
     pub fn scan(
         &self,
         source_id: Option<i64>,
-        roots: &HashMap<i64, PathBuf>,
         cancel: &CancelToken,
         on_update: &mut dyn FnMut(ScanUpdate),
     ) -> Result<(), Error> {
@@ -167,26 +180,17 @@ impl Catalog {
             let mut u = ScanUpdate::new(ScanPhase::Connecting, Some(src.id), found);
             u.current_path = Some(src.uri.clone());
             on_update(u);
-            let Some(root) = roots.get(&src.id).cloned().or(src.local_root.clone()) else {
-                status.fail("no local path for this source".into());
-                on_update(fail(found, "no local path for this source".into()));
-                continue;
-            };
-            if !root.is_dir() {
-                // Offline drive / unmounted share: keep the items.
-                let msg = format!("folder not found: {}", root.display());
-                status.fail(msg.clone());
-                on_update(fail(found, msg));
-                continue;
-            }
-            let vfs = match LocalFs::new(&root) {
+            // Offline drive, unreachable share: the items are kept.
+            let vfs = match self.connector().connect(src) {
                 Ok(v) => v,
                 Err(e) => {
-                    status.fail(e.to_string());
-                    on_update(fail(found, e.to_string()));
+                    let msg = connect_error(&e);
+                    status.fail(msg.clone());
+                    on_update(fail(found, msg));
                     continue;
                 }
             };
+            let vfs: &dyn Vfs = vfs.as_ref();
 
             let base = found;
             let mut on_event = |e: &ScanEvent| match e {
@@ -206,7 +210,7 @@ impl Catalog {
             let report = match pa_scanner::scan(
                 &mut conn,
                 src.id,
-                &vfs,
+                vfs,
                 &ScanOptions::default(),
                 cancel,
                 &mut on_event,
@@ -235,7 +239,7 @@ impl Catalog {
             pa_scanner::index_music(
                 &mut conn,
                 src.id,
-                &vfs,
+                vfs,
                 &MusicOptions::default(),
                 cancel,
                 &mut on_tags,
@@ -246,7 +250,7 @@ impl Catalog {
             if let Err(e) = pa_scanner::analyze_folders(
                 &mut conn,
                 src.id,
-                &vfs,
+                vfs,
                 &FolderOptions::default(),
                 cancel,
                 &mut |_| {},
@@ -261,8 +265,16 @@ impl Catalog {
                 u.total = Some(n(total));
                 on_update(u);
             };
-            crate::fingerprint::fill_missing(&mut conn, src.id, &vfs, &mut report_step)?;
+            // LIB-006: durations and streams before recognition (the
+            // scorer uses the duration) and for the library filters.
+            let probe_error = crate::probe::run(&conn, src.id, vfs, cancel, &mut report_step)?;
+            crate::fingerprint::fill_missing(&mut conn, src.id, vfs, &mut report_step)?;
             crate::recognize::run(&mut conn, src.id, &mut report_step)?;
+            if let Some(e) = probe_error {
+                let mut u = ScanUpdate::new(ScanPhase::Analyzing, Some(src.id), found);
+                u.error = Some(format!("{}: {e}", src.name));
+                on_update(u);
+            }
         }
         {
             let tx = conn.transaction()?;
@@ -307,26 +319,24 @@ impl Catalog {
     /// source root, each with everything below it) and runs the rest of
     /// the pipeline on what changed: music tags, the folder structure of
     /// those folders, fingerprints and recognition of new files, the
-    /// search index. `root` is the local path of the source root.
+    /// search index. The source is reached through the
+    /// [`Connector`](crate::Connector).
     ///
-    /// Serialized with [`scan`](Self::scan). A root that is not a folder
-    /// (offline drive, unmounted share) is an error and nothing changes.
+    /// Serialized with [`scan`](Self::scan). A source that cannot be
+    /// reached (offline drive, share down) is an error and nothing changes.
     pub fn rescan_folders(
         &self,
         source_id: i64,
-        root: &Path,
         folders: &[VfsPath],
         cancel: &CancelToken,
     ) -> Result<RescanReport, Error> {
         let _serial = self.scan_lock.lock().unwrap_or_else(|e| e.into_inner());
         let mut conn = pa_library::open(&self.path)?;
-        if sources::get(&conn, source_id)?.is_none() {
+        let Some(source) = sources::get(&conn, source_id)? else {
             return Err(Error::NotFound(format!("source {source_id}")));
-        }
-        if !root.is_dir() {
-            return Err(Error::Io(format!("folder not found: {}", root.display())));
-        }
-        let vfs = LocalFs::new(root).map_err(|e| Error::Io(e.to_string()))?;
+        };
+        let vfs = self.connector().connect(&source)?;
+        let vfs: &dyn Vfs = vfs.as_ref();
         let mut out = RescanReport::default();
         for folder in folders {
             if cancel.is_cancelled() {
@@ -336,7 +346,7 @@ impl Catalog {
                 subtree: Some(folder.clone()),
                 ..ScanOptions::default()
             };
-            let r = pa_scanner::scan(&mut conn, source_id, &vfs, &options, cancel, &mut |_| {})?;
+            let r = pa_scanner::scan(&mut conn, source_id, vfs, &options, cancel, &mut |_| {})?;
             out.files_seen += n(r.files_seen);
             out.added += n(r.added);
             out.changed += n(r.changed);
@@ -347,7 +357,7 @@ impl Catalog {
             pa_scanner::index_music(
                 &mut conn,
                 source_id,
-                &vfs,
+                vfs,
                 &MusicOptions::default(),
                 cancel,
                 &mut |_| {},
@@ -355,10 +365,12 @@ impl Catalog {
         }
         // Sidecars, NFO and art can change without a media file.
         for folder in folders {
-            analyze_subtree(&mut conn, source_id, &vfs, folder, cancel);
+            analyze_subtree(&mut conn, source_id, vfs, folder, cancel);
         }
         if out.has_changes() {
-            crate::fingerprint::fill_missing(&mut conn, source_id, &vfs, &mut |_, _| {})?;
+            // A failure here is retried by the next scan.
+            let _ = crate::probe::run(&conn, source_id, vfs, cancel, &mut |_, _| {})?;
+            crate::fingerprint::fill_missing(&mut conn, source_id, vfs, &mut |_, _| {})?;
             crate::recognize::run(&mut conn, source_id, &mut |_, _| {})?;
             {
                 let tx = conn.transaction()?;
@@ -376,7 +388,7 @@ impl Catalog {
 fn analyze_subtree(
     conn: &mut pa_library::rusqlite::Connection,
     source_id: i64,
-    vfs: &LocalFs,
+    vfs: &dyn Vfs,
     folder: &VfsPath,
     cancel: &CancelToken,
 ) {

@@ -11,6 +11,7 @@
 //! (`just core frb`); do not edit it by hand.
 
 pub mod api;
+mod shared;
 // Generated and formatted by the codegen; `cargo fmt` would reorder imports.
 #[rustfmt::skip]
 mod frb_generated;

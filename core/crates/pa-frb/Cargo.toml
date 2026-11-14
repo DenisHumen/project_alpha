@@ -18,6 +18,8 @@ crate-type = ["lib", "cdylib", "staticlib"]
 flutter_rust_bridge.workspace = true
 pa-catalog = { path = "../pa-catalog" }
 pa-ffi = { path = "../pa-ffi" }
+pa-imagecache = { path = "../pa-imagecache" }
+pa-proxy = { path = "../pa-proxy" }
 pa-recognition = { path = "../pa-recognition" }
 pa-secrets = { path = "../pa-secrets" }
 pa-sources = { path = "../pa-sources" }

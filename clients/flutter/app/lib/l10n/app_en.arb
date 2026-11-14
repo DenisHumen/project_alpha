@@ -293,7 +293,7 @@
   "sourcesSpeedTest": "Speed test",
   "sourcesEdit": "Edit",
   "sourcesBrowseOnly": "Not added to the library",
-  "sourcesNotIndexable": "Connection and speed can be checked now; adding files from WebDAV to the library comes in a later version.",
+  "sourcesNotIndexable": "Files from this kind of source cannot be added to the library yet.",
   "sourcesErrorDetails": "Details",
   "@sourcesErrorDetails": { "description": "Expands the technical error message." },
   "sourcesSpeedRunning": "Measuring speed…",
@@ -384,5 +384,8 @@
   "sourcesErrorInvalidPath": "The path contains characters this source does not allow.",
   "sourcesErrorUnsupported": "This kind of source is not supported on this device (a system component may be missing).",
   "sourcesErrorNotIndexable": "Files from this kind of source cannot be added to the library yet.",
-  "sourcesErrorOther": "Something went wrong. The details below may help."
+  "sourcesErrorOther": "Something went wrong. The details below may help.",
+  "sourcesFormAutoScan": "Rescan automatically",
+  "sourcesFormAutoScanHint": "Local folders: soon after files change. Network sources: every 15 minutes.",
+  "sourcesAutoScanOn": "Rescanned automatically"
 }

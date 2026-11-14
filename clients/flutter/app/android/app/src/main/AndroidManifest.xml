@@ -11,6 +11,8 @@
     <uses-feature android:name="android.software.leanback" android:required="false"/>
 
     <application
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:label="Kinolune"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"

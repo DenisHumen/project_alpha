@@ -5,6 +5,12 @@
 /// See docs/dev/release-0.1-contract.md.
 library;
 
+export 'src/artwork_cache.dart'
+    show
+        ArtworkCache,
+        ArtworkCacheUsage,
+        RustArtworkCache,
+        defaultArtworkCacheBytes;
 export 'src/library.dart'
     show Library, continueWatchingMin, continueWatchingMax, showIdFor;
 export 'src/library_query.dart';

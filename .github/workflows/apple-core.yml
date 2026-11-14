@@ -133,6 +133,23 @@ jobs:
             -destination "id=$SIM_UDID" -derivedDataPath "$DERIVED_DATA" \
             -resultBundlePath "$RUNNER_TEMP/TVApp.xcresult" \
             -skipPackagePluginValidation
+      - name: Keychain secrets survive a process restart (CORE-015)
+        run: |
+          # Each xcodebuild run relaunches the host app: step B reads in a new
+          # process what step A wrote.
+          set -o pipefail
+          for step in testAWriteBeforeRestart testBReadAfterRestart; do
+            echo "==> CoreSecretsRestartTests/$step"
+            xcodebuild test \
+              -project clients/apple/TVApp/TVApp.xcodeproj -scheme TVApp \
+              -destination "id=$SIM_UDID" -derivedDataPath "$DERIVED_DATA" \
+              -skipPackagePluginValidation \
+              -only-testing:"TVAppTests/CoreSecretsRestartTests/$step" | tee "$RUNNER_TEMP/$step.log"
+          done
+          # A skip would mean both steps ran in one process.
+          if grep -q "Test skipped" "$RUNNER_TEMP/testBReadAfterRestart.log"; then
+            echo "::error::testBReadAfterRestart was skipped"; exit 1
+          fi
       - name: Screenshot of Home from the simulator
         if: ${{ !cancelled() }}
         run: |
