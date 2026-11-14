@@ -574,11 +574,104 @@ class RustLibrary implements Library {
     _notify();
   }
 
+  // -------------------------------------------------------------------------
+  // change watcher (LIB-005)
+
+  StreamSubscription<CoreWatchEvent>? _watch;
+  bool _metadataQueued = false;
+
+  /// Rescans done by the watcher, for diagnostics and tests.
+  Stream<CoreWatchEvent> get watchEvents => _watchEvents.stream;
+  final _watchEvents = StreamController<CoreWatchEvent>.broadcast();
+
+  /// Starts the core watcher: local auto-scan folders through OS change
+  /// notifications with incremental rescans, SMB shares (mounted here with
+  /// [smbPasswords]) on a [networkInterval] timer. A share that cannot be
+  /// mounted now is left out until the next start.
+  @override
+  Future<void> startWatching({
+    Map<String, String> smbPasswords = const {},
+    Duration networkInterval = const Duration(minutes: 15),
+    bool scanOnStart = true,
+  }) async {
+    if (_closed) return;
+    await stopWatching();
+    final roots = <CoreSourceRoot>[];
+    for (final s in await _core.sources()) {
+      if (s.kind != 'smb' || !s.autoScan) continue;
+      try {
+        final root = await _smb.resolve(
+          s.uri,
+          username: s.username,
+          password: smbPasswords['${s.id}'],
+        );
+        _smbRoots[s.id] = root;
+        roots.add(CoreSourceRoot(sourceId: s.id, path: root));
+      } catch (_) {
+        // Offline or unsupported here (Android): not followed this time.
+      }
+    }
+    if (_closed) return;
+    _watch = _core
+        .startWatcher(
+          settings: CoreWatchSettings(
+            roots: roots,
+            networkIntervalSecs: networkInterval.inSeconds,
+            debounceMs: 1000,
+            scanOnStart: scanOnStart,
+          ),
+        )
+        .listen(_onWatchEvent, onError: (Object _) {});
+  }
+
+  void _onWatchEvent(CoreWatchEvent e) {
+    if (_closed) return;
+    _watchEvents.add(e);
+    if (!e.mayHaveChanged) return;
+    _images.clear();
+    _notify();
+    _queueMetadata();
+  }
+
+  /// Provider metadata for what the watcher found, after the scans queued
+  /// before it; one run at a time.
+  void _queueMetadata() {
+    if (_metadataQueued || _closed) return;
+    _metadataQueued = true;
+    final prev = _scanQueue;
+    final done = Completer<void>();
+    _scanQueue = done.future;
+    () async {
+      await prev;
+      _metadataQueued = false;
+      try {
+        if (!_closed) await _fetchMetadata((_) {}, [], 0);
+      } catch (_) {
+        // Retried after the next change or scan.
+      } finally {
+        done.complete();
+        _images.clear();
+        _notify();
+      }
+    }();
+  }
+
+  @override
+  Future<void> stopWatching() async {
+    final sub = _watch;
+    _watch = null;
+    if (sub == null) return;
+    await _core.stopWatcher();
+    await sub.cancel();
+  }
+
   @override
   Future<void> close() async {
     if (_closed) return;
+    await stopWatching();
     await _scanQueue;
     _closed = true;
+    await _watchEvents.close();
     await _changes.close();
     _core.dispose();
     final tmp = _tempDir;
