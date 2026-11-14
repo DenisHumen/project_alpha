@@ -161,7 +161,7 @@ impl DiscoveredService {
             ServiceKind::WebDav => ("http", 80),
             ServiceKind::WebDavs => ("https", 443),
             ServiceKind::Nfs => ("nfs", 2049),
-            ServiceKind::Server | ServiceKind::SyncPeer => return None,
+            ServiceKind::Server | ServiceKind::SyncPeer | ServiceKind::Pairing => return None,
         };
         let addr = self.primary_address()?;
         let host = match addr {

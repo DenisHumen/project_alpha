@@ -28,10 +28,13 @@ dependencies:
   file_picker: ^13.3.3
   flutter_svg: ^2.0.0
   flutter_secure_storage: ^11.2.0
+  # UI-019: QR scanning with ZXing C++ (MIT/Apache-2.0), no Google services.
+  flutter_zxing: ^3.1.1
   intl: ^0.20.2
   material_ui: ^1.1.0
   path_provider: ^2.1.6
   permission_handler: ^13.0.2
+  qr: ^4.0.1
 
 # PLAY-013: our LGPL-2.1 libmpv (tools/mpv) instead of the prebuilt LGPL-3.0
 # jars that upstream media_kit_libs_android_video downloads. Same Java glue.

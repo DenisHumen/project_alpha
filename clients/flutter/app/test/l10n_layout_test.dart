@@ -116,6 +116,17 @@ final _flows = <String, (Section, _Step?)>{
       await _tap(t, l.sourcesManage);
     },
   ),
+  // UI-019: Settings → Devices with an open invitation (QR and code).
+  'devices': (
+    Section.settings,
+    (t, l) async {
+      await t.ensureVisible(find.text(l.devicesTitle).last);
+      await settle(t, 4);
+      await t.tap(find.text(l.devicesTitle).last);
+      await settle(t, 10);
+      await _tap(t, l.devicesShowCode);
+    },
+  ),
   'about': (
     Section.settings,
     (t, l) async {

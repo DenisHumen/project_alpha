@@ -140,6 +140,55 @@ pub fn next_attempt_at(conn: &Connection) -> Result<Option<i64>, Error> {
     )
 }
 
+/// Drops queued ops that a newer queued op of the same register
+/// ([`OpBody::register`](crate::OpBody::register)) makes useless: a
+/// receiver keeps only the newest write of a register anyway. Keeps the
+/// outbox as small as the number of changed registers on a device whose
+/// ops nobody acknowledges (it is the hub, or the others are away). Returns
+/// the number of removed ops.
+pub fn compact(conn: &Connection) -> Result<usize, Error> {
+    use std::collections::HashMap;
+    let mut stmt = conn.prepare_cached("SELECT payload FROM sync_outbox")?;
+    let rows = stmt.query_map([], |r| r.get::<_, String>(0))?;
+    let mut newest: HashMap<String, Op> = HashMap::new();
+    let mut stale: Vec<OpId> = Vec::new();
+    for row in rows {
+        let Ok(op) = decode(&row?) else {
+            // A payload of a newer model: leave it alone.
+            continue;
+        };
+        let register = op.body.register();
+        match newest.get_mut(&register) {
+            Some(kept) if (&kept.hlc, kept.op_id) >= (&op.hlc, op.op_id) => stale.push(op.op_id),
+            Some(kept) => stale.push(std::mem::replace(kept, op).op_id),
+            None => {
+                newest.insert(register, op);
+            }
+        }
+    }
+    drop(stmt);
+    for id in &stale {
+        ack(conn, *id)?;
+    }
+    Ok(stale.len())
+}
+
+/// The newest HLC in the outbox, to restore the clock of a
+/// [`Replica`](crate::Replica) after a restart.
+pub fn newest_hlc(conn: &Connection) -> Result<Option<crate::Hlc>, Error> {
+    let mut stmt = conn.prepare_cached("SELECT payload FROM sync_outbox")?;
+    let rows = stmt.query_map([], |r| r.get::<_, String>(0))?;
+    let mut best: Option<crate::Hlc> = None;
+    for row in rows {
+        if let Ok(op) = decode(&row?)
+            && best.as_ref().is_none_or(|b| *b < op.hlc)
+        {
+            best = Some(op.hlc);
+        }
+    }
+    Ok(best)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -36,6 +36,17 @@ Future<void> _tapText(WidgetTester tester, String text) async {
   await settle(tester, 10);
 }
 
+/// Settings → Devices: the section title and the tile both say "Devices";
+/// the tile is the last one once scrolled into view.
+Future<void> _openDevices(WidgetTester tester) async {
+  for (var i = 0; i < 2; i++) {
+    await tester.ensureVisible(find.text('Devices').last);
+    await settle(tester, 4);
+  }
+  await tester.tap(find.text('Devices').last);
+  await settle(tester, 10);
+}
+
 final _desktopShots = <_Shot>[
   const _Shot('home', Section.home),
   _Shot('movies', Section.movies),
@@ -112,6 +123,10 @@ final _desktopShots = <_Shot>[
     await settle(t, 4);
   }),
   _Shot('about', Section.settings, (t, _) => _tapText(t, 'About Kinolune')),
+  _Shot('devices', Section.settings, (t, _) async {
+    await _openDevices(t);
+    await _tapText(t, 'Show code');
+  }),
   const _Shot('onboarding', Section.home, null, true),
 ];
 
@@ -155,6 +170,9 @@ final _phoneShots = <_Shot>[
     await settle(t, 6);
   }),
   _Shot('movie-detail', Section.movies, (t, _) => _tapText(t, 'Harbor Lights')),
+  _Shot('devices', Section.settings, (t, _) async {
+    await _openDevices(t);
+  }),
 ];
 
 void main() {
