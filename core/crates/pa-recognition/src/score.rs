@@ -397,15 +397,17 @@ impl Scorer {
             if c.tier != MatchTier::Exact && (matched.season.is_some() || matched.year.is_some()) {
                 prior -= 0.04;
             }
-            if pos.is_some_and(|p| p > 0) && c.title != 0 && !fr.remake {
-                prior -= 0.02;
+            // A later entry reached through a bare synonym (`Dorohedoro` for
+            // `Dorohedoro Season 2`): a bare title means the first entry.
+            if pos.is_some_and(|p| p > 0) && c.title != 0 && matched.season.is_none() {
+                prior -= 0.05;
             }
             if let Some(s) = numbers.season
                 && chain.len() > 1
                 && self.info(index, c.record).claims(s, None) == 0
                 && pos.is_none_or(|p| p + 1 != s as usize)
             {
-                prior -= 0.06;
+                prior -= 0.12;
             }
             let eps = numbers
                 .values
@@ -463,22 +465,29 @@ impl Scorer {
                 push(r, base + prior, eps, Reading::Absolute);
             }
         }
-        // Explicit season → the entry whose titles claim it most, or the
-        // n-th entry when none does.
+        // Explicit season → the first entry whose titles claim it most
+        // (`Season 2`, `2nd Season`; a later cour continues the season), or
+        // the n-th entry when none does. Season 1 starts the franchise.
         if let Some(s) = numbers.season
             && s >= 1
         {
+            let part = numbers.part.unwrap_or(1);
             let claims: Vec<u32> = chain
                 .iter()
-                .map(|&r| self.info(index, r).claims(s, numbers.part))
+                .map(|&r| self.info(index, r).claims(s, Some(part)))
                 .collect();
             let max = claims.iter().copied().max().unwrap_or(0);
-            if max > 0 {
+            if max > 0 && (s > 1 || part > 1) {
+                let start = claims.iter().position(|&n| n == max).unwrap_or(0);
                 for (p, &n) in claims.iter().enumerate() {
                     if n > 0
                         && let Some((r, eps)) = place(p)
                     {
-                        let prior = 0.10 * (n as f32 / max as f32 - 1.0);
+                        let prior = if p == start {
+                            0.0
+                        } else {
+                            0.10 * (n as f32 / max as f32 - 1.0) - 0.03
+                        };
                         push(r, base + 0.01 + prior, eps, Reading::Season);
                     }
                 }
@@ -562,17 +571,22 @@ impl Scorer {
             (x.year.unwrap_or(u16::MAX), aid, r)
         });
         members.dedup();
-        // Cut at long gaps: `Fruits Basket` (2001) and (2019) are different
-        // series with the same title.
+        // Cut at a restart: after a long gap, an entry whose main title is
+        // the segment head's title again (`Fruits Basket 1st Season` (2019)
+        // after `Fruits Basket` (2001), `Hunter x Hunter (2011)`) is a
+        // remake; `Bleach: Sennen Kessen-hen` (2022) continues `Bleach`.
         let mut segments: Vec<Vec<usize>> = Vec::new();
         let mut last_year: Option<u16> = None;
         for r in members {
             let year = index.record(r).year;
-            let new = match (last_year, year) {
-                (Some(a), Some(b)) => b.saturating_sub(a) >= REMAKE_GAP_YEARS,
-                _ => segments.is_empty(),
+            let restart = match (segments.last(), last_year, year) {
+                (Some(seg), Some(a), Some(b)) if b.saturating_sub(a) >= REMAKE_GAP_YEARS => {
+                    let head = TitleKey::new(&index.record(seg[0]).titles[0]).base;
+                    TitleKey::new(&index.record(r).titles[0]).base == head
+                }
+                _ => false,
             };
-            if new || segments.is_empty() {
+            if restart || segments.is_empty() {
                 segments.push(Vec::new());
             }
             segments.last_mut().expect("pushed").push(r);
@@ -688,6 +702,11 @@ fn agreement(best: &ParsedName, numbers: &Numbers, rec: &TitleRecord) -> f32 {
     {
         adj -= 0.10;
     }
+    // AniDB is the canonical anime space; anime-offline-database entries
+    // without an AniDB id are mostly split duplicates of one that has it.
+    if rec.anime && !rec.ids.contains_key("anidb") {
+        adj -= 0.03;
+    }
     adj
 }
 
@@ -725,9 +744,10 @@ fn parent(path: &str) -> &str {
     path.rsplit_once('/').map_or("", |(dir, _)| dir)
 }
 
-/// Files without a confident decision of their own that are extras or have
-/// no title (`sample.mkv`, `Extras/Trailer 2.mkv`) take the record of the
-/// nearest enclosing folder whose confident main files all agree.
+/// Extras (`Extras/Trailer 2.mkv`, `sample.mkv`) and files without a title
+/// take the record of the nearest enclosing folder whose confident main
+/// files all agree. A main file never inherits: `The Lion King.mkv` next to
+/// `The Lion King (1994).mkv` may well be the remake.
 fn inherit_from_folder(files: &[GroupFile<'_>], parsed: &[ParsedName], out: &mut [FileMatch]) {
     const CONFIDENT: f32 = 0.6;
     let own: Vec<Option<(usize, f32)>> = out
@@ -740,8 +760,8 @@ fn inherit_from_folder(files: &[GroupFile<'_>], parsed: &[ParsedName], out: &mut
         })
         .collect();
     for (i, file) in files.iter().enumerate() {
-        let dependent = out[i].record.is_none() || parsed[i].extra.is_some();
-        if !dependent || out[i].confidence >= CONFIDENT {
+        let extra = parsed[i].extra.is_some();
+        if !(extra || out[i].record.is_none()) {
             continue;
         }
         let mut dir = parent(file.path);
