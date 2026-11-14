@@ -279,7 +279,7 @@ impl ImageCache {
         fs::create_dir_all(&dir)?;
         let now = now_ms();
         let max_age_s = options.max_age.as_secs();
-        let mut entries = HashMap::new();
+        let mut entries: HashMap<String, Entry> = HashMap::new();
         let mut total = 0;
         for item in fs::read_dir(&dir)? {
             let item = item?;
