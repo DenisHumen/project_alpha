@@ -16,7 +16,7 @@ use crate::items::{self, Item, ItemRef};
 use crate::{Catalog, Error, LOCAL_DEVICE_ID};
 
 /// The profile of the app until profiles arrive (LIB-012).
-const PROFILE: i64 = 1;
+pub(crate) const PROFILE: i64 = 1;
 
 /// Playback state of an item.
 #[derive(Debug, Clone, PartialEq, Eq)]

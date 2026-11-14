@@ -16,8 +16,11 @@
 //! - the import of a `pa_library` v0 database ([`Catalog::import_v0`],
 //!   the part of LIB-015 the app needs);
 //! - provider metadata ([`Catalog::fetch_metadata`], [`metadata`],
-//!   META-013): TMDB / AniList / Shikimori ids, titles, overviews, artwork
-//!   and episode data for the recognized works.
+//!   META-013): TMDB / AniList / Shikimori ids, titles, overviews, artwork,
+//!   genres and episode data for the recognized works;
+//! - library queries ([`Catalog::query`], [`query`], LIB-009): combinable
+//!   filters, sorts and paging, the alphabet index, facets, folder browsing
+//!   with "folders first", per-view preferences and smart shelves.
 //!
 //! Recognition in the scan is local: works are created from parsed titles,
 //! without providers. The metadata run then matches them against TMDB (and
@@ -34,6 +37,7 @@ mod import_v0;
 mod items;
 pub mod metadata;
 mod progress;
+pub mod query;
 pub mod recognize;
 mod scan;
 mod sources;
@@ -52,6 +56,10 @@ pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
 pub use pa_metadata;
 pub use pa_scanner::CancelToken;
 pub use progress::{ContinueItem, ItemProgress};
+pub use query::{
+    AlphabetEntry, FacetValue, Facets, FolderEntry, HdrFilter, ItemPage, LibraryFilter,
+    LibraryQuery, LibrarySort, Resolution, SmartShelf, SortField, ViewPrefs, WatchState,
+};
 pub use scan::{ScanPhase, ScanUpdate};
 pub use sources::Source;
 
@@ -82,6 +90,7 @@ impl Catalog {
             std::fs::create_dir_all(dir).map_err(|e| Error::Io(e.to_string()))?;
         }
         let conn = pa_library::open(&path)?;
+        query::register_functions(&conn)?;
         Ok(Self {
             path,
             conn: Mutex::new(conn),
