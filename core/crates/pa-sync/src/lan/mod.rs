@@ -21,8 +21,14 @@
 //! [`LanEvent::Acked`], and shows "continue on this device" from
 //! [`LanEvent::Playback`]. On start the app publishes its outbox
 //! ([`outbox::due`](crate::outbox::due)) with [`LanNode::publish`].
+//!
+//! [`pair`] runs pairing by QR code or 6-digit code between two apps, and
+//! [`service::SyncService`] ties identity, family, pairing and the node
+//! together for one app (UI-019).
 
 pub mod election;
+pub mod pair;
+pub mod service;
 pub mod tls;
 
 mod conn;

@@ -7,6 +7,7 @@
 //! |---|---|---|
 //! | [`ServiceKind::Server`] | `_projectalpha._tcp` | own media server (mode B), TXT [`ServerTxt`] |
 //! | [`ServiceKind::SyncPeer`] | `_alpha-sync._tcp` | LAN sync between apps (SYNC-006), TXT [`PeerTxt`] |
+//! | [`ServiceKind::Pairing`] | `_alpha-pair._tcp` | an app showing a pairing invitation (UI-019) |
 //! | [`ServiceKind::Smb`] | `_smb._tcp` | Samba/Avahi, macOS, NAS |
 //! | [`ServiceKind::WebDav`], [`ServiceKind::WebDavs`] | `_webdav._tcp`, `_webdavs._tcp` | WebDAV shares |
 //! | [`ServiceKind::Nfs`] | `_nfs._tcp` | NFS exports |

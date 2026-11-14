@@ -11,6 +11,7 @@ import '../library/library_queries.dart';
 import '../sources/discovery.dart';
 import '../sources/library_source_manager.dart';
 import '../sources/source_manager.dart';
+import '../sync/device_sync.dart';
 import 'preferences.dart';
 import 'secure_store.dart';
 
@@ -25,6 +26,8 @@ class AppServices extends ChangeNotifier {
     Locale Function()? systemLocale,
     SourceManager? sourceManager,
     this.discovery = const NoSourceDiscovery(),
+    this.sync = const NoDeviceSync(),
+    this.onRemoteLibraryChange,
     LibraryQueries? queries,
     DateTime Function()? clock,
   }) : preferences = preferences ?? MemoryPreferences(),
@@ -55,6 +58,20 @@ class AppServices extends ChangeNotifier {
   /// LAN discovery for the add flow (hook; off until pa-discovery is in
   /// pa_core).
   final SourceDiscovery discovery;
+
+  /// Pairing and LAN sync with the user's other devices (UI-019).
+  final DeviceSync sync;
+
+  /// Refreshes the library views when another device changed progress;
+  /// default: [RustLibrary.notifyExternalChange].
+  final void Function()? onRemoteLibraryChange;
+  StreamSubscription<SyncEvent>? _syncSub;
+
+  /// What other devices play now (`pb.update` / `pb.takeover`): the hook
+  /// for the "continue here" banner of SYNC-003. Nothing listens yet.
+  Stream<SyncEvent> get playbackElsewhere => sync.events.where(
+    (e) => e.kind == SyncEventKind.playback || e.kind == SyncEventKind.takeover,
+  );
 
   /// UI language chosen in Settings; null = follow the system locale.
   final ValueNotifier<Locale?> locale = ValueNotifier(null);
@@ -119,6 +136,38 @@ class AppServices extends ChangeNotifier {
     _loaded = true;
     notifyListeners();
     unawaited(startWatching());
+    unawaited(startSync());
+  }
+
+  /// Listens to the sync service and starts it if devices are paired.
+  Future<void> startSync() async {
+    _syncSub ??= sync.events.listen(_onSyncEvent);
+    try {
+      await sync.start();
+    } catch (e) {
+      // Pairing still works from the Devices screen; sync retries there.
+      debugPrint('Sync not started: $e');
+    }
+  }
+
+  void _onSyncEvent(SyncEvent e) {
+    switch (e.kind) {
+      case SyncEventKind.libraryChanged:
+        final refresh = onRemoteLibraryChange;
+        if (refresh != null) {
+          refresh();
+        } else if (library is RustLibrary) {
+          (library as RustLibrary).notifyExternalChange();
+        }
+      case SyncEventKind.devicesChanged ||
+          SyncEventKind.paired ||
+          SyncEventKind.inviteClosed:
+        notifyListeners();
+      case SyncEventKind.pairingFailed ||
+          SyncEventKind.playback ||
+          SyncEventKind.takeover:
+        break;
+    }
   }
 
   /// Follows the auto-scan sources (LIB-005): new and removed files show up
@@ -325,6 +374,7 @@ class AppServices extends ChangeNotifier {
 
   @override
   void dispose() {
+    unawaited(_syncSub?.cancel());
     unawaited(library.stopWatching());
     locale.dispose();
     showTwitch.dispose();

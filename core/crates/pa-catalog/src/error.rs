@@ -22,6 +22,15 @@ pub enum Error {
     /// An argument is not acceptable.
     #[error("invalid: {0}")]
     Invalid(String),
+    /// Sync: recording or applying an op (UI-019).
+    #[error("sync: {0}")]
+    Sync(String),
+}
+
+impl From<pa_sync::Error> for Error {
+    fn from(e: pa_sync::Error) -> Self {
+        Self::Sync(e.to_string())
+    }
 }
 
 impl From<rusqlite::Error> for Error {

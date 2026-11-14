@@ -12,6 +12,7 @@ import '../widgets/cards.dart';
 import '../widgets/focusable.dart';
 import 'about_screen.dart';
 import 'add_source_dialog.dart';
+import 'devices_screen.dart';
 import 'sources_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -71,6 +72,27 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                   const _ScanSection(),
+                  _Section(
+                    title: l.settingsDevicesTitle,
+                    subtitle: l.settingsDevicesSubtitle,
+                    children: [
+                      _NavTile(
+                        icon: Icons.devices,
+                        title: l.devicesTitle,
+                        subtitle: l.settingsDevicesCount(
+                          services.sync
+                              .devices()
+                              .where((d) => !d.thisDevice)
+                              .length,
+                        ),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const DevicesScreen(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const _TmdbSection(),
                   const _NavigationSection(),
                   const _LanguageSection(),
