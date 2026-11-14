@@ -158,6 +158,7 @@ void main() {
         'addSource',
         'sources',
         'settings',
+        'subtitles',
         'about',
         'onboarding',
       ];

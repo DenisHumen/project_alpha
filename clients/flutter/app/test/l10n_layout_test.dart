@@ -127,6 +127,17 @@ final _flows = <String, (Section, _Step?)>{
       await _tap(t, l.devicesShowCode);
     },
   ),
+  // PLAY-007: Settings → Subtitle style with the custom controls shown.
+  'subtitles': (
+    Section.settings,
+    (t, l) async {
+      await t.ensureVisible(find.text(l.subtitlesStyleTitle).last);
+      await settle(t, 4);
+      await t.tap(find.text(l.subtitlesStyleTitle).last);
+      await settle(t, 10);
+      await _tap(t, l.subtitlesSystemStyle);
+    },
+  ),
   'about': (
     Section.settings,
     (t, l) async {

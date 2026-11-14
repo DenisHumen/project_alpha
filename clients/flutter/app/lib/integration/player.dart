@@ -14,4 +14,13 @@ export 'package:pa_player/pa_player.dart'
         PlayerEngine,
         PlayerEngineFactory,
         UpNextItem,
-        ensurePaPlayerInitialized;
+        ensurePaPlayerInitialized,
+        // PLAY-007 subtitles
+        ExternalSubtitle,
+        SubtitleAppearance,
+        SubtitleBackground,
+        SubtitleFont,
+        SubtitleMemory,
+        SubtitleOverlay,
+        SubtitleSettings,
+        SystemCaptionStyle;

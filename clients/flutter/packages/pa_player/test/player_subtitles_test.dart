@@ -84,7 +84,10 @@ void main() {
   testWidgets('sidecars are loaded and the forced track is picked', (t) async {
     final h = await _open(t, _Harness());
     expect(h.engine.autoLoadSubtitles, isFalse);
-    expect(h.engine.calls, containsAllInOrder(['addsub:E1.ru.forced.srt', 'addsub:E1.ru.srt']));
+    expect(
+      h.engine.calls,
+      containsAllInOrder(['addsub:E1.ru.forced.srt', 'addsub:E1.ru.srt']),
+    );
     // Russian audio, Russian reader: only the forced lines.
     expect(h.engine.state.value.subtitleTrack!.title, 'E1.ru.forced.srt');
     expect(h.memories, isEmpty, reason: 'an automatic pick is not a choice');
@@ -95,7 +98,9 @@ void main() {
   ) async {
     final h = await _open(
       t,
-      _Harness(request: const PlayRequest(uri: '/m/a.mkv', title: 'A')),
+      _Harness(
+        request: const PlayRequest(uri: '/m/a.mkv', title: 'A'),
+      ),
     );
     expect(h.engine.autoLoadSubtitles, isTrue);
     expect(h.engine.addedSubtitles, isEmpty);
@@ -260,11 +265,7 @@ void main() {
     final h = await _open(
       t,
       _Harness(
-        request: const PlayRequest(
-          uri: '/m/a.mkv',
-          title: 'A',
-          subtitles: [],
-        ),
+        request: const PlayRequest(uri: '/m/a.mkv', title: 'A', subtitles: []),
       ),
     );
     expect(h.engine.calls, contains('subdelay:0'));

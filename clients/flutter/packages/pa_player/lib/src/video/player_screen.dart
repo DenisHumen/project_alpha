@@ -176,13 +176,14 @@ class PlayerScreenState extends State<PlayerScreen>
     _subtitleGeneration++;
     _autoSelectTimer?.cancel();
     _autoSelectPending = false;
-    final opened = engine.open(
+    // sub-delay is an mpv option: set before the file loads, it applies to
+    // it from the first cue.
+    engine.setSubtitleDelay(_memoryFor(request)?.delay ?? Duration.zero);
+    return engine.open(
       [request.uri],
       start: Duration(milliseconds: request.startPositionMs),
       autoLoadSubtitles: request.subtitles == null,
     );
-    engine.setSubtitleDelay(_memoryFor(request)?.delay ?? Duration.zero);
-    return opened;
   }
 
   Future<void> _loadCaptionStyle() async {
@@ -381,11 +382,11 @@ class PlayerScreenState extends State<PlayerScreen>
     });
     final generation = ++_nextGeneration;
     _openCurrent().then((_) {
-          if (mounted && !_closing && generation == _nextGeneration) {
-            _startProgress();
-            _fetchNext();
-          }
-        });
+      if (mounted && !_closing && generation == _nextGeneration) {
+        _startProgress();
+        _fetchNext();
+      }
+    });
     osd.show();
   }
 

@@ -238,7 +238,9 @@ class MediaKitEngine implements PlayerEngine {
     _external.clear();
     await _ready;
     final p = _player.platform;
-    if (!_disposed && p is mk.NativePlayer && !mpvOptions.containsKey('sub-auto')) {
+    if (!_disposed &&
+        p is mk.NativePlayer &&
+        !mpvOptions.containsKey('sub-auto')) {
       try {
         await p.setProperty('sub-auto', autoLoadSubtitles ? 'fuzzy' : 'no');
       } catch (e) {

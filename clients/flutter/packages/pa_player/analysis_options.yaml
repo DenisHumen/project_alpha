@@ -9,3 +9,4 @@ analyzer:
   exclude:
     - build/**
     - example/build/**
+    - android/**

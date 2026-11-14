@@ -361,7 +361,9 @@ class SystemCaptionStyle {
     return SubtitleAppearance(
       fontScale: fontScale,
       font: fontOf(typeface),
-      textColor: foregroundColor == null ? s.textColor : Color(foregroundColor!),
+      textColor: foregroundColor == null
+          ? s.textColor
+          : Color(foregroundColor!),
       backgroundColor: backgroundColor == null
           ? s.backgroundColor
           : Color(backgroundColor!),

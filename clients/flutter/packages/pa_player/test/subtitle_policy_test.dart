@@ -42,13 +42,7 @@ void main() {
   group('without a remembered choice', () {
     final cases =
         <
-          (
-            String,
-            List<MediaTrack>,
-            String?,
-            SubtitlePreferences?,
-            MediaTrack?,
-          )
+          (String, List<MediaTrack>, String?, SubtitlePreferences?, MediaTrack?)
         >[
           (
             'audio in the user language: forced in that language',
@@ -191,10 +185,10 @@ void main() {
 
     test('external choice prefers the sidecar', () {
       expect(
-        pick(
-          [ruFull, ruExternal],
-          remembered: const SubtitleChoice(language: 'rus', external: true),
-        ),
+        pick([
+          ruFull,
+          ruExternal,
+        ], remembered: const SubtitleChoice(language: 'rus', external: true)),
         ruExternal,
       );
     });

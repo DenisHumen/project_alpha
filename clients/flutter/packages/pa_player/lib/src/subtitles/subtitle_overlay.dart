@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
 import 'dart:math' as math;
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/widgets.dart';
 
@@ -53,7 +52,9 @@ class SubtitleOverlay extends StatelessWidget {
             fontSize: size,
             height: 1.25,
             fontFamily: fontFamily,
-            fontFamilyFallback: fontFamily == null ? null : const ['sans-serif'],
+            fontFamilyFallback: fontFamily == null
+                ? null
+                : const ['sans-serif'],
             fontFeatures: features,
             fontWeight: FontWeight.w500,
             decoration: TextDecoration.none,
@@ -83,7 +84,10 @@ class SubtitleOverlay extends StatelessWidget {
               ),
             ],
             SubtitleEdge.outline => [
-              Shadow(blurRadius: edgeWidth, color: a.edgeColor.withValues(alpha: 0.5)),
+              Shadow(
+                blurRadius: edgeWidth,
+                color: a.edgeColor.withValues(alpha: 0.5),
+              ),
             ],
             SubtitleEdge.none => const <Shadow>[],
           };

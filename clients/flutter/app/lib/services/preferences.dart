@@ -22,6 +22,13 @@ abstract class Preferences {
 
   /// 'list' shows a library view (`movies`, `shows`) as a list (UI-008).
   static String libraryLayout(String view) => 'library_layout_$view';
+
+  /// Subtitle style (PLAY-007), JSON of pa_player `SubtitleSettings`.
+  static const subtitleSettings = 'subtitle_settings';
+
+  /// Subtitle track and delay remembered for a series (PLAY-007), JSON of
+  /// pa_player `SubtitleMemory`; [series] is the show id.
+  static String subtitleSeries(String series) => 'subtitle_series_$series';
 }
 
 /// JSON file in the application support directory.

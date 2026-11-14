@@ -11,10 +11,9 @@ class SubtitlePreferences {
   SubtitlePreferences({
     List<String> languages = const [],
     this.captionsOn = false,
-  }) : languages = [
-         for (final l in languages)
-           if (normalizeLanguage(l) case final code?) code,
-       ].toSet().toList(growable: false);
+  }) : languages = List.unmodifiable(<String>{
+         for (final l in languages) ?normalizeLanguage(l),
+       });
 
   /// Normalized, without duplicates.
   final List<String> languages;
