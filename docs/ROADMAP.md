@@ -799,6 +799,10 @@ project_alpha/
   - Что: ручной и полуавтоматический прогон на iPhone, iPad, Mac (M-серия), Apple TV 4K (2021/2022): HDR10, DV P5/P8.1/P7, TrueHD Atmos, DTS-HD MA, AFR.
   - deps: PLAY-APL-007, PLAY-APL-008, PLAY-APL-009, QA-002 · size: M · parallel: yes · веха: M5 · ref: 02 §2.3–2.4
   - done when: результаты в `docs/dev/device-matrix.md`, блокеров нет.
+- [ ] **PLAY-APL-013** Своя LGPL-2.1 сборка FFmpeg и libmpv для iOS и tvOS вместо MPVKit
+  - Что: xcframework FFmpeg (без `--enable-version3`) и libmpv (`-Dgpl=false`) для iOS, iOS Simulator, tvOS, tvOS Simulator и macOS из `tools/ffmpeg` (цели `ios-*`, `tvos-*` уже есть) и `tools/mpv` (расширить с macOS на iOS и tvOS, MoltenVK/libplacebo); AlphaPlayerKit переходит на неё вместо MPVKit (LGPLv3, только для разработки и CI), `scripts/check-license.sh --store` становится зелёным.
+  - deps: PLAY-APL-001, PLAY-001, PLAY-002 · size: L · parallel: yes · веха: M5 · ref: 02 §3.1, ADR-0005, ADR-NNNN
+  - done when: контрактный набор и MKV из QA-002 проходят на симуляторах iOS и tvOS с нашей сборкой; лицензионная проверка в профиле store проходит в CI.
 
 ### 3.11. UI — Flutter-приложение (телефон, планшет, десктоп, общие экраны)
 

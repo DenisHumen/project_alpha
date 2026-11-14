@@ -7,7 +7,10 @@
 # Usage: scripts/test.sh ios|tvos|macos [fixtures-dir [qa-media-dir]]
 #   fixtures-dir: from scripts/make-fixtures.sh (contract suite on MPVEngine)
 #   qa-media-dir: from scripts/make-qa-media.py (QA-002 MKV playback)
-#   Without them the media tests are skipped.
+#   Without them the media tests are skipped, unless PA_REQUIRE_MEDIA=1
+#   (CI), which turns a missing directory into a failure.
+# PA_LICENSE_PROFILE=store runs the licence gate in the release profile
+# (LGPL-2.1 only); with MPVKit that fails by design until PLAY-APL-013.
 # Needs PACoreFFI.xcframework: tools/bindings/build-xcframework.sh first.
 
 set -euo pipefail
@@ -44,13 +47,16 @@ case "$platform" in
   *) echo "usage: $0 ios|tvos|macos [fixtures-dir [qa-media-dir]]" >&2; exit 2 ;;
 esac
 
-"$here/check-license.sh" manifest "$pkg/Package.swift"
+profile=()
+[ "${PA_LICENSE_PROFILE:-dev}" = store ] && profile=(--store)
+"$here/check-license.sh" manifest ${profile[@]+"${profile[@]}"} "$pkg/Package.swift"
 
 derived="${PA_DERIVED_DATA:-$repo/target/alphaplayerkit-$platform}"
 # Simulator tests get TEST_RUNNER_<NAME> as <NAME>; macOS tests see the
 # environment directly.
 export TEST_RUNNER_PA_PLAYER_FIXTURES="$fixtures" PA_PLAYER_FIXTURES="$fixtures"
 export TEST_RUNNER_PA_QA_MEDIA="$qa_media" PA_QA_MEDIA="$qa_media"
+export TEST_RUNNER_PA_REQUIRE_MEDIA="${PA_REQUIRE_MEDIA:-}"
 
 cd "$pkg"
 scheme=AlphaPlayerKit
@@ -59,4 +65,4 @@ args=(-scheme "$scheme" -destination "$destination" -derivedDataPath "$derived" 
 [ -n "${PA_SPM_CACHE:-}" ] && args+=(-clonedSourcePackagesDirPath "$PA_SPM_CACHE")
 xcodebuild test "${args[@]}"
 
-"$here/check-license.sh" binary "$derived/Build/Products"
+"$here/check-license.sh" binary ${profile[@]+"${profile[@]}"} "$derived/Build/Products"

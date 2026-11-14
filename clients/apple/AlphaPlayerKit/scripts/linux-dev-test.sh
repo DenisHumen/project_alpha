@@ -81,7 +81,7 @@ let package = Package(
 EOF
   "$here/make-fixtures.sh" "$work/fixtures" >/dev/null
   cd "$p"
-  PA_PLAYER_FIXTURES="$work/fixtures" PA_ALLOW_GPL_MPV=1 LD_LIBRARY_PATH="$target/debug" \
+  PA_PLAYER_FIXTURES="$work/fixtures" LD_LIBRARY_PATH="$target/debug" \
     swift test -Xlinker -L"$target/debug" "$@"
 }
 

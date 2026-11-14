@@ -12,12 +12,22 @@ import XCTest
 ///   (`scripts/make-qa-media.py`).
 /// xcodebuild passes `TEST_RUNNER_<NAME>` to simulator tests as `<NAME>`.
 enum TestMedia {
+    /// Skips when the variable is unset (local runs without media), but
+    /// fails instead when `PA_REQUIRE_MEDIA=1` (CI): media tests can never be
+    /// skipped silently there.
     static func directory(_ variable: String) throws -> URL {
-        guard let path = ProcessInfo.processInfo.environment[variable], !path.isEmpty else {
+        let env = ProcessInfo.processInfo.environment
+        guard let path = env[variable], !path.isEmpty else {
+            if env["PA_REQUIRE_MEDIA"] == "1" {
+                XCTFail("\(variable) is not set but PA_REQUIRE_MEDIA=1")
+                throw TestMediaMissing()
+            }
             throw XCTSkip("\(variable) is not set; see scripts/test.sh")
         }
         return URL(fileURLWithPath: path, isDirectory: true)
     }
+
+    struct TestMediaMissing: Error {}
 
     /// The contract fixture: two items of 12 s and 10 s with two audio
     /// tracks (eng default, rus) and one subtitle track that is off.

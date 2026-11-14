@@ -7,6 +7,9 @@
 //
 // MPVKit: only the LGPL product `MPVKit`, never `MPVKit-GPL`.
 // scripts/check-license.sh enforces this in CI (manifest and linked binary).
+// NOT FOR RELEASE: MPVKit's FFmpeg is LGPL-3.0 (--enable-version3); App Store
+// builds must be LGPL-2.1 only. `check-license.sh --store` rejects this
+// manifest until PLAY-APL-013 switches to our own LGPL-2.1 FFmpeg + libmpv.
 import PackageDescription
 
 let package = Package(

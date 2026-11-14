@@ -82,6 +82,8 @@ jobs:
     timeout-minutes: 90
     env:
       PKG: clients/apple/AlphaPlayerKit
+      # Media tests must run here: a missing fixture directory fails instead of skipping.
+      PA_REQUIRE_MEDIA: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -92,6 +94,14 @@ jobs:
           canary="$RUNNER_TEMP/Package.swift"
           sed 's/name: "MPVKit", package/name: "MPVKit-GPL", package/' "$PKG/Package.swift" > "$canary"
           if "$PKG/scripts/check-license.sh" manifest "$canary"; then echo "::error::GPL canary passed"; exit 1; fi
+      - name: Store profile rejects MPVKit (LGPL-3.0 FFmpeg) — this is a non-release build
+        run: |
+          # Release builds are LGPL-2.1 only (ADR-0005). MPVKit's FFmpeg is
+          # --enable-version3, so the store gate must fail until PLAY-APL-013.
+          if "$PKG/scripts/check-license.sh" manifest --store "$PKG/Package.swift"; then
+            echo "::error::store licence gate accepted MPVKit"; exit 1
+          fi
+          echo "::notice::AlphaPlayerKit uses MPVKit (LGPL-3.0 FFmpeg): development/CI build only, not for the App Store (PLAY-APL-013)"
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: PACore

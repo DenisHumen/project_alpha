@@ -13,10 +13,9 @@ final class MPVMediaTests: XCTestCase {
         print("mpv-configuration: \(report.mpvConfiguration ?? "?")")
         XCTAssertNotNil(report.mpvVersion, "mpv starts")
         #if canImport(Darwin)
-        // MPVKit: the LGPL product only. (The Linux dev run uses the distro libmpv.)
-        if ProcessInfo.processInfo.environment["PA_ALLOW_GPL_MPV"] == nil {
-            XCTAssertTrue(report.isLGPL, "libmpv must be built with -Dgpl=false")
-        }
+        // Apple builds link MPVKit: the LGPL product only, no opt-out.
+        // (Only the Linux dev run, which uses the distro libmpv, is exempt.)
+        XCTAssertTrue(report.isLGPL, "libmpv must be built with -Dgpl=false")
         #endif
     }
 

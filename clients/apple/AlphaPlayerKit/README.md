@@ -41,6 +41,8 @@ try engine.openMedia(request: OpenRequest(
 - `manifest` — зависимость только от `MPVKit` с `exact:`, нигде в коде нет `-GPL` (в CI ещё и канарейка: манифест с `MPVKit-GPL` обязан не пройти);
 - `binary <dir>` — во всех Mach-O собранных продуктов есть `-Dgpl=false` и нет `-Dgpl=true`, `--enable-gpl`, `--enable-nonfree`, «GPL version» (кроме LGPL).
 
+**Сборка с MPVKit — только для разработки и CI, не для релиза.** Для App Store политика проекта — только LGPL-2.1 (CLAUDE.md, ADR-0005), а FFmpeg в MPVKit — LGPL-3.0. Профиль `--store` (`check-license.sh manifest --store`, `binary --store`, или `PA_LICENSE_PROFILE=store scripts/test.sh …`) запрещает MPVKit в манифесте и `--enable-version3` / «LGPL version 3» в бинарниках и сейчас падает намеренно; CI проверяет, что он падает, и помечает сборку как нерелизную. Релизный конвейер Apple обязан использовать `--store`. Переход на свою LGPL-2.1-сборку FFmpeg + libmpv — PLAY-APL-013.
+
 ## Тесты
 
 Тестовые медиа генерируются, в git их нет:
