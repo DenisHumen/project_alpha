@@ -45,7 +45,7 @@ impl From<ServiceError> for CoreSyncError {
     }
 }
 
-type Result<T> = std::result::Result<T, CoreSyncError>;
+type SyncResult<T> = std::result::Result<T, CoreSyncError>;
 
 /// What kind of device this app runs on (orders the hub election: desktop,
 /// TV, phone).
@@ -226,7 +226,7 @@ impl CoreSync {
     /// Opens the sync service over `library`. Nothing runs yet: call
     /// [`start`](Self::start) (syncs if paired), [`invite`](Self::invite)
     /// or [`join`](Self::join).
-    pub fn open(library: &CoreLibrary, config: CoreSyncConfig) -> Result<CoreSync> {
+    pub fn open(library: &CoreLibrary, config: CoreSyncConfig) -> SyncResult<CoreSync> {
         let store = match crate::api::secrets::opened_store() {
             Some(opened) => opened.store,
             None => {
@@ -290,7 +290,7 @@ impl CoreSync {
     }
 
     /// Starts sync if paired; returns whether it runs.
-    pub fn start(&self) -> Result<bool> {
+    pub fn start(&self) -> SyncResult<bool> {
         Ok(self.service.start()?)
     }
 
@@ -306,7 +306,7 @@ impl CoreSync {
     }
 
     /// Opens an invitation (5 minutes, 5 attempts) for another device.
-    pub fn invite(&self) -> Result<CoreSyncInvite> {
+    pub fn invite(&self) -> SyncResult<CoreSyncInvite> {
         let invite = self.service.invite()?;
         Ok(CoreSyncInvite {
             code: invite.code,
@@ -322,13 +322,13 @@ impl CoreSync {
 
     /// Joins the family of the device that shows `input`: a scanned QR
     /// code or the typed 6-digit code. Returns that device.
-    pub fn join(&self, input: String) -> Result<CoreSyncDevice> {
+    pub fn join(&self, input: String) -> SyncResult<CoreSyncDevice> {
         Ok(self.service.join(&input)?.into())
     }
 
     /// Removes a device from the family; this device's id leaves the
     /// family.
-    pub fn unpair(&self, device_id: String) -> Result<()> {
+    pub fn unpair(&self, device_id: String) -> SyncResult<()> {
         Ok(self.service.unpair(&device_id)?)
     }
 
