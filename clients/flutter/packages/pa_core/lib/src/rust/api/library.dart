@@ -7,6 +7,7 @@ import '../frb_generated.dart';
 import 'details.dart';
 import 'library_lists.dart';
 import 'library_query.dart';
+import 'music.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'subtitles.dart';
 
@@ -30,6 +31,12 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   });
 
   Future<bool> addToCollection({
+    required PlatformInt64 id,
+    required String itemId,
+  });
+
+  /// `false` if the track already was in the playlist.
+  Future<bool> addToMusicPlaylist({
     required PlatformInt64 id,
     required String itemId,
   });
@@ -75,6 +82,8 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   Future<CoreCollection> createCollection({required String name});
 
+  Future<CorePlaylist> createMusicPlaylist({required String name});
+
   Future<CorePlaylist> createPlaylist({required String name});
 
   Future<CoreSmartShelf> createShelf({
@@ -84,6 +93,8 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   });
 
   Future<void> deleteCollection({required PlatformInt64 id});
+
+  Future<void> deleteMusicPlaylist({required PlatformInt64 id});
 
   Future<void> deletePlaylist({required PlatformInt64 id});
 
@@ -136,6 +147,16 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   Future<List<CoreItem>> movies();
 
+  /// Tracks of an audio playlist in order (missing files left out).
+  Future<List<CoreItem>> musicPlaylistItems({required PlatformInt64 id});
+
+  /// Audio playlists, most recently changed first.
+  Future<List<CorePlaylist>> musicPlaylists();
+
+  /// Music tracks with album, credits, format and play counts, by artist,
+  /// album, disc and track number.
+  Future<List<CoreMusicTrack>> musicTracks();
+
   /// Opens (creating and migrating) the database file at `path`. A
   /// `pa_library` v0 file is refused: open a new file and import it.
   static Future<CoreLibrary> open({required String path}) =>
@@ -162,7 +183,16 @@ abstract class CoreLibrary implements RustOpaqueInterface {
     required int limit,
   });
 
+  /// Counts a play of a track (it started in the player); returns the new
+  /// count, 0 if the track is not hashed yet.
+  Future<PlatformInt64> recordTrackPlay({required String itemId});
+
   Future<bool> removeFromCollection({
+    required PlatformInt64 id,
+    required String itemId,
+  });
+
+  Future<bool> removeFromMusicPlaylist({
     required PlatformInt64 id,
     required String itemId,
   });
@@ -176,6 +206,11 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   Future<void> removeSource({required PlatformInt64 id});
 
   Future<void> renameCollection({
+    required PlatformInt64 id,
+    required String name,
+  });
+
+  Future<void> renameMusicPlaylist({
     required PlatformInt64 id,
     required String name,
   });

@@ -109,6 +109,18 @@ final _desktopShots = <_Shot>[
     s.music.seek(const Duration(seconds: 41));
     await settle(t, 3);
   }),
+  // MUS-004: the music Library, an artist page.
+  _Shot('music-library', Section.music, (t, _) async {
+    await t.tap(find.byKey(const ValueKey('music-tab-library')));
+    await settle(t, 6);
+  }),
+  _Shot('music-artist', Section.music, (t, _) async {
+    await t.tap(find.byKey(const ValueKey('music-tab-library')));
+    await settle(t, 6);
+    await t.tap(find.byKey(const ValueKey('music-section-artists')));
+    await settle(t, 6);
+    await _tapText(t, 'Velvet Static');
+  }),
   _Shot('search', Section.search, (t, _) async {
     await t.enterText(find.byType(TextField), 'the');
     await settle(t, 6);
@@ -186,6 +198,8 @@ final _phoneShots = <_Shot>[
     await settle(t, 6);
   }),
   _Shot('movie-detail', Section.movies, (t, _) => _tapText(t, 'Harbor Lights')),
+  const _Shot('music', Section.music),
+  _Shot('album', Section.music, (t, _) => _tapText(t, 'Nocturne Avenue')),
   _Shot('devices', Section.settings, (t, _) async {
     await _openDevices(t);
   }),

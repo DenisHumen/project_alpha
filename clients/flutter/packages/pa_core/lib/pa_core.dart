@@ -14,6 +14,7 @@ export 'src/rust/api/images.dart';
 export 'src/rust/api/library.dart';
 export 'src/rust/api/library_lists.dart';
 export 'src/rust/api/library_query.dart';
+export 'src/rust/api/music.dart';
 export 'src/rust/api/recognition.dart';
 export 'src/rust/api/secrets.dart';
 export 'src/rust/api/sources.dart';
