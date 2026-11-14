@@ -66,11 +66,14 @@ exports() {
 }
 
 # is_shared <lib>: ELF ET_DYN, Mach-O MH_DYLIB, PE with the DLL flag.
+# Tool output is captured first: `tool | grep -q` fails under pipefail when
+# grep exits early and the tool gets SIGPIPE.
 is_shared() {
+    local info
     case "$(magic "$1")" in
-        7f454c46) readelf -hW "$1" | grep -Eq 'Type:[[:space:]]+DYN' ;;
-        cffaedfe|cefaedfe) otool -hv "$1" | grep -q DYLIB ;;
-        4d5a*) "${OBJDUMP:-objdump}" -p "$1" | grep -Eq '^[[:space:]]+DLL$|^Characteristics.*\bDLL\b|^[[:space:]]*DLL$' ;;
+        7f454c46) info="$(readelf -hW "$1")"; grep -Eq 'Type:[[:space:]]+DYN' <<<"$info" ;;
+        cffaedfe|cefaedfe) info="$(otool -hv "$1")"; grep -q DYLIB <<<"$info" ;;
+        4d5a*) info="$("${OBJDUMP:-objdump}" -p "$1")"; grep -Eq '^[[:space:]]*DLL$' <<<"$info" ;;
         *) return 1 ;;
     esac
 }
@@ -151,15 +154,17 @@ run_check() {
         -I"$out/include" ${LDFLAGS:-} -L"$out/lib" -Wl,-rpath,"$out/lib" -lsmb2 \
         || die "failed to compile check_smb2.c"
     if [ "$(uname -s)" = Darwin ]; then
-        if otool -L "$bin" | grep -q '@rpath/libsmb2'; then ok "check_smb2 links @rpath/libsmb2 dynamically (otool -L)"
-        else bad "check_smb2 does not link libsmb2 dynamically: $(otool -L "$bin" | tr '\n' ' ')"; fi
+        local linked; linked="$(otool -L "$bin")"
+        if grep -q '@rpath/libsmb2' <<<"$linked"; then ok "check_smb2 links @rpath/libsmb2 dynamically (otool -L)"
+        else bad "check_smb2 does not link libsmb2 dynamically: $(tr '\n' ' ' <<<"$linked")"; fi
     else
         local line
         line="$(ldd "$bin" | grep 'libsmb2' || true)"
         if printf '%s\n' "$line" | grep -qF "$out/lib/"; then ok "check_smb2 loads libsmb2 from the artifact (ldd: $(echo "$line" | tr -s ' \t' ' '))"
         else bad "check_smb2 does not load libsmb2 dynamically from $out/lib: ${line:-not in ldd}"; fi
     fi
-    if nm "$bin" 2>/dev/null | grep -Eq '[[:space:]]T _?smb2_init_context$'; then
+    local syms; syms="$(nm "$bin" 2>/dev/null || true)"
+    if grep -Eq '[[:space:]]T _?smb2_init_context$' <<<"$syms"; then
         bad "check_smb2 contains smb2_init_context (static copy)"
     else ok "check_smb2 has no static copy of libsmb2"; fi
     if "$bin"; then ok "libsmb2 runs (context, options, connection error path)"

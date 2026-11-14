@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-smb2"
+version = "0.1.0"
+description = "Safe Rust wrapper over libsmb2 (LGPL-2.1+) loaded at run time as a shared library (NET-002)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# libsmb2 is LGPL: it is never linked at build time. `libloading` opens the
+# shared library from tools/libsmb2 at run time (ADR-NNNN), so the workspace
+# builds and tests without it, and the library stays a replaceable file.
+[dependencies]
+libloading.workspace = true

@@ -20,6 +20,7 @@ SMB2_REQUIRED_SYMBOLS="smb2_init_context smb2_destroy_context smb2_set_timeout \
 smb2_set_version smb2_set_security_mode smb2_set_seal smb2_set_sign \
 smb2_set_authentication smb2_set_user smb2_set_password smb2_set_domain \
 smb2_set_workstation smb2_connect_share smb2_disconnect_share smb2_get_error \
+smb2_set_error \
 smb2_get_nterror smb2_get_dialect smb2_get_max_read_size smb2_opendir \
 smb2_readdir smb2_closedir smb2_open smb2_close smb2_pread smb2_fstat smb2_stat"
 

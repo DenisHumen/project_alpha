@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h> // the public headers use time_t without including it
 
 #include <smb2/smb2.h>
 #include <smb2/libsmb2.h>
