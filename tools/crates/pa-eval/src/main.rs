@@ -183,6 +183,7 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
                 chosen: s.title(m.record),
                 runner_up: s.title(m.signals.runner_up),
                 signals: &m.signals,
+                alternatives: s.alternatives(m),
             };
             text.push_str(&serde_json::to_string(&line).map_err(|e| e.to_string())?);
             text.push('\n');

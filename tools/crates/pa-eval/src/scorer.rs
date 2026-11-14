@@ -130,11 +130,27 @@ pub struct SignalLine<'a> {
     pub runner_up: Option<&'a str>,
     /// Signals behind it.
     pub signals: &'a Signals,
+    /// `(main title, year, score, reading)` of the best readings.
+    pub alternatives: Vec<(&'a str, Option<u16>, f32, score::Reading)>,
 }
 
 impl Scorer {
     /// Main title of a record.
     pub fn title(&self, record: Option<usize>) -> Option<&str> {
         record.map(|r| self.index.record(r).titles[0].as_str())
+    }
+
+    /// Alternatives of a decision with record titles.
+    pub fn alternatives<'a>(
+        &'a self,
+        m: &'a FileMatch,
+    ) -> Vec<(&'a str, Option<u16>, f32, score::Reading)> {
+        m.alternatives
+            .iter()
+            .map(|a| {
+                let r = self.index.record(a.record);
+                (r.titles[0].as_str(), r.year, a.score, a.reading)
+            })
+            .collect()
     }
 }

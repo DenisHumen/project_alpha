@@ -128,7 +128,28 @@ pub struct FileMatch {
     pub episodes: Vec<EpisodeRef>,
     /// Why.
     pub signals: Signals,
+    /// Best readings per record, best first (the decision included), for
+    /// explanations and the review UI.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub alternatives: Vec<Alternative>,
 }
+
+/// A scored reading of the file as one record.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Alternative {
+    /// Record ([`TitleIndex::record`]).
+    pub record: usize,
+    /// Score of the reading.
+    pub score: f32,
+    /// How the number was read.
+    pub reading: Reading,
+    /// Episodes inside the record.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub episodes: Vec<EpisodeRef>,
+}
+
+/// Alternatives kept per file.
+const ALTERNATIVES: usize = 5;
 
 /// Per-record facts derived from its titles, computed once.
 #[derive(Debug, Default)]
@@ -326,11 +347,22 @@ impl Scorer {
         signals.tier = Some(top.tier);
         signals.reading = top.reading;
         signals.remake = top.remake;
+        let alternatives = ranked
+            .iter()
+            .take(ALTERNATIVES)
+            .map(|h| Alternative {
+                record: h.record,
+                score: h.score,
+                reading: h.reading,
+                episodes: h.episodes.clone(),
+            })
+            .collect();
         FileMatch {
             record: Some(top.record),
             confidence: confidence(&signals, best),
             episodes: top.episodes.clone(),
             signals,
+            alternatives,
         }
     }
 
