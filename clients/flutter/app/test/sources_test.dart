@@ -3,6 +3,8 @@
 // UI-005: the Sources screen, the add flow and its forms (local folder, SMB,
 // WebDAV), and readable error texts from the core's error codes.
 
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/fakes/fake_source_manager.dart';
 import 'package:kinolune/integration/library.dart';
@@ -503,16 +505,26 @@ void main() {
     testWidgets('remove asks first and drops the source', (tester) async {
       setSurface(tester, const Size(1280, 900));
       final services = await demoServices();
+      await services.createSource(
+        const SourceDraft(
+          type: SourceType.local,
+          name: 'Cartoons',
+          address: '/srv/cartoons',
+        ),
+      );
       await tester.pumpWidget(testApp(services, section: Section.settings));
       await settle(tester);
       await _openSourcesScreen(tester);
-      await tester.tap(find.text(en.settingsRemove));
+      expect(find.text('Demo library'), findsOneWidget);
+      await tester.tap(find.text(en.settingsRemove).first);
       await settle(tester, 4);
       expect(find.text(en.settingsRemoveSourceTitle), findsOneWidget);
       await tester.tap(find.widgetWithText(FilledButton, en.settingsRemove));
       await settle(tester, 6);
-      expect(services.sources, isEmpty);
-      expect(find.text(en.sourcesEmpty), findsOneWidget);
+      expect(services.sources.map((s) => s.name), ['Cartoons']);
+      expect(services.managedSources.map((s) => s.name), ['Cartoons']);
+      expect(find.text('Demo library'), findsNothing);
+      expect(find.text('Cartoons'), findsOneWidget);
     });
 
     testWidgets('simplified mode banner and no speed test or edit', (
@@ -520,16 +532,25 @@ void main() {
     ) async {
       setSurface(tester, const Size(1280, 900));
       final services = await demoServices(reducedSources: true);
+      final gone = Directory.systemTemp.createTempSync('kinolune_gone_');
+      gone.deleteSync();
+      final usb = await services.createSource(
+        SourceDraft(type: SourceType.local, name: 'USB', address: gone.path),
+      );
       await tester.pumpWidget(testApp(services, section: Section.settings));
       await settle(tester);
       await _openSourcesScreen(tester);
       expect(find.text(en.sourcesReducedBanner('Kinolune')), findsOneWidget);
       expect(find.text(en.sourcesSpeedTest), findsNothing);
       expect(find.text(en.sourcesEdit), findsNothing);
-      expect(find.text(en.sourcesRescan), findsOneWidget);
-      // The demo folder does not exist on this machine.
-      expect(find.text(en.sourcesStatusOffline), findsOneWidget);
-      expect(find.text(en.sourcesErrorPathNotFound), findsOneWidget);
+      expect(find.text(en.sourcesRescan), findsNWidgets(2));
+      // The USB folder is gone: offline with a readable reason.
+      Finder inCard(String text) => find.descendant(
+        of: find.byKey(ValueKey('source-card-${usb.id}')),
+        matching: find.text(text),
+      );
+      expect(inCard(en.sourcesStatusOffline), findsOneWidget);
+      expect(inCard(en.sourcesErrorPathNotFound), findsOneWidget);
     });
   });
 }

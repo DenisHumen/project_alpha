@@ -305,9 +305,12 @@ class SourceErrorView extends StatelessWidget {
       children: [
         Text(sourceErrorText(context.l10n, code), style: style),
         if (d != null && d.isNotEmpty)
+          // Own Material: the view also sits on decorated cards.
           Theme(
             data: theme.copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
+            child: Material(
+              type: MaterialType.transparency,
+              child: ExpansionTile(
               tilePadding: EdgeInsets.zero,
               dense: true,
               title: Text(
@@ -320,6 +323,7 @@ class SourceErrorView extends StatelessWidget {
                   child: SelectableText(d, style: theme.textTheme.labelSmall),
                 ),
               ],
+            ),
             ),
           ),
       ],
