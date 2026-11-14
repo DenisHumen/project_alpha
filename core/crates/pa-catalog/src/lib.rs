@@ -34,6 +34,7 @@ mod error;
 pub mod fingerprint;
 mod fix;
 mod import_v0;
+mod index;
 mod items;
 pub mod metadata;
 mod progress;
@@ -44,7 +45,7 @@ mod sources;
 pub mod uri;
 
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use pa_library::rusqlite::Connection;
@@ -74,6 +75,9 @@ pub struct Catalog {
     conn: Mutex<Connection>,
     /// Scans are serialized; queries keep running on `conn` meanwhile.
     scan_lock: Mutex<()>,
+    /// In-memory index of library queries (LIB-009) and the database state
+    /// it was built from.
+    index: Mutex<Option<(index::Stamp, Arc<index::Index>)>>,
 }
 
 impl Catalog {
@@ -94,12 +98,28 @@ impl Catalog {
             path,
             conn: Mutex::new(conn),
             scan_lock: Mutex::new(()),
+            index: Mutex::new(None),
         })
     }
 
     /// Path of the database file.
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    /// The query index, rebuilt first if the database changed since it was
+    /// built. `conn` is the locked catalog connection.
+    fn index(&self, conn: &Connection) -> Result<Arc<index::Index>, Error> {
+        let stamp = index::Stamp::of(conn)?;
+        let mut cached = self.index.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some((built, index)) = cached.as_ref()
+            && *built == stamp
+        {
+            return Ok(Arc::clone(index));
+        }
+        let index = Arc::new(index::Index::build(conn)?);
+        *cached = Some((stamp, Arc::clone(&index)));
+        Ok(index)
     }
 
     fn lock(&self) -> MutexGuard<'_, Connection> {

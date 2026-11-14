@@ -25,11 +25,11 @@
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 
-use pa_library::rusqlite::types::Value;
-use pa_library::rusqlite::{Connection, params_from_iter};
+use pa_library::rusqlite::Connection;
 use pa_library::views;
 use serde::{Deserialize, Serialize};
 
+use crate::index::Index;
 use crate::items::{self, Item, ItemKind, ItemRef};
 use crate::progress::PROFILE;
 use crate::{Catalog, Error, now_ms};
@@ -41,16 +41,6 @@ pub enum WatchState {
     Unwatched,
     InProgress,
     Watched,
-}
-
-impl WatchState {
-    fn code(self) -> i64 {
-        match self {
-            Self::Unwatched => 0,
-            Self::InProgress => 1,
-            Self::Watched => 2,
-        }
-    }
 }
 
 /// Resolution class of the main video stream, by coded size (scope films
@@ -82,22 +72,10 @@ impl Resolution {
         }
     }
 
-    fn from_slug(s: &str) -> Option<Self> {
+    pub(crate) fn from_slug(s: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|r| r.as_str() == s)
     }
 }
-
-/// Resolution class of `f.video_json`, `NULL` if unprobed or no video.
-const RESOLUTION_SQL: &str = "(CASE
-    WHEN f.video_json IS NULL THEN NULL
-    WHEN ifnull(json_extract(f.video_json, '$.width'), 0) >= 3200
-      OR ifnull(json_extract(f.video_json, '$.height'), 0) >= 1800 THEN 'uhd'
-    WHEN ifnull(json_extract(f.video_json, '$.width'), 0) >= 1600
-      OR ifnull(json_extract(f.video_json, '$.height'), 0) >= 900 THEN 'full_hd'
-    WHEN ifnull(json_extract(f.video_json, '$.width'), 0) >= 1200
-      OR ifnull(json_extract(f.video_json, '$.height'), 0) >= 700 THEN 'hd'
-    WHEN ifnull(json_extract(f.video_json, '$.width'), 0) > 0 THEN 'sd'
-  END)";
 
 /// Dynamic range filter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -123,24 +101,6 @@ impl HdrFilter {
         Self::DolbyVision,
         Self::Hlg,
     ];
-
-    /// SQL condition on `f` (no parameters).
-    fn sql(self) -> &'static str {
-        // `hdr` lists every format of the stream (`["dolby_vision","hdr10"]`
-        // for DV 8.1), so a DV 8.1 file is also an HDR10 file.
-        match self {
-            Self::Sdr => {
-                "(f.video_json IS NOT NULL AND ifnull(json_array_length(f.video_json, '$.hdr'), 0) = 0)"
-            }
-            Self::AnyHdr => "(ifnull(json_array_length(f.video_json, '$.hdr'), 0) > 0)",
-            Self::Hdr10 => "(instr(json_extract(f.video_json, '$.hdr'), '\"hdr10\"') > 0)",
-            Self::Hdr10Plus => "(instr(json_extract(f.video_json, '$.hdr'), '\"hdr10_plus\"') > 0)",
-            Self::DolbyVision => {
-                "(instr(json_extract(f.video_json, '$.hdr'), '\"dolby_vision\"') > 0)"
-            }
-            Self::Hlg => "(instr(json_extract(f.video_json, '$.hdr'), '\"hlg\"') > 0)",
-        }
-    }
 }
 
 /// Filters of a query. Fields combine with AND, values inside a field with
@@ -410,295 +370,41 @@ fn index_letter(key: &str) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// SQL
+// queries
 
-fn work_kinds(kind: ItemKind) -> Result<&'static str, Error> {
-    match kind {
-        ItemKind::Movie => Ok("w.kind = 'movie'"),
-        ItemKind::Show => Ok("w.kind IN ('show', 'anime')"),
+fn check_kind(query: &LibraryQuery) -> Result<(), Error> {
+    match query.kind {
+        ItemKind::Movie | ItemKind::Show => Ok(()),
         other => Err(Error::Invalid(format!(
             "queries list movies or shows, not {other:?}"
         ))),
     }
 }
 
-/// Watch state per work (`ws(work_id, state, last)`) for the default
-/// profile, as a CTE. Bound to `?1` = profile.
-fn watch_cte(kind: ItemKind) -> &'static str {
-    match kind {
-        ItemKind::Movie => {
-            "ws AS (
-  SELECT work_id,
-         CASE WHEN max(watched) = 1 THEN 2 WHEN max(position_ms) > 0 THEN 1 ELSE 0 END AS state,
-         max(updated_at_ms) AS last
-  FROM (
-    SELECT x.work_id, p.watched, p.position_ms, p.updated_at_ms
-      FROM progress p
-      JOIN external_ids x ON x.provider = 'tmdb' AND x.ext_kind = 'movie'
-                         AND x.ext_id = substr(p.media_key, 12)
-     WHERE p.profile_id = ?1 AND p.media_key GLOB 'tmdb:movie:*'
-    UNION ALL
-    SELECT pm.work_id, p.watched, p.position_ms, p.updated_at_ms
-      FROM progress p
-      JOIN files pf ON pf.fingerprint = substr(p.media_key, 6)
-      JOIN matches pm ON pm.file_id = pf.id AND pm.state <> 'rejected'
-     WHERE p.profile_id = ?1 AND p.media_key GLOB 'file:*'
-  ) GROUP BY work_id)"
-        }
-        _ => {
-            "tk AS (
-  SELECT p.watched, p.position_ms, p.updated_at_ms,
-         substr(p.media_key, 14, instr(substr(p.media_key, 14), ':') - 1) AS show,
-         substr(p.media_key, 14 + instr(substr(p.media_key, 14), ':')) AS se
-    FROM progress p
-   WHERE p.profile_id = ?1 AND p.media_key GLOB 'tmdb:episode:*'),
-eps AS (
-  SELECT e.work_id, e.id AS episode_id, tk.watched, tk.position_ms, tk.updated_at_ms
-    FROM tk
-    JOIN external_ids x ON x.provider = 'tmdb' AND x.ext_kind = 'tv' AND x.ext_id = tk.show
-    JOIN episodes e ON e.work_id = x.work_id
-                   AND e.season_number = CAST(substr(tk.se, 1, instr(tk.se, ':') - 1) AS INTEGER)
-                   AND e.episode_number = CAST(substr(tk.se, instr(tk.se, ':') + 1) AS INTEGER)
-  UNION ALL
-  SELECT pm.work_id, me.episode_id, p.watched, p.position_ms, p.updated_at_ms
-    FROM progress p
-    JOIN files pf ON pf.fingerprint = substr(p.media_key, 6)
-    JOIN matches pm ON pm.file_id = pf.id AND pm.state <> 'rejected'
-    JOIN match_episodes me ON me.match_id = pm.id
-   WHERE p.profile_id = ?1 AND p.media_key GLOB 'file:*'),
-ep AS (
-  SELECT work_id, episode_id, max(watched) AS watched, max(position_ms) AS pos,
-         max(updated_at_ms) AS last
-    FROM eps GROUP BY episode_id),
-ws AS (
-  SELECT ep.work_id,
-         CASE
-           WHEN sum(ep.watched) >= (
-             SELECT count(DISTINCT me2.episode_id)
-               FROM matches m2
-               JOIN files f2 ON f2.id = m2.file_id AND f2.missing_since_ms IS NULL
-               JOIN match_episodes me2 ON me2.match_id = m2.id
-              WHERE m2.work_id = ep.work_id AND m2.state <> 'rejected') THEN 2
-           WHEN sum(ep.watched) > 0 OR max(ep.pos) > 0 THEN 1
-           ELSE 0
-         END AS state,
-         max(ep.last) AS last
-    FROM ep GROUP BY ep.work_id)"
-        }
-    }
-}
-
-/// SQL with its parameters; `?1` is always the profile.
-struct Sql {
-    text: String,
-    params: Vec<Value>,
-}
-
-impl Sql {
-    fn bind(&mut self, v: impl Into<Value>) -> String {
-        self.params.push(v.into());
-        format!("?{}", self.params.len())
-    }
-
-    fn bind_list<T: Clone + Into<Value>>(&mut self, values: &[T]) -> String {
-        let marks: Vec<String> = values.iter().map(|v| self.bind(v.clone())).collect();
-        marks.join(", ")
-    }
-}
-
-/// `SELECT w.id, w.title, w.year, <sort value>` of the works matching a
-/// query, one row per work, unordered.
-///
-/// File-level filters and the added / duration sorts join every present
-/// file and group by work; otherwise a work only needs one present file
-/// (`EXISTS`), which is cheaper.
-fn matching(query: &LibraryQuery) -> Result<Sql, Error> {
-    let f = &query.filter;
-    let mut sql = Sql {
-        text: String::new(),
-        params: vec![Value::Integer(PROFILE)],
-    };
-    let mut conds = vec![work_kinds(query.kind)?.to_owned()];
-    if let Some(y) = f.year_min {
-        let m = sql.bind(y);
-        conds.push(format!("w.year >= {m}"));
-    }
-    if let Some(y) = f.year_max {
-        let m = sql.bind(y);
-        conds.push(format!("w.year <= {m}"));
-    }
-    if !f.genres.is_empty() {
-        let names = sql.bind_list(&f.genres);
-        conds.push(format!(
-            "EXISTS (SELECT 1 FROM work_genres g WHERE g.work_id = w.id \
-             AND g.name COLLATE NOCASE IN ({names}))"
-        ));
-    }
-    let mut file_conds: Vec<String> = Vec::new();
-    if !f.sources.is_empty() {
-        let ids = sql.bind_list(&f.sources);
-        file_conds.push(format!("f.source_id IN ({ids})"));
-    }
-    if !f.resolutions.is_empty() {
-        let slugs: Vec<String> = f
-            .resolutions
-            .iter()
-            .map(|r| r.as_str().to_owned())
-            .collect();
-        let marks = sql.bind_list(&slugs);
-        file_conds.push(format!("{RESOLUTION_SQL} IN ({marks})"));
-    }
-    if !f.hdr.is_empty() {
-        let any: Vec<&str> = f.hdr.iter().map(|h| h.sql()).collect();
-        file_conds.push(format!("({})", any.join(" OR ")));
-    }
-    if !f.audio_formats.is_empty() {
-        let marks = sql.bind_list(&f.audio_formats);
-        file_conds.push(format!(
-            "EXISTS (SELECT 1 FROM json_each(f.audio_formats) j WHERE j.value IN ({marks}))"
-        ));
-    }
-    if !f.audio_languages.is_empty() {
-        let langs: Vec<String> = f
-            .audio_languages
-            .iter()
-            .map(|l| l.to_lowercase())
-            .collect();
-        let marks = sql.bind_list(&langs);
-        file_conds.push(format!(
-            "EXISTS (SELECT 1 FROM json_each(f.audio_langs) j WHERE lower(j.value) IN ({marks}))"
-        ));
-    }
-    let needs_watch = !f.watched.is_empty() || query.sort.field == SortField::LastWatched;
-    if !f.watched.is_empty() {
-        let codes: Vec<i64> = f.watched.iter().map(|w| w.code()).collect();
-        let marks = sql.bind_list(&codes);
-        conds.push(format!("ifnull(ws.state, 0) IN ({marks})"));
-    }
-    let (with, join) = if needs_watch {
-        (
-            format!("WITH {}\n", watch_cte(query.kind)),
-            "LEFT JOIN ws ON ws.work_id = w.id",
-        )
-    } else {
-        (String::new(), "")
-    };
-    // `?1` (the profile) is bound even when the watch CTE is not used.
-    let profile_guard = if needs_watch { "" } else { "AND ?1 IS NOT NULL" };
-    let join_files = !file_conds.is_empty()
-        || matches!(query.sort.field, SortField::Added | SortField::Duration);
-    let value = match query.sort.field {
-        SortField::Title => "NULL",
-        SortField::Year => "w.year",
-        SortField::Added => "max(f.added_at_ms)",
-        SortField::Duration => "ifnull(max(f.duration_ms), w.runtime_ms)",
-        SortField::LastWatched => "ws.last",
-    };
-    sql.text = if join_files {
-        conds.extend(file_conds);
-        format!(
-            "{with}SELECT w.id, w.title, w.year, {value}
-FROM works w
-JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
-JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
-{join}
-WHERE {} {profile_guard}
-GROUP BY w.id",
-            conds.join("\n  AND ")
-        )
-    } else {
-        format!(
-            "{with}SELECT w.id, w.title, w.year, {value}
-FROM works w
-{join}
-WHERE {} {profile_guard}
-  AND EXISTS (SELECT 1 FROM matches m
-               JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
-              WHERE m.work_id = w.id AND m.state <> 'rejected')",
-            conds.join("\n  AND ")
-        )
-    };
-    Ok(sql)
-}
-
-/// A matching work with what it sorts by.
-struct Hit {
-    id: i64,
-    key: String,
-    year: Option<i64>,
-    value: Option<i64>,
-}
-
-/// The works matching `query`, in its order, with their title sort keys.
-fn sorted(conn: &Connection, query: &LibraryQuery) -> Result<Vec<Hit>, Error> {
-    let sql = matching(query)?;
-    let mut stmt = conn.prepare_cached(&sql.text)?;
-    let mut rows = stmt.query(params_from_iter(sql.params.iter()))?;
-    let mut hits = Vec::new();
-    while let Some(r) = rows.next()? {
-        let title: String = r.get(1)?;
-        hits.push(Hit {
-            id: r.get(0)?,
-            key: sort_key(&title),
-            year: r.get(2)?,
-            value: r.get(3)?,
-        });
-    }
-    drop(rows);
-    let by_title = |a: &Hit, b: &Hit| {
-        a.key
-            .cmp(&b.key)
-            .then(a.year.cmp(&b.year))
-            .then(a.id.cmp(&b.id))
-    };
-    let descending = query.sort.descending;
-    if query.sort.field == SortField::Title {
-        hits.sort_unstable_by(|a, b| {
-            let o = by_title(a, b);
-            if descending { o.reverse() } else { o }
-        });
-    } else {
-        // Missing values last in both directions; ties A→Z.
-        hits.sort_unstable_by(|a, b| {
-            let o = match (a.value, b.value) {
-                (Some(x), Some(y)) if descending => y.cmp(&x),
-                (Some(x), Some(y)) => x.cmp(&y),
-                (Some(_), None) => Ordering::Less,
-                (None, Some(_)) => Ordering::Greater,
-                (None, None) => Ordering::Equal,
-            };
-            o.then_with(|| by_title(a, b))
-        });
-    }
-    Ok(hits)
-}
-
 pub(crate) fn run_query(
     conn: &Connection,
+    index: &Index,
     query: &LibraryQuery,
     offset: usize,
     limit: usize,
 ) -> Result<ItemPage, Error> {
-    let hits = sorted(conn, query)?;
-    let total = hits.len();
+    check_kind(query)?;
+    let hits = index.select(query);
     let page: Vec<i64> = hits
         .iter()
         .skip(offset)
         .take(limit)
-        .map(|h| h.id)
+        .map(|(id, _)| *id)
         .collect();
-    let items = items::works_by_ids(conn, query.kind, &page)?;
     Ok(ItemPage {
-        items,
-        total,
+        items: items::works_by_ids(conn, query.kind, &page)?,
+        total: hits.len(),
         offset,
     })
 }
 
-pub(crate) fn alphabet(
-    conn: &Connection,
-    query: &LibraryQuery,
-) -> Result<Vec<AlphabetEntry>, Error> {
+pub(crate) fn alphabet(index: &Index, query: &LibraryQuery) -> Result<Vec<AlphabetEntry>, Error> {
+    check_kind(query)?;
     let title_query = LibraryQuery {
         kind: query.kind,
         filter: query.filter.clone(),
@@ -708,8 +414,8 @@ pub(crate) fn alphabet(
         },
     };
     let mut out: Vec<AlphabetEntry> = Vec::new();
-    for (n, hit) in sorted(conn, &title_query)?.iter().enumerate() {
-        let letter = index_letter(&hit.key);
+    for (n, (_, key)) in index.select(&title_query).iter().enumerate() {
+        let letter = index_letter(key);
         match out.last_mut() {
             Some(last) if last.letter == letter => last.count += 1,
             _ => out.push(AlphabetEntry {
@@ -719,103 +425,6 @@ pub(crate) fn alphabet(
             }),
         }
     }
-    Ok(out)
-}
-
-fn to_usize(n: i64) -> usize {
-    usize::try_from(n).unwrap_or(0)
-}
-
-pub(crate) fn facets(conn: &Connection, kind: ItemKind) -> Result<Facets, Error> {
-    let kinds = work_kinds(kind)?;
-    let present = format!(
-        "FROM works w
-         JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
-         JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
-         WHERE {kinds}"
-    );
-    let mut out = Facets::default();
-
-    let mut stmt = conn.prepare_cached(&format!(
-        "SELECT min(g.name), count(DISTINCT g.work_id) FROM work_genres g
-         WHERE g.work_id IN (SELECT w.id {present})
-         GROUP BY g.name COLLATE NOCASE ORDER BY g.name COLLATE NOCASE"
-    ))?;
-    out.genres = stmt
-        .query_map([], |r| {
-            Ok(FacetValue {
-                value: r.get(0)?,
-                count: to_usize(r.get(1)?),
-            })
-        })?
-        .collect::<Result<_, _>>()?;
-
-    (out.year_min, out.year_max) = conn
-        .prepare_cached(&format!("SELECT min(w.year), max(w.year) {present}"))?
-        .query_row([], |r| Ok((r.get(0)?, r.get(1)?)))?;
-
-    let mut stmt = conn.prepare_cached(&format!(
-        "SELECT res, count(DISTINCT id) FROM (SELECT w.id AS id, {RESOLUTION_SQL} AS res {present})
-         WHERE res IS NOT NULL GROUP BY res"
-    ))?;
-    let mut res: Vec<FacetValue<Resolution>> = stmt
-        .query_map([], |r| Ok((r.get::<_, String>(0)?, to_usize(r.get(1)?))))?
-        .filter_map(|r| match r {
-            Ok((slug, count)) => Resolution::from_slug(&slug).map(|value| Ok(FacetValue { value, count })),
-            Err(e) => Some(Err(e)),
-        })
-        .collect::<Result<_, _>>()?;
-    res.sort_by_key(|f| f.value);
-    out.resolutions = res;
-
-    let hdr_cols: Vec<String> = HdrFilter::ALL
-        .iter()
-        .map(|h| format!("count(DISTINCT CASE WHEN {} THEN w.id END)", h.sql()))
-        .collect();
-    let counts: Vec<i64> = conn
-        .prepare_cached(&format!("SELECT {} {present}", hdr_cols.join(", ")))?
-        .query_row([], |r| (0..HdrFilter::ALL.len()).map(|i| r.get(i)).collect())?;
-    out.hdr = HdrFilter::ALL
-        .iter()
-        .zip(counts)
-        .filter(|(_, c)| *c > 0)
-        .map(|(h, c)| FacetValue {
-            value: *h,
-            count: to_usize(c),
-        })
-        .collect();
-
-    for (column, target) in [
-        ("f.audio_formats", &mut out.audio_formats),
-        ("f.audio_langs", &mut out.audio_languages),
-    ] {
-        let mut stmt = conn.prepare_cached(&format!(
-            "SELECT j.value, count(DISTINCT w.id) {present_from}, json_each({column}) j
-             WHERE {kinds} AND j.type = 'text'
-             GROUP BY j.value ORDER BY 2 DESC, j.value",
-            present_from = present.split("WHERE").next().unwrap_or_default(),
-        ))?;
-        *target = stmt
-            .query_map([], |r| {
-                Ok(FacetValue {
-                    value: r.get(0)?,
-                    count: to_usize(r.get(1)?),
-                })
-            })?
-            .collect::<Result<_, _>>()?;
-    }
-
-    let mut stmt = conn.prepare_cached(&format!(
-        "SELECT f.source_id, count(DISTINCT w.id) {present} GROUP BY f.source_id ORDER BY f.source_id"
-    ))?;
-    out.sources = stmt
-        .query_map([], |r| {
-            Ok(FacetValue {
-                value: r.get(0)?,
-                count: to_usize(r.get(1)?),
-            })
-        })?
-        .collect::<Result<_, _>>()?;
     Ok(out)
 }
 
@@ -939,26 +548,28 @@ fn shelf_of(s: views::SmartShelf) -> Result<SmartShelf, Error> {
     })
 }
 
-fn check_kind(query: &LibraryQuery) -> Result<(), Error> {
-    work_kinds(query.kind).map(|_| ())
-}
-
 impl Catalog {
     /// One page of a query: `limit` items from `offset`, and the total.
     pub fn query(&self, query: &LibraryQuery, offset: usize, limit: usize) -> Result<ItemPage, Error> {
-        run_query(&self.lock(), query, offset, limit)
+        let conn = self.lock();
+        let index = self.index(&conn)?;
+        run_query(&conn, &index, query, offset, limit)
     }
 
     /// Alphabet index of a query in title order (descending if the query
     /// sorts by title descending): letters in list order with the offset of
     /// their first item.
     pub fn alphabet_index(&self, query: &LibraryQuery) -> Result<Vec<AlphabetEntry>, Error> {
-        alphabet(&self.lock(), query)
+        let conn = self.lock();
+        let index = self.index(&conn)?;
+        alphabet(&index, query)
     }
 
     /// Filter values present among the movies or shows.
     pub fn facets(&self, kind: ItemKind) -> Result<Facets, Error> {
-        facets(&self.lock(), kind)
+        check_kind(&LibraryQuery::new(kind))?;
+        let conn = self.lock();
+        Ok(self.index(&conn)?.facets(kind))
     }
 
     /// Entries of folder `dir` (relative to the source root, `""` for the
@@ -1072,7 +683,14 @@ impl Catalog {
     pub fn shelf_items(&self, id: i64, offset: usize, limit: usize) -> Result<ItemPage, Error> {
         let conn = self.lock();
         let shelf = views::shelf(&conn, id)?.ok_or_else(|| Error::NotFound(format!("shelf {id}")))?;
-        run_query(&conn, &LibraryQuery::from_json(&shelf.query_json)?, offset, limit)
+        let index = self.index(&conn)?;
+        run_query(
+            &conn,
+            &index,
+            &LibraryQuery::from_json(&shelf.query_json)?,
+            offset,
+            limit,
+        )
     }
 
     /// Genres of a movie or show item.

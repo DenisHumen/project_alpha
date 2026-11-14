@@ -982,6 +982,11 @@ fn queries_over_20_000_items_are_fast() {
         }
         (out, best)
     }
+    // The first query after a change rebuilds the in-memory index.
+    let t = Instant::now();
+    fx.cat.query(&movies(LibraryFilter::default()), 0, 100).unwrap();
+    println!("{:>32}: {:?} (not bounded)", "first query, index build", t.elapsed());
+
     let mut worst = Duration::ZERO;
     for (name, q) in &cases {
         let (page, took) = best(|| fx.cat.query(q, 0, 100).unwrap());
