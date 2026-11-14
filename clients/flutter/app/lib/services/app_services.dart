@@ -57,8 +57,7 @@ class AppServices extends ChangeNotifier {
   /// What other devices play now (`pb.update` / `pb.takeover`): the hook
   /// for the "continue here" banner of SYNC-003. Nothing listens yet.
   Stream<SyncEvent> get playbackElsewhere => sync.events.where(
-    (e) =>
-        e.kind == SyncEventKind.playback || e.kind == SyncEventKind.takeover,
+    (e) => e.kind == SyncEventKind.playback || e.kind == SyncEventKind.takeover,
   );
 
   /// UI language chosen in Settings; null = follow the system locale.

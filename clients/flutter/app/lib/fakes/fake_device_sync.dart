@@ -28,7 +28,10 @@ class FakeDeviceSync implements DeviceSync {
 
   /// A demo device already paired with a TV (online) and a phone (away).
   factory FakeDeviceSync.demo() {
-    final me = FakeDeviceSync(id: 'kdemo-desktop', name: 'Workstation'); // l10n-ignore
+    final me = FakeDeviceSync(
+      id: 'kdemo-desktop',
+      name: 'Workstation',
+    ); // l10n-ignore
     me._family = [
       me._self,
       const SyncDevice(
@@ -120,16 +123,18 @@ class FakeDeviceSync implements DeviceSync {
       throw const SyncException(SyncErrorCode.invalidCode);
     }
     if (paired) throw const SyncException(SyncErrorCode.alreadyPaired);
-    final hosts = lan.devices.where(
-      (d) => d != this && d.openInvite != null,
-    );
+    final hosts = lan.devices.where((d) => d != this && d.openInvite != null);
     if (hosts.isEmpty) throw const SyncException(SyncErrorCode.notFound);
     final host = hosts.where((d) => d.openInvite!.code == code).firstOrNull;
     if (host == null) throw const SyncException(SyncErrorCode.wrongCode);
     host.openInvite = null;
     final me = _self;
     host._family = [...host._family, _asPeer(me)];
-    _family = [me, for (final d in host._family) if (d.id != id) _asPeer(d)];
+    _family = [
+      me,
+      for (final d in host._family)
+        if (d.id != id) _asPeer(d),
+    ];
     running = true;
     host.running = true;
     host._events.add(SyncEvent(SyncEventKind.paired, deviceId: id, name: name));
@@ -159,7 +164,8 @@ class FakeDeviceSync implements DeviceSync {
   }
 
   /// Simulates ops from another device landing in the library.
-  void remoteChange() => _events.add(const SyncEvent(SyncEventKind.libraryChanged));
+  void remoteChange() =>
+      _events.add(const SyncEvent(SyncEventKind.libraryChanged));
 
   @override
   Stream<SyncEvent> get events => _events.stream;

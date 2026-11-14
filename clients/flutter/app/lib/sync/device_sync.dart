@@ -88,7 +88,8 @@ class SyncException implements Exception {
   };
 
   @override
-  String toString() => 'SyncException($code${detail.isEmpty ? '' : ': $detail'})';
+  String toString() =>
+      'SyncException($code${detail.isEmpty ? '' : ': $detail'})';
 }
 
 /// Kind of a [SyncEvent].

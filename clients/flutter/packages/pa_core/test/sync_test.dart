@@ -77,7 +77,9 @@ void main() {
     expect(invite.code, matches(RegExp(r'^\d{6}$')));
     await expectLater(
       phone.sync.join(input: '12'),
-      throwsA(isA<CoreSyncError>().having((e) => e.code, 'code', 'invalid_code')),
+      throwsA(
+        isA<CoreSyncError>().having((e) => e.code, 'code', 'invalid_code'),
+      ),
     );
     final inviter = await phone.sync.join(input: invite.qr);
     expect(inviter.name, 'Desktop');

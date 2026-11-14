@@ -66,9 +66,7 @@ void main() {
     await settle(t, 6);
     final invite = tv.openInvite!;
     expect(
-      find.text(
-        '${invite.code.substring(0, 3)} ${invite.code.substring(3)}',
-      ),
+      find.text('${invite.code.substring(0, 3)} ${invite.code.substring(3)}'),
       findsOneWidget,
     );
     expect(find.byKey(const ValueKey('devices-invite-code')), findsOneWidget);
@@ -77,7 +75,11 @@ void main() {
     await expectLater(
       phone.join(invite.code == '123456' ? '654321' : '123456'),
       throwsA(
-        isA<SyncException>().having((e) => e.code, 'code', SyncErrorCode.wrongCode),
+        isA<SyncException>().having(
+          (e) => e.code,
+          'code',
+          SyncErrorCode.wrongCode,
+        ),
       ),
     );
     final host = await phone.join(invite.code);

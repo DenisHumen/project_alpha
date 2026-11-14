@@ -237,10 +237,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
                           subtitle: l.devicesAddBody,
                           children: [
                             if (_invite case final invite?)
-                              _InviteView(
-                                invite: invite,
-                                onHide: _hideCode,
-                              )
+                              _InviteView(invite: invite, onHide: _hideCode)
                             else
                               Align(
                                 alignment: Alignment.centerLeft,
@@ -361,9 +358,8 @@ class _InviteView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = context.l10n;
     final theme = Theme.of(context);
-    final until = MaterialLocalizations.of(
-      context,
-    ).formatTimeOfDay(TimeOfDay.fromDateTime(invite.expiresAt));
+    final until = MaterialLocalizations.of(context)
+        .formatTimeOfDay(TimeOfDay.fromDateTime(invite.expiresAt));
     final code = '${invite.code.substring(0, 3)} ${invite.code.substring(3)}';
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,7 +381,10 @@ class _InviteView extends StatelessWidget {
     );
     return LayoutBuilder(
       builder: (context, c) {
-        final qr = QrCodeView(data: invite.qr, size: c.maxWidth < 420 ? 180 : 220);
+        final qr = QrCodeView(
+          data: invite.qr,
+          size: c.maxWidth < 420 ? 180 : 220,
+        );
         if (c.maxWidth < 420) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

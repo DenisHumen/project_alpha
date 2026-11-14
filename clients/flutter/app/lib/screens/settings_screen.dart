@@ -80,7 +80,10 @@ class SettingsScreen extends StatelessWidget {
                         icon: Icons.devices,
                         title: l.devicesTitle,
                         subtitle: l.settingsDevicesCount(
-                          services.sync.devices().where((d) => !d.thisDevice).length,
+                          services.sync
+                              .devices()
+                              .where((d) => !d.thisDevice)
+                              .length,
                         ),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
