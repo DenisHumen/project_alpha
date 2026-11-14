@@ -8,7 +8,8 @@
 //! stored baseline ([`report`]). Methodology: research 03 §6.2.
 //! [`candidates`] measures candidate recall@k of the local title index
 //! (META-007) without any provider calls; [`scorer`] adapts the scorer v0
-//! (META-026) to [`Recognizer`].
+//! (META-026) to [`Recognizer`]; [`tmdb`] adapts the library's basic TMDB
+//! matcher with folder groups (META-013).
 
 pub mod candidates;
 pub mod corpus;
@@ -17,6 +18,7 @@ pub mod provider;
 pub mod recognizer;
 pub mod report;
 pub mod scorer;
+pub mod tmdb;
 
 pub use corpus::{CaseInput, Corpus};
 pub use metrics::{ItemOutcome, Metrics};
