@@ -40,6 +40,11 @@ if [ -f "$aod" ]; then
         --json "$out/candidates.json" --md "$out/candidates.md" "$corpus/train.jsonl" "$corpus/dev.jsonl"
     "$bin/pa-eval" candidates --anime "$aod" --catalog "$out/title-catalog.jsonl" \
         --json "$out/candidates-test.json" --md "$out/candidates-test.md" "$corpus/test.jsonl"
+    # META-026: scorer v0 over the same index — work, franchise entry, episode.
+    "$bin/pa-eval" run --recognizer scorer --anime "$aod" --catalog "$out/title-catalog.jsonl" \
+        --json "$out/scorer.json" --md "$out/scorer.md" "$corpus/train.jsonl" "$corpus/dev.jsonl"
+    "$bin/pa-eval" run --recognizer scorer --anime "$aod" --catalog "$out/title-catalog.jsonl" \
+        --json "$out/scorer-test.json" --md "$out/scorer-test.md" "$corpus/test.jsonl"
 else
-    echo "skipping candidate reports: $aod not found (run data/anime-mappings/build.sh)" >&2
+    echo "skipping candidate and scorer reports: $aod not found (run data/anime-mappings/build.sh)" >&2
 fi
