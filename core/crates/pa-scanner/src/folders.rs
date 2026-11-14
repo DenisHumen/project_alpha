@@ -271,7 +271,9 @@ fn load_durations(conn: &Connection, source_id: i64) -> Result<HashMap<String, u
 fn read_text(vfs: &dyn Vfs, path: &str) -> Option<String> {
     let path = VfsPath::parse(path).ok()?;
     let file = vfs.open(&path).ok()?;
-    let len = usize::try_from(file.size()).unwrap_or(usize::MAX).min(NFO_READ_LIMIT);
+    let len = usize::try_from(file.size())
+        .unwrap_or(usize::MAX)
+        .min(NFO_READ_LIMIT);
     let mut buf = vec![0u8; len];
     file.read_exact_at(0, &mut buf).ok()?;
     Some(String::from_utf8_lossy(&buf).into_owned())

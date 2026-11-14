@@ -32,7 +32,8 @@
 //! };
 //! let report = save_groups(&mut conn, 1, &[group], &[], 0)?;
 //! assert_eq!(report.written, 1);
-//! assert_eq!(save_groups(&mut conn, 1, &[source_groups(&conn, 1)?[0].group.clone()], &[], 1)?.unchanged, 1);
+//! let stored = source_groups(&conn, 1)?[0].group.clone();
+//! assert_eq!(save_groups(&mut conn, 1, &[stored], &[], 1)?.unchanged, 1);
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
@@ -316,9 +317,8 @@ fn save_in(
     let mut report = SaveReport::default();
     let mut existing: HashMap<String, (i64, Option<String>)> = HashMap::new();
     {
-        let mut stmt = tx.prepare(
-            "SELECT root_path, id, analysis_hash FROM file_groups WHERE source_id = ?1",
-        )?;
+        let mut stmt = tx
+            .prepare("SELECT root_path, id, analysis_hash FROM file_groups WHERE source_id = ?1")?;
         let rows = stmt.query_map([source_id], |r| {
             Ok((r.get::<_, String>(0)?, (r.get(1)?, r.get(2)?)))
         })?;
@@ -339,7 +339,8 @@ fn save_in(
              analysis_hash = excluded.analysis_hash, analyzed_at_ms = excluded.analyzed_at_ms
          RETURNING id",
     )?;
-    let mut clear_members = tx.prepare_cached("DELETE FROM file_group_members WHERE group_id = ?1")?;
+    let mut clear_members =
+        tx.prepare_cached("DELETE FROM file_group_members WHERE group_id = ?1")?;
     let mut clear_assets = tx.prepare_cached("DELETE FROM group_assets WHERE group_id = ?1")?;
     let mut member = tx.prepare_cached(
         "INSERT OR REPLACE INTO file_group_members (group_id, file_id, role, part_no, extra_type)

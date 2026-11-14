@@ -52,9 +52,7 @@ fn records() -> Vec<Value> {
 }
 
 fn entry<'a>(groups: &'a [Group], path: &str) -> Option<(&'a Group, &'a GroupEntry)> {
-    groups
-        .iter()
-        .find_map(|g| g.entry(path).map(|e| (g, e)))
+    groups.iter().find_map(|g| g.entry(path).map(|e| (g, e)))
 }
 
 /// Checks one label; `Err` explains the mismatch.
@@ -107,7 +105,10 @@ fn check(groups: &[Group], label: &Value) -> Result<(), String> {
             if e.role == Role::Extra && e.extra_type == want {
                 Ok(())
             } else {
-                Err(format!("{:?} {:?}, want Extra {want:?}", e.role, e.extra_type))
+                Err(format!(
+                    "{:?} {:?}, want Extra {want:?}",
+                    e.role, e.extra_type
+                ))
             }
         }
         "sample" => match got.map(|e| e.role) {

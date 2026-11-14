@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-//! Structural folder analysis (LIB-007, `docs/research/03` §4.2 [1]).
+//! Structural folder analysis (LIB-007, `docs/research/03` §4.2, stage 1).
 //!
 //! [`analyze`] turns a listing of a source (paths, sizes and, when
 //! `pa-probe` already ran, durations) into [`Group`]s, without network and
@@ -149,17 +149,25 @@ fn folder_hint(name: &str) -> Option<FolderHint> {
         .filter(|c| !matches!(c, ' ' | '_' | '-' | '.'))
         .collect();
     Some(match compact.as_str() {
-        "trailers" | "trailer" | "трейлеры" | "трейлер" => FolderHint::Extra(ExtraType::Trailer),
+        "trailers" | "trailer" | "трейлеры" | "трейлер" => {
+            FolderHint::Extra(ExtraType::Trailer)
+        }
         "featurettes" | "featurette" => FolderHint::Extra(ExtraType::Featurette),
         "behindthescenes" | "makingof" => FolderHint::Extra(ExtraType::BehindTheScenes),
         "deletedscenes" | "deletedscene" => FolderHint::Extra(ExtraType::DeletedScene),
         "interviews" | "interview" => FolderHint::Extra(ExtraType::Interview),
         "scenes" => FolderHint::Extra(ExtraType::Scene),
         "shorts" => FolderHint::Extra(ExtraType::Short),
-        "extras" | "extra" | "bonus" | "bonuses" | "other" | "others" | "доп.материалы"
-        | "допматериалы" | "дополнительныематериалы" | "бонусы" | "допы" => {
-            FolderHint::AnyExtra
-        }
+        "extras"
+        | "extra"
+        | "bonus"
+        | "bonuses"
+        | "other"
+        | "others"
+        | "допматериалы"
+        | "дополнительныематериалы"
+        | "бонусы"
+        | "допы" => FolderHint::AnyExtra,
         "sample" | "samples" => FolderHint::Sample,
         "subs" | "subtitles" | "subtitle" | "субтитры" => FolderHint::Subs,
         "extrafanart" => FolderHint::Art(ArtKind::Fanart),
@@ -228,7 +236,10 @@ pub fn analyze(files: &[ListedFile], options: &StructureOptions) -> Vec<Group> {
                 DiscUnit::Bdmv => {
                     lower == "index.bdmv"
                         || (it.ty == FileType::Video
-                            && it.dirs.get(i + 1).is_some_and(|s| s.eq_ignore_ascii_case("stream")))
+                            && it
+                                .dirs
+                                .get(i + 1)
+                                .is_some_and(|s| s.eq_ignore_ascii_case("stream")))
                 }
                 _ => lower == "video_ts.ifo" || lower.ends_with(".vob"),
             };
@@ -273,7 +284,10 @@ pub fn analyze(files: &[ListedFile], options: &StructureOptions) -> Vec<Group> {
                 (hint, dirs[last_special + 1..].to_vec()),
             );
         }
-        groups.entry(dirs[..owner_len].to_vec()).or_default().push(it);
+        groups
+            .entry(dirs[..owner_len].to_vec())
+            .or_default()
+            .push(it);
     }
 
     let mut out: Vec<Group> = Vec::new();
@@ -323,10 +337,9 @@ pub fn analyze(files: &[ListedFile], options: &StructureOptions) -> Vec<Group> {
             GroupKind::Loose
         } else {
             match items {
-                0 if group
-                    .entries
-                    .iter()
-                    .any(|e| e.path.to_lowercase().ends_with("tvshow.nfo") || e.season.is_some()) =>
+                0 if group.entries.iter().any(|e| {
+                    e.path.to_lowercase().ends_with("tvshow.nfo") || e.season.is_some()
+                }) =>
                 {
                     GroupKind::SeriesFolder
                 }
@@ -416,7 +429,9 @@ fn disc_titles(unit: DiscUnit, inner: &[&Item<'_>]) -> Vec<GroupEntry> {
             }
             let Some(mut best) = sets.into_values().max_by_key(|v| {
                 (
-                    v.iter().map(|(_, it)| it.duration().unwrap_or(0)).sum::<u64>(),
+                    v.iter()
+                        .map(|(_, it)| it.duration().unwrap_or(0))
+                        .sum::<u64>(),
                     v.iter().map(|(_, it)| it.file.size).sum::<u64>(),
                 )
             }) else {
@@ -437,6 +452,9 @@ fn disc_titles(unit: DiscUnit, inner: &[&Item<'_>]) -> Vec<GroupEntry> {
         }
     }
 }
+
+/// Folder and name skeleton of a part stack.
+type StackKey<'a> = (Vec<&'a str>, String);
 
 /// A playable item of a folder: one file or a stack of parts.
 #[derive(Debug)]
@@ -494,7 +512,7 @@ fn classify_group(
     }
 
     // Parts: same name apart from the part marker, in the same folder.
-    let mut stacks: BTreeMap<(Vec<&str>, String), Vec<(u32, &Item<'_>)>> = BTreeMap::new();
+    let mut stacks: BTreeMap<StackKey<'_>, Vec<(u32, &Item<'_>)>> = BTreeMap::new();
     let mut singles: Vec<&Item<'_>> = Vec::new();
     for it in candidates {
         match part_marker(it.stem) {
@@ -579,9 +597,9 @@ fn classify_group(
             FileType::Subtitle => {
                 let (target, rest) = match hint {
                     Some((FolderHint::Subs, sub_dirs)) => {
-                        let by_dir = sub_dirs.last().and_then(|d| {
-                            targets.iter().find(|v| v.stem.eq_ignore_ascii_case(d))
-                        });
+                        let by_dir = sub_dirs
+                            .last()
+                            .and_then(|d| targets.iter().find(|v| v.stem.eq_ignore_ascii_case(d)));
                         (by_dir.copied().or(single_main), it.stem)
                     }
                     _ => match video_prefix(&targets, it) {
@@ -674,9 +692,11 @@ fn has_word_at_edge(lower: &str, word: &str) -> bool {
         return true;
     }
     let trimmed = lower.trim_end_matches([']', ')']);
-    trimmed
-        .strip_suffix(word)
-        .is_some_and(|head| head.chars().next_back().is_some_and(|c| is_sep(c) || c == '[' || c == '('))
+    trimmed.strip_suffix(word).is_some_and(|head| {
+        head.chars()
+            .next_back()
+            .is_some_and(|c| is_sep(c) || c == '[' || c == '(')
+    })
 }
 
 fn is_sep(c: char) -> bool {
@@ -835,7 +855,11 @@ fn part_marker(stem: &str) -> Option<(u32, String)> {
         }
     }
     let (start, end, n) = best?;
-    let skeleton = format!("{}\u{0}{}", lower[..start].trim_end_matches(is_sep), &lower[end..]);
+    let skeleton = format!(
+        "{}\u{0}{}",
+        lower[..start].trim_end_matches(is_sep),
+        &lower[end..]
+    );
     Some((n, skeleton))
 }
 
@@ -894,12 +918,18 @@ pub fn subtitle_info(rest: &str) -> SubtitleInfo {
 /// ISO 639-2/B code of a language tag or name.
 fn language(token: &str) -> Option<&'static str> {
     const LANGS: &[(&str, &[&str])] = &[
-        ("rus", &["ru", "rus", "russian", "русский", "русские", "рус"]),
+        (
+            "rus",
+            &["ru", "rus", "russian", "русский", "русские", "рус"],
+        ),
         ("eng", &["en", "eng", "english", "английский", "англ"]),
         ("ukr", &["uk", "ua", "ukr", "ukrainian", "украинский"]),
         ("jpn", &["ja", "jp", "jpn", "japanese"]),
         ("ger", &["de", "ger", "deu", "german", "deutsch"]),
-        ("fre", &["fr", "fre", "fra", "french", "francais", "français"]),
+        (
+            "fre",
+            &["fr", "fre", "fra", "french", "francais", "français"],
+        ),
         ("spa", &["es", "spa", "spanish", "espanol", "español"]),
         ("ita", &["it", "ita", "italian"]),
         ("por", &["pt", "por", "portuguese", "pt-br", "ptbr"]),
@@ -972,10 +1002,7 @@ fn art_of(
             };
             return Some((kind, None, Some(v.file.path.clone())));
         }
-        if let Some(kind) = rest
-            .strip_prefix(['-', '.', '_'])
-            .and_then(art_name)
-        {
+        if let Some(kind) = rest.strip_prefix(['-', '.', '_']).and_then(art_name) {
             return Some((kind, None, Some(v.file.path.clone())));
         }
     }
@@ -1060,7 +1087,8 @@ pub fn parse_nfo_ids(text: &str) -> BTreeMap<String, String> {
         ids.entry("imdb".to_owned()).or_insert(v);
     }
     // Links.
-    if let Some(v) = after(&lower, "imdb.com/title/").map(|s| take_while(s, |c| c.is_ascii_alphanumeric()))
+    if let Some(v) =
+        after(&lower, "imdb.com/title/").map(|s| take_while(s, |c| c.is_ascii_alphanumeric()))
         && is_imdb_id(&v)
     {
         ids.entry("imdb".to_owned()).or_insert(v);
@@ -1070,10 +1098,15 @@ pub fn parse_nfo_ids(text: &str) -> BTreeMap<String, String> {
             .map(|s| take_while(s, |c| c.is_ascii_digit()))
             .filter(|v| !v.is_empty())
         {
-            ids.entry("tmdb".to_owned()).or_insert(format!("{kind}:{v}"));
+            ids.entry("tmdb".to_owned())
+                .or_insert(format!("{kind}:{v}"));
         }
     }
-    for prefix in ["anidb.net/anime/", "anidb.net/a", "anidb.net/perl-bin/animedb.pl?show=anime&aid="] {
+    for prefix in [
+        "anidb.net/anime/",
+        "anidb.net/a",
+        "anidb.net/perl-bin/animedb.pl?show=anime&aid=",
+    ] {
         if let Some(v) = after(&lower, prefix)
             .map(|s| take_while(s, |c| c.is_ascii_digit()))
             .filter(|v| !v.is_empty())
@@ -1085,9 +1118,7 @@ pub fn parse_nfo_ids(text: &str) -> BTreeMap<String, String> {
 }
 
 fn is_imdb_id(v: &str) -> bool {
-    v.len() >= 9
-        && v.starts_with("tt")
-        && v[2..].chars().all(|c| c.is_ascii_digit())
+    v.len() >= 9 && v.starts_with("tt") && v[2..].chars().all(|c| c.is_ascii_digit())
 }
 
 fn attr<'a>(attrs: &'a str, name: &str) -> Option<&'a str> {
@@ -1140,7 +1171,10 @@ mod tests {
         assert_eq!(part_marker("The.Matrix.1999.cd1").map(|p| p.0), Some(1));
         assert_eq!(part_marker("Movie (1957) Disc 2").map(|p| p.0), Some(2));
         assert_eq!(part_marker("Dune (1984) - part3").map(|p| p.0), Some(3));
-        assert_eq!(part_marker("Ironiya.1975.Part2.BDRip").map(|p| p.0), Some(2));
+        assert_eq!(
+            part_marker("Ironiya.1975.Part2.BDRip").map(|p| p.0),
+            Some(2)
+        );
         assert_eq!(part_marker("Movie.pt1").map(|p| p.0), Some(1));
         assert_eq!(part_marker("Back.to.the.Future.Part.II.1989"), None);
         assert_eq!(part_marker("Movie.DVD5.DivX"), None);
@@ -1174,7 +1208,10 @@ mod tests {
         );
         assert_eq!(anime_extra("[G] Show - NCED [BD]"), Some(ExtraType::Ending));
         assert_eq!(anime_extra("[G] Show - Menu01 [BD]"), Some(ExtraType::Menu));
-        assert_eq!(anime_extra("[G] Show - PV02 [BD]"), Some(ExtraType::Trailer));
+        assert_eq!(
+            anime_extra("[G] Show - PV02 [BD]"),
+            Some(ExtraType::Trailer)
+        );
         assert_eq!(anime_extra("[G] Show - CM03 [BD]"), Some(ExtraType::Other));
         assert_eq!(anime_extra("The Menu (2022)"), None);
         assert_eq!(anime_extra("Ed Wood (1994)"), None);
@@ -1183,9 +1220,18 @@ mod tests {
 
     #[test]
     fn extras_by_name() {
-        assert_eq!(extra_by_suffix("Inception (2010)-trailer"), Some(ExtraType::Trailer));
-        assert_eq!(extra_by_suffix("Dune-featurette"), Some(ExtraType::Featurette));
-        assert_eq!(extra_by_suffix("Dune (2021) [Trailer]"), Some(ExtraType::Trailer));
+        assert_eq!(
+            extra_by_suffix("Inception (2010)-trailer"),
+            Some(ExtraType::Trailer)
+        );
+        assert_eq!(
+            extra_by_suffix("Dune-featurette"),
+            Some(ExtraType::Featurette)
+        );
+        assert_eq!(
+            extra_by_suffix("Dune (2021) [Trailer]"),
+            Some(ExtraType::Trailer)
+        );
         assert_eq!(extra_by_suffix("Short Circuit (1986)"), None);
         assert_eq!(extra_by_suffix("The Trailer Park Boys S01E01"), None);
         assert!(is_sample_name("The.Matrix.1999.sample"));
@@ -1199,7 +1245,10 @@ mod tests {
             &files(&[
                 ("/M/Inception (2010)/BDMV/index.bdmv", None),
                 ("/M/Inception (2010)/BDMV/STREAM/00000.m2ts", Some(30_000)),
-                ("/M/Inception (2010)/BDMV/STREAM/00001.m2ts", Some(8_880_000)),
+                (
+                    "/M/Inception (2010)/BDMV/STREAM/00001.m2ts",
+                    Some(8_880_000),
+                ),
                 ("/M/Inception (2010)/poster.jpg", None),
             ]),
             &StructureOptions::default(),
@@ -1297,7 +1346,9 @@ mod tests {
         );
         assert_eq!(g.len(), 1);
         let video = Some("/M/Movie (2010)/Movie (2010).mkv".to_owned());
-        let ru = g[0].entry("/M/Movie (2010)/Movie (2010).ru.forced.srt").unwrap();
+        let ru = g[0]
+            .entry("/M/Movie (2010)/Movie (2010).ru.forced.srt")
+            .unwrap();
         assert_eq!(ru.role, Role::Subtitle);
         assert_eq!(ru.target, video);
         let info = ru.subtitle.as_ref().unwrap();
@@ -1307,7 +1358,9 @@ mod tests {
         assert_eq!(en.subtitle.as_ref().unwrap().lang.as_deref(), Some("eng"));
         let nfo = g[0].entry("/M/Movie (2010)/Movie (2010).nfo").unwrap();
         assert_eq!((nfo.role, nfo.target.clone()), (Role::Nfo, video.clone()));
-        let fanart = g[0].entry("/M/Movie (2010)/Movie (2010)-fanart.jpg").unwrap();
+        let fanart = g[0]
+            .entry("/M/Movie (2010)/Movie (2010)-fanart.jpg")
+            .unwrap();
         assert_eq!(fanart.art, Some(ArtKind::Fanart));
         assert_eq!(
             g[0].entry("/M/Movie (2010)/clearlogo.png").unwrap().art,
@@ -1342,7 +1395,8 @@ mod tests {
         assert_eq!(ids.get("imdb").map(String::as_str), Some("tt1375666"));
         assert_eq!(ids.get("tmdb").map(String::as_str), Some("movie:27205"));
 
-        let show = "<tvshow><tmdbid>1399</tmdbid><tvdbid>121361</tvdbid><id>tt0944947</id></tvshow>";
+        let show =
+            "<tvshow><tmdbid>1399</tmdbid><tvdbid>121361</tvdbid><id>tt0944947</id></tvshow>";
         let ids = parse_nfo_ids(show);
         assert_eq!(ids.get("tmdb").map(String::as_str), Some("tv:1399"));
         assert_eq!(ids.get("tvdb").map(String::as_str), Some("121361"));
