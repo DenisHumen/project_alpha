@@ -33,9 +33,8 @@ void main() {
     root = p.join(tmp.path, 'media');
     media(root, 'Movies/The.Matrix.1999.1080p.BluRay.x264-GRP.mkv', 1);
     media(root, 'Movies/Inception (2010)/inception.mkv', 2);
-    File(
-      p.join(root, 'Movies/Inception (2010)/poster.jpg'),
-    ).writeAsBytesSync([1]);
+    File(p.join(root, 'Movies/Inception (2010)/poster.jpg'))
+        .writeAsBytesSync([1]);
     media(root, 'TV/Breaking Bad/Season 1/Breaking.Bad.S01E01.720p.mkv', 3);
     media(root, 'TV/Breaking Bad/Season 1/Breaking.Bad.S01E02.720p.mkv', 4);
     media(

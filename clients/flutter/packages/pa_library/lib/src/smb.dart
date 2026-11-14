@@ -72,9 +72,8 @@ String? findGvfsPath(SmbUrl url, String gvfsRoot) {
     for (final kv in name.substring('smb-share:'.length).split(',')) {
       final i = kv.indexOf('=');
       if (i > 0) {
-        attrs[kv.substring(0, i)] = Uri.decodeComponent(
-          kv.substring(i + 1),
-        ).toLowerCase();
+        attrs[kv.substring(0, i)] = Uri.decodeComponent(kv.substring(i + 1))
+            .toLowerCase();
       }
     }
     if (attrs['server'] == host && attrs['share'] == share) {

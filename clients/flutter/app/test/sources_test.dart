@@ -355,10 +355,7 @@ void main() {
       final smb = services.sources.firstWhere((s) => s.kind == SourceKind.smb);
       // LIB-018: the password lives in the core's secret store only.
       expect(services.managedSource(smb.id)!.hasPassword, isTrue);
-      expect(
-        await services.secureStore.read('smb_password_${smb.id}'),
-        isNull,
-      );
+      expect(await services.secureStore.read('smb_password_${smb.id}'), isNull);
     });
 
     testWidgets('WebDAV form: URL and pin rules; indexed like SMB', (
@@ -400,7 +397,10 @@ void main() {
       await _submit(tester);
       final d = _fake(services).drafts.single;
       expect(d.autoScan, isFalse);
-      expect(services.managedSource(services.sources.last.id)!.autoScan, isFalse);
+      expect(
+        services.managedSource(services.sources.last.id)!.autoScan,
+        isFalse,
+      );
       await settle(tester, 4);
     });
 
@@ -515,10 +515,7 @@ void main() {
       expect(d.address, 'smb://nas/media');
       expect(d.password, isNull); // keep
       expect(services.managedSource(nas.id)!.hasPassword, isTrue);
-      expect(
-        await services.secureStore.read('smb_password_${nas.id}'),
-        isNull,
-      );
+      expect(await services.secureStore.read('smb_password_${nas.id}'), isNull);
       expect(find.text('Home NAS'), findsWidgets);
     });
 

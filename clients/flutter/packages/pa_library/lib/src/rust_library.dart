@@ -14,6 +14,7 @@ import 'models.dart';
 import 'music_tags.dart';
 import 'open_library.dart';
 import 'playback_session.dart';
+import 'smb.dart' show SmbUrl;
 
 /// [Library] on the Rust core (UI-024): `pa_core`'s [CoreLibrary] over the
 /// `pa-library` schema v1 — `pa-scanner` with music tags, the

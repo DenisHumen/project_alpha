@@ -223,9 +223,8 @@ void main() {
       Directory(
         p.join(tmp.path, 'smb-share:server=nas.local,share=media,user=bob'),
       ).createSync();
-      Directory(
-        p.join(tmp.path, 'smb-share:server=other,share=media'),
-      ).createSync();
+      Directory(p.join(tmp.path, 'smb-share:server=other,share=media'))
+          .createSync();
       final u = SmbUrl.parse('smb://NAS.local/Media/Movies');
       expect(
         findGvfsPath(u, tmp.path),
@@ -238,9 +237,8 @@ void main() {
       expect(findGvfsPath(SmbUrl.parse('smb://x/y'), tmp.path), isNull);
     });
     test('resolver finds a share the user mounted', () async {
-      Directory(
-        p.join(tmp.path, 'smb-share:server=nas,share=media'),
-      ).createSync();
+      Directory(p.join(tmp.path, 'smb-share:server=nas,share=media'))
+          .createSync();
       final resolver = SmbResolver(gvfsRootOverride: tmp.path);
       expect(
         await resolver.resolve('smb://nas/media/TV'),
