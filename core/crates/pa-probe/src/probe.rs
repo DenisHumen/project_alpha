@@ -154,7 +154,12 @@ impl Ffmpeg {
             // freed by FFmpeg). On failure FFmpeg frees `fmt` and nulls it.
             unsafe {
                 (*fmt).pb = io.as_ptr();
-                dict_set(f, &mut dict, c"probesize", &head.min(i64::MAX as u64).to_string());
+                dict_set(
+                    f,
+                    &mut dict,
+                    c"probesize",
+                    &head.min(i64::MAX as u64).to_string(),
+                );
                 dict_set(f, &mut dict, c"analyzeduration", &analyze.to_string());
                 let ret = (f.avformat_open_input)(&raw mut fmt, null(), null(), &raw mut dict);
                 (f.av_dict_free)(&raw mut dict);
@@ -404,7 +409,11 @@ impl Ffmpeg {
             let common = self.common(st, par);
             let mut buf = [0 as c_char; 64];
             let layout = if par.ch_layout.nb_channels > 0
-                && (f.av_channel_layout_describe)(&raw const par.ch_layout, buf.as_mut_ptr(), buf.len()) > 0
+                && (f.av_channel_layout_describe)(
+                    &raw const par.ch_layout,
+                    buf.as_mut_ptr(),
+                    buf.len(),
+                ) > 0
             {
                 cstr(buf.as_ptr())
             } else {
@@ -459,38 +468,44 @@ impl Ffmpeg {
         }
     }
 
-    /// Reads the first video packets of the main HEVC/AV1 stream and looks
-    /// for HDR10+ and Dolby Vision RPUs.
+    /// Reads the first video packets of the main HEVC/AV1 stream (and the
+    /// AV1 `av1C` record) for HDR10+, Dolby Vision RPUs, static HDR
+    /// metadata in SEI/OBUs and the AV1 colour description.
     ///
     /// # Safety
     ///
     /// `fmt` is an open, analysed format context of this FFmpeg.
     unsafe fn scan_hdr(&self, fmt: *mut AVFormatContext, info: &mut MediaInfo, max_packets: usize) {
         let f = &self.functions;
-        let Some(pos) = info.video.iter().position(|v| {
-            !v.cover_art && (v.common.codec == "hevc" || v.common.codec == "av1")
-        }) else {
+        let Some(pos) = info
+            .video
+            .iter()
+            .position(|v| !v.cover_art && (v.common.codec == "hevc" || v.common.codec == "av1"))
+        else {
             return;
         };
         let index = info.video[pos].common.index;
-        // SAFETY: guaranteed by the caller; packet data is valid until unref.
+        let av1 = info.video[pos].common.codec == "av1";
+        // SAFETY: guaranteed by the caller; `index` is the position of the
+        // stream in `streams`; packet data is valid until unref.
         let hints = unsafe {
             let ctx = &*fmt;
             let par = &*(*(*ctx.streams.add(index as usize))).codecpar;
-            let av1 = info.video[pos].common.codec == "av1";
-            let framing = if par.extradata.is_null() || par.extradata_size <= 0 {
-                NalFraming::AnnexB
+            let extradata: &[u8] = if par.extradata.is_null() || par.extradata_size <= 0 {
+                &[]
             } else {
-                NalFraming::from_hevc_extradata(std::slice::from_raw_parts(
-                    par.extradata,
-                    par.extradata_size as usize,
-                ))
+                std::slice::from_raw_parts(par.extradata, par.extradata_size as usize)
+            };
+            let framing = NalFraming::from_hevc_extradata(extradata);
+            let mut hints = if av1 {
+                bitstream::scan_av1(bitstream::av1_config_obus(extradata))
+            } else {
+                Hints::default()
             };
             let mut pkt = (f.av_packet_alloc)();
             if pkt.is_null() {
                 return;
             }
-            let mut hints = Hints::default();
             let (mut seen, mut total) = (0, 0);
             // Other streams interleave with video; bound the total too.
             while seen < max_packets && total < max_packets * 16 {
@@ -502,18 +517,13 @@ impl Ffmpeg {
                 if p.stream_index as u32 == index && !p.data.is_null() && p.size > 0 {
                     seen += 1;
                     let data = std::slice::from_raw_parts(p.data, p.size as usize);
-                    let found = if av1 {
+                    hints.merge(if av1 {
                         bitstream::scan_av1(data)
                     } else {
                         bitstream::scan_hevc(data, framing)
-                    };
-                    hints.hdr10plus |= found.hdr10plus;
-                    hints.dovi_rpu |= found.dovi_rpu;
+                    });
                 }
                 (f.av_packet_unref)(pkt);
-                if hints.hdr10plus && hints.dovi_rpu {
-                    break;
-                }
             }
             (f.av_packet_free)(&raw mut pkt);
             hints
@@ -527,6 +537,25 @@ impl Ffmpeg {
                 rpu: true,
                 ..DolbyVision::default()
             });
+        }
+        v.mastering_display |= hints.mastering_display;
+        v.content_light_level |= hints.content_light_level;
+        if let Some(c) = hints.color {
+            // The bitstream wins only where the container left a gap.
+            // SAFETY: name getters take any value and return static strings or null.
+            unsafe {
+                if v.color_primaries.is_none() {
+                    v.color_primaries =
+                        known(cstr((f.av_color_primaries_name)(c_int::from(c.primaries))));
+                }
+                if v.color_transfer.is_none() {
+                    v.color_transfer =
+                        known(cstr((f.av_color_transfer_name)(c_int::from(c.transfer))));
+                }
+                if v.color_space.is_none() {
+                    v.color_space = known(cstr((f.av_color_space_name)(c_int::from(c.matrix))));
+                }
+            }
         }
     }
 }
@@ -582,8 +611,11 @@ fn to_ms(ts: i64, tb: sys::AVRational) -> Option<u64> {
 /// Codec tag as text if all four bytes are printable ASCII.
 fn fourcc(tag: u32) -> Option<String> {
     let bytes = tag.to_le_bytes();
-    (tag != 0 && bytes.iter().all(|b| b.is_ascii_alphanumeric() || *b == b' ' || *b == b'.'))
-        .then(|| String::from_utf8_lossy(&bytes).trim_end().to_owned())
+    (tag != 0
+        && bytes
+            .iter()
+            .all(|b| b.is_ascii_alphanumeric() || *b == b' ' || *b == b'.'))
+    .then(|| String::from_utf8_lossy(&bytes).trim_end().to_owned())
 }
 
 /// Drops FFmpeg's placeholder names for unset colour properties.
@@ -648,7 +680,9 @@ unsafe fn dict_get(f: &Functions, dict: *const AVDictionary, key: &str) -> Optio
 ///
 /// `dict` points to a null or live `AVDictionary *`.
 unsafe fn dict_set(f: &Functions, dict: &mut *mut AVDictionary, key: &CStr, value: &str) {
-    let Ok(value) = CString::new(value) else { return };
+    let Ok(value) = CString::new(value) else {
+        return;
+    };
     // SAFETY: av_dict_set copies key and value (flags 0).
     unsafe { (f.av_dict_set)(dict, key.as_ptr(), value.as_ptr(), 0) };
 }
@@ -662,12 +696,22 @@ mod tests {
         let video = |trc: Option<&str>, dv: bool, plus: bool| VideoStream {
             color_transfer: trc.map(str::to_owned),
             dolby_vision: dv.then(DolbyVision::default),
-            hdr: if plus { vec![HdrFormat::Hdr10Plus] } else { vec![] },
+            hdr: if plus {
+                vec![HdrFormat::Hdr10Plus]
+            } else {
+                vec![]
+            },
             ..VideoStream::default()
         };
         assert!(hdr_formats(&video(Some("bt709"), false, false)).is_empty());
-        assert_eq!(hdr_formats(&video(Some("smpte2084"), false, false)), [HdrFormat::Hdr10]);
-        assert_eq!(hdr_formats(&video(Some("arib-std-b67"), false, false)), [HdrFormat::Hlg]);
+        assert_eq!(
+            hdr_formats(&video(Some("smpte2084"), false, false)),
+            [HdrFormat::Hdr10]
+        );
+        assert_eq!(
+            hdr_formats(&video(Some("arib-std-b67"), false, false)),
+            [HdrFormat::Hlg]
+        );
         assert_eq!(
             hdr_formats(&video(Some("smpte2084"), false, true)),
             [HdrFormat::Hdr10Plus, HdrFormat::Hdr10]
@@ -676,7 +720,10 @@ mod tests {
             hdr_formats(&video(Some("smpte2084"), true, false)),
             [HdrFormat::DolbyVision, HdrFormat::Hdr10]
         );
-        assert_eq!(hdr_formats(&video(None, true, false)), [HdrFormat::DolbyVision]);
+        assert_eq!(
+            hdr_formats(&video(None, true, false)),
+            [HdrFormat::DolbyVision]
+        );
         let mut cover = video(Some("smpte2084"), false, false);
         cover.cover_art = true;
         assert!(hdr_formats(&cover).is_empty());
@@ -705,7 +752,10 @@ mod tests {
 
     #[test]
     fn fourcc_and_placeholder_names() {
-        assert_eq!(fourcc(u32::from_le_bytes(*b"hvc1")).as_deref(), Some("hvc1"));
+        assert_eq!(
+            fourcc(u32::from_le_bytes(*b"hvc1")).as_deref(),
+            Some("hvc1")
+        );
         assert_eq!(fourcc(0), None);
         assert_eq!(fourcc(0x0000_001B), None);
         assert_eq!(known(Some("unknown".into())), None);

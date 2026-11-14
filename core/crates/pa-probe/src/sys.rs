@@ -27,13 +27,10 @@ pub const SUPPORTED_AVUTIL: RangeInclusive<u32> = 59..=61;
 
 /// `AV_NOPTS_VALUE`.
 pub const AV_NOPTS_VALUE: i64 = i64::MIN;
-/// `AV_TIME_BASE`: microseconds.
-pub const AV_TIME_BASE: i64 = 1_000_000;
 
 /// `enum AVMediaType`.
 pub const AVMEDIA_TYPE_VIDEO: c_int = 0;
 pub const AVMEDIA_TYPE_AUDIO: c_int = 1;
-pub const AVMEDIA_TYPE_DATA: c_int = 2;
 pub const AVMEDIA_TYPE_SUBTITLE: c_int = 3;
 pub const AVMEDIA_TYPE_ATTACHMENT: c_int = 4;
 
@@ -51,11 +48,6 @@ pub const AV_DISPOSITION_ATTACHED_PIC: c_int = 1 << 10;
 pub const AV_PKT_DATA_MASTERING_DISPLAY_METADATA: c_int = 20;
 pub const AV_PKT_DATA_CONTENT_LIGHT_LEVEL: c_int = 22;
 pub const AV_PKT_DATA_DOVI_CONF: c_int = 29;
-
-/// `enum AVColorTransferCharacteristic` / `AVColorPrimaries` values.
-pub const AVCOL_TRC_SMPTE2084: c_int = 16;
-pub const AVCOL_TRC_ARIB_STD_B67: c_int = 18;
-pub const AVCOL_PRI_BT2020: c_int = 9;
 
 /// `enum AVFieldOrder`: 0 unknown, 1 progressive, 2..=5 interlaced.
 pub const AV_FIELD_UNKNOWN: c_int = 0;
@@ -79,9 +71,6 @@ pub const AV_PROFILE_EAC3_DDP_ATMOS: c_int = 30;
 pub const AV_PROFILE_TRUEHD_ATMOS: c_int = 30;
 pub const AV_PROFILE_DTS_HD_MA_X: c_int = 61;
 pub const AV_PROFILE_DTS_HD_MA_X_IMAX: c_int = 62;
-
-/// `AVERROR_EOF`.
-pub const AVERROR_EOF: c_int = pa_player_io::ffmpeg::AVERROR_EOF;
 
 /// `AVRational`.
 #[repr(C)]
@@ -336,8 +325,10 @@ pub struct Functions {
     pub av_strerror: unsafe extern "C" fn(c_int, *mut c_char, usize) -> c_int,
     pub av_dict_set: unsafe extern "C" fn(*mut Dict, *const c_char, *const c_char, c_int) -> c_int,
     pub av_dict_free: unsafe extern "C" fn(*mut Dict),
-    pub av_dict_iterate:
-        unsafe extern "C" fn(*const AVDictionary, *const AVDictionaryEntry) -> *const AVDictionaryEntry,
+    pub av_dict_iterate: unsafe extern "C" fn(
+        *const AVDictionary,
+        *const AVDictionaryEntry,
+    ) -> *const AVDictionaryEntry,
     pub av_get_pix_fmt_name: unsafe extern "C" fn(c_int) -> *const c_char,
     pub av_pix_fmt_desc_get: unsafe extern "C" fn(c_int) -> *const AVPixFmtDescriptor,
     pub av_color_primaries_name: unsafe extern "C" fn(c_int) -> *const c_char,

@@ -52,13 +52,17 @@ impl MediaInfo {
     /// (ISO 639-2 codes as stored in the file).
     #[must_use]
     pub fn audio_languages(&self) -> Vec<String> {
-        dedup(self.audio.iter().filter_map(|a| a.language.clone()))
+        dedup(self.audio.iter().filter_map(|a| a.common.language.clone()))
     }
 
     /// Languages of the subtitle streams in file order, without duplicates.
     #[must_use]
     pub fn subtitle_languages(&self) -> Vec<String> {
-        dedup(self.subtitles.iter().filter_map(|s| s.language.clone()))
+        dedup(
+            self.subtitles
+                .iter()
+                .filter_map(|s| s.common.language.clone()),
+        )
     }
 }
 

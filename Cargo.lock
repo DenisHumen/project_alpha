@@ -2442,6 +2442,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-probe"
+version = "0.1.0"
+dependencies = [
+ "libloading",
+ "pa-library",
+ "pa-player-io",
+ "pa-vfs",
+ "serde",
+ "serde_json",
+ "toml",
+]
+
+[[package]]
 name = "pa-recognition"
 version = "0.1.0"
 dependencies = [

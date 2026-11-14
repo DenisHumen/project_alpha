@@ -116,7 +116,12 @@ mod tests {
     }
 
     fn src(len: usize, head: u64, tail: u64) -> WindowedSource {
-        WindowedSource::new(Arc::new(Mem((0..len).map(|i| i as u8).collect())), head, tail, None)
+        WindowedSource::new(
+            Arc::new(Mem((0..len).map(|i| i as u8).collect())),
+            head,
+            tail,
+            None,
+        )
     }
 
     #[test]

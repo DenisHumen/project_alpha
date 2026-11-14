@@ -110,7 +110,7 @@ impl Ffmpeg {
     pub fn load_default() -> Result<Self, ProbeError> {
         match std::env::var_os(LIB_DIR_ENV).filter(|p| !p.is_empty()) {
             Some(dir) => Self::load_from_dir(PathBuf::from(dir)),
-            None => Self::load_with("system loader", PathBuf::from),
+            None => Self::load_with("system loader", |name: &str| PathBuf::from(name)),
         }
     }
 

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
-//! Per-frame HDR metadata that containers do not declare: HDR10+
-//! (SMPTE ST 2094-40 in ITU-T T.35 SEI / AV1 metadata OBUs) and Dolby
-//! Vision RPUs without a configuration record. Found by scanning the first
-//! video packets; pure Rust, no decoding.
+//! HDR metadata that containers do not always declare, found by scanning
+//! the first video packets (pure Rust, no decoding): HDR10+ (SMPTE ST
+//! 2094-40 in ITU-T T.35 SEI / AV1 metadata OBUs), Dolby Vision RPUs
+//! without a configuration record, static HDR metadata (mastering display,
+//! content light level) in SEI / metadata OBUs, and the AV1 sequence
+//! header colour description.
 
 /// ITU-T T.35 prefix of HDR10+: country 0xB5 (USA), provider 0x003C
 /// (Samsung), oriented code 0x0001, application identifier 4.
@@ -16,11 +18,25 @@ const HEVC_PREFIX_SEI: u8 = 39;
 const HEVC_SUFFIX_SEI: u8 = 40;
 /// `UNSPEC62`, used by Dolby Vision for RPUs.
 const HEVC_DOVI_RPU: u8 = 62;
-/// SEI `user_data_registered_itu_t_t35`.
+/// SEI payload types: `user_data_registered_itu_t_t35`,
+/// `mastering_display_colour_volume`, `content_light_level_info`.
 const SEI_T35: u32 = 4;
-/// AV1 `OBU_METADATA` and `METADATA_TYPE_ITUT_T35`.
+const SEI_MDCV: u32 = 137;
+const SEI_CLL: u32 = 144;
+/// AV1 OBU types and metadata types.
+const AV1_OBU_SEQUENCE_HEADER: u8 = 1;
 const AV1_OBU_METADATA: u8 = 5;
+const AV1_METADATA_HDR_CLL: u64 = 1;
+const AV1_METADATA_HDR_MDCV: u64 = 2;
 const AV1_METADATA_T35: u64 = 4;
+
+/// ISO/IEC 23091-2 colour description (the same codes as FFmpeg's enums).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct ColorDescription {
+    pub primaries: u8,
+    pub transfer: u8,
+    pub matrix: u8,
+}
 
 /// What the packets revealed.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -29,12 +45,30 @@ pub(crate) struct Hints {
     pub hdr10plus: bool,
     /// Dolby Vision RPU present.
     pub dovi_rpu: bool,
+    /// Mastering display colour volume present.
+    pub mastering_display: bool,
+    /// Content light level present.
+    pub content_light_level: bool,
+    /// AV1 sequence header colour description, if signalled.
+    pub color: Option<ColorDescription>,
 }
 
 impl Hints {
-    fn merge(&mut self, other: Self) {
+    pub(crate) fn merge(&mut self, other: Self) {
         self.hdr10plus |= other.hdr10plus;
         self.dovi_rpu |= other.dovi_rpu;
+        self.mastering_display |= other.mastering_display;
+        self.content_light_level |= other.content_light_level;
+        self.color = self.color.or(other.color);
+    }
+}
+
+/// The OBUs inside AV1 codec extradata: an `av1C` record (marker bit set)
+/// carries them after its 4-byte header; otherwise the data is OBUs.
+pub(crate) fn av1_config_obus(extradata: &[u8]) -> &[u8] {
+    match extradata {
+        [first, _, _, _, obus @ ..] if first & 0x80 != 0 => obus,
+        _ => extradata,
     }
 }
 
@@ -74,7 +108,8 @@ pub(crate) fn scan_hevc(packet: &[u8], framing: NalFraming) -> Hints {
     hints
 }
 
-/// Scans one AV1 temporal unit (low-overhead OBU format).
+/// Scans one AV1 temporal unit (low-overhead OBU format) or the OBUs of
+/// an `av1C` record.
 pub(crate) fn scan_av1(packet: &[u8]) -> Hints {
     let mut hints = Hints::default();
     let mut rest = packet;
@@ -84,12 +119,16 @@ pub(crate) fn scan_av1(packet: &[u8]) -> Hints {
         let has_size = header & 0x02 != 0;
         let mut body = tail;
         if has_extension {
-            let Some((_, b)) = body.split_first() else { break };
+            let Some((_, b)) = body.split_first() else {
+                break;
+            };
             body = b;
         }
         let payload = if has_size {
             let Some((size, b)) = leb128(body) else { break };
-            let Ok(size) = usize::try_from(size) else { break };
+            let Ok(size) = usize::try_from(size) else {
+                break;
+            };
             if size > b.len() {
                 break;
             }
@@ -99,14 +138,148 @@ pub(crate) fn scan_av1(packet: &[u8]) -> Hints {
             rest = &[];
             body
         };
-        if obu_type == AV1_OBU_METADATA {
-            if let Some((AV1_METADATA_T35, t35)) = leb128(payload) {
-                hints.hdr10plus |= t35.starts_with(&HDR10PLUS_T35);
-                hints.dovi_rpu |= t35.starts_with(&DOVI_AV1_T35);
+        match obu_type {
+            AV1_OBU_SEQUENCE_HEADER if hints.color.is_none() => {
+                hints.color = av1_sequence_color(payload);
             }
+            AV1_OBU_METADATA => match leb128(payload) {
+                Some((AV1_METADATA_T35, t35)) => {
+                    hints.hdr10plus |= t35.starts_with(&HDR10PLUS_T35);
+                    hints.dovi_rpu |= t35.starts_with(&DOVI_AV1_T35);
+                }
+                Some((AV1_METADATA_HDR_MDCV, _)) => hints.mastering_display = true,
+                Some((AV1_METADATA_HDR_CLL, _)) => hints.content_light_level = true,
+                _ => {}
+            },
+            _ => {}
         }
     }
     hints
+}
+
+/// MSB-first bit reader for the AV1 sequence header.
+struct Bits<'a> {
+    data: &'a [u8],
+    pos: usize,
+}
+
+impl Bits<'_> {
+    fn f(&mut self, n: u32) -> Option<u32> {
+        let mut v = 0u32;
+        for _ in 0..n {
+            let byte = *self.data.get(self.pos / 8)?;
+            let bit = (byte >> (7 - self.pos % 8)) & 1;
+            v = (v << 1) | u32::from(bit);
+            self.pos += 1;
+        }
+        Some(v)
+    }
+
+    fn flag(&mut self) -> Option<bool> {
+        self.f(1).map(|b| b == 1)
+    }
+
+    fn uvlc(&mut self) -> Option<u32> {
+        let mut zeros = 0;
+        while !self.flag()? {
+            zeros += 1;
+            if zeros >= 32 {
+                return Some(u32::MAX);
+            }
+        }
+        Some(self.f(zeros)? + ((1u32 << zeros) - 1))
+    }
+}
+
+/// `color_config()` of an AV1 `sequence_header_obu` (AV1 spec §5.5);
+/// `None` if not signalled or the header is malformed.
+fn av1_sequence_color(payload: &[u8]) -> Option<ColorDescription> {
+    let mut b = Bits {
+        data: payload,
+        pos: 0,
+    };
+    let seq_profile = b.f(3)?;
+    let _still_picture = b.flag()?;
+    let reduced = b.flag()?;
+    if reduced {
+        b.f(5)?; // seq_level_idx[0]
+    } else {
+        let timing_info = b.flag()?;
+        let mut decoder_model_info = false;
+        let mut buffer_delay_len = 0;
+        if timing_info {
+            b.f(32)?; // num_units_in_display_tick
+            b.f(32)?; // time_scale
+            if b.flag()? {
+                b.uvlc()?; // num_ticks_per_picture_minus_1
+            }
+            decoder_model_info = b.flag()?;
+            if decoder_model_info {
+                buffer_delay_len = b.f(5)? + 1;
+                b.f(32)?; // num_units_in_decoding_tick
+                b.f(5)?; // buffer_removal_time_length_minus_1
+                b.f(5)?; // frame_presentation_time_length_minus_1
+            }
+        }
+        let initial_display_delay = b.flag()?;
+        let operating_points = b.f(5)? + 1;
+        for _ in 0..operating_points {
+            b.f(12)?; // operating_point_idc
+            if b.f(5)? > 7 {
+                b.f(1)?; // seq_tier
+            }
+            if decoder_model_info && b.flag()? {
+                b.f(buffer_delay_len)?; // decoder_buffer_delay
+                b.f(buffer_delay_len)?; // encoder_buffer_delay
+                b.f(1)?; // low_delay_mode_flag
+            }
+            if initial_display_delay && b.flag()? {
+                b.f(4)?; // initial_display_delay_minus_1
+            }
+        }
+    }
+    let width_bits = b.f(4)? + 1;
+    let height_bits = b.f(4)? + 1;
+    b.f(width_bits)?; // max_frame_width_minus_1
+    b.f(height_bits)?; // max_frame_height_minus_1
+    if !reduced && b.flag()? {
+        b.f(4)?; // delta_frame_id_length_minus_2
+        b.f(3)?; // additional_frame_id_length_minus_1
+    }
+    b.f(3)?; // use_128x128_superblock, enable_filter_intra, enable_intra_edge_filter
+    if !reduced {
+        b.f(4)?; // interintra, masked compound, warped motion, dual filter
+        let order_hint = b.flag()?;
+        if order_hint {
+            b.f(2)?; // enable_jnt_comp, enable_ref_frame_mvs
+        }
+        // seq_choose_screen_content_tools ? SELECT (2) : seq_force_screen_content_tools
+        let force_screen_content_tools = if b.flag()? { 2 } else { b.f(1)? };
+        // seq_choose_integer_mv, else seq_force_integer_mv
+        if force_screen_content_tools > 0 && !b.flag()? {
+            b.f(1)?;
+        }
+        if order_hint {
+            b.f(3)?; // order_hint_bits_minus_1
+        }
+    }
+    b.f(3)?; // enable_superres, enable_cdef, enable_restoration
+    // color_config()
+    let high_bitdepth = b.flag()?;
+    if seq_profile == 2 && high_bitdepth {
+        b.f(1)?; // twelve_bit
+    }
+    if seq_profile != 1 {
+        b.f(1)?; // mono_chrome
+    }
+    if !b.flag()? {
+        return None;
+    }
+    Some(ColorDescription {
+        primaries: b.f(8)? as u8,
+        transfer: b.f(8)? as u8,
+        matrix: b.f(8)? as u8,
+    })
 }
 
 fn for_each_nal(data: &[u8], framing: NalFraming, mut f: impl FnMut(&[u8])) {
@@ -166,14 +339,21 @@ fn scan_sei(rbsp: &[u8]) -> Hints {
     let mut rest = rbsp;
     // Stop at the RBSP trailing bits (0x80).
     while rest.len() > 1 {
-        let Some((payload_type, r)) = sei_value(rest) else { break };
+        let Some((payload_type, r)) = sei_value(rest) else {
+            break;
+        };
         let Some((size, r)) = sei_value(r) else { break };
-        let Ok(size) = usize::try_from(size) else { break };
+        let Ok(size) = usize::try_from(size) else {
+            break;
+        };
         if size > r.len() {
             break;
         }
-        if payload_type == SEI_T35 && r[..size].starts_with(&HDR10PLUS_T35) {
-            hints.hdr10plus = true;
+        match payload_type {
+            SEI_T35 => hints.hdr10plus |= r[..size].starts_with(&HDR10PLUS_T35),
+            SEI_MDCV => hints.mastering_display = true,
+            SEI_CLL => hints.content_light_level = true,
+            _ => {}
         }
         rest = &r[size..];
     }
@@ -237,10 +417,19 @@ mod tests {
     fn framing_from_extradata() {
         let mut hvcc = vec![1u8; 23];
         hvcc[21] = 0xFC | 3;
-        assert_eq!(NalFraming::from_hevc_extradata(&hvcc), NalFraming::Length(4));
+        assert_eq!(
+            NalFraming::from_hevc_extradata(&hvcc),
+            NalFraming::Length(4)
+        );
         hvcc[21] = 0xFC | 1;
-        assert_eq!(NalFraming::from_hevc_extradata(&hvcc), NalFraming::Length(2));
-        assert_eq!(NalFraming::from_hevc_extradata(&[0, 0, 0, 1, 0x40]), NalFraming::AnnexB);
+        assert_eq!(
+            NalFraming::from_hevc_extradata(&hvcc),
+            NalFraming::Length(2)
+        );
+        assert_eq!(
+            NalFraming::from_hevc_extradata(&[0, 0, 0, 1, 0x40]),
+            NalFraming::AnnexB
+        );
         assert_eq!(NalFraming::from_hevc_extradata(&[]), NalFraming::AnnexB);
     }
 
@@ -272,7 +461,11 @@ mod tests {
 
     #[test]
     fn hevc_garbage_does_not_panic() {
-        for framing in [NalFraming::Length(4), NalFraming::Length(1), NalFraming::AnnexB] {
+        for framing in [
+            NalFraming::Length(4),
+            NalFraming::Length(1),
+            NalFraming::AnnexB,
+        ] {
             for len in 0..64 {
                 let data: Vec<u8> = (0..len).map(|i| (i * 37 + 0xF0) as u8).collect();
                 let _ = scan_hevc(&data, framing);
@@ -285,7 +478,10 @@ mod tests {
 
     #[test]
     fn unescape_removes_emulation_prevention() {
-        assert_eq!(unescape(&[0, 0, 3, 1, 0, 0, 3, 0, 3]), vec![0, 0, 1, 0, 0, 0, 3]);
+        assert_eq!(
+            unescape(&[0, 0, 3, 1, 0, 0, 3, 0, 3]),
+            vec![0, 0, 1, 0, 0, 0, 3]
+        );
     }
 
     fn av1_metadata_obu(t35: &[u8]) -> Vec<u8> {
@@ -310,6 +506,77 @@ mod tests {
         dovi.extend_from_slice(&[0x19, 0x08]);
         assert!(scan_av1(&av1_metadata_obu(&dovi)).dovi_rpu);
         assert_eq!(scan_av1(&[(5 << 3) | 0x02, 0x7F]), Hints::default());
+    }
+
+    /// `av1C` extradata of the SVT-AV1 HDR10 test sample
+    /// (`tests/media/synthetic/hdr/hdr10-av1-1080p.mkv`): 4-byte header,
+    /// then the sequence header OBU (1920x1080, 10 bit, BT.2020 / PQ /
+    /// BT.2020 NCL).
+    const AV1C_HDR10: [u8; 20] = [
+        0x81, 0x08, 0x4C, 0x00, 0x0A, 0x0E, 0x00, 0x00, 0x00, 0x42, 0xAB, 0xBF, 0xC3, 0x70, 0x0B,
+        0xE1, 0x42, 0x44, 0x02, 0x41,
+    ];
+
+    #[test]
+    fn av1_sequence_header_from_a_real_stream() {
+        let hints = scan_av1(av1_config_obus(&AV1C_HDR10));
+        assert_eq!(
+            hints.color,
+            Some(ColorDescription {
+                primaries: 9,
+                transfer: 16,
+                matrix: 9
+            })
+        );
+        // Truncated header: no colour, no panic.
+        for n in 0..AV1C_HDR10.len() - 6 {
+            assert_eq!(av1_sequence_color(&AV1C_HDR10[6..6 + n]), None);
+        }
+    }
+
+    #[test]
+    fn av1_reduced_still_picture_header() {
+        let bits = concat!(
+            "000",      // seq_profile
+            "11",       // still_picture, reduced_still_picture_header
+            "00000",    // seq_level_idx
+            "0000",     // frame_width_bits_minus_1
+            "0000",     // frame_height_bits_minus_1
+            "00",       // max_frame_width/height_minus_1
+            "000",      // superblock, filter intra, intra edge
+            "000",      // superres, cdef, restoration
+            "00",       // high_bitdepth, mono_chrome
+            "1",        // color_description_present_flag
+            "00000001", // BT.709 primaries
+            "00010010", // HLG transfer
+            "00000001", // BT.709 matrix
+        );
+        let bytes: Vec<u8> = bits
+            .as_bytes()
+            .chunks(8)
+            .map(|c| {
+                let s = format!("{:0<8}", std::str::from_utf8(c).unwrap());
+                u8::from_str_radix(&s, 2).unwrap()
+            })
+            .collect();
+        assert_eq!(
+            av1_sequence_color(&bytes),
+            Some(ColorDescription {
+                primaries: 1,
+                transfer: 18,
+                matrix: 1
+            })
+        );
+    }
+
+    #[test]
+    fn hevc_static_metadata_sei() {
+        let mut nal = vec![HEVC_PREFIX_SEI << 1, 1, SEI_MDCV as u8, 24];
+        nal.extend_from_slice(&[0x11; 24]);
+        nal.extend_from_slice(&[SEI_CLL as u8, 4, 0x03, 0xE8, 0x01, 0x90, 0x80]);
+        let hints = scan_hevc(&length_prefixed(&[nal]), NalFraming::Length(4));
+        assert!(hints.mastering_display && hints.content_light_level);
+        assert!(!hints.hdr10plus);
     }
 
     #[test]
