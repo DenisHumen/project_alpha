@@ -20,7 +20,7 @@ class AppServices extends ChangeNotifier {
     this.playerEngineFactory,
     Locale Function()? systemLocale,
   }) : preferences = preferences ?? MemoryPreferences(),
-       systemLocale = systemLocale ?? _platformLocale;
+       systemLocale = systemLocale ?? _platformLocale,
        music =
            music ?? MusicPlayerController(engineFactory: playerEngineFactory);
 
