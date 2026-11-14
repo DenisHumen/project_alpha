@@ -1,0 +1,165 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# LGPL-2.1+ libsmb2 for every client target (NET-002). Builds
+# tools/libsmb2/build.sh as a shared library for Linux, Windows, Android
+# (3 ABIs) and Apple (macOS dylib; iOS and tvOS embedded frameworks incl.
+# simulators, plus one smb2.xcframework), runs the licence and linkage gate
+# on every artifact and uploads the result. libsmb2 builds in about a minute,
+# so only the source tarball is cached.
+name: libsmb2 (LGPL)
+
+on:
+  pull_request:
+    # CI on PRs runs once when the PR is opened or marked ready (not on every
+    # push to a draft). Re-run manually: gh workflow run <file> --ref <branch>.
+    types: [opened, reopened, ready_for_review]
+    paths:
+      - "tools/libsmb2/**"
+      - ".github/workflows/libsmb2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: libsmb2-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ANDROID_NDK_PACKAGE: "ndk;28.2.13676358" # r28c
+
+jobs:
+  sources:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: Sources and static-build canary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Cache source tarball
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/libsmb2/.cache
+          key: libsmb2-src-${{ hashFiles('tools/libsmb2/versions.sh') }}
+      - name: Download and verify pinned source
+        run: tools/libsmb2/build.sh fetch
+      - name: A static build must fail
+        run: |
+          for flag in -DBUILD_SHARED_LIBS=OFF -DENABLE_LIBKRB5=ON; do
+            if out="$(PA_SMB2_EXTRA_FLAGS="$flag" tools/libsmb2/build.sh linux-x86_64 2>&1)"; then
+              echo "::error::build accepted $flag"; exit 1
+            fi
+            printf '%s\n' "$out" | grep -q 'forbidden libsmb2 option' \
+              || { printf '%s\n' "$out"; echo "::error::$flag failed for the wrong reason"; exit 1; }
+            echo "rejected: $flag"
+          done
+      - name: Licence gate rejects a static CMakeCache
+        run: |
+          d="$RUNNER_TEMP/fake-static"; mkdir -p "$d"
+          printf '%s\n' 'BUILD_SHARED_LIBS:BOOL=OFF' 'ENABLE_LIBKRB5:BOOL=OFF' 'ENABLE_GSSAPI:BOOL=OFF' > "$d/CMakeCache.txt"
+          if tools/libsmb2/check-license.sh --config "$d"; then echo "::error::static CMakeCache passed"; exit 1; fi
+
+  docker:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: ${{ matrix.target }}
+    needs: sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [linux-x86_64, windows-x86_64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Restore source tarball
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/libsmb2/.cache
+          key: libsmb2-src-${{ hashFiles('tools/libsmb2/versions.sh') }}
+          fail-on-cache-miss: true
+      # The gate runs inside the image as part of the build (ldd + check_smb2
+      # for Linux, objdump of the DLL for Windows).
+      - name: Build and check
+        run: PA_SMB2_JOBS="$(nproc)" tools/libsmb2/docker-build.sh "${{ matrix.target }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libsmb2-${{ matrix.target }}
+          path: tools/libsmb2/out/${{ matrix.target }}
+          retention-days: 7
+          if-no-files-found: error
+
+  android:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: ${{ matrix.target }}
+    needs: sources
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [android-arm64-v8a, android-armeabi-v7a, android-x86_64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Restore source tarball
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/libsmb2/.cache
+          key: libsmb2-src-${{ hashFiles('tools/libsmb2/versions.sh') }}
+          fail-on-cache-miss: true
+      - name: Install toolchain
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends ninja-build cmake
+          # sdkmanager verifies the package checksum from Google's repository.
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "$ANDROID_NDK_PACKAGE" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/${ANDROID_NDK_PACKAGE/;//}" >> "$GITHUB_ENV"
+      - name: Build and check
+        run: PA_SMB2_JOBS="$(nproc)" tools/libsmb2/build.sh "${{ matrix.target }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libsmb2-${{ matrix.target }}
+          path: tools/libsmb2/out/${{ matrix.target }}
+          retention-days: 7
+          if-no-files-found: error
+
+  apple:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: apple
+    needs: sources
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Restore source tarball
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/libsmb2/.cache
+          key: libsmb2-src-${{ hashFiles('tools/libsmb2/versions.sh') }}
+          fail-on-cache-miss: true
+      - name: Install toolchain
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install ninja
+          cmake --version
+          xcodebuild -version
+      # Sequential in one job: each slice takes well under a minute, and the
+      # XCFramework needs all of them. macos-arm64 also runs check_smb2.
+      - name: Build and check
+        run: |
+          for t in macos-arm64 macos-x86_64 ios-arm64 ios-sim-arm64 tvos-arm64 tvos-sim-arm64; do
+            PA_SMB2_JOBS="$(sysctl -n hw.ncpu)" tools/libsmb2/build.sh "$t"
+          done
+          tools/libsmb2/build.sh xcframework
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: libsmb2-apple
+          path: tools/libsmb2/out
+          retention-days: 7
+          if-no-files-found: error

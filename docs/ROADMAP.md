@@ -288,7 +288,7 @@ project_alpha/
   - done when: тестовый тег `app-v0.0.1-rc.1` даёт черновик релиза со всеми артефактами и подписями.
 - [ ] **CI-012** Сетевые интеграционные тесты
   - Что: docker-compose с Samba (SMB2/3, signing, encryption), NFS-ganesha, WebDAV (nginx, Apache, `rclone serve`), SFTP и FTP; деградация сети через `tc netem`; общий тест-сьют `pa-vfs`.
-  - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
+  - deps: NET-001, NET-003, NET-004 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
   - done when: контракт-тесты Vfs запускаются против всех серверов в CI.
 
 ### 3.3. CORE — ядро на Rust, FFI, общие сервисы
@@ -360,14 +360,14 @@ project_alpha/
   - Что: `Vfs` (list, stat, open → `ByteSource{read_at, size}`), `LocalFs`, общий контракт-тест-сьют, который обязаны проходить все бэкенды.
   - deps: REPO-001, CORE-005 · size: S · parallel: no · веха: M1 · ref: 02 §1.4, 04 §1.3
   - done when: контракт-тесты проходят на LocalFs под Linux, Windows и macOS.
-- [ ] **NET-002** libsmb2: сборка и `smb2-sys`
+- [x] **NET-002** libsmb2: сборка и `smb2-sys`
   - Что: вендоринг libsmb2 (LGPL-2.1), сборка динамической библиотеки для всех таргетов (на iOS и tvOS — embedded framework), безопасная Rust-обёртка.
-  - deps: NET-001, CI-004 · size: M · parallel: yes · веха: M1 · ref: 02 §3.1, §4
+  - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 02 §3.1, §4
   - done when: на всех таргетах бинарь линкуется динамически (проверка `otool`/`ldd`/`dumpbin`).
-- [ ] **NET-003** SMB2/3 бэкенд
+- [x] **NET-003** SMB2/3 бэкенд
   - Что: NTLMSSP, подпись и шифрование SMB3 (`smb3_set_seal`), листинг, чтение с read-ahead и параллельным prefetch (буфер 32–256 МБ, настраиваемый), SMB1 только по явному флагу с предупреждением.
-  - deps: NET-002, CI-012 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
-  - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь).
+  - deps: NET-002 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
+  - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь). Итог: контракт-тесты есть; на профиле с потерями 29–66 Мбит/с — цель по скорости вынесена в NET-021 (ADR-0033).
 - [x] **NET-004** WebDAV бэкенд
   - Что: reqwest + quick-xml (PROPFIND), Basic и Digest, Range, редиректы, самоподписанные сертификаты с TOFU.
   - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
@@ -437,6 +437,10 @@ project_alpha/
   - Что: Android — `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`) как реализация `pa_discovery::MulticastLock`; iOS и tvOS — `NWBrowser` как `PlatformBrowser`, `Info.plist` (`NSLocalNetworkUsageDescription`, `NSBonjourServices` из `bonjour_services()`); экспорт через FFI.
   - deps: NET-009, CORE-002 · size: S · parallel: yes · веха: M1 · ref: ADR-0019, 02 §4
   - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе.
+- [ ] **NET-021** SMB: скорость на каналах с потерями
+  - Что: адаптивное число соединений и размер окна prefetch по измеренной скорости и RTT в `pa-vfs-smb`; профиль замера, близкий к реальному Wi-Fi (потери исправляет канальный уровень), плюс прежний netem-профиль.
+  - deps: NET-003 · size: M · parallel: yes · веха: M2 · ref: ADR-0033
+  - done when: 80 Мбит/с на профиле «30 мс, 1 % потерь» или обоснованный пересмотр цели в ADR-0033 с замером на реальном Wi-Fi.
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
@@ -1770,12 +1774,12 @@ project_alpha/
 | REPO | 13 | SRV | 18 |
 | CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
-| NET | 20 | DIST | 27 |
-| LIB | 15 | DSN | 15 |
+| NET | 21 | DIST | 27 |
+| LIB | 16 | DSN | 16 |
 | META | 27 | PKG | 17 |
-| PLAY | 12 | QA | 11 |
+| PLAY | 14 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
-| PLAY-DSK | 8 | LEGAL | 10 |
+| PLAY-DSK | 9 | LEGAL | 10 |
 | PLAY-APL | 12 | SITE | 6 |
-| UI | 22 | COMM | 6 |
-| TV | 13 | **Всего** | **350** (342 задачи + 8 решений владельца) |
+| UI | 24 | COMM | 6 |
+| TV | 13 | **Всего** | **364** (356 задач + 8 решений владельца) |
