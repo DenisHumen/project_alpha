@@ -14,6 +14,7 @@
 - **[Kinolune 0.1.0-alpha.1](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.1)** (2026-11-13, пре-релиз): Linux AppImage/tar.gz, Android APK (arm64, armv7, x86_64, universal; debug-подпись). Linux требует системный libmpv.
 - **[Kinolune 0.1.0-alpha.2](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.2)** (2026-11-14): наш LGPL libmpv внутри AppImage и APK.
 - **[Kinolune 0.1.0-alpha.3](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.3)** (2026-11-14): медиатека на Rust-ядре по умолчанию (импорт базы v0 с резервной копией), метаданные TMDB/AniList/Shikimori в ядре, сессия воспроизведения (resume, Up Next), структура папок (диски, части, extras).
+- **[Kinolune 0.1.0-alpha.4](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.4)** (2026-11-14): SMB/WebDAV через ядро (libsmb2 в AppImage и APK), главная, сетка медиатеки с фильтрами, поиск, сопряжение устройств и LAN-синхронизация прогресса, кэш картинок, исправлены отступы Android и окно плеера на Linux.
 
 ## Готово и в main
 
@@ -27,9 +28,9 @@
 
 ## В работе (агенты, ветки на GitHub)
 
-LIB-019 (libsmb2 в AppImage/APK, локальные Android-сборки с нашим libmpv, проверка SMB/WebDAV в собранном приложении), TWI-004 (воспроизведение Twitch: GQL → usher по флагам удалённого конфига). Открытые PR: `gh pr list`.
+NET-020 (обнаружение SMB/WebDAV в LAN на экране «Источники»). Открытые PR: `gh pr list`.
 
-Слито 14 ноября (вторая волна): UI-019 (сопряжение устройств по QR/коду и LAN-синхронизация прогресса в приложении, ADR-0040), TWI-010 (чат Twitch `pa-twitch-chat`), CORE-014 (удалённый конфиг с подписью minisign, ADR-0039; ключ — за владельцем), UI-011 (поиск), UI-008 (сетка медиатеки), UI-007 (главная), LIB-018 (скан и воспроизведение SMB/WebDAV через `pa-vfs` + loopback-прокси, ADR-0038), CORE-015 (Keystore/Keychain, ADR-0037), LIB-013 (кэш картинок, ADR-0036), LIB-009 (фильтры/сортировки/умные полки), UI-005 (экран «Источники»), LIB-005 (watcher), META-013 (группы + NFO в распознавании; замер на реальном TMDB — META-028).
+Слито 14 ноября (вторая волна): CORE-013 (флейворы store/full, ADR-0041), UI-022-фикс (отступы Android, окно плеера Linux), LIB-019 (libsmb2 в сборках, проверка на Linux и эмуляторе), TWI-004 (воспроизведение Twitch по флагам конфига), UI-019 (сопряжение устройств по QR/коду и LAN-синхронизация прогресса в приложении, ADR-0040), TWI-010 (чат Twitch `pa-twitch-chat`), CORE-014 (удалённый конфиг с подписью minisign, ADR-0039; ключ — за владельцем), UI-011 (поиск), UI-008 (сетка медиатеки), UI-007 (главная), LIB-018 (скан и воспроизведение SMB/WebDAV через `pa-vfs` + loopback-прокси, ADR-0038), CORE-015 (Keystore/Keychain, ADR-0037), LIB-013 (кэш картинок, ADR-0036), LIB-009 (фильтры/сортировки/умные полки), UI-005 (экран «Источники»), LIB-005 (watcher), META-013 (группы + NFO в распознавании; замер на реальном TMDB — META-028).
 
 Первая волна 14 ноября: LIB-007, UI-024 (приложение на Rust-ядре), META-027, PLAY-005, NET-011, LIB-006 (ADR-0034), PLAY-APL-001 (ADR-0035), NET-002/003/004, SYNC-006, CORE-007, TV-001, PLAY-002, PLAY-013, CORE-003.
 
