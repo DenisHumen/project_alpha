@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Samba and WebDAV for the LIB-018 end-to-end test: the catalog scans and
+# streams both through pa-sources. Reuses the server configs of the
+# NET-003/NET-004 contract suites. Started by run.sh, which seeds
+# $PA_SERVERS_DATA and $PA_SERVERS_AUTH first. Ports are bound to 127.0.0.1
+# only; bind mounts only, no named volumes.
+
+services:
+  samba:
+    image: alpine:3.22
+    command: [sh, /etc/pa/start.sh]
+    volumes:
+      - ../../../pa-vfs-smb/tests/servers/smb.conf:/etc/pa/smb.conf:ro
+      - ../../../pa-vfs-smb/tests/servers/start.sh:/etc/pa/start.sh:ro
+      - ${PA_SERVERS_DATA}:/data:ro
+    environment:
+      PA_SMB_USER: ${PA_SERVERS_USER}
+      PA_SMB_PASS: ${PA_SERVERS_PASS}
+    ports:
+      - 127.0.0.1:18545:445
+
+  webdav:
+    image: alpine:3.22
+    command:
+      - sh
+      - -c
+      - apk add --no-cache nginx nginx-mod-http-dav-ext >/dev/null && exec nginx -c /etc/pa/nginx.conf -g 'daemon off;'
+    volumes:
+      - ../../../pa-vfs-webdav/tests/servers/nginx.conf:/etc/pa/nginx.conf:ro
+      - ${PA_SERVERS_DATA}:/data:ro
+      - ${PA_SERVERS_AUTH}:/auth:ro
+    ports:
+      - 127.0.0.1:18581:8080

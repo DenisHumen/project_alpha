@@ -9,6 +9,10 @@ license.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[features]
+# Tests against Samba and WebDAV in Docker (tests/servers/run.sh).
+server-tests = []
+
 [dependencies]
 notify.workspace = true
 pa-library = { path = "../pa-library" }
