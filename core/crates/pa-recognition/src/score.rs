@@ -132,6 +132,10 @@ pub struct FileMatch {
     pub episodes: Vec<EpisodeRef>,
     /// Why.
     pub signals: Signals,
+    /// `(season, episode)` exactly as written (`S04E15`, `Season 4/… - 15`):
+    /// the TMDB order of most releases, whatever record the file maps to.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub written: Vec<(u32, u32)>,
     /// Best readings per record, best first (the decision included), for
     /// explanations and the review UI.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -367,11 +371,18 @@ impl Scorer {
                 episodes: h.episodes.clone(),
             })
             .collect();
+        let written = match numbers.season {
+            Some(season) if best.absolute.is_empty() => {
+                numbers.values.iter().map(|&e| (season, e)).collect()
+            }
+            _ => Vec::new(),
+        };
         FileMatch {
             record: Some(top.record),
             confidence: confidence(&signals, best),
             episodes: top.episodes.clone(),
             signals,
+            written,
             alternatives,
         }
     }
@@ -388,6 +399,16 @@ impl Scorer {
     ) {
         let rec = index.record(c.record);
         let mut base = c.score + agreement(best, numbers, rec);
+        // The written title says more than the matched one (`Fairy Tail
+        // Final Series` → `Fairy Tail`, matched on the base key only).
+        if c.tier == MatchTier::Base
+            && let Some(q) = best.title.as_deref()
+        {
+            let (qk, mk) = (TitleKey::new(q), TitleKey::new(&rec.titles[c.title]));
+            if qk.loose != qk.base && mk.loose == mk.base {
+                base -= 0.05;
+            }
+        }
         let anime_series = rec.anime && rec.kind == WorkKind::Series;
         if !anime_series || numbers.values.is_empty() {
             let episodes = match (rec.anime, rec.kind, numbers.season) {
@@ -732,7 +753,9 @@ fn place(
 /// Hand-set mapping of the signals to `[0, 1]`.
 fn confidence(s: &Signals, best: &ParsedName) -> f32 {
     let quality = ((s.top - 0.70) / 0.30).clamp(0.0, 1.0);
-    let separation = (s.margin / 0.10).clamp(0.0, 1.0);
+    // Margins of 0.075 and more separate cleanly on train/dev; a literal
+    // title bonus alone (≤ 0.08 between same-key titles) is just enough.
+    let separation = ((s.margin - 0.03) / 0.045).clamp(0.0, 1.0);
     let mut c = 0.25 + 0.75 * quality * separation;
     if matches!(s.tier, Some(MatchTier::Fuzzy)) {
         c *= 0.85;
