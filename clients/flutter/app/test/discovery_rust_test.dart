@@ -30,37 +30,43 @@ final en = lookupAppLocalizations(const Locale('en'));
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  final lan = Platform.environment['PA_LAN_SMB_INSTANCE'];
+  final port = lan == null ? 30000 + Random().nextInt(20000) : null;
+  final want = lan ?? 'Loopback NAS';
+  late CoreSourceDiscovery discovery;
+  CoreDiscovery? announcer;
+
+  // The core is opened outside the widget test's fake-async zone.
   setUpAll(() async {
     await loadAppFonts();
     await RustLibrary.ensureInitialized(
       externalLibrary: openBuiltCoreLibrary(),
     );
+    discovery = await CoreSourceDiscovery.open(loopbackPort: port);
+    if (port != null) {
+      announcer = await CoreDiscovery.open(
+        config: CoreDiscoveryConfig(loopbackPort: port, ownIds: const []),
+        multicastLock: (_) {},
+      );
+      await announcer!.announce(
+        kind: CoreServiceKind.smb,
+        instance: want,
+        port: 4450,
+        txt: const [],
+      );
+    }
+  });
+
+  // Closing ends the core's streams; an open stream keeps the test
+  // process alive.
+  tearDownAll(() async {
+    await discovery.close();
+    await announcer?.close();
   });
 
   testWidgets('a share on the network is offered and prefills the form', (
     tester,
   ) async {
-    final lan = Platform.environment['PA_LAN_SMB_INSTANCE'];
-    final port = lan == null ? 30000 + Random().nextInt(20000) : null;
-    final want = lan ?? 'Loopback NAS';
-    late CoreSourceDiscovery discovery;
-    CoreDiscovery? announcer;
-    await tester.runAsync(() async {
-      discovery = await CoreSourceDiscovery.open(loopbackPort: port);
-      if (port != null) {
-        announcer = await CoreDiscovery.open(
-          config: CoreDiscoveryConfig(loopbackPort: port, ownIds: const []),
-          multicastLock: (_) {},
-        );
-        await announcer!.announce(
-          kind: CoreServiceKind.smb,
-          instance: want,
-          port: 4450,
-          txt: const [],
-        );
-      }
-    });
-
     setSurface(tester, const Size(1280, 900));
     final services = await demoServices(discovery: discovery);
     await tester.pumpWidget(testApp(services, section: Section.settings));
@@ -91,10 +97,5 @@ void main() {
       expect(host, matches(RegExp(r'^\d+\.\d+\.\d+\.\d+(:\d+)?$')));
     }
     await capture(tester, 'net020-add-source-prefilled');
-
-    await tester.runAsync(() async {
-      await discovery.close();
-      await announcer?.close();
-    });
   });
 }

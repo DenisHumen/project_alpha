@@ -136,6 +136,7 @@ class CoreSourceDiscovery implements SourceDiscovery {
     return out.stream;
   }
 
-  /// Stops browsing and releases the multicast lock.
-  Future<void> close() => _serial(_core.close);
+  /// Stops browsing and releases the multicast lock. Not queued behind
+  /// pending browse or stop calls: after it they do nothing.
+  Future<void> close() => _core.close();
 }

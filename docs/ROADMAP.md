@@ -433,7 +433,7 @@ project_alpha/
   - deps: NET-001, CORE-011 · size: M · parallel: yes · веха: M4 · ref: 04 §1.9, 02 §4
   - done when: загрузка 4 ГБ с SMB докачивается после обрыва сети; прогресс приходит в UI.
 
-- [ ] **NET-020** Обвязка обнаружения в LAN на Android и Apple
+- [x] **NET-020** Обвязка обнаружения в LAN на Android и Apple
   - Что: Android — `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`) как реализация `pa_discovery::MulticastLock`; iOS и tvOS — `NWBrowser` как `PlatformBrowser`, `Info.plist` (`NSLocalNetworkUsageDescription`, `NSBonjourServices` из `bonjour_services()`); экспорт через FFI.
   - deps: NET-009, CORE-002 · size: S · parallel: yes · веха: M1 · ref: ADR-0019, 02 §4
   - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе.
