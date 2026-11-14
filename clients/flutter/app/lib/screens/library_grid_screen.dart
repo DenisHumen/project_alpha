@@ -228,7 +228,10 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
     final d = KDensity.of(context);
     final offset = _list
         ? index * _rowExtent(d)
-        : _gridDelegate(d).getLayout(c).getGeometryForChildIndex(index).scrollOffset;
+        : _gridDelegate(d)
+              .getLayout(c)
+              .getGeometryForChildIndex(index)
+              .scrollOffset;
     final pos = _scroll.position;
     _scroll.jumpTo(
       (c.precedingScrollExtent + offset).clamp(
@@ -340,7 +343,9 @@ class _LibraryGridScreenState extends State<LibraryGridScreen> {
             sliver: SliverLayoutBuilder(
               builder: (context, c) {
                 _itemConstraints = c;
-                return _list ? _listSliver(d, paged, total) : _gridSliver(d, paged, total);
+                return _list
+                    ? _listSliver(d, paged, total)
+                    : _gridSliver(d, paged, total);
               },
             ),
           ),
@@ -740,10 +745,8 @@ class _NewLabel extends StatelessWidget {
     ),
     child: Text(
       context.l10n.libraryBadgeNew,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.w700,
-      ),
+      style: Theme.of(context).textTheme.labelSmall
+          ?.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
     ),
   );
 }

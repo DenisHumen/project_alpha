@@ -82,7 +82,7 @@ Future<AppServices> _services(
     lib,
     supportsFilters: filters,
     genresOf: (i) => _genres[i.id] ?? const [],
-    badges: filters ? lib.badges : null,
+    badgeSource: filters ? lib.badges : null,
   );
   final s = AppServices(
     library: lib,
@@ -111,20 +111,31 @@ Future<void> _pump(
 }
 
 Future<void> _tapKey(WidgetTester t, String key) async {
-  await t.tap(find.byKey(ValueKey(key)));
+  final f = find.byKey(ValueKey(key));
+  await t.ensureVisible(f);
+  await settle(t, 2);
+  await t.tap(f);
   await settle(t, 6);
 }
 
+/// The caption (grid) or row title (list) of an item, not the title drawn
+/// into its generated artwork.
+Finder _title(String s) => find.byWidgetPredicate(
+  (w) => w is Text && w.data == s && w.maxLines == 1,
+  description: 'title "$s"',
+);
+
 /// Titles on screen in reading order.
 List<String> _order(WidgetTester t, List<String> titles) {
-  final shown = [
-    for (final title in titles)
-      if (find.text(title).evaluate().isNotEmpty)
-        (title, t.getTopLeft(find.text(title).first)),
-  ]..sort((a, b) {
-      final dy = a.$2.dy.compareTo(b.$2.dy);
-      return dy != 0 ? dy : a.$2.dx.compareTo(b.$2.dx);
-    });
+  final shown =
+      [
+        for (final title in titles)
+          if (_title(title).evaluate().isNotEmpty)
+            (title, t.getTopLeft(_title(title).first)),
+      ]..sort((a, b) {
+        final dy = a.$2.dy.compareTo(b.$2.dy);
+        return dy != 0 ? dy : a.$2.dx.compareTo(b.$2.dx);
+      });
   return [for (final (title, _) in shown) title];
 }
 
@@ -248,33 +259,41 @@ void main() {
     testWidgets('a letter jumps to its first title', (t) async {
       await _pump(t, await _services(many));
       expect(find.byKey(const ValueKey('alphabet-index')), findsOneWidget);
-      expect(find.text('A title 0'), findsOneWidget);
-      expect(find.text('T title 0'), findsNothing);
+      expect(_title('A title 0'), findsOneWidget);
+      expect(_title('T title 0'), findsNothing);
 
       await t.tap(find.byKey(const ValueKey('alpha-T')));
       await settle(t, 4);
-      expect(find.text('T title 0'), findsOneWidget);
-      expect(find.text('A title 0'), findsNothing);
-      final top = t.getTopLeft(find.text('T title 0')).dy;
+      expect(_title('T title 0'), findsOneWidget);
+      expect(_title('A title 0'), findsNothing);
+      final top = t.getTopLeft(_title('T title 0')).dy;
       expect(top, lessThan(400));
 
       // Dragging the strip scrubs through the letters.
       final strip = t.getRect(find.byKey(const ValueKey('alphabet-index')));
       await t.dragFrom(
         t.getCenter(find.byKey(const ValueKey('alpha-B'))),
-        Offset(0, t.getCenter(find.byKey(const ValueKey('alpha-E'))).dy -
-            t.getCenter(find.byKey(const ValueKey('alpha-B'))).dy),
+        Offset(
+          0,
+          t.getCenter(find.byKey(const ValueKey('alpha-E'))).dy -
+              t.getCenter(find.byKey(const ValueKey('alpha-B'))).dy,
+        ),
       );
       await settle(t, 4);
       expect(strip.height, greaterThan(0));
-      expect(find.text('E title 0'), findsOneWidget);
+      expect(_title('E title 0'), findsOneWidget);
 
-      // List mode jumps too.
+      // List mode jumps too (the toolbar is at the top).
+      t
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .jumpTo(0);
+      await settle(t, 2);
       await _tapKey(t, 'layout-list');
       await t.tap(find.byKey(const ValueKey('alpha-W')));
       await settle(t, 4);
-      expect(find.text('W title 0'), findsOneWidget);
-      expect(find.text('A title 0'), findsNothing);
+      expect(_title('W title 0'), findsOneWidget);
+      expect(_title('A title 0'), findsNothing);
     });
 
     testWidgets('only shown when sorted by title', (t) async {
@@ -293,23 +312,32 @@ void main() {
     await _tapKey(t, 'layout-list');
     expect(find.byType(PosterCard), findsNothing);
     expect(_order(t, _titles), _titles);
-    expect(find.byKey(const ValueKey('badge-progress-m-bravo')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('badge-progress-m-bravo')),
+      findsOneWidget,
+    );
     expect(prefs.values[Preferences.libraryLayout('movies')], 'list');
 
     await t.pumpWidget(const SizedBox());
     await settle(t, 2);
     await _pump(t, s);
     expect(find.byType(PosterCard), findsNothing);
-    expect(find.text('Alpha Station'), findsOneWidget);
+    expect(_title('Alpha Station'), findsOneWidget);
     await _tapKey(t, 'layout-grid');
     expect(find.byType(PosterCard), findsNWidgets(5));
-    expect(prefs.values.containsKey(Preferences.libraryLayout('movies')), false);
+    expect(
+      prefs.values.containsKey(Preferences.libraryLayout('movies')),
+      false,
+    );
   });
 
   testWidgets('badges: watched, progress, new', (t) async {
     await _pump(t, await _services(_items, progress: _progress));
     expect(find.byKey(const ValueKey('badge-watched-m-alpha')), findsOneWidget);
-    expect(find.byKey(const ValueKey('badge-progress-m-bravo')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('badge-progress-m-bravo')),
+      findsOneWidget,
+    );
     expect(find.byKey(const ValueKey('badge-new-m-delta')), findsOneWidget);
     expect(find.text('New'), findsOneWidget);
     for (final id in ['m-alpha', 'm-bravo', 'm-charlie', 'm-zulu']) {
@@ -346,7 +374,10 @@ void main() {
       }
       expect(find.text('soon'), findsNWidgets(4));
 
-      expect(find.byKey(const ValueKey('badge-watched-m-charlie')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('badge-watched-m-charlie')),
+        findsNothing,
+      );
       await _tapKey(t, 'item-menu-markWatched');
       expect(
         find.byKey(const ValueKey('badge-watched-m-charlie')),
@@ -421,10 +452,7 @@ void main() {
     final watch = Stopwatch()..start();
     await _pump(
       t,
-      await _services(
-        items,
-        wrap: (q) => _CountingQueries(q, counting),
-      ),
+      await _services(items, wrap: (q) => _CountingQueries(q, counting)),
     );
     expect(find.text('10000 titles'), findsOneWidget);
     // Only a few pages are asked for, never the whole library.
@@ -447,13 +475,11 @@ void main() {
     // Jump to the last letter and to the end of the list.
     await t.tap(find.byKey(const ValueKey('alpha-Z')));
     await settle(t, 4);
-    expect(find.text('Z movie 00025'), findsOneWidget);
-    final scrollable = t.state<ScrollableState>(
-      find.byType(Scrollable).first,
-    );
+    expect(_title('Z movie 00025'), findsOneWidget);
+    final scrollable = t.state<ScrollableState>(find.byType(Scrollable).first);
     scrollable.position.jumpTo(scrollable.position.maxScrollExtent);
     await settle(t, 4);
-    expect(find.text('Z movie 09983'), findsOneWidget);
+    expect(_title('Z movie 09983'), findsOneWidget);
     expect(find.byType(PosterCard).evaluate().length, lessThanOrEqualTo(120));
     // 84 pages in all; the grid asked only for the ones it showed.
     expect(counting.length, lessThan(40), reason: '$counting');

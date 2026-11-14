@@ -139,25 +139,23 @@ class FakeLibrary implements Library, LibraryQueriesProvider {
   late final LibraryQueries queries = MemoryLibraryQueries(
     this,
     supportsFilters: true,
+    defaultSort: recentlyAddedFirst,
     genresOf: demoGenres,
-    badges: badges,
+    badgeSource: badges,
   );
 
   /// Watch badges from the stored progress: a movie by its own, a show
   /// watched when all its episodes are, in progress when one is started.
-  Stream<Map<String, ItemBadge>> badges(ItemKind kind) => combineLatest2(
-    _items.stream,
-    _progress.stream,
-    (items, progress) {
-      final c = _badgeMaps[kind];
-      if (c != null && identical(c.$1, items) && identical(c.$2, progress)) {
-        return c.$3;
-      }
-      final out = _badgesOf(kind, items, progress);
-      _badgeMaps[kind] = (items, progress, out);
-      return out;
-    },
-  );
+  Stream<Map<String, ItemBadge>> badges(ItemKind kind) =>
+      combineLatest2(_items.stream, _progress.stream, (items, progress) {
+        final c = _badgeMaps[kind];
+        if (c != null && identical(c.$1, items) && identical(c.$2, progress)) {
+          return c.$3;
+        }
+        final out = _badgesOf(kind, items, progress);
+        _badgeMaps[kind] = (items, progress, out);
+        return out;
+      });
 
   final _badgeMaps =
       <
@@ -170,35 +168,35 @@ class FakeLibrary implements Library, LibraryQueriesProvider {
     List<LibraryItem> items,
     Map<String, Progress> progress,
   ) {
-      final out = <String, ItemBadge>{};
-      if (kind == ItemKind.show) {
-        final episodes = <String, List<String>>{};
-        for (final i in items) {
-          if (i.kind == ItemKind.episode && i.showId != null) {
-            (episodes[i.showId!] ??= []).add(i.id);
-          }
-        }
-        for (final MapEntry(key: show, value: ids) in episodes.entries) {
-          final ps = [for (final id in ids) progress[id]];
-          if (ps.every((p) => p?.watched ?? false)) {
-            out[show] = const ItemBadge(WatchState.watched);
-          } else if (ps.any((p) => p != null && p.positionMs > 0)) {
-            out[show] = const ItemBadge(WatchState.inProgress);
-          }
-        }
-        return out;
-      }
+    final out = <String, ItemBadge>{};
+    if (kind == ItemKind.show) {
+      final episodes = <String, List<String>>{};
       for (final i in items) {
-        if (i.kind != kind) continue;
-        final p = progress[i.id];
-        if (p == null) continue;
-        if (p.watched || p.fraction > .95) {
-          out[i.id] = const ItemBadge(WatchState.watched);
-        } else if (p.fraction >= .02) {
-          out[i.id] = ItemBadge(WatchState.inProgress, p.fraction);
+        if (i.kind == ItemKind.episode && i.showId != null) {
+          (episodes[i.showId!] ??= []).add(i.id);
+        }
+      }
+      for (final MapEntry(key: show, value: ids) in episodes.entries) {
+        final ps = [for (final id in ids) progress[id]];
+        if (ps.every((p) => p?.watched ?? false)) {
+          out[show] = const ItemBadge(WatchState.watched);
+        } else if (ps.any((p) => p != null && p.positionMs > 0)) {
+          out[show] = const ItemBadge(WatchState.inProgress);
         }
       }
       return out;
+    }
+    for (final i in items) {
+      if (i.kind != kind) continue;
+      final p = progress[i.id];
+      if (p == null) continue;
+      if (p.watched || p.fraction > .95) {
+        out[i.id] = const ItemBadge(WatchState.watched);
+      } else if (p.fraction >= .02) {
+        out[i.id] = ItemBadge(WatchState.inProgress, p.fraction);
+      }
+    }
+    return out;
   }
 
   @override
@@ -230,7 +228,9 @@ class FakeLibrary implements Library, LibraryQueriesProvider {
   List<LibraryItem> _kindList(List<LibraryItem> all, ItemKind kind) {
     final c = _kindLists[kind];
     if (c != null && identical(c.$1, all)) return c.$2;
-    final out = List<LibraryItem>.unmodifiable(all.where((i) => i.kind == kind));
+    final out = List<LibraryItem>.unmodifiable(
+      all.where((i) => i.kind == kind),
+    );
     _kindLists[kind] = (all, out);
     return out;
   }

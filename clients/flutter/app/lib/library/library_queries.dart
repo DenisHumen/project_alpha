@@ -63,7 +63,8 @@ abstract class LibraryQueries {
   factory LibraryQueries.forLibrary(Library library) => switch (library) {
     RustLibrary() => RustLibraryQueries(library),
     LibraryQueriesProvider(:final queries) => queries,
-    _ => MemoryLibraryQueries(library),
+    // The v0 grid listed the newest titles first.
+    _ => MemoryLibraryQueries(library, defaultSort: recentlyAddedFirst),
   };
 
   /// Whether filters (and facets) are available; the v0 fallback has none.
@@ -101,6 +102,12 @@ abstract class LibraryQueries {
 abstract interface class LibraryQueriesProvider {
   LibraryQueries get queries;
 }
+
+/// Newest titles first: the default of the in-memory views (demo, v0).
+const recentlyAddedFirst = LibrarySort(
+  field: SortField.added,
+  descending: true,
+);
 
 /// Latest values of [a] and [b], once both have one.
 Stream<R> combineLatest2<A, B, R>(
@@ -222,8 +229,9 @@ class MemoryLibraryQueries implements LibraryQueries {
     this.library, {
     this.supportsFilters = false,
     this.genresOf,
-    Stream<Map<String, ItemBadge>> Function(ItemKind kind)? badges,
-  }) : _badges = badges;
+    this.badgeSource,
+    this.defaultSort = const LibrarySort(),
+  });
 
   final Library library;
 
@@ -233,7 +241,11 @@ class MemoryLibraryQueries implements LibraryQueries {
   /// Genres of an item (filters and facets).
   final List<String> Function(LibraryItem item)? genresOf;
 
-  final Stream<Map<String, ItemBadge>> Function(ItemKind kind)? _badges;
+  /// Sort of a view without saved preferences.
+  final LibrarySort defaultSort;
+
+  /// Watch badges by kind; default: from "Continue watching".
+  final Stream<Map<String, ItemBadge>> Function(ItemKind kind)? badgeSource;
 
   final _prefs = <String, ViewPrefs>{};
 
@@ -246,10 +258,39 @@ class MemoryLibraryQueries implements LibraryQueries {
 
   @override
   Stream<Map<String, ItemBadge>> badges(ItemKind kind) =>
-      _badges?.call(kind) ?? continueWatchingBadges(library);
+      badgeSource?.call(kind) ?? continueWatchingBadges(library);
+
+  // Items and badges per kind, kept up to date while the queries live, so
+  // every page query reads the latest state without a new subscription.
+  final _hot = <ItemKind, _HotState>{};
+
+  _HotState _hotFor(ItemKind kind) => _hot.putIfAbsent(kind, () {
+    final h = _HotState();
+    h.sub = combineLatest2(
+      _items(kind),
+      badges(kind),
+      (i, b) => (i, b),
+    ).listen(h.set);
+    return h;
+  });
+
+  Future<(List<LibraryItem>, Map<String, ItemBadge>)> _current(ItemKind kind) {
+    final h = _hotFor(kind);
+    final v = h.value;
+    if (v != null) return Future.value(v);
+    final c = Completer<(List<LibraryItem>, Map<String, ItemBadge>)>();
+    h.waiters.add(c);
+    return c.future;
+  }
 
   Stream<(List<LibraryItem>, Map<String, ItemBadge>)> _state(ItemKind kind) =>
-      combineLatest2(_items(kind), badges(kind), (i, b) => (i, b));
+      Stream.multi((c) {
+        final h = _hotFor(kind);
+        final v = h.value;
+        if (v != null) c.add(v);
+        final s = h.changes.stream.listen(c.add);
+        c.onCancel = s.cancel;
+      });
 
   List<LibraryItem> _apply(
     LibraryQuery q,
@@ -284,7 +325,7 @@ class MemoryLibraryQueries implements LibraryQueries {
     int offset = 0,
     int limit = 100,
   }) async {
-    final (all, b) = await _state(query.kind).first;
+    final (all, b) = await _current(query.kind);
     return _page(_apply(query, all, b), offset, limit);
   }
 
@@ -293,13 +334,13 @@ class MemoryLibraryQueries implements LibraryQueries {
     LibraryQuery query, {
     int offset = 0,
     int limit = 100,
-  }) => _state(
-    query.kind,
-  ).map((s) => _page(_apply(query, s.$1, s.$2), offset, limit));
+  }) =>
+      _state(query.kind)
+          .map((s) => _page(_apply(query, s.$1, s.$2), offset, limit));
 
   @override
   Future<List<AlphabetEntry>> alphabetIndex(LibraryQuery query) async {
-    final (all, b) = await _state(query.kind).first;
+    final (all, b) = await _current(query.kind);
     final byTitle = LibraryQuery(
       query.kind,
       filter: query.filter,
@@ -314,7 +355,7 @@ class MemoryLibraryQueries implements LibraryQueries {
   @override
   Future<LibraryFacets?> facets(ItemKind kind) async {
     if (!supportsFilters) return null;
-    final all = await _items(kind).first;
+    final (all, _) = await _current(kind);
     final genres = <String, int>{};
     int? yMin, yMax;
     for (final i in all) {
@@ -342,10 +383,30 @@ class MemoryLibraryQueries implements LibraryQueries {
 
   @override
   Future<ViewPrefs> viewPrefs(String view) async =>
-      _prefs[view] ?? ViewPrefs(view);
+      _prefs[view] ?? ViewPrefs(view, sort: defaultSort);
 
   @override
-  Future<void> setViewPrefs(ViewPrefs prefs) async => _prefs[prefs.view] = prefs;
+  Future<void> setViewPrefs(ViewPrefs prefs) async =>
+      _prefs[prefs.view] = prefs;
+}
+
+class _HotState {
+  (List<LibraryItem>, Map<String, ItemBadge>)? value;
+  final waiters = <Completer<(List<LibraryItem>, Map<String, ItemBadge>)>>[];
+  final changes =
+      StreamController<(List<LibraryItem>, Map<String, ItemBadge>)>.broadcast(
+        sync: true,
+      );
+  StreamSubscription<Object?>? sub;
+
+  void set((List<LibraryItem>, Map<String, ItemBadge>) v) {
+    value = v;
+    for (final w in waiters) {
+      w.complete(v);
+    }
+    waiters.clear();
+    changes.add(v);
+  }
 }
 
 /// [query] over [all] in memory: genre, year and watch filters (file

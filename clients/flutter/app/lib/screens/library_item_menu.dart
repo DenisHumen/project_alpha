@@ -45,8 +45,7 @@ Future<void> showLibraryItemMenu(
 }) async {
   final l = context.l10n;
   final watched = badge?.state == WatchState.watched;
-  final overlay =
-      Overlay.of(context).context.findRenderObject()! as RenderBox;
+  final overlay = Overlay.of(context).context.findRenderObject()! as RenderBox;
   final local = overlay.globalToLocal(position);
   final actions = [
     LibraryItemAction.play,
