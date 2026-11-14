@@ -29,6 +29,9 @@
 //!   keeps the tokens of this device in `pa-secrets`; [`AuthorizedHelix`]
 //!   refreshes and retries once when Helix answers `401`
 //!   ([`Error::Unauthorized`]). Tokens are redacted in every `Debug`.
+//! - **Chat writes** (TWI-010): [`HelixClient::send_chat_message`] and
+//!   [`HelixClient::create_eventsub_subscription`] (WebSocket transport) for
+//!   the live-chat sources in `pa-twitch-chat`.
 //!
 //! # Policy (ADR-0011 §5, docs/legal/providers.md §2.4)
 //!
@@ -42,6 +45,7 @@
 
 mod auth;
 mod cache;
+mod chat_api;
 mod client;
 mod error;
 mod model;
@@ -60,6 +64,10 @@ pub use auth::{
     SCOPE_WRITE_CHAT, TwitchAuth, VALIDATE_INTERVAL, Validation,
 };
 pub use cache::{MAX_CACHE_TTL, TtlCache};
+pub use chat_api::{
+    ChatDropReason, EventSubSubscription, EventSubSubscriptionRequest, MAX_CHAT_MESSAGE_CHARS,
+    SendChatMessage, SentChatMessage,
+};
 pub use client::{
     AccessToken, ClientId, ClipsQuery, DEFAULT_BASE_URL, FollowedStreamer, HelixClient,
     HelixConfig, SchedulePage, SearchChannelsQuery, StreamsQuery, VideosQuery,

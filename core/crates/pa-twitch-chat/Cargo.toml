@@ -1,0 +1,44 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-twitch-chat"
+version = "0.1.0"
+description = "Twitch live chat (TWI-010): ChatSource over anonymous IRC WebSocket or EventSub WebSocket + Helix, normalised ChatMessage model"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = ["ws"]
+# Real WebSocket transport: tokio-tungstenite over tokio-rustls (ring
+# provider, Mozilla roots from webpki-roots). No OpenSSL, no aws-lc. Without
+# it the crate is transport-agnostic and the app injects a `WsConnector`.
+ws = [
+    "dep:futures-util",
+    "dep:rustls",
+    "dep:tokio-rustls",
+    "dep:tokio-tungstenite",
+    "dep:webpki-roots",
+    "tokio/net",
+]
+# Scripted WebSocket connector for tests of this and dependent crates.
+testing = ["pa-twitch/testing"]
+
+[dependencies]
+futures-util = { workspace = true, optional = true, features = ["sink"] }
+getrandom.workspace = true
+pa-twitch = { path = "../pa-twitch", default-features = false }
+rustls = { workspace = true, optional = true, features = ["ring", "std", "tls12"] }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["macros", "rt", "sync", "time"] }
+tokio-rustls = { workspace = true, optional = true, features = ["ring", "tls12"] }
+tokio-tungstenite = { workspace = true, optional = true }
+webpki-roots = { workspace = true, optional = true }
+
+[dev-dependencies]
+pa-twitch = { path = "../pa-twitch", default-features = false, features = ["testing"] }
+pa-twitch-chat = { path = ".", features = ["testing"] }
+tokio = { workspace = true, features = ["macros", "rt"] }

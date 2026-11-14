@@ -1,0 +1,16 @@
+{
+  "metadata": {
+    "message_id": "96a3f3b5-5dec-4eed-908e-e11ee657416c",
+    "message_type": "session_welcome",
+    "message_timestamp": "2026-11-14T12:00:00.123456789Z"
+  },
+  "payload": {
+    "session": {
+      "id": "AgoQHR3s6Mb4T8GFB1l3DlPfiRIGY2VsbC1h",
+      "status": "connected",
+      "keepalive_timeout_seconds": 10,
+      "reconnect_url": null,
+      "connected_at": "2026-11-14T12:00:00.120000000Z"
+    }
+  }
+}
