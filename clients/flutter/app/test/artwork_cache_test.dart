@@ -82,6 +82,25 @@ void main() {
     );
   });
 
+  test('local art of network sources bypasses the disk cache', () {
+    // LIB-019: the core's stream proxy, with a per-process token.
+    const proxied = 'http://127.0.0.1:40123/token/3/Movies/poster.jpg';
+    final cache = _FakeCache(file);
+    expect(artworkProvider(proxied, cache: cache), isA<NetworkImage>());
+    expect(
+      (artworkProvider(
+        proxied,
+        width: 256,
+        cache: cache,
+      ) as ResizeImage).imageProvider,
+      isA<NetworkImage>(),
+    );
+    expect(isLoopbackUrl(proxied), isTrue);
+    expect(isLoopbackUrl('http://localhost:1/x'), isTrue);
+    expect(isLoopbackUrl(_url), isFalse);
+    expect(isLoopbackUrl('https://127.0.0.1/x'), isFalse);
+  });
+
   testWidgets('decode width follows the layout and pixel ratio', (
     tester,
   ) async {

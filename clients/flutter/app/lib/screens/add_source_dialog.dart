@@ -117,10 +117,6 @@ class _AddSourceDialogState extends State<AddSourceDialog> {
   }
 }
 
-/// Whether SMB shares can be scanned here: the scan mounts them with gio,
-/// which Android does not have (SmbUnsupportedException).
-bool get _smbScanSupported => !Platform.isAndroid;
-
 class _KindChooser extends StatelessWidget {
   const _KindChooser({required this.onPick});
 
@@ -135,7 +131,8 @@ class _KindChooser extends StatelessWidget {
 
     String? badge(SourceType t) {
       if (!SourceType.available.contains(t)) return l.sourcesSoon;
-      if (t == SourceType.smb && !_smbScanSupported) return l.sourcesSoon;
+      // SMB everywhere through the core (libsmb2 in the APK, LIB-019); the
+      // v0 fallback manager cannot create it and says so below.
       if (!manager.creatableTypes.contains(t)) {
         return l.sourcesUnavailableReduced;
       }

@@ -13,6 +13,9 @@
 # (see packaging/app/README.md). With PA_LIBMPV_DIR=<libmpv-linux-x86_64
 # artifact> (tools/mpv, PLAY-002) our LGPL libmpv + FFmpeg go into lib/ via
 # tools/mpv/bundle.sh (needs patchelf), with their licences.
+# With PA_LIBSMB2_DIR=<libsmb2-linux-x86_64 artifact> (tools/libsmb2, LIB-019)
+# our LGPL libsmb2 goes into lib/libsmb2.so.1 the same way
+# (tools/libsmb2/bundle.sh), with its licences.
 #
 # Needs: tar, gzip, curl, sha256sum. appimagetool and the AppImage runtime are
 # downloaded at pinned versions and verified by SHA-256 (override the cache
@@ -33,7 +36,7 @@ repo_root="$(cd "$app_pkg/../.." && pwd)"
 
 die() { printf 'package.sh: %s\n' "$*" >&2; exit 1; }
 
-[ $# -eq 3 ] || { sed -n '4,17p' "$0"; exit 2; }
+[ $# -eq 3 ] || { sed -n '4,22p' "$0"; exit 2; }
 bundle="$(cd "$1" && pwd)"
 version="$2"
 mkdir -p "$3"
@@ -51,8 +54,15 @@ work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
 # Optional LGPL libmpv hook (PLAY-002): bundle a copy, never touch the input.
+if [ -n "${PA_LIBMPV_DIR:-}${PA_LIBSMB2_DIR:-}" ]; then
+    cp -a "$bundle" "$work/bundle" && bundle="$work/bundle"
+fi
 if [ -n "${PA_LIBMPV_DIR:-}" ]; then
-    cp -a "$bundle" "$work/bundle" && "$repo_root/tools/mpv/bundle.sh" linux "$PA_LIBMPV_DIR" "$work/bundle" && bundle="$work/bundle"
+    "$repo_root/tools/mpv/bundle.sh" linux "$PA_LIBMPV_DIR" "$bundle"
+fi
+# LGPL libsmb2 for SMB sources (LIB-019); pa-smb2 opens lib/libsmb2.so.1.
+if [ -n "${PA_LIBSMB2_DIR:-}" ]; then
+    "$repo_root/tools/libsmb2/bundle.sh" linux "$PA_LIBSMB2_DIR" "$bundle"
 fi
 
 fetch() { # url sha256 dest

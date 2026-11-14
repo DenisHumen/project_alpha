@@ -8,7 +8,7 @@
 use std::fmt;
 use std::str::FromStr;
 
-use pa_library::rusqlite::{Connection, Row, ToSql, params_from_iter};
+use pa_library::rusqlite::{Connection, OptionalExtension, Row, ToSql, params, params_from_iter};
 use pa_library::search::{MAX_LIMIT, SearchHit, SearchKind, SearchOptions};
 
 use crate::{Catalog, Error, uri};
@@ -98,6 +98,13 @@ pub struct Item {
     pub poster_url: Option<String>,
     /// Backdrop (episodes: the episode still).
     pub backdrop_url: Option<String>,
+    /// Local poster or cover stored next to the files: LIB-007
+    /// `group_assets` art for movies and shows (episodes: the show's), the
+    /// folder cover of a music album for tracks. A path relative to the
+    /// source root like [`rel_path`](Self::rel_path); the app opens it
+    /// directly for local sources and through the stream proxy for network
+    /// ones (LIB-019).
+    pub local_poster: Option<String>,
 }
 
 /// Best artwork of a kind for a work (`w.id`) or episode (`e.id`).
@@ -113,6 +120,56 @@ macro_rules! art {
             "' ORDER BY a.priority, a.id LIMIT 1)"
         )
     };
+}
+
+/// Local poster of the movie file `f` (LIB-007 `group_assets`): art named
+/// after the file (`<movie>-poster.jpg`, `<movie>.jpg`) first, then generic
+/// names (`poster.jpg`, `folder.jpg`) of a single-movie folder or a disc.
+macro_rules! movie_local_poster {
+    () => {
+        "(SELECT ga.path FROM file_group_members gm
+   JOIN file_groups g ON g.id = gm.group_id
+   JOIN group_assets ga ON ga.group_id = gm.group_id
+  WHERE gm.file_id = f.id AND ga.role = 'art' AND ga.art_kind = 'poster'
+    AND ga.season_number IS NULL
+    AND (ga.target_path = f.path
+         OR (ga.target_path IS NULL AND g.kind IN ('movie_folder', 'disc')))
+  ORDER BY ga.target_path IS NULL, length(ga.path), ga.path LIMIT 1)"
+    };
+}
+
+/// Local poster of a show folder: a generic poster (not season art) of the
+/// group rooted at the folder. The folder of a show with `Season N`
+/// subfolders is a group of its own, without videos (LIB-007).
+const SHOW_LOCAL_POSTER_SQL: &str = "
+SELECT ga.path FROM file_groups g
+JOIN group_assets ga ON ga.group_id = g.id
+WHERE g.source_id = ?1 AND g.root_path = ?2 AND ga.role = 'art' AND ga.art_kind = 'poster'
+  AND ga.season_number IS NULL AND ga.target_path IS NULL
+ORDER BY length(ga.path), ga.path LIMIT 1";
+
+/// Fills [`Item::local_poster`] of shows and episodes from their show folder.
+fn fill_show_posters(conn: &Connection, items: &mut [Item]) -> Result<(), Error> {
+    let mut stmt = None;
+    for item in items {
+        let folder = match item.kind {
+            ItemKind::Show => item.rel_path.clone(),
+            ItemKind::Episode => show_folder(&item.rel_path),
+            _ => continue,
+        };
+        if folder.is_empty() || item.local_poster.is_some() {
+            continue;
+        }
+        let stmt = match &mut stmt {
+            Some(s) => s,
+            None => stmt.insert(conn.prepare_cached(SHOW_LOCAL_POSTER_SQL)?),
+        };
+        let path: Option<String> = stmt
+            .query_row(params![item.source_id, format!("/{folder}")], |r| r.get(0))
+            .optional()?;
+        item.local_poster = local_rel(path);
+    }
+    Ok(())
 }
 
 fn is_season_folder(name: &str) -> bool {
@@ -152,6 +209,11 @@ fn relative(path: &str) -> String {
     path.trim_start_matches('/').to_owned()
 }
 
+/// [`relative`] for an optional stored path.
+fn local_rel(path: Option<String>) -> Option<String> {
+    path.map(|p| relative(&p)).filter(|p| !p.is_empty())
+}
+
 const MOVIE_SQL: &str = concat!(
     "
 SELECT w.id, w.title, w.original_title, w.year, w.overview,
@@ -161,6 +223,8 @@ SELECT w.id, w.title, w.original_title, w.year, w.overview,
     art!("work_id", "w.id", "poster"),
     ", ",
     art!("work_id", "w.id", "backdrop"),
+    ", ",
+    movie_local_poster!(),
     "
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
@@ -213,7 +277,8 @@ const TRACK_SQL: &str = "
 SELECT t.id, t.title, t.track_number, t.duration_ms, t.year, a.title,
        (SELECT ar.name FROM music_track_artists ta JOIN music_artists ar ON ar.id = ta.artist_id
          WHERE ta.track_id = t.id AND ta.role = 'artist' ORDER BY ta.position LIMIT 1) AS artist,
-       f.source_id, s.uri, f.path, f.added_at_ms
+       f.source_id, s.uri, f.path, f.added_at_ms,
+       CASE WHEN a.art_kind = 'folder' AND a.art_source_id = f.source_id THEN a.art_path END
 FROM music_tracks t
 JOIN files f ON f.id = t.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
@@ -243,6 +308,7 @@ fn movie_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         added_at_ms: r.get(11)?,
         poster_url: r.get(13)?,
         backdrop_url: r.get(14)?,
+        local_poster: local_rel(r.get(15)?),
         show_id: None,
         season: None,
         episode: None,
@@ -271,6 +337,8 @@ fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         added_at_ms: r.get(11)?,
         poster_url: r.get(12)?,
         backdrop_url: r.get(13)?,
+        // Filled from the show folder by `fill_show_posters`.
+        local_poster: None,
         show_id: None,
         season: None,
         episode: None,
@@ -299,6 +367,7 @@ fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         overview: r.get(12)?,
         poster_url: r.get(13)?,
         backdrop_url: r.get(14)?,
+        local_poster: None,
         original_title: None,
         year: None,
         tmdb_id: None,
@@ -333,6 +402,7 @@ fn track_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         tmdb_id: None,
         poster_url: None,
         backdrop_url: None,
+        local_poster: local_rel(r.get(11)?),
     })
 }
 
@@ -349,7 +419,9 @@ fn query(
     let sql = format!("{base} {filter} {tail}");
     let mut stmt = conn.prepare_cached(&sql)?;
     let rows = stmt.query_map(params_from_iter(args.iter()), row)?;
-    Ok(rows.collect::<Result<_, _>>()?)
+    let mut items: Vec<Item> = rows.collect::<Result<_, _>>()?;
+    fill_show_posters(conn, &mut items)?;
+    Ok(items)
 }
 
 /// Movies (`ItemKind::Movie`) or shows (`ItemKind::Show`) with these work

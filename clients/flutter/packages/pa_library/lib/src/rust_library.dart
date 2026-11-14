@@ -397,6 +397,14 @@ class RustLibrary implements Library {
     return streamUrl(base, i.sourceId.toInt(), i.relPath);
   }
 
+  /// Proxy URL of the local poster of a network item, if the core has one.
+  String? _localPosterUri(CoreItem i) {
+    final base = _streamBase;
+    final rel = i.localPoster;
+    if (base == null || rel == null || rel.isEmpty) return null;
+    return streamUrl(base, i.sourceId.toInt(), rel);
+  }
+
   /// URL of [relPath] of source [sourceId] on the core's stream proxy at
   /// [base]: every path segment percent-encoded.
   static String streamUrl(String base, int sourceId, String relPath) {
@@ -425,9 +433,10 @@ class RustLibrary implements Library {
       CoreItemKind.track => ItemKind.track,
     };
     final poster = switch (kind) {
+      // Network sources: the poster or cover the core found next to the
+      // files (LIB-007 groups), through the stream proxy (LIB-019).
+      _ when network => _localPosterUri(i),
       // Generic names (`poster.jpg`) only for a movie in its own folder.
-      // Local art of network sources is not read by the app (no mount).
-      _ when network => null,
       ItemKind.movie => _image(
         path,
         video: true,

@@ -4412,8 +4412,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CoreItem dco_decode_core_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 21)
-      throw Exception('unexpected arr length: expect 21 but see ${arr.length}');
+    if (arr.length != 22)
+      throw Exception('unexpected arr length: expect 22 but see ${arr.length}');
     return CoreItem(
       id: dco_decode_String(arr[0]),
       kind: dco_decode_core_item_kind(arr[1]),
@@ -4436,6 +4436,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       addedAtMs: dco_decode_opt_box_autoadd_i_64(arr[18]),
       posterUrl: dco_decode_opt_String(arr[19]),
       backdropUrl: dco_decode_opt_String(arr[20]),
+      localPoster: dco_decode_opt_String(arr[21]),
     );
   }
 
@@ -6027,6 +6028,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_addedAtMs = sse_decode_opt_box_autoadd_i_64(deserializer);
     var var_posterUrl = sse_decode_opt_String(deserializer);
     var var_backdropUrl = sse_decode_opt_String(deserializer);
+    var var_localPoster = sse_decode_opt_String(deserializer);
     return CoreItem(
       id: var_id,
       kind: var_kind,
@@ -6049,6 +6051,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       addedAtMs: var_addedAtMs,
       posterUrl: var_posterUrl,
       backdropUrl: var_backdropUrl,
+      localPoster: var_localPoster,
     );
   }
 
@@ -8049,6 +8052,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_opt_box_autoadd_i_64(self.addedAtMs, serializer);
     sse_encode_opt_String(self.posterUrl, serializer);
     sse_encode_opt_String(self.backdropUrl, serializer);
+    sse_encode_opt_String(self.localPoster, serializer);
   }
 
   @protected
