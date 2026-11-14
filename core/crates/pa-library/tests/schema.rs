@@ -48,6 +48,7 @@ const TABLES: &[&str] = &[
     "search_fts",
     "search_queue",
     "seasons",
+    "smart_shelves",
     "sources",
     "sync_outbox",
     "titles",
@@ -62,6 +63,8 @@ const TABLES: &[&str] = &[
     "twitch_search",
     "twitch_streamers",
     "twitch_videos",
+    "view_prefs",
+    "work_genres",
     "work_metadata",
     "works",
 ];
