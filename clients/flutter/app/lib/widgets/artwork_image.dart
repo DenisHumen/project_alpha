@@ -80,7 +80,7 @@ class CachedArtworkImage extends ImageProvider<CachedArtworkImage> {
         key.cache.cached(key.url, width: key.width) ??
         await key.cache.resolve(key.url, width: key.width);
     if (path == null) {
-      throw StateError('Artwork is not available offline: ${key.url}');
+      throw StateError('artwork not available offline: ${key.url}');
     }
     return decode(await ui.ImmutableBuffer.fromFilePath(path));
   }

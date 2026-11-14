@@ -4,8 +4,11 @@
 //! [`CoreLibrary`] wraps one library database: sources, the scan pipeline
 //! (listing, music tags, fingerprints, recognition, search index), item
 //! views, progress with "Continue watching" and Up Next, provider metadata
-//! (TMDB, AniList, Shikimori: titles, overviews, artwork; META-013) and the
-//! import of a `pa_library` v0 database. The Dart package `pa_library` adapts it to
+//! (TMDB, AniList, Shikimori: titles, overviews, artwork; META-013), library
+//! queries (filters, sorts, alphabet index, facets, folder browsing, view
+//! preferences, smart shelves; LIB-009, types in
+//! [`library_query`](crate::api::library_query)) and the import of a
+//! `pa_library` v0 database. The Dart package `pa_library` adapts it to
 //! the app's `Library` interface.
 //!
 //! Every method blocks on SQLite or the file system, so none is
@@ -19,6 +22,10 @@ use std::sync::{Arc, Mutex};
 use flutter_rust_bridge::frb;
 use pa_catalog as c;
 
+use crate::api::library_query::{
+    CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
+    CoreLibrarySort, CoreSmartShelf, CoreViewPrefs,
+};
 use crate::frb_generated::StreamSink;
 
 /// Error of a library call; Dart receives it as an exception.
@@ -692,6 +699,114 @@ impl CoreLibrary {
     /// (e.g. after a new TMDB key).
     pub fn reset_metadata(&self, all: bool) -> Result<()> {
         Ok(self.catalog.reset_metadata(all)?)
+    }
+
+    // -----------------------------------------------------------------------
+    // library queries (LIB-009)
+
+    /// One page of a query (`limit` items from `offset`) and the total.
+    pub fn query(&self, query: CoreLibraryQuery, offset: u32, limit: u32) -> Result<CoreItemPage> {
+        Ok(self
+            .catalog
+            .query(&query.into(), offset as usize, limit as usize)?
+            .into())
+    }
+
+    /// Alphabet index of a query in title order.
+    pub fn alphabet_index(&self, query: CoreLibraryQuery) -> Result<Vec<CoreAlphabetEntry>> {
+        Ok(self
+            .catalog
+            .alphabet_index(&query.into())?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    /// Filter values present among movies or shows, for filter chips.
+    pub fn facets(&self, kind: CoreItemKind) -> Result<CoreFacets> {
+        Ok(self.catalog.facets(kind.into())?.into())
+    }
+
+    /// Entries of a folder of a source (`""` = root), sorted, folders first
+    /// if asked.
+    pub fn browse(
+        &self,
+        source_id: i64,
+        dir: String,
+        sort: CoreLibrarySort,
+        folders_first: bool,
+    ) -> Result<Vec<CoreFolderEntry>> {
+        Ok(self
+            .catalog
+            .browse(source_id, &dir, sort.into(), folders_first)?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    /// Saved preferences of a view, or its defaults.
+    pub fn view_prefs(&self, view: String) -> Result<CoreViewPrefs> {
+        Ok(self.catalog.view_prefs(&view)?.into())
+    }
+
+    pub fn set_view_prefs(&self, prefs: CoreViewPrefs) -> Result<()> {
+        Ok(self.catalog.set_view_prefs(&prefs.into())?)
+    }
+
+    /// Smart shelves by position; `pinned_only`: those on Home.
+    pub fn shelves(&self, pinned_only: bool) -> Result<Vec<CoreSmartShelf>> {
+        Ok(self
+            .catalog
+            .shelves(pinned_only)?
+            .into_iter()
+            .map(Into::into)
+            .collect())
+    }
+
+    pub fn create_shelf(
+        &self,
+        name: String,
+        query: CoreLibraryQuery,
+        pinned_home: bool,
+    ) -> Result<CoreSmartShelf> {
+        Ok(self
+            .catalog
+            .create_shelf(&name, &query.into(), pinned_home)?
+            .into())
+    }
+
+    pub fn update_shelf(
+        &self,
+        id: i64,
+        name: String,
+        query: CoreLibraryQuery,
+        pinned_home: bool,
+    ) -> Result<()> {
+        Ok(self
+            .catalog
+            .update_shelf(id, &name, &query.into(), pinned_home)?)
+    }
+
+    pub fn delete_shelf(&self, id: i64) -> Result<()> {
+        Ok(self.catalog.delete_shelf(id)?)
+    }
+
+    /// Orders the shelves as `ids`; unlisted ones follow.
+    pub fn reorder_shelves(&self, ids: Vec<i64>) -> Result<()> {
+        Ok(self.catalog.reorder_shelves(&ids)?)
+    }
+
+    /// One page of a shelf's query.
+    pub fn shelf_items(&self, id: i64, offset: u32, limit: u32) -> Result<CoreItemPage> {
+        Ok(self
+            .catalog
+            .shelf_items(id, offset as usize, limit as usize)?
+            .into())
+    }
+
+    /// Genres of a movie or show item.
+    pub fn genres(&self, item_id: String) -> Result<Vec<String>> {
+        Ok(self.catalog.genres(item_ref(&item_id)?)?)
     }
 
     /// Imports a `pa_library` v0 database (read-only; renaming it is the

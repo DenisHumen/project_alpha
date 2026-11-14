@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'app.dart';
 import 'config.dart';
 import 'fakes/fake_library.dart';
+import 'fakes/fake_source_manager.dart';
 import 'integration/library.dart';
 import 'integration/player.dart';
 import 'licenses.dart';
@@ -16,6 +17,8 @@ import 'platform/libmpv_check.dart';
 import 'services/app_services.dart';
 import 'services/preferences.dart';
 import 'services/secure_store.dart';
+import 'sources/core_source_manager.dart';
+import 'sources/source_manager.dart';
 import 'widgets/artwork_image.dart';
 
 Future<void> main() async {
@@ -26,9 +29,11 @@ Future<void> main() async {
   final formFactor = await detectFormFactor();
   final dir = await getApplicationSupportDirectory();
   final Library library;
+  SourceManager? sourceManager;
   var rescan = false;
   if (AppConfig.demo) {
     library = FakeLibrary.demo();
+    sourceManager = FakeSourceManager(library);
   } else {
     // Rust core by default (UI-024); the v0 database is imported on the first
     // start and kept as kinolune.db.v0.bak. v0 is the fallback.
@@ -46,11 +51,25 @@ Future<void> main() async {
     } catch (e) {
       debugPrint('Artwork cache unavailable: $e');
     }
+    // UI-005: the Rust source manager over the same database. Without it
+    // (v0 fallback, or the secret store cannot open) the Sources screen
+    // runs reduced: local folders only.
+    if (opened.onRustCore) {
+      try {
+        sourceManager = await CoreSourceManager.open(
+          dbPath: '${dir.path}/$coreDbFileName',
+          dataDir: dir.path,
+        );
+      } catch (e) {
+        debugPrint('Source manager unavailable: $e');
+      }
+    }
   }
   final services = AppServices(
     library: library,
     secureStore: PlatformSecureStore(),
     preferences: FilePreferences('${dir.path}/preferences.json'),
+    sourceManager: sourceManager,
   );
   await services.init();
   // Music tags and network-share items of an imported v0 library come with
