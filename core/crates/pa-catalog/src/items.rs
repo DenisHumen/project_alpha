@@ -110,6 +110,62 @@ pub struct Item {
     /// a split file and the files of one disc are one version. 1 for shows
     /// and tracks.
     pub version_count: u32,
+    /// Why the player cannot play the item's file, `None` if it can
+    /// (LIB-017: disc images). A client shows [`Unplayable::message`]
+    /// instead of opening the player.
+    pub unplayable: Option<Unplayable>,
+}
+
+/// Why a file the library lists cannot be played (LIB-017).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+pub enum Unplayable {
+    /// A disc image (`.iso`). The project's LGPL libmpv and FFmpeg have no
+    /// disc navigation: mpv plays Blu-ray and DVD structures through
+    /// libbluray and the GPL libdvdnav, and neither is in the build
+    /// (`tools/mpv/lib/mpv.sh`: `auto_features=disabled`, `dvdnav`
+    /// forbidden; FFmpeg is built without `libbluray`). FFmpeg alone reads
+    /// the image as raw bytes: at best a DVD image plays as one MPEG-PS
+    /// stream with menus and without titles or reliable seeking.
+    DiscImage,
+}
+
+impl Unplayable {
+    /// What blocks playback of the file at `path` (relative or absolute).
+    #[must_use]
+    pub fn of_path(path: &str) -> Option<Self> {
+        let name = path.rsplit('/').next().unwrap_or(path);
+        let ext = name.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase());
+        match ext.as_deref() {
+            Some(e) if pa_scanner::DISC_IMAGE_EXTENSIONS.contains(&e) => Some(Self::DiscImage),
+            _ => None,
+        }
+    }
+
+    /// Stable code for clients (`disc_image`), to pick a translated text.
+    #[must_use]
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::DiscImage => "disc_image",
+        }
+    }
+
+    /// English text for logs and clients without a translation.
+    #[must_use]
+    pub fn message(self) -> &'static str {
+        match self {
+            Self::DiscImage => {
+                "Disc images (.iso) cannot be played. Extract the disc to a folder \
+                 (BDMV or VIDEO_TS) or remux the main title to MKV."
+            }
+        }
+    }
+}
+
+impl fmt::Display for Unplayable {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.message())
+    }
 }
 
 /// Best artwork of a kind for a work (`w.id`) or episode (`e.id`).
@@ -344,6 +400,7 @@ fn movie_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         backdrop_url: r.get(14)?,
         local_poster: local_rel(r.get(15)?),
         version_count: version_count(r.get(16)?),
+        unplayable: Unplayable::of_path(&r.get::<_, String>(8)?),
         show_id: None,
         season: None,
         episode: None,
@@ -375,6 +432,7 @@ fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         // Filled from the show folder by `fill_show_posters`.
         local_poster: None,
         version_count: 1,
+        unplayable: None,
         show_id: None,
         season: None,
         episode: None,
@@ -405,6 +463,7 @@ fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         backdrop_url: r.get(14)?,
         local_poster: None,
         version_count: version_count(r.get(15)?),
+        unplayable: Unplayable::of_path(&r.get::<_, String>(7)?),
         original_title: None,
         year: None,
         tmdb_id: None,
@@ -441,6 +500,7 @@ fn track_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         backdrop_url: None,
         local_poster: local_rel(r.get(11)?),
         version_count: 1,
+        unplayable: None,
     })
 }
 

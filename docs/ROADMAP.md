@@ -509,7 +509,7 @@ project_alpha/
   - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
   - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
   - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
-- [ ] **LIB-017** Образы дисков в скане медиатеки
+- [x] **LIB-017** Образы дисков в скане медиатеки
   - Что: скан записывает `.iso` и разделы VIDEO_TS/BDMV (`.vob`, `.m2ts`) в `files`, чтобы группы LIB-007 доходили до распознавания и приложения как один элемент; выбор основного потока для воспроизведения диска.
   - deps: LIB-007 · size: S · parallel: yes · веха: M2 · ref: ADR-0032, META-013
   - done when: папка BDMV и файл ISO появляются в приложении одним фильмом с метаданными; тест в `pa-catalog`.
@@ -521,6 +521,10 @@ project_alpha/
   - Что: остаток LIB-018 вне ядра — положить LGPL libsmb2 (ADR-0033, `tools/libsmb2`) рядом с приложением в AppImage/tar.gz и в `jniLibs` APK, как libmpv; проверить в собранном приложении скан и воспроизведение SMB и WebDAV через loopback-прокси (ADR-0038) на Linux и в Android-эмуляторе; локальные постеры и обложки сетевых источников (сейчас приложение ищет их через `dart:io` и для сетевых не показывает) — из `pa_library::groups` (LIB-007) через прокси.
   - deps: LIB-018 · size: M · parallel: yes · веха: M1 · ref: ADR-0033, LIB-018 PR «Не проверено»
   - done when: в релизной сборке Linux и APK (эмулятор) SMB- и WebDAV-источник из docker-стенда сканируется и фильм играет с перемоткой; локальный постер с шары виден в медиатеке.
+- [ ] **LIB-020** Диски и составные фильмы в приложении: причина «не играет» и склейка частей
+  - Что: остаток LIB-017 вне скана — отдать `Item::unplayable` / `Version::unplayable()` через `pa-frb` и показать в приложении причину вместо плеера (образ `.iso`); играть набор VOB DVD и части `cd1`/`cd2` целиком одним URI (EDL mpv `edl://` поверх локальных путей и URL прокси), сейчас играет только первая часть; по желанию — основной поток Blu-ray по самому длинному плейлисту `.mpls`.
+  - deps: LIB-017 · size: M · parallel: yes · веха: M2 · ref: ADR-0043, ADR-0038
+  - done when: образ ISO в приложении показывает понятное сообщение и не открывает плеер; DVD из двух VOB и фильм из двух частей играют подряд с общей шкалой и перемоткой на Linux и Android (эмулятор).
 ### 3.6. META — распознавание и метаданные
 
 - [x] **META-001** Таксономия, гайд по разметке, формат корпуса
@@ -829,7 +833,7 @@ project_alpha/
   - done when: результаты в `docs/dev/device-matrix.md`, блокеров нет.
 - [ ] **PLAY-APL-013** Своя LGPL-2.1 сборка FFmpeg и libmpv для iOS и tvOS вместо MPVKit
   - Что: xcframework FFmpeg (без `--enable-version3`) и libmpv (`-Dgpl=false`) для iOS, iOS Simulator, tvOS, tvOS Simulator и macOS из `tools/ffmpeg` (цели `ios-*`, `tvos-*` уже есть) и `tools/mpv` (расширить с macOS на iOS и tvOS, MoltenVK/libplacebo); AlphaPlayerKit переходит на неё вместо MPVKit (LGPLv3, только для разработки и CI), `scripts/check-license.sh --store` становится зелёным.
-  - deps: PLAY-APL-001, PLAY-001, PLAY-002 · size: L · parallel: yes · веха: M5 · ref: 02 §3.1, ADR-0005, ADR-NNNN
+  - deps: PLAY-APL-001, PLAY-001, PLAY-002 · size: L · parallel: yes · веха: M5 · ref: 02 §3.1, ADR-0005, ADR-0035
   - done when: контрактный набор и MKV из QA-002 проходят на симуляторах iOS и tvOS с нашей сборкой; лицензионная проверка в профиле store проходит в CI.
 
 ### 3.11. UI — Flutter-приложение (телефон, планшет, десктоп, общие экраны)
@@ -1176,7 +1180,7 @@ project_alpha/
   - done when: очередь продолжается на втором устройстве с той же позиции.
 - [ ] **MUS-016** Аудиорежим MPVKit на Apple (`AudioKit`)
   - Что: часть MUS-002 для Apple: `clients/apple/AudioKit` на MPVKit (LGPL) с тем же профилем, что `AudioProfile` в `pa_player` (gapless, prefetch, ReplayGain track/album/auto, pre-amp, защита от клиппинга); проверка стыков по сэмплам, как в `gapless_libmpv_test.dart`.
-  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-NNNN (music-audio-mode-libmpv)
+  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-0024
   - done when: XCTest на macOS проигрывает тестовый альбом через MPVKit без пауз на стыках (проверка по сэмплам).
 
 ### 3.16. TWI — Twitch

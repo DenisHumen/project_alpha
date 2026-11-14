@@ -9,8 +9,10 @@
 //!   episode / absolute markers) joins the show work with the same title
 //!   key (`anime` if the name looks like an anime release), a movie joins
 //!   the movie work with the same title key and year; extras are skipped;
-//! - **discs** (`BDMV/`, `VIDEO_TS/`, `.iso`): every video of the disc is
-//!   one item named by the disc folder or image, not by `00001.m2ts`;
+//! - **discs** (`BDMV/`, `VIDEO_TS/`, `.iso`): the main title of the disc
+//!   (its VOBs as parts on a DVD) is one item named by the disc folder or
+//!   image, not by `00001.m2ts`; the other streams of the disc (menus,
+//!   bonus clips) are ignored leftovers and get no match (LIB-017);
 //! - **split files** (`cd1`/`cd2`, `part1`…) of a movie folder join the work
 //!   of the folder, one item;
 //! - **extras and samples** belong to the work of their group (the work an
@@ -854,6 +856,10 @@ pub(crate) fn run(
             "SELECT f.id, f.path FROM files f
              WHERE f.source_id = ?1 AND f.missing_since_ms IS NULL
                AND NOT EXISTS (SELECT 1 FROM matches m WHERE m.file_id = f.id AND m.state <> 'rejected')
+               -- Leftovers of a group (LIB-007): the other streams of a
+               -- disc (LIB-017), a one-minute part 3. Never items.
+               AND NOT EXISTS (SELECT 1 FROM group_assets ga
+                               WHERE ga.file_id = f.id AND ga.role = 'ignore')
              ORDER BY f.path",
         )?;
         stmt.query_map([source_id], |r| Ok((r.get(0)?, r.get(1)?)))?
@@ -1021,18 +1027,53 @@ mod tests {
             "/Movies/Inception (2010)/BDMV/STREAM/00001.m2ts",
             "/Movies/Inception (2010)/BDMV/index.bdmv",
         ];
-        let g = groups(&paths);
+        // The feature is the largest stream; the menu clip is a leftover
+        // (LIB-017).
+        let files: Vec<ListedFile> = paths
+            .iter()
+            .zip([4_500_000, 1_332_000_000, 300])
+            .map(|(p, size)| ListedFile::new(*p, size))
+            .collect();
+        let g = analyze(&files, &StructureOptions::default());
         let plans = plan_files(&paths[..2], &g);
-        for p in &plans {
-            let p = p.as_ref().expect("disc video planned");
-            assert_eq!(
-                (p.work.kind, p.work.title.as_str(), p.work.year),
-                ("movie", "Inception", Some(2010))
-            );
-        }
+        assert_eq!(plans[0], None, "the menu clip is no item");
+        let p = plans[1].as_ref().expect("main title planned");
+        assert_eq!(
+            (p.work.kind, p.work.title.as_str(), p.work.year, p.role),
+            ("movie", "Inception", Some(2010), PlanRole::Main)
+        );
         let (works, of) = group_works(&plans);
         assert_eq!(works.len(), 1);
-        assert_eq!(of, [Some(0), Some(0)]);
+        assert_eq!(of, [None, Some(0)]);
+    }
+
+    #[test]
+    fn a_dvd_title_set_and_an_image_are_one_item_each() {
+        let paths = [
+            "/Movies/Alien (1979)/VIDEO_TS/VIDEO_TS.VOB",
+            "/Movies/Alien (1979)/VIDEO_TS/VTS_01_1.VOB",
+            "/Movies/Alien (1979)/VIDEO_TS/VTS_01_2.VOB",
+            "/Images/Spirited Away (2001).iso",
+        ];
+        let plans = plan_files(&paths, &groups(&paths));
+        assert_eq!(plans[0], None, "the DVD menu is no item");
+        let got: Vec<_> = plans[1..]
+            .iter()
+            .map(|p| {
+                let p = p.as_ref().unwrap();
+                (p.work.title.as_str(), p.work.year, p.role)
+            })
+            .collect();
+        assert_eq!(
+            got,
+            [
+                ("Alien", Some(1979), PlanRole::Part),
+                ("Alien", Some(1979), PlanRole::Part),
+                ("Spirited Away", Some(2001), PlanRole::Main),
+            ]
+        );
+        let (works, _) = group_works(&plans);
+        assert_eq!(works.len(), 2);
     }
 
     #[test]
