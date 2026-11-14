@@ -352,3 +352,124 @@ String _slug(String s) => s
     .toLowerCase()
     .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
     .replaceAll(RegExp(r'^-|-$'), '');
+
+// ------------------------------------------------------------ details (UI-009)
+
+/// A demo collection of three coastal films (UI-009 collection row).
+const demoCollectionName = 'Coastal Tales';
+const demoCollectionIds = [
+  'movie-harbor-lights',
+  'movie-the-last-lighthouse',
+  'movie-low-tide',
+];
+
+// Fictional people for the demo cast.
+const _demoPeople = [
+  'Mara Lindqvist',
+  'Tomas Arden',
+  'Ines Okafor',
+  'Leo Brandt',
+  'Yuki Hanamura',
+  'Pavel Rook',
+  'Clara Vey',
+  'Ade Mensah',
+  'Nora Sallis',
+  'Ilya Vetrov',
+];
+const _demoRoles = [
+  'The Engineer',
+  'Harbor Master',
+  'The Conductor',
+  'Night Clerk',
+  'The Cartographer',
+  'Radio Host',
+];
+
+int _hash(String s) {
+  var h = 0;
+  for (final c in s.codeUnits) {
+    h = (h * 31 + c) & 0x7fffffff;
+  }
+  return h;
+}
+
+/// Made-up details of a demo movie: a rating, fictional cast and crew, a
+/// trailer and a featurette, and probe data that differs by title (4K Dolby
+/// Vision with Atmos, 4K HDR10 with DTS-HD MA, 1080p SDR).
+ItemDetails demoDetails(LibraryItem movie, {List<String> genres = const []}) {
+  final h = _hash(movie.id);
+  final slash = movie.filePath.lastIndexOf('/');
+  final dir = slash > 0 ? movie.filePath.substring(0, slash) : '/media';
+  final kind = h % 3;
+  return ItemDetails(
+    genres: genres,
+    runtimeMs: movie.durationMs,
+    ratings: [
+      ExternalRating(source: 'tmdb', value: 6.4 + (h % 25) / 10, votes: 1200),
+    ],
+    externalIds: [
+      ExternalId(provider: 'tmdb', kind: 'movie', id: '${h % 100000}'),
+    ],
+    credits: [
+      for (var i = 0; i < 6; i++)
+        CreditPerson(
+          name: _demoPeople[(h + i * 3) % _demoPeople.length],
+          character: _demoRoles[(h + i) % _demoRoles.length],
+          personRef: 'demo:${(h + i) % 97}',
+          photoUrl: i.isEven ? '${kDemoArtScheme}person' : null,
+        ),
+      CreditPerson(
+        name: _demoPeople[(h + 1) % _demoPeople.length],
+        crew: true,
+        job: 'Director',
+      ),
+      CreditPerson(
+        name: _demoPeople[(h + 4) % _demoPeople.length],
+        crew: true,
+        job: 'Screenplay',
+      ),
+    ],
+    extras: [
+      MediaExtra(
+        title: '${movie.title} Trailer',
+        kind: MediaExtraKind.trailer,
+        filePath: '$dir/Trailers/${movie.title} Trailer.mkv',
+        durationMs: 142000,
+      ),
+      MediaExtra(
+        title: 'Making of',
+        kind: MediaExtraKind.featurette,
+        filePath: '$dir/Featurettes/Making of.mkv',
+        durationMs: 734000,
+      ),
+    ],
+    tech: TechInfo(
+      container: 'matroska,webm',
+      sizeBytes: switch (kind) {
+        0 => 58400000000,
+        1 => 21300000000,
+        _ => 9800000000,
+      },
+      durationMs: movie.durationMs,
+      videoCodec: 'hevc',
+      videoProfile: 'Main 10',
+      width: kind == 2 ? 1920 : 3840,
+      height: kind == 2 ? 800 : 1600,
+      bitDepth: kind == 2 ? 8 : 10,
+      frameRate: 24000 / 1001,
+      hdr: switch (kind) {
+        0 => const [HdrFormat.dolbyVision, HdrFormat.hdr10],
+        1 => const [HdrFormat.hdr10],
+        _ => const [],
+      },
+      audioFormats: switch (kind) {
+        0 => const ['truehd', 'atmos', 'ac3'],
+        1 => const ['dts_hd_ma', 'ac3'],
+        _ => const ['eac3', 'aac'],
+      },
+      audioLanguages: const ['eng', 'rus'],
+      subtitleLanguages: const ['eng', 'rus'],
+      filePath: movie.filePath,
+    ),
+  );
+}

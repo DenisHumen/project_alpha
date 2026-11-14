@@ -16,6 +16,16 @@ String formatClock(int ms) {
   return '${d.inMinutes}:${s.toString().padLeft(2, '0')}';
 }
 
+/// `1:23:45` from an hour on, `41:07` below.
+String formatTimecode(int ms) {
+  final d = Duration(milliseconds: ms < 0 ? 0 : ms);
+  String two(int v) => v.toString().padLeft(2, '0');
+  final s = two(d.inSeconds % 60);
+  return d.inHours > 0
+      ? '${d.inHours}:${two(d.inMinutes % 60)}:$s'
+      : '${d.inMinutes}:$s';
+}
+
 String formatRemaining(AppLocalizations l, Progress p) {
   final left = ((p.durationMs - p.positionMs) / 60000).round();
   return left >= 60

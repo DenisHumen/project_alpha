@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+import 'api/details.dart';
 import 'api/discovery.dart';
 import 'api/events.dart';
 import 'api/images.dart';
@@ -226,6 +227,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreDiscoveryConfig dco_decode_box_autoadd_core_discovery_config(dynamic raw);
 
   @protected
+  CoreFileRef dco_decode_box_autoadd_core_file_ref(dynamic raw);
+
+  @protected
   CoreItem dco_decode_box_autoadd_core_item(dynamic raw);
 
   @protected
@@ -255,6 +259,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSyncConfig dco_decode_box_autoadd_core_sync_config(dynamic raw);
+
+  @protected
+  CoreTechInfo dco_decode_box_autoadd_core_tech_info(dynamic raw);
 
   @protected
   CoreViewPrefs dco_decode_box_autoadd_core_view_prefs(dynamic raw);
@@ -302,6 +309,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreContinueItem dco_decode_core_continue_item(dynamic raw);
 
   @protected
+  CoreCredit dco_decode_core_credit(dynamic raw);
+
+  @protected
   CoreDeviceClass dco_decode_core_device_class(dynamic raw);
 
   @protected
@@ -314,7 +324,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreDiscoveryError dco_decode_core_discovery_error(dynamic raw);
 
   @protected
+  CoreExternalId dco_decode_core_external_id(dynamic raw);
+
+  @protected
+  CoreExtra dco_decode_core_extra(dynamic raw);
+
+  @protected
   CoreFacets dco_decode_core_facets(dynamic raw);
+
+  @protected
+  CoreFileRef dco_decode_core_file_ref(dynamic raw);
 
   @protected
   CoreFolderEntry dco_decode_core_folder_entry(dynamic raw);
@@ -333,6 +352,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItem dco_decode_core_item(dynamic raw);
+
+  @protected
+  CoreItemDetails dco_decode_core_item_details(dynamic raw);
 
   @protected
   CoreItemKind dco_decode_core_item_kind(dynamic raw);
@@ -363,6 +385,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreProgress dco_decode_core_progress(dynamic raw);
+
+  @protected
+  CoreRating dco_decode_core_rating(dynamic raw);
 
   @protected
   CoreResolution dco_decode_core_resolution(dynamic raw);
@@ -429,6 +454,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSyncInvite dco_decode_core_sync_invite(dynamic raw);
+
+  @protected
+  CoreTechInfo dco_decode_core_tech_info(dynamic raw);
 
   @protected
   CoreTextFacet dco_decode_core_text_facet(dynamic raw);
@@ -506,9 +534,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CoreContinueItem> dco_decode_list_core_continue_item(dynamic raw);
 
   @protected
+  List<CoreCredit> dco_decode_list_core_credit(dynamic raw);
+
+  @protected
   List<CoreDiscoveredService> dco_decode_list_core_discovered_service(
     dynamic raw,
   );
+
+  @protected
+  List<CoreExternalId> dco_decode_list_core_external_id(dynamic raw);
+
+  @protected
+  List<CoreExtra> dco_decode_list_core_extra(dynamic raw);
 
   @protected
   List<CoreFolderEntry> dco_decode_list_core_folder_entry(dynamic raw);
@@ -527,6 +564,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CorePlaylist> dco_decode_list_core_playlist(dynamic raw);
+
+  @protected
+  List<CoreRating> dco_decode_list_core_rating(dynamic raw);
 
   @protected
   List<CoreResolution> dco_decode_list_core_resolution(dynamic raw);
@@ -595,6 +635,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool? dco_decode_opt_box_autoadd_bool(dynamic raw);
 
   @protected
+  CoreFileRef? dco_decode_opt_box_autoadd_core_file_ref(dynamic raw);
+
+  @protected
   CoreItem? dco_decode_opt_box_autoadd_core_item(dynamic raw);
 
   @protected
@@ -609,6 +652,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreSecretStoreInfo? dco_decode_opt_box_autoadd_core_secret_store_info(
     dynamic raw,
   );
+
+  @protected
+  CoreTechInfo? dco_decode_opt_box_autoadd_core_tech_info(dynamic raw);
 
   @protected
   DiscKind? dco_decode_opt_box_autoadd_disc_kind(dynamic raw);
@@ -861,6 +907,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreFileRef sse_decode_box_autoadd_core_file_ref(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreItem sse_decode_box_autoadd_core_item(SseDeserializer deserializer);
 
   @protected
@@ -900,6 +951,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSyncConfig sse_decode_box_autoadd_core_sync_config(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreTechInfo sse_decode_box_autoadd_core_tech_info(
     SseDeserializer deserializer,
   );
 
@@ -955,6 +1011,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreContinueItem sse_decode_core_continue_item(SseDeserializer deserializer);
 
   @protected
+  CoreCredit sse_decode_core_credit(SseDeserializer deserializer);
+
+  @protected
   CoreDeviceClass sse_decode_core_device_class(SseDeserializer deserializer);
 
   @protected
@@ -973,7 +1032,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreExternalId sse_decode_core_external_id(SseDeserializer deserializer);
+
+  @protected
+  CoreExtra sse_decode_core_extra(SseDeserializer deserializer);
+
+  @protected
   CoreFacets sse_decode_core_facets(SseDeserializer deserializer);
+
+  @protected
+  CoreFileRef sse_decode_core_file_ref(SseDeserializer deserializer);
 
   @protected
   CoreFolderEntry sse_decode_core_folder_entry(SseDeserializer deserializer);
@@ -994,6 +1062,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItem sse_decode_core_item(SseDeserializer deserializer);
+
+  @protected
+  CoreItemDetails sse_decode_core_item_details(SseDeserializer deserializer);
 
   @protected
   CoreItemKind sse_decode_core_item_kind(SseDeserializer deserializer);
@@ -1032,6 +1103,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreProgress sse_decode_core_progress(SseDeserializer deserializer);
+
+  @protected
+  CoreRating sse_decode_core_rating(SseDeserializer deserializer);
 
   @protected
   CoreResolution sse_decode_core_resolution(SseDeserializer deserializer);
@@ -1108,6 +1182,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSyncInvite sse_decode_core_sync_invite(SseDeserializer deserializer);
+
+  @protected
+  CoreTechInfo sse_decode_core_tech_info(SseDeserializer deserializer);
 
   @protected
   CoreTextFacet sse_decode_core_text_facet(SseDeserializer deserializer);
@@ -1195,9 +1272,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<CoreCredit> sse_decode_list_core_credit(SseDeserializer deserializer);
+
+  @protected
   List<CoreDiscoveredService> sse_decode_list_core_discovered_service(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<CoreExternalId> sse_decode_list_core_external_id(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CoreExtra> sse_decode_list_core_extra(SseDeserializer deserializer);
 
   @protected
   List<CoreFolderEntry> sse_decode_list_core_folder_entry(
@@ -1226,6 +1314,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CorePlaylist> sse_decode_list_core_playlist(
     SseDeserializer deserializer,
   );
+
+  @protected
+  List<CoreRating> sse_decode_list_core_rating(SseDeserializer deserializer);
 
   @protected
   List<CoreResolution> sse_decode_list_core_resolution(
@@ -1322,6 +1413,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool? sse_decode_opt_box_autoadd_bool(SseDeserializer deserializer);
 
   @protected
+  CoreFileRef? sse_decode_opt_box_autoadd_core_file_ref(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreItem? sse_decode_opt_box_autoadd_core_item(SseDeserializer deserializer);
 
   @protected
@@ -1336,6 +1432,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSecretStoreInfo? sse_decode_opt_box_autoadd_core_secret_store_info(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreTechInfo? sse_decode_opt_box_autoadd_core_tech_info(
     SseDeserializer deserializer,
   );
 
@@ -1650,6 +1751,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_core_file_ref(
+    CoreFileRef self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_core_item(
     CoreItem self,
     SseSerializer serializer,
@@ -1700,6 +1807,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_core_sync_config(
     CoreSyncConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_core_tech_info(
+    CoreTechInfo self,
     SseSerializer serializer,
   );
 
@@ -1776,6 +1889,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_credit(CoreCredit self, SseSerializer serializer);
+
+  @protected
   void sse_encode_core_device_class(
     CoreDeviceClass self,
     SseSerializer serializer,
@@ -1800,7 +1916,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_external_id(
+    CoreExternalId self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_extra(CoreExtra self, SseSerializer serializer);
+
+  @protected
   void sse_encode_core_facets(CoreFacets self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_file_ref(CoreFileRef self, SseSerializer serializer);
 
   @protected
   void sse_encode_core_folder_entry(
@@ -1828,6 +1956,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_core_item(CoreItem self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_item_details(
+    CoreItemDetails self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_core_item_kind(CoreItemKind self, SseSerializer serializer);
@@ -1876,6 +2010,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_core_progress(CoreProgress self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_rating(CoreRating self, SseSerializer serializer);
 
   @protected
   void sse_encode_core_resolution(
@@ -1995,6 +2132,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_tech_info(CoreTechInfo self, SseSerializer serializer);
+
+  @protected
   void sse_encode_core_text_facet(CoreTextFacet self, SseSerializer serializer);
 
   @protected
@@ -2097,8 +2237,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_core_credit(
+    List<CoreCredit> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_core_discovered_service(
     List<CoreDiscoveredService> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_external_id(
+    List<CoreExternalId> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_extra(
+    List<CoreExtra> self,
     SseSerializer serializer,
   );
 
@@ -2132,6 +2290,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_playlist(
     List<CorePlaylist> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_rating(
+    List<CoreRating> self,
     SseSerializer serializer,
   );
 
@@ -2259,6 +2423,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_opt_box_autoadd_bool(bool? self, SseSerializer serializer);
 
   @protected
+  void sse_encode_opt_box_autoadd_core_file_ref(
+    CoreFileRef? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_core_item(
     CoreItem? self,
     SseSerializer serializer,
@@ -2279,6 +2449,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_core_secret_store_info(
     CoreSecretStoreInfo? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_core_tech_info(
+    CoreTechInfo? self,
     SseSerializer serializer,
   );
 

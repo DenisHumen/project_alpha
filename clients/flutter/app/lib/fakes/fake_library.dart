@@ -14,7 +14,8 @@ import '../integration/library.dart';
 import '../library/library_queries.dart';
 import 'demo_data.dart';
 
-class FakeLibrary implements Library, LibraryQueriesProvider, LibraryLists {
+class FakeLibrary
+    implements Library, LibraryQueriesProvider, LibraryLists, LibraryDetails {
   FakeLibrary({this.scanStepDelay = const Duration(milliseconds: 60)});
 
   /// A library of exactly [items] (tests: large grids), with [progress] and
@@ -24,9 +25,11 @@ class FakeLibrary implements Library, LibraryQueriesProvider, LibraryLists {
     List<LibraryItem> items, {
     List<Progress> progress = const [],
     Map<String, List<MediaVersion>> versions = const {},
+    Map<String, ItemDetails> details = const {},
     this.scanStepDelay = Duration.zero,
   }) {
     _versions.addAll(versions);
+    _details.addAll(details);
     _sources.add(
       const MediaSource(
         id: 'src-demo',
@@ -49,6 +52,29 @@ class FakeLibrary implements Library, LibraryQueriesProvider, LibraryLists {
       ),
     );
     _load(buildDemoLibraryData());
+    _demoDetails = true;
+    // UI-009: a collection for the Detail screen's collection row.
+    _collections['col-demo-coast'] = (
+      demoCollectionName,
+      [for (final id in demoCollectionIds) id],
+    );
+  }
+
+  /// Details of [FakeLibrary.items] by item id (UI-009).
+  final Map<String, ItemDetails> _details = {};
+
+  /// The demo library makes up details for every movie ([demoDetails]).
+  bool _demoDetails = false;
+
+  @override
+  Future<ItemDetails> details(String itemId) async {
+    final own = _details[itemId];
+    if (own != null) return own;
+    final item = _itemNow(itemId);
+    if (_demoDetails && item != null && item.kind == ItemKind.movie) {
+      return demoDetails(item, genres: demoGenres(item));
+    }
+    return ItemDetails.empty;
   }
 
   final Duration scanStepDelay;

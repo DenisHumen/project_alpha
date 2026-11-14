@@ -7,6 +7,7 @@
 /// the app automatically.
 library;
 
+export 'src/rust/api/details.dart';
 export 'src/rust/api/discovery.dart';
 export 'src/rust/api/events.dart';
 export 'src/rust/api/images.dart';
