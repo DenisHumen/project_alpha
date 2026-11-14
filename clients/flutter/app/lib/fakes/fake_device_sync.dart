@@ -3,7 +3,10 @@
 // In-memory [DeviceSync] for the demo mode and tests (UI-019): invitations,
 // joining by code or QR payload between fakes registered in one [hub], and
 // unpairing. Progress itself is not moved: tests call [remoteChange] to
-// simulate ops arriving from another device.
+// simulate ops arriving from another device. The playback session
+// (SYNC-003) is: heartbeats and takeovers go to the paired fakes of the
+// same [FakeSyncLan], and tests inject another device's heartbeat with
+// [receiveHeartbeat] / [receiveTakeover].
 
 import 'dart:async';
 import 'dart:math';
@@ -169,4 +172,127 @@ class FakeDeviceSync implements DeviceSync {
 
   @override
   Stream<SyncEvent> get events => _events.stream;
+
+  // Playback session (SYNC-003).
+
+  /// Heartbeats this fake sent, oldest first.
+  final List<({String itemId, int positionMs, SyncPlayState state})>
+  heartbeats = [];
+
+  /// Items this fake started (takeovers it sent).
+  final List<String> started = [];
+
+  /// Pull timeouts asked for by [resumeHint].
+  final List<Duration> pulls = [];
+
+  /// The newest point of each item known here (local or another device's).
+  final Map<String, ResumeHint> points = {};
+
+  /// Clock of the fake (stamps, "playing now").
+  DateTime Function() clock = DateTime.now;
+  int _counter = 0;
+
+  /// How long a playing heartbeat counts as "playing now".
+  static const playingTtl = Duration(seconds: 15);
+
+  Iterable<FakeDeviceSync> get _peers =>
+      lan.devices.where((d) => d != this && d._family.any((m) => m.id == id));
+
+  @override
+  Future<void> heartbeat(
+    String itemId, {
+    required int positionMs,
+    required int durationMs,
+    required SyncPlayState state,
+  }) async {
+    heartbeats.add((itemId: itemId, positionMs: positionMs, state: state));
+    final stamp = clock().millisecondsSinceEpoch;
+    for (final peer in _peers) {
+      peer.receiveHeartbeat(
+        deviceId: id,
+        deviceName: name,
+        itemId: itemId,
+        positionMs: positionMs,
+        durationMs: durationMs,
+        state: state,
+        stampMs: stamp,
+        counter: ++_counter,
+      );
+    }
+  }
+
+  @override
+  Future<void> startPlaying(String itemId) async {
+    started.add(itemId);
+    for (final peer in _peers) {
+      peer.receiveTakeover(deviceId: id, itemId: itemId);
+    }
+  }
+
+  @override
+  Future<ResumeHint?> resumeHint(
+    String itemId, {
+    Duration timeout = Duration.zero,
+  }) async {
+    if (timeout > Duration.zero) pulls.add(timeout);
+    return points[itemId];
+  }
+
+  @override
+  Future<List<RemotePlayback>> playingElsewhere() async {
+    final now = clock().millisecondsSinceEpoch;
+    final list = [
+      for (final e in points.entries)
+        if (e.value.remote &&
+            e.value.playing &&
+            now - e.value.stampMs < playingTtl.inMilliseconds)
+          RemotePlayback(
+            itemId: e.key,
+            deviceId: e.value.deviceId,
+            deviceName: e.value.deviceName,
+            positionMs: e.value.positionMs,
+            durationMs: e.value.durationMs,
+            stampMs: e.value.stampMs,
+          ),
+    ]..sort((a, b) => b.stampMs.compareTo(a.stampMs));
+    return list;
+  }
+
+  /// Another device's heartbeat arrives (as `pb.update`).
+  void receiveHeartbeat({
+    required String deviceId,
+    String? deviceName,
+    required String itemId,
+    required int positionMs,
+    int durationMs = 0,
+    SyncPlayState state = SyncPlayState.playing,
+    int? stampMs,
+    int counter = 0,
+  }) {
+    final hint = ResumeHint(
+      positionMs: positionMs,
+      durationMs: durationMs,
+      deviceId: deviceId,
+      deviceName: deviceName,
+      remote: true,
+      playing: state == SyncPlayState.playing,
+      stampMs: stampMs ?? clock().millisecondsSinceEpoch,
+      stampCounter: counter,
+    );
+    if (hint.isNewerThan(points[itemId])) points[itemId] = hint;
+    _events.add(
+      SyncEvent(
+        SyncEventKind.playback,
+        deviceId: deviceId,
+        name: deviceName,
+        itemId: itemId,
+      ),
+    );
+  }
+
+  /// Another device started [itemId] (as `pb.takeover`).
+  void receiveTakeover({required String deviceId, required String itemId}) =>
+      _events.add(
+        SyncEvent(SyncEventKind.takeover, deviceId: deviceId, itemId: itemId),
+      );
 }

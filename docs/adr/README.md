@@ -49,6 +49,7 @@
 | [0041](0041-build-flavor-mechanism.md) | Флейвор сборки: крейт `pa-flavor` (фичи + cfg через `links`), `KINOLUNE_FLAVOR` в Dart и `CARGO_KINOLUNE_FLAVOR` для хука, `PA_FLAVOR` в Xcode, проверка store-артефактов `strings`/`nm` | Предложен | CORE-013 |
 | [0042](0042-subtitle-style-and-sidecars.md) | Субтитры: sidecar-файлы из групп ядра (сеть — через прокси), свой оверлей стиля на media_kit, «системный стиль» по умолчанию (Android captioning, MediaAccessibility), выбор и задержка на сериал | Предложен | PLAY-007 |
 | [0043](0043-disc-main-title-and-iso.md) | Диски в медиатеке: скан записывает потоки BDMV/VIDEO_TS и `.iso`, основной поток — самый большой `.m2ts` / набор VOB, образы ISO в списке, но не воспроизводятся (`Unplayable::DiscImage`) | Предложен | LIB-017 |
+| [NNNN](NNNN-playback-handoff.md) | Эфемерная сессия воспроизведения: heartbeat `pb.update` с `ttl_ms`, точка продолжения — новейшая по HLC со сдвигом для `playing`, `pull` 600 мс, takeover только того же тайтла, тост «Перейти к …?» | Предложен | SYNC-003 |
 
 ## Запланированные ADR
 

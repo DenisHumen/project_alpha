@@ -109,6 +109,9 @@ pub enum LanEvent {
     Playback(PlaybackUpdate),
     /// Another device started playing a title: pause it here if allowed.
     Takeover(Takeover),
+    /// The hub answered a `pull` in full: every op of the answer was
+    /// reported before this.
+    Pulled,
     /// The hub changed: `Some(id)` is connected, `None` means this device
     /// is the hub (or alone).
     HubChanged(Option<String>),
@@ -225,6 +228,24 @@ impl LanNode {
             .lock()
             .on_playback(&raw, Message::PbTakeover(takeover), Source::App);
         Ok(())
+    }
+
+    /// Pulls what the hub has and this device lacks, and waits for the
+    /// answer at most `timeout` (SYNC-003: before a title starts). `true`
+    /// when the hub answered in time or there is no hub to ask (this device
+    /// is the hub or alone); received ops arrive as [`LanEvent::Op`] first.
+    pub async fn refresh(&self, timeout: Duration) -> bool {
+        let Some(answer) = self.shared.lock().request_pull() else {
+            return true;
+        };
+        matches!(tokio::time::timeout(timeout, answer).await, Ok(Ok(())))
+    }
+
+    /// The last `pb.update` of other devices per title, as long as relays
+    /// replay it ([`LanConfig::playback_ttl`]); whether it is still current
+    /// is up to [`handoff`](crate::handoff).
+    pub fn playback_updates(&self) -> Vec<PlaybackUpdate> {
+        self.shared.lock().playback_updates()
     }
 
     /// The connected hub; `None` if this device is the hub or alone.

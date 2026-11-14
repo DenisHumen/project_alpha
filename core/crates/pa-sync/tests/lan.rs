@@ -238,6 +238,7 @@ async fn three_devices_converge_and_replace_a_lost_hub() {
             .replica
             .clock_mut()
             .tick(u64::try_from(now_ms()).unwrap()),
+        ttl_ms: None,
     };
     phone.node.playback(update.clone()).unwrap();
     wait_until(&mut [&mut pc, &mut tv], "pb.update fan-out", |d| {

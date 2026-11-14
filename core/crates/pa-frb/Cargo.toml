@@ -27,6 +27,7 @@ pa-discovery = { path = "../pa-discovery" }
 pa-ffi = { path = "../pa-ffi" }
 pa-flavor = { path = "../pa-flavor" }
 pa-imagecache = { path = "../pa-imagecache" }
+pa-model = { path = "../pa-model" }
 pa-proxy = { path = "../pa-proxy" }
 pa-recognition = { path = "../pa-recognition" }
 pa-remote-config = { path = "../pa-remote-config" }

@@ -16,6 +16,8 @@
 //!   (LIB-011) and of Twitch favourites (`pa_library::twitch`, TWI-007),
 //!   and writing received progress and follow ops into the library.
 //!
+//! - [`handoff`]: rules of the ephemeral playback session (SYNC-003):
+//!   heartbeat TTLs, the newest resume point by HLC.
 //! - `lan` (feature `lan`): the LAN P2P transport (SYNC-006): mDNS, hub
 //!   election, WebSocket over TLS 1.3 bound to the pairing keys.
 //!
@@ -45,6 +47,7 @@
 //! assert_eq!(pa_sync::outbox::len(&conn).unwrap(), 1);
 //! ```
 
+pub mod handoff;
 pub mod hlc;
 #[cfg(feature = "lan")]
 pub mod lan;

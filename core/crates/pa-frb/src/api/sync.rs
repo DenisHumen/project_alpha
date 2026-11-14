@@ -8,6 +8,12 @@
 //! changes the library records while paired go to the other devices; their
 //! changes come back as [`CoreSyncEventKind::LibraryChanged`].
 //!
+//! The playback session (SYNC-003): [`CoreSync::heartbeat`] while a title
+//! plays, [`CoreSync::start_playing`] (takeover), [`CoreSync::resume_hint`]
+//! before it starts and [`CoreSync::playing_elsewhere`] for the "Continue
+//! on this device" banner. Titles are item ids of the library; the core
+//! maps them to the synced media keys.
+//!
 //! Every method may block on the network or the secret store, so only the
 //! plain getters are `#[frb(sync)]`.
 
@@ -17,11 +23,16 @@ use std::sync::Arc;
 
 use flutter_rust_bridge::frb;
 use pa_catalog::Catalog;
+use pa_catalog::pa_sync::handoff::{self, ResumePoint};
+use pa_catalog::pa_sync::hlc::system_ms;
 use pa_catalog::pa_sync::lan::service::{
     DeviceStatus, ServiceConfig, ServiceError, ServiceEvent, SyncLibrary, SyncService,
 };
+use pa_catalog::pa_sync::proto::{PlayState, PlaybackUpdate};
 use pa_catalog::pa_sync::{Op, OpId};
+use pa_catalog::{ItemRef, LOCAL_DEVICE_ID};
 use pa_discovery::DeviceClass;
+use pa_model::MediaKey;
 
 use crate::api::library::CoreLibrary;
 use crate::frb_generated::StreamSink;
@@ -139,11 +150,66 @@ pub enum CoreSyncEventKind {
     PairingFailed,
     /// The invitation closed.
     InviteClosed,
-    /// What another device plays now (`payload`: JSON of `pb.update`);
-    /// hook for the handoff banner of SYNC-003.
+    /// What another device plays now (`payload`: JSON of `pb.update`,
+    /// `item_id`: the title in this library, if it has it).
     Playback,
-    /// Another device started a title (`payload`: JSON of `pb.takeover`).
+    /// Another device started a title (`payload`: JSON of `pb.takeover`,
+    /// `item_id` as for `Playback`): pause it here if the setting allows.
     Takeover,
+}
+
+/// Player state in a heartbeat.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CorePlayState {
+    Playing,
+    Paused,
+    Stopped,
+}
+
+impl From<CorePlayState> for PlayState {
+    fn from(s: CorePlayState) -> Self {
+        match s {
+            CorePlayState::Playing => Self::Playing,
+            CorePlayState::Paused => Self::Paused,
+            CorePlayState::Stopped => Self::Stopped,
+        }
+    }
+}
+
+/// Where a title continues (SYNC-003): the newest point by HLC of stored
+/// progress and of the last heartbeat of another device.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CoreResumeHint {
+    /// Position now: a title another device still plays moved on since its
+    /// last heartbeat.
+    pub position_ms: i64,
+    /// 0 if unknown.
+    pub duration_ms: i64,
+    /// Device that set the point.
+    pub device_id: String,
+    /// Its name in the family, if known.
+    pub device_name: Option<String>,
+    /// Set by another device (not by this one).
+    pub remote: bool,
+    /// That device was playing it at its last heartbeat.
+    pub playing: bool,
+    /// HLC of the point (wall ms, counter): later points order after it.
+    pub stamp_ms: i64,
+    pub stamp_counter: u32,
+}
+
+/// A title another device plays right now (the handoff banner).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CoreRemotePlayback {
+    /// The title in this library; `None` if this library does not have it.
+    pub item_id: Option<String>,
+    pub device_id: String,
+    pub device_name: Option<String>,
+    /// Position now (moved on since the heartbeat).
+    pub position_ms: i64,
+    /// 0 if unknown.
+    pub duration_ms: i64,
+    pub stamp_ms: i64,
 }
 
 /// An event of the sync service.
@@ -154,6 +220,8 @@ pub struct CoreSyncEvent {
     pub name: Option<String>,
     pub message: Option<String>,
     pub payload: Option<String>,
+    /// `Playback`/`Takeover`: the title in this library, if it has it.
+    pub item_id: Option<String>,
 }
 
 impl CoreSyncEvent {
@@ -164,6 +232,7 @@ impl CoreSyncEvent {
             name: None,
             message: None,
             payload: None,
+            item_id: None,
         }
     }
 }
@@ -228,6 +297,18 @@ impl SyncLibrary for CatalogSync {
 #[frb(opaque)]
 pub struct CoreSync {
     service: Arc<SyncService>,
+    catalog: Arc<Catalog>,
+}
+
+fn io(e: impl std::fmt::Display) -> CoreSyncError {
+    CoreSyncError {
+        code: "io".into(),
+        message: e.to_string(),
+    }
+}
+
+fn ms(v: u64) -> i64 {
+    i64::try_from(v).unwrap_or(i64::MAX)
 }
 
 impl CoreSync {
@@ -277,7 +358,10 @@ impl CoreSync {
             Arc::new(CatalogSync(library.catalog())),
         )?);
         library.set_sync_hook(Arc::downgrade(&service));
-        Ok(Self { service })
+        Ok(Self {
+            service,
+            catalog: library.catalog(),
+        })
     }
 
     /// This device's id.
@@ -376,19 +460,172 @@ impl CoreSync {
     }
 
     /// Events until the service is dropped. Returns at once; the stream
-    /// stays open.
+    /// stays open. `pb.*` of other profiles are left out.
     pub fn events(&self, sink: StreamSink<CoreSyncEvent>) {
         let rx = self.service.subscribe();
+        let catalog = Arc::clone(&self.catalog);
         std::thread::Builder::new()
             .name("pa-sync-events".into())
             .spawn(move || {
+                let profile = catalog.sync_profile().unwrap_or_default();
                 for event in rx {
-                    if sink.add(event.into()).is_err() {
+                    let target = match &event {
+                        ServiceEvent::Playback(u) => Some((&u.profile, &u.key)),
+                        ServiceEvent::Takeover(t) => Some((&t.profile, &t.key)),
+                        _ => None,
+                    };
+                    let item_id = match target {
+                        Some((p, _)) if *p != profile => continue,
+                        Some((_, key)) => catalog
+                            .item_for_key(key)
+                            .ok()
+                            .flatten()
+                            .map(|i| i.to_string()),
+                        None => None,
+                    };
+                    let event = CoreSyncEvent {
+                        item_id,
+                        ..event.into()
+                    };
+                    if sink.add(event).is_err() {
                         return;
                     }
                 }
             })
             .map(drop)
             .unwrap_or_default();
+    }
+
+    /// Heartbeat of the playback session (SYNC-003): every 5 s while
+    /// playing and at once on pause, seek, stop and going to the
+    /// background. Ephemeral: nothing is stored. `false` if the item has no
+    /// synced key yet or sync does not run.
+    pub fn heartbeat(
+        &self,
+        item_id: String,
+        position_ms: i64,
+        duration_ms: i64,
+        state: CorePlayState,
+    ) -> SyncResult<bool> {
+        if !self.service.is_running() {
+            return Ok(false);
+        }
+        let Some((profile, key)) = self.key(&item_id)? else {
+            return Ok(false);
+        };
+        self.service.heartbeat(
+            &profile,
+            &key,
+            u64::try_from(position_ms).unwrap_or(0),
+            u64::try_from(duration_ms).ok().filter(|d| *d > 0),
+            state.into(),
+        )?;
+        Ok(true)
+    }
+
+    /// This device starts playing the item: the other devices of the
+    /// profile pause it (`pb.takeover`, if their setting allows).
+    pub fn start_playing(&self, item_id: String) -> SyncResult<bool> {
+        if !self.service.is_running() {
+            return Ok(false);
+        }
+        let Some((profile, key)) = self.key(&item_id)? else {
+            return Ok(false);
+        };
+        self.service.start_playing(&profile, &key)?;
+        Ok(true)
+    }
+
+    /// Where the item continues: first pulls from the hub for at most
+    /// `timeout_ms` (500–800 ms before playing; 0 skips the pull), then
+    /// takes the newest point by HLC of the stored progress (with the
+    /// others' `progress.upsert`) and the last heartbeat of another device.
+    /// `None` if there is neither (or the item was finished last).
+    pub fn resume_hint(
+        &self,
+        item_id: String,
+        timeout_ms: u32,
+    ) -> SyncResult<Option<CoreResumeHint>> {
+        let Ok(item) = item_id.parse::<ItemRef>() else {
+            return Ok(None);
+        };
+        if timeout_ms > 0 && self.service.is_running() {
+            self.service
+                .refresh(std::time::Duration::from_millis(u64::from(timeout_ms)));
+        }
+        let local = self.catalog.resume_point(item).map_err(io)?;
+        let remote = match self.key(&item_id)? {
+            Some((profile, key)) => self
+                .service
+                .remote_playback(&profile, &key)
+                .map(|u| ResumePoint::from_update(&u)),
+            None => None,
+        };
+        let Some(point) = handoff::newest(local.into_iter().chain(remote)) else {
+            return Ok(None);
+        };
+        let me = self.service.device_id();
+        let device_id = point.device().to_owned();
+        Ok(Some(CoreResumeHint {
+            position_ms: ms(point.position_at(system_ms())),
+            duration_ms: point.duration_ms.map_or(0, ms),
+            device_name: self.name_of(&device_id),
+            remote: device_id != me && device_id != LOCAL_DEVICE_ID,
+            playing: point.state == Some(PlayState::Playing),
+            stamp_ms: ms(point.stamp.wall_ms),
+            stamp_counter: point.stamp.counter,
+            device_id,
+        }))
+    }
+
+    /// Titles other devices of the family play right now, newest first
+    /// (the "Continue on this device" banner).
+    pub fn playing_elsewhere(&self) -> SyncResult<Vec<CoreRemotePlayback>> {
+        let profile = self.catalog.sync_profile().map_err(io)?;
+        let now = system_ms();
+        Ok(self
+            .service
+            .playing_elsewhere()
+            .into_iter()
+            .filter(|u| u.profile == profile)
+            .map(|u| self.remote(&u, now))
+            .collect())
+    }
+
+    fn remote(&self, u: &PlaybackUpdate, now: u64) -> CoreRemotePlayback {
+        let point = ResumePoint::from_update(u);
+        CoreRemotePlayback {
+            item_id: self
+                .catalog
+                .item_for_key(&u.key)
+                .ok()
+                .flatten()
+                .map(|i| i.to_string()),
+            device_name: self.name_of(&u.hlc.device),
+            device_id: u.hlc.device.clone(),
+            position_ms: ms(point.position_at(now)),
+            duration_ms: u.duration_ms.map_or(0, ms),
+            stamp_ms: ms(u.hlc.wall_ms),
+        }
+    }
+
+    fn name_of(&self, device_id: &str) -> Option<String> {
+        self.service
+            .devices()
+            .into_iter()
+            .find(|d| d.device_id == device_id)
+            .map(|d| d.name)
+    }
+
+    /// Profile and synced key of a library item; `None` while it has no
+    /// stable key yet (file not fingerprinted).
+    fn key(&self, item_id: &str) -> SyncResult<Option<(String, MediaKey)>> {
+        let Ok(item) = item_id.parse::<ItemRef>() else {
+            return Ok(None);
+        };
+        let Some(key) = self.catalog.sync_key(item).map_err(io)? else {
+            return Ok(None);
+        };
+        Ok(Some((self.catalog.sync_profile().map_err(io)?, key)))
     }
 }

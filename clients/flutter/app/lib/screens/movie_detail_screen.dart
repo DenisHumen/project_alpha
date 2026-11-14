@@ -68,7 +68,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               KButton(
                 icon: Icons.replay,
                 label: l.detailFromBeginning,
-                onPressed: () => playVideo(context, item),
+                onPressed: () => playVideo(context, item, fromStart: true),
               ),
             KButton(
               icon: Icons.manage_search,

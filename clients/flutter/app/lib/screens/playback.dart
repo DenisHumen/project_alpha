@@ -6,6 +6,7 @@ import '../integration/library.dart';
 import '../integration/player.dart';
 import '../l10n/l10n.dart';
 import '../services/app_services.dart';
+import '../sync/handoff_ui.dart';
 import '../widgets/format.dart';
 import 'library_lists_ui.dart';
 
@@ -18,31 +19,47 @@ import 'library_lists_ui.dart';
 /// Subtitles (PLAY-007): the sidecar files the library knows for the file
 /// are passed to the player (network ones through the stream proxy), and
 /// the subtitle track and delay are remembered per show.
+///
+/// Handoff (SYNC-003): before the player opens, a short pull asks the other
+/// devices where the title is; a newer position of another device wins
+/// over [startPositionMs] unless [fromStart]. The progress saves are also
+/// the heartbeats of the session ([HandoffController.report]).
 Future<void> playVideo(
   BuildContext context,
   LibraryItem original, {
   int startPositionMs = 0,
+  bool fromStart = false,
 }) async {
   // LIB-010: a movie with several versions asks which one to play.
   final item = await chooseVersion(context, original);
   if (item == null || !context.mounted) return;
   final services = Services.read(context);
   final l = context.l10n;
-  final library = services.library;
   services.music.pause();
-  final request = await _request(services, l, item, startPositionMs);
+  final handoff = services.handoff;
+  final start = await handoff.startPosition(
+    item,
+    startPositionMs,
+    fromStart: fromStart,
+  );
   if (!context.mounted) return;
+  final request = await _request(services, l, item, start);
+  if (!context.mounted) return;
+  handoff.begin(item.id, start, durationMs: item.durationMs ?? 0);
   await Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
-      builder: (_) => PlayerScreen(
-        request: request,
-        engineFactory: services.playerEngineFactory,
-        onProgress: _saver(library, item),
-        loadNext: _nextLoader(services, l, item),
-        subtitleSettings: services.subtitleSettings,
-        subtitleLanguages: services.subtitleLanguages,
-        onSubtitleMemory: services.saveSubtitleMemory,
+      builder: (_) => HandoffScope(
+        controller: handoff,
+        child: PlayerScreen(
+          request: request,
+          engineFactory: handoff.engineFactory(services.playerEngineFactory),
+          onProgress: _saver(services, item),
+          loadNext: _nextLoader(services, l, item),
+          subtitleSettings: services.subtitleSettings,
+          subtitleLanguages: services.subtitleLanguages,
+          onSubtitleMemory: services.saveSubtitleMemory,
+        ),
       ),
     ),
   );
@@ -99,15 +116,20 @@ Future<List<ExternalSubtitle>?> sidecarSubtitles(
   }
 }
 
-void Function(int, int) _saver(Library library, LibraryItem item) =>
-    (pos, dur) => library.saveProgress(
-      Progress(
-        itemId: item.id,
-        positionMs: pos,
-        durationMs: dur,
-        updatedAt: DateTime.now(),
-      ),
-    );
+/// Saves a progress report of the player and sends it as the heartbeat of
+/// the handoff session (SYNC-003).
+void Function(int, int) _saver(AppServices services, LibraryItem item) =>
+    (pos, dur) {
+      services.library.saveProgress(
+        Progress(
+          itemId: item.id,
+          positionMs: pos,
+          durationMs: dur,
+          updatedAt: DateTime.now(),
+        ),
+      );
+      services.handoff.report(item.id, pos, dur);
+    };
 
 /// Up Next for an episode: the next one of its show, from its saved
 /// position if it is in progress.
@@ -124,7 +146,7 @@ Future<UpNextItem?> Function()? _nextLoader(
     final start = resumePositionMs(await library.progress(next.id));
     return UpNextItem(
       request: await _request(services, l, next, start),
-      onProgress: _saver(library, next),
+      onProgress: _saver(services, next),
       loadNext: _nextLoader(services, l, next),
     );
   };

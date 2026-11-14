@@ -307,3 +307,104 @@ fn pair_by_typed_code_over_mdns() {
     assert!(phone.service.devices().is_empty());
     assert!(!phone.service.is_running());
 }
+
+/// SYNC-003: heartbeats reach the other device without touching the
+/// outbox, "playing elsewhere" follows the state, a takeover reaches the
+/// other device, and a pull before playing returns within its timeout.
+#[test]
+fn playback_session_heartbeat_and_takeover() {
+    use pa_sync::handoff::{PULL_TIMEOUT_MS, ResumePoint};
+    use pa_sync::proto::PlayState;
+
+    let pc = app("Desktop", DeviceClass::Desktop, None);
+    let phone = app("Phone", DeviceClass::Mobile, None);
+    phone
+        .service
+        .join(&pc.service.invite().unwrap().qr)
+        .unwrap();
+    wait("pc running", Duration::from_secs(5), || {
+        pc.service.is_running()
+    });
+    introduce(&pc, &phone);
+    wait("phone links to the hub", Duration::from_secs(10), || {
+        phone.service.hub().as_deref() == Some(pc.service.device_id())
+    });
+    let pc_events = pc.service.subscribe();
+    let key = movie(603);
+
+    // The phone plays: the desktop sees it playing, nothing is queued.
+    phone
+        .service
+        .heartbeat(
+            "default",
+            &key,
+            120_000,
+            Some(6_000_000),
+            PlayState::Playing,
+        )
+        .unwrap();
+    wait(
+        "heartbeat reaches the desktop",
+        Duration::from_secs(5),
+        || pc.service.playing_elsewhere().len() == 1,
+    );
+    let now = pc.service.playing_elsewhere()[0].clone();
+    assert_eq!(now.hlc.device, phone.service.device_id());
+    assert_eq!(now.ttl_ms, Some(pa_sync::handoff::PLAYING_TTL_MS));
+    assert!(phone.service.playing_elsewhere().is_empty(), "not its own");
+    let remote = pc.service.remote_playback("default", &key).unwrap();
+    assert_eq!(remote.position_ms, 120_000);
+    assert!(pc.service.remote_playback("kids", &key).is_none());
+    for a in [&pc, &phone] {
+        let conn = a.library.conn.lock().unwrap();
+        assert_eq!(outbox::len(&conn).unwrap(), 0, "ephemeral");
+        assert!(progress::get(&conn, 1, &key).unwrap().is_none());
+    }
+    assert!(
+        pc_events
+            .try_iter()
+            .any(|e| matches!(e, ServiceEvent::Playback(u) if u.position_ms == 120_000))
+    );
+
+    // The desktop takes over: the phone hears it; its paused heartbeat
+    // ends "playing elsewhere" but stays the resume point.
+    let phone_events = phone.service.subscribe();
+    pc.service.start_playing("default", &key).unwrap();
+    let start = Instant::now();
+    let takeover = loop {
+        let left = Duration::from_secs(5).saturating_sub(start.elapsed());
+        if let ServiceEvent::Takeover(t) = phone_events.recv_timeout(left).expect("takeover") {
+            break t;
+        }
+    };
+    assert_eq!(takeover.key, key);
+    assert_eq!(takeover.hlc.device, pc.service.device_id());
+    // The phone's clock has seen the desktop's stamp: its pause orders after.
+    phone
+        .service
+        .heartbeat("default", &key, 125_000, Some(6_000_000), PlayState::Paused)
+        .unwrap();
+    wait("pause reaches the desktop", Duration::from_secs(5), || {
+        pc.service
+            .remote_playback("default", &key)
+            .is_some_and(|u| u.state == PlayState::Paused)
+    });
+    let paused = pc.service.remote_playback("default", &key).unwrap();
+    assert!(paused.hlc > takeover.hlc);
+    assert!(pc.service.playing_elsewhere().is_empty());
+    assert_eq!(
+        ResumePoint::from_update(&paused).position_at(paused.hlc.wall_ms + 60_000),
+        125_000
+    );
+
+    // A pull before playing: the phone asks its hub, which answers fast;
+    // the hub itself has nobody to ask.
+    let t = Instant::now();
+    assert!(
+        phone
+            .service
+            .refresh(Duration::from_millis(PULL_TIMEOUT_MS))
+    );
+    assert!(t.elapsed() < Duration::from_millis(PULL_TIMEOUT_MS + 200));
+    assert!(pc.service.refresh(Duration::from_millis(PULL_TIMEOUT_MS)));
+}

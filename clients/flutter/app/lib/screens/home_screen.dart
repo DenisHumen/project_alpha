@@ -10,6 +10,7 @@ import 'package:material_ui/material_ui.dart';
 import '../integration/library.dart';
 import '../l10n/l10n.dart';
 import '../services/app_services.dart';
+import '../sync/handoff_ui.dart';
 import '../theme/kinolune_theme.dart';
 import '../widgets/artwork.dart';
 import '../widgets/cards.dart';
@@ -117,8 +118,8 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         else
           SizedBox(height: d.safeTop(context)),
-        // TODO(SYNC): the handoff banner "Continue on this device" (01 §2.7)
-        // goes here once SYNC delivers positions from other devices.
+        // SYNC-003: a title another paired device plays right now.
+        const HandoffBanner(),
         _Watch<List<ContinueEntry>>(
           key: const ValueKey('home-continue'),
           identity: feed,

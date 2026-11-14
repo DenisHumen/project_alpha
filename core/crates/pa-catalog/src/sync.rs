@@ -8,8 +8,14 @@
 
 use std::sync::MutexGuard;
 
+use pa_library::progress as lib_progress;
+use pa_library::rusqlite::OptionalExtension;
+use pa_model::MediaKey;
+use pa_sync::handoff::ResumePoint;
 use pa_sync::{Op, OpId, Replica, outbox};
 
+use crate::items::ItemRef;
+use crate::progress::{PROFILE, item_of_key, key_of};
 use crate::{Catalog, Error, now_ms};
 
 impl Catalog {
@@ -78,5 +84,44 @@ impl Catalog {
             return Ok(false);
         };
         Ok(replica.receive_into(&conn, op, now_ms())?)
+    }
+
+    /// Sync id of the profile progress is stored for (`profiles.sync_id`,
+    /// the `profile` of ops and `pb.*` messages).
+    pub fn sync_profile(&self) -> Result<String, Error> {
+        let conn = self.lock();
+        Ok(conn
+            .query_row(
+                "SELECT sync_id FROM profiles WHERE id = ?1",
+                [PROFILE],
+                |r| r.get::<_, String>(0),
+            )
+            .optional()?
+            .unwrap_or_else(|| "default".to_owned()))
+    }
+
+    /// The media key progress of `item` is synced under (SYNC-003: the key
+    /// of `pb.update`); `None` until its file is fingerprinted.
+    pub fn sync_key(&self, item: ItemRef) -> Result<Option<MediaKey>, Error> {
+        let conn = self.lock();
+        Ok(key_of(&conn, item)?.map(|(key, _)| key))
+    }
+
+    /// The item of this library a synced key belongs to, if any.
+    pub fn item_for_key(&self, key: &MediaKey) -> Result<Option<ItemRef>, Error> {
+        let conn = self.lock();
+        item_of_key(&conn, key)
+    }
+
+    /// Stored progress of `item` as a resume point (SYNC-003): the last
+    /// change on any device, stamped with its time and device.
+    pub fn resume_point(&self, item: ItemRef) -> Result<Option<ResumePoint>, Error> {
+        let conn = self.lock();
+        let Some((key, _)) = key_of(&conn, item)? else {
+            return Ok(None);
+        };
+        Ok(lib_progress::get(&conn, PROFILE, &key)?
+            .filter(|p| !p.watched)
+            .map(|p| ResumePoint::from_progress(&p)))
     }
 }

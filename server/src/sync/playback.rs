@@ -98,6 +98,7 @@ mod tests {
                 counter: 0,
                 device: device.to_owned(),
             },
+            ttl_ms: None,
         }
     }
 

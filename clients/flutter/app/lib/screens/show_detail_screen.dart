@@ -104,7 +104,7 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
                   key: const ValueKey('show-start-over'),
                   icon: Icons.replay,
                   label: l.detailFromBeginning,
-                  onPressed: () => playVideo(context, next!),
+                  onPressed: () => playVideo(context, next!, fromStart: true),
                 ),
               KButton(
                 icon: Icons.manage_search,
