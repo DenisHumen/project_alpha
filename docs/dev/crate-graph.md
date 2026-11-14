@@ -36,6 +36,7 @@ flowchart LR
     pa_sources["pa-sources"]
     pa_sync["pa-sync"]
     pa_twitch["pa-twitch"]
+    pa_twitch_chat["pa-twitch-chat"]
     pa_vfs["pa-vfs"]
     pa_vfs_smb["pa-vfs-smb"]
     pa_vfs_webdav["pa-vfs-webdav"]
@@ -107,6 +108,9 @@ flowchart LR
   pa_sync -. dev .-> pa_secrets
   pa_twitch --> pa_secrets
   pa_twitch -. dev .-> pa_twitch
+  pa_twitch_chat -. dev .-> pa_twitch
+  pa_twitch_chat --> pa_twitch
+  pa_twitch_chat -. dev .-> pa_twitch_chat
   pa_vfs_smb --> pa_smb2
   pa_vfs_smb --> pa_vfs
   pa_vfs_webdav --> pa_discovery
@@ -142,6 +146,7 @@ flowchart LR
 | `pa-sources` | `core/crates/pa-sources` | 4 | Source manager: local, SMB and WebDAV sources in the library database, passwords in the OS secret store, status, connection check and speed test (NET-011) |
 | `pa-sync` | `core/crates/pa-sync` | 11 | Serverless state sync: hybrid logical clock, sync operations, LWW merge, the SQLite outbox (SYNC-001) and the LAN P2P transport (SYNC-006) |
 | `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002) |
+| `pa-twitch-chat` | `core/crates/pa-twitch-chat` | 10 | Twitch live chat (TWI-010): ChatSource over anonymous IRC WebSocket or EventSub WebSocket + Helix, normalised ChatMessage model |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
 | `pa-vfs-smb` | `core/crates/pa-vfs-smb` | 0 | SMB2/3 backend of pa-vfs over libsmb2: NTLMSSP, signing, SMB3 encryption, pooled connections, read-ahead with parallel prefetch (NET-003) |
 | `pa-vfs-webdav` | `core/crates/pa-vfs-webdav` | 7 | WebDAV backend of pa-vfs: PROPFIND listing, Range reads with read-ahead, Basic and Digest auth, redirects, TLS pinning (NET-004) |

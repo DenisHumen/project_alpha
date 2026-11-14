@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "message_id": "c1a2b3c4-0005-4000-8000-000000000005",
+    "message_type": "notification",
+    "message_timestamp": "2026-11-14T12:00:05.000000000Z",
+    "subscription_type": "channel.chat.notification",
+    "subscription_version": "1"
+  },
+  "payload": {
+    "subscription": {
+      "id": "1c8f4472-783c-4e4a-b418-ee6c687d0c38",
+      "status": "enabled",
+      "type": "channel.chat.notification",
+      "version": "1",
+      "condition": { "broadcaster_user_id": "100000001", "user_id": "300000001" },
+      "transport": { "method": "websocket", "session_id": "AgoQHR3s6Mb4T8GFB1l3DlPfiRIGY2VsbC1h" },
+      "created_at": "2026-11-14T12:00:00.500000000Z",
+      "cost": 0
+    },
+    "event": {
+      "broadcaster_user_id": "100000001",
+      "broadcaster_user_login": "kinolune_demo",
+      "broadcaster_user_name": "Kinolune_Demo",
+      "chatter_user_id": null,
+      "chatter_user_login": null,
+      "chatter_user_name": null,
+      "chatter_is_anonymous": true,
+      "color": null,
+      "badges": null,
+      "system_message": "An anonymous user gifted a Tier 1 sub to PixelOtter!",
+      "message_id": "e5f6a7b8-0007-4a5b-9c1d-000000000007",
+      "message": { "text": "", "fragments": [] },
+      "notice_type": "sub_gift",
+      "sub_gift": {
+        "duration_months": 1,
+        "cumulative_total": null,
+        "recipient_user_id": "200000001",
+        "recipient_user_name": "Pixel_Otter",
+        "recipient_user_login": "pixel_otter",
+        "sub_tier": "1000",
+        "community_gift_id": null
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "message_id": "",
+        "is_sent": false,
+        "drop_reason": {
+          "code": "msg_duplicate",
+          "message": "Your message was not sent because it is identical to the previous one you sent, less than 30 seconds ago."
+        }
+      }
+    ]
+  }
+}

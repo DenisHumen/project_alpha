@@ -1217,7 +1217,7 @@ project_alpha/
   - Что: EventSub WebSocket с токеном пользователя (≈ 10 каналов из-за лимита стоимости) плюс поллинг `streams/followed` раз в 60–120 с на сервере, десктопе и Android (опционально в фоне); локальные уведомления; на iOS — только при активном приложении или BGAppRefresh, это честно указано в UI.
   - deps: TWI-002, TWI-007 · size: M · parallel: yes · веха: M7 · ref: 06 §1.2, S §6
   - done when: уведомление приходит не позже чем через 2 минуты после начала эфира на десктопе и сервере.
-- [ ] **TWI-010** Live-чат: абстракция ChatSource
+- [x] **TWI-010** Live-чат: абстракция ChatSource
   - Что: анонимный IRC по WebSocket (`justinfan…`, только чтение); с логином — EventSub `channel.chat.message` и `POST /helix/chat/messages`; нормализованная модель ChatMessage; события модерации (удаление, бан, таймаут, режимы чата).
   - deps: TWI-002 · size: M · parallel: yes · веха: M7 · ref: 06 §3.1, §3.3
   - done when: тесты разбора IRCv3 и EventSub на записанных сообщениях.

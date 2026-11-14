@@ -2755,6 +2755,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pa-twitch-chat"
+version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "getrandom 0.4.3",
+ "pa-twitch",
+ "pa-twitch-chat",
+ "rustls",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tokio-rustls",
+ "tokio-tungstenite",
+ "webpki-roots",
+]
+
+[[package]]
 name = "pa-vfs"
 version = "0.1.0"
 
