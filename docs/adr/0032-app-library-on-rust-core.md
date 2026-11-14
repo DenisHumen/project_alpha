@@ -1,6 +1,6 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 
-# ADR-NNNN: Медиатека приложения на Rust-ядре через крейт `pa-catalog` и адаптер `RustLibrary`
+# ADR-0032: Медиатека приложения на Rust-ядре через крейт `pa-catalog` и адаптер `RustLibrary`
 
 - **Статус:** Предложен
 - **Дата:** 2026-11-14
