@@ -33,6 +33,9 @@
 //!   ([`Catalog::apply_remote`]);
 //! - sidecar subtitles of a file ([`Catalog::sidecar_subtitles`], PLAY-007)
 //!   from the LIB-007 folder groups, with language and flags;
+//! - music views (MUS-004): tracks with album, credits, format and play
+//!   counts ([`Catalog::music_tracks`]), plays
+//!   ([`Catalog::record_track_play`]) and audio playlists;
 //! - the change watcher ([`watch::LibraryWatcher`], LIB-005): OS change
 //!   notifications for local folders, a timer for network shares, and
 //!   incremental rescans of the changed folders
@@ -60,6 +63,7 @@ mod index;
 mod items;
 mod lists;
 pub mod metadata;
+mod music;
 mod probe;
 mod progress;
 pub mod query;
@@ -83,6 +87,7 @@ pub use import_v0::ImportReport;
 pub use items::{Item, ItemKind, ItemRef, SearchGroup};
 pub use lists::{CollectionInfo, CollectionKind, PlaylistInfo, Version};
 pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
+pub use music::MusicTrack;
 pub use pa_metadata;
 pub use pa_scanner::CancelToken;
 pub use pa_sync;

@@ -750,9 +750,65 @@ pub fn genres(conn: &Connection) -> Result<Vec<Genre>, Error> {
     Ok(rows.collect::<Result<_, _>>()?)
 }
 
+/// Counts a play of the track with this stable media key (MUS-004):
+/// `play_count + 1` and the time it was last played. Returns the new count.
+pub fn record_play(
+    conn: &Connection,
+    profile_id: i64,
+    media_key: &str,
+    now_ms: i64,
+) -> Result<i64, Error> {
+    let ok = (3..=256).contains(&media_key.len())
+        && media_key
+            .split_once(':')
+            .is_some_and(|(a, b)| !a.is_empty() && !b.is_empty());
+    if !ok {
+        return Err(Error::Invalid("media key"));
+    }
+    Ok(conn.query_row(
+        "INSERT INTO music_plays (profile_id, media_key, play_count, last_played_at_ms)
+         VALUES (?1, ?2, 1, ?3)
+         ON CONFLICT (profile_id, media_key) DO UPDATE
+            SET play_count = play_count + 1,
+                last_played_at_ms = max(last_played_at_ms, excluded.last_played_at_ms)
+         RETURNING play_count",
+        params![profile_id, media_key, now_ms],
+        |r| r.get(0),
+    )?)
+}
+
+/// Play count and last play time of a track by media key; `None` if it was
+/// never played.
+pub fn plays(
+    conn: &Connection,
+    profile_id: i64,
+    media_key: &str,
+) -> Result<Option<(i64, i64)>, Error> {
+    Ok(conn
+        .query_row(
+            "SELECT play_count, last_played_at_ms FROM music_plays
+             WHERE profile_id = ?1 AND media_key = ?2",
+            params![profile_id, media_key],
+            |r| Ok((r.get(0)?, r.get(1)?)),
+        )
+        .optional()?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn record_play_counts_and_keeps_the_latest_time() {
+        let conn = crate::open_in_memory().unwrap();
+        assert_eq!(plays(&conn, 1, "file:abc").unwrap(), None);
+        assert_eq!(record_play(&conn, 1, "file:abc", 100).unwrap(), 1);
+        assert_eq!(record_play(&conn, 1, "file:abc", 50).unwrap(), 2);
+        assert_eq!(plays(&conn, 1, "file:abc").unwrap(), Some((2, 100)));
+        assert_eq!(record_play(&conn, 1, "file:abc", 300).unwrap(), 3);
+        assert_eq!(plays(&conn, 1, "file:abc").unwrap(), Some((3, 300)));
+        assert!(record_play(&conn, 1, "nokey", 1).is_err());
+    }
 
     #[test]
     fn album_folder_skips_disc_subfolders() {

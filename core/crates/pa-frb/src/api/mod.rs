@@ -7,6 +7,7 @@ pub mod images;
 pub mod library;
 pub mod library_lists;
 pub mod library_query;
+pub mod music;
 pub mod recognition;
 pub mod remote_config;
 pub mod secrets;
