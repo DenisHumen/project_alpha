@@ -2308,6 +2308,7 @@ name = "pa-catalog"
 version = "0.1.0"
 dependencies = [
  "pa-library",
+ "pa-metadata",
  "pa-model",
  "pa-recognition",
  "pa-scanner",

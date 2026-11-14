@@ -19,17 +19,24 @@ import 'smb.dart';
 /// and Up Next. Screens see the same [Library] interface as with the Dart
 /// v0 implementation ([SqliteLibrary]).
 ///
-/// Differences from v0 for now: no TMDB metadata yet (the key is kept and
-/// returned, matching against TMDB comes with META-013), so titles are the
-/// recognised ones and posters are local images next to the files.
+/// After every scan the core fetches provider metadata (META-013): TMDB
+/// titles, overviews, posters, backdrops and episode data, AniList and
+/// Shikimori for anime; a poster from TMDB wins over a local image next to
+/// the files, as in v0. The TMDB key and the metadata language are kept in
+/// memory: the app sets them on start.
 class RustLibrary implements Library {
   final CoreLibrary _core;
   final SmbResolver _smb;
   final String? _tempDir;
+  final String _metadataCacheDir;
   final _changes = StreamController<void>.broadcast();
   Future<void> _scanQueue = Future.value();
   bool _closed = false;
   String? _tmdbKey;
+  String _language = defaultMetadataLanguage;
+
+  /// Metadata language until [setMetadataLanguage] says otherwise.
+  static const defaultMetadataLanguage = 'ru-RU';
 
   /// Local mount paths of SMB sources (by source id), from the last scan or
   /// an existing mount.
@@ -38,7 +45,7 @@ class RustLibrary implements Library {
   /// Local images per folder: `findLocalImage` results by `(path, mode)`.
   final Map<String, String?> _images = {};
 
-  RustLibrary._(this._core, this._smb, this._tempDir);
+  RustLibrary._(this._core, this._smb, this._tempDir, this._metadataCacheDir);
 
   static Future<void>? _init;
 
@@ -55,11 +62,15 @@ class RustLibrary implements Library {
   /// file is renamed to `*.v0.bak` after a successful import
   /// (docs/dev/db.md); keep it while the Rust core is behind a flag, so the
   /// app can still go back to v0.
+  ///
+  /// Provider responses are cached in [metadataCacheDir] (default: a
+  /// `provider-cache` folder next to the database).
   static Future<RustLibrary> open(
     String dbPath, {
     String? legacyV0Path,
     bool renameLegacyV0 = true,
     SmbResolver? smbResolver,
+    String? metadataCacheDir,
     ExternalLibrary? externalLibrary,
   }) async {
     await ensureInitialized(externalLibrary: externalLibrary);
@@ -72,7 +83,12 @@ class RustLibrary implements Library {
       Directory(p.dirname(dbPath)).createSync(recursive: true);
     }
     final core = await CoreLibrary.open(path: path);
-    final lib = RustLibrary._(core, smbResolver ?? SmbResolver(), tempDir);
+    final lib = RustLibrary._(
+      core,
+      smbResolver ?? SmbResolver(),
+      tempDir,
+      metadataCacheDir ?? p.join(p.dirname(path), 'provider-cache'),
+    );
     if (legacyV0Path != null) {
       await lib.importLegacyV0(legacyV0Path, rename: renameLegacyV0);
     }
@@ -113,14 +129,24 @@ class RustLibrary implements Library {
   @override
   Future<void> setTmdbApiKey(String? key) async {
     final k = key?.trim();
+    final old = _tmdbKey;
     _tmdbKey = (k == null || k.isEmpty) ? null : k;
+    // Another key: ask again for what the old one did not find.
+    if (old != null && old != _tmdbKey) await _core.resetMetadata(all: false);
   }
 
   @override
   Future<String?> tmdbApiKey() async => _tmdbKey;
 
   @override
-  Future<void> setMetadataLanguage(String? language) async {}
+  Future<void> setMetadataLanguage(String? language) async {
+    final l = (language == null || language.trim().isEmpty)
+        ? defaultMetadataLanguage
+        : language.trim();
+    if (l == _language) return;
+    _language = l;
+    await _core.resetMetadata(all: true);
+  }
 
   // -------------------------------------------------------------------------
   // sources
@@ -249,6 +275,7 @@ class RustLibrary implements Library {
     }
 
     var lastNotify = DateTime.now();
+    ScanProgress? finished;
     await for (final u in _core.scan(sourceId: id, roots: roots)) {
       final phase = switch (u.phase) {
         CoreScanPhase.connecting => ScanPhase.connecting,
@@ -256,22 +283,70 @@ class RustLibrary implements Library {
         CoreScanPhase.analyzing => ScanPhase.metadata,
         CoreScanPhase.done => ScanPhase.done,
       };
-      emit(
-        ScanProgress(
-          phase: phase,
-          sourceId: u.sourceId?.toString(),
-          filesFound: u.filesFound,
-          processed: u.processed,
-          total: u.total,
-          currentPath: u.currentPath,
-          error: u.error,
-          errors: List.unmodifiable([...errors, ?u.error]),
-        ),
+      final progress = ScanProgress(
+        phase: phase,
+        sourceId: u.sourceId?.toString(),
+        filesFound: u.filesFound,
+        processed: u.processed,
+        total: u.total,
+        currentPath: u.currentPath,
+        error: u.error,
+        errors: List.unmodifiable([...errors, ?u.error]),
       );
+      if (phase == ScanPhase.done) {
+        // Held back until the metadata run is over.
+        finished = progress;
+        continue;
+      }
+      emit(progress);
       final now = DateTime.now();
       if (now.difference(lastNotify) > const Duration(seconds: 1)) {
         lastNotify = now;
         _images.clear();
+        _notify();
+      }
+    }
+    _notify();
+    await _fetchMetadata(emit, errors, finished?.filesFound ?? 0);
+    emit(
+      ScanProgress(
+        phase: ScanPhase.done,
+        filesFound: finished?.filesFound ?? 0,
+        processed: finished?.processed ?? 0,
+        total: finished?.total,
+        error: finished?.error,
+        errors: List.unmodifiable([...errors, ?finished?.error]),
+      ),
+    );
+  }
+
+  /// Provider metadata for new and stale works (ScanPhase.metadata).
+  Future<void> _fetchMetadata(
+    void Function(ScanProgress) emit,
+    List<String> errors,
+    int filesFound,
+  ) async {
+    var lastNotify = DateTime.now();
+    final settings = CoreMetadataSettings(
+      tmdbApiKey: _tmdbKey,
+      language: _language,
+      cacheDir: _metadataCacheDir,
+    );
+    await for (final u in _core.fetchMetadata(settings: settings)) {
+      final error = u.error == null ? null : 'Metadata: ${u.error}';
+      emit(
+        ScanProgress(
+          phase: ScanPhase.metadata,
+          filesFound: filesFound,
+          processed: u.processed,
+          total: u.total,
+          error: error,
+          errors: List.unmodifiable([...errors, ?error]),
+        ),
+      );
+      final now = DateTime.now();
+      if (u.done || now.difference(lastNotify) > const Duration(seconds: 1)) {
+        lastNotify = now;
         _notify();
       }
     }
@@ -318,6 +393,8 @@ class RustLibrary implements Library {
       ItemKind.episode => null,
       ItemKind.track => _image(path),
     };
+    // Provider art first (as v0: TMDB poster, else the local image).
+    final posterUrl = i.posterUrl ?? poster;
     final title = i.title.isNotEmpty
         ? i.title
         : (kind == ItemKind.episode
@@ -330,7 +407,8 @@ class RustLibrary implements Library {
       originalTitle: i.originalTitle,
       year: i.year,
       overview: i.overview,
-      posterUrl: poster,
+      posterUrl: posterUrl,
+      backdropUrl: i.backdropUrl,
       showId: i.showId,
       season: i.season,
       episode: i.episode,

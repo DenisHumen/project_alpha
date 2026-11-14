@@ -3,8 +3,9 @@
 //!
 //! [`CoreLibrary`] wraps one library database: sources, the scan pipeline
 //! (listing, music tags, fingerprints, recognition, search index), item
-//! views, progress with "Continue watching" and Up Next, and the import of
-//! a `pa_library` v0 database. The Dart package `pa_library` adapts it to
+//! views, progress with "Continue watching" and Up Next, provider metadata
+//! (TMDB, AniList, Shikimori: titles, overviews, artwork; META-013) and the
+//! import of a `pa_library` v0 database. The Dart package `pa_library` adapts it to
 //! the app's `Library` interface.
 //!
 //! Every method blocks on SQLite or the file system, so none is
@@ -13,7 +14,7 @@
 
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use flutter_rust_bridge::frb;
 use pa_catalog as c;
@@ -122,6 +123,10 @@ pub struct CoreItem {
     pub match_confidence: Option<f64>,
     pub tmdb_id: Option<i64>,
     pub added_at_ms: Option<i64>,
+    /// Poster URL (https or `file://`); episodes: the show's.
+    pub poster_url: Option<String>,
+    /// Backdrop URL; episodes: the episode still.
+    pub backdrop_url: Option<String>,
 }
 
 fn small(v: Option<i64>) -> Option<i32> {
@@ -150,6 +155,8 @@ impl From<c::Item> for CoreItem {
             match_confidence: i.match_confidence,
             tmdb_id: i.tmdb_id,
             added_at_ms: i.added_at_ms,
+            poster_url: i.poster_url,
+            backdrop_url: i.backdrop_url,
         }
     }
 }
@@ -277,6 +284,34 @@ fn items(v: Vec<c::Item>) -> Vec<CoreItem> {
 /// `true` if `path` is a database of the Dart `pa_library` v0.
 pub fn is_legacy_v0_library(path: String) -> Result<bool> {
     Ok(c::is_legacy_v0(path)?)
+}
+
+/// Settings of a metadata run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CoreMetadataSettings {
+    /// The user's own TMDB key (v3 key or v4 token); `None` uses the key
+    /// built into the app, if any. Without any key only anime is matched
+    /// (AniList, Shikimori).
+    pub tmdb_api_key: Option<String>,
+    /// Metadata language, e.g. `ru-RU` or `en-US`.
+    pub language: String,
+    /// Directory of the provider response cache (`provider-cache.sqlite`);
+    /// disposable, so the platform cache directory.
+    pub cache_dir: String,
+}
+
+/// Progress of [`CoreLibrary::fetch_metadata`]; the last update has
+/// `done` set.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CoreMetadataUpdate {
+    pub processed: u32,
+    pub total: u32,
+    pub done: bool,
+    pub matched: u32,
+    pub not_found: u32,
+    pub failed: u32,
+    /// Why the run stopped early (rejected key, offline), or a failure.
+    pub error: Option<String>,
 }
 
 /// One library database.
@@ -477,6 +512,88 @@ impl CoreLibrary {
             year.map(i64::from),
             tmdb_id,
         )?)
+    }
+
+    /// Fetches provider metadata for the works that need it (new, changed,
+    /// stale or previously failed). Run it after [`scan`](Self::scan);
+    /// [`cancel_scan`](Self::cancel_scan) stops it too. The stream ends
+    /// with a `done` update.
+    pub fn fetch_metadata(
+        &self,
+        settings: CoreMetadataSettings,
+        sink: StreamSink<CoreMetadataUpdate>,
+    ) {
+        let token = c::CancelToken::new();
+        *self.cancel.lock().unwrap_or_else(|e| e.into_inner()) = Some(token.clone());
+        let mut last = CoreMetadataUpdate {
+            processed: 0,
+            total: 0,
+            done: true,
+            matched: 0,
+            not_found: 0,
+            failed: 0,
+            error: None,
+        };
+        let cache_dir = PathBuf::from(&settings.cache_dir);
+        let cache = std::fs::create_dir_all(&cache_dir)
+            .map_err(|e| e.to_string())
+            .and_then(|()| {
+                c::pa_metadata::cache::SqliteCache::open(&cache_dir.join("provider-cache.sqlite"))
+                    .map_err(|e| e.to_string())
+            });
+        let cache = match cache {
+            Ok(cache) => cache,
+            Err(e) => {
+                last.error = Some(format!("provider cache: {e}"));
+                let _ = sink.add(last);
+                return;
+            }
+        };
+        let key = settings
+            .tmdb_api_key
+            .as_deref()
+            .map(str::trim)
+            .filter(|k| !k.is_empty());
+        let providers = c::MetadataProviders::live(Arc::new(cache), key, &settings.language);
+        if let Some(tmdb) = &providers.tmdb {
+            // TMDB terms: nothing cached for longer than six months.
+            tmdb.purge_expired();
+        }
+        let result = self.catalog.fetch_metadata(
+            &providers,
+            &c::MetadataOptions::default(),
+            &token,
+            &mut |done, total| {
+                let _ = sink.add(CoreMetadataUpdate {
+                    processed: count(done),
+                    total: count(total),
+                    done: false,
+                    matched: 0,
+                    not_found: 0,
+                    failed: 0,
+                    error: None,
+                });
+            },
+        );
+        match result {
+            Ok(r) => {
+                last.processed = count(r.matched + r.not_found + r.failed);
+                last.total = count(r.works);
+                last.matched = count(r.matched);
+                last.not_found = count(r.not_found);
+                last.failed = count(r.failed);
+                last.error = r.error;
+            }
+            Err(e) => last.error = Some(e.to_string()),
+        }
+        let _ = sink.add(last);
+    }
+
+    /// Makes the next metadata run ask again: for every work (`all`, e.g.
+    /// after a language change) or only for works no provider matched
+    /// (e.g. after a new TMDB key).
+    pub fn reset_metadata(&self, all: bool) -> Result<()> {
+        Ok(self.catalog.reset_metadata(all)?)
     }
 
     /// Imports a `pa_library` v0 database (read-only; renaming it is the

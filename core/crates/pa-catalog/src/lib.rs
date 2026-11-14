@@ -14,11 +14,15 @@
 //!   movies, shows, episodes, tracks, recently added, FTS5 search;
 //! - progress, "Continue watching" and Up Next on `pa_library::progress`;
 //! - the import of a `pa_library` v0 database ([`Catalog::import_v0`],
-//!   the part of LIB-015 the app needs).
+//!   the part of LIB-015 the app needs);
+//! - provider metadata ([`Catalog::fetch_metadata`], [`metadata`],
+//!   META-013): TMDB / AniList / Shikimori ids, titles, overviews, artwork
+//!   and episode data for the recognized works.
 //!
-//! Recognition here is local: works are created from parsed titles, without
-//! providers. Matching against TMDB (META-013) attaches external ids to the
-//! same works later.
+//! Recognition in the scan is local: works are created from parsed titles,
+//! without providers. The metadata run then matches them against TMDB (and
+//! anime against AniList and Shikimori) and attaches what it finds to the
+//! same works.
 //!
 //! Item ids are strings, stable while the catalog rows live: `m<work>` (a
 //! movie), `s<work>` (a show or anime), `e<episode>`, `t<track>`.
@@ -28,6 +32,7 @@ pub mod fingerprint;
 mod fix;
 mod import_v0;
 mod items;
+pub mod metadata;
 mod progress;
 pub mod recognize;
 mod scan;
@@ -43,6 +48,8 @@ use pa_library::rusqlite::Connection;
 pub use error::Error;
 pub use import_v0::ImportReport;
 pub use items::{Item, ItemKind, ItemRef};
+pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
+pub use pa_metadata;
 pub use pa_scanner::CancelToken;
 pub use progress::{ContinueItem, ItemProgress};
 pub use scan::{ScanPhase, ScanUpdate};
