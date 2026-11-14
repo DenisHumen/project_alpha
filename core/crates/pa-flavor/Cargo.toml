@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-flavor"
+version = "0.1.0"
+description = "Build flavors store and full (ADR-0007, CORE-013): cargo features, the workspace-wide Rust cfg and the runtime flavor query"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+# Not a native library: `links` lets the build script hand the resolved
+# flavor to the build scripts of dependent crates as DEP_PA_FLAVOR_* (see
+# `pa_flavor::build`), so every crate derives its cfg from one unified set
+# of features.
+links = "pa_flavor"
+build = "build.rs"
+
+[features]
+# Store flavor (App Store, Google Play, Microsoft Store). Marker only: a
+# build is `store` exactly when no full-only capability below is enabled.
+# Artifact crates (pa-frb, pa-ffi) forward their `store`/`full` here.
+store = []
+# Full flavor (GitHub Releases, F-Droid, Flathub, AUR, winget, ISO, Docker):
+# every full-only capability. `--all-features` is therefore a full build.
+full = ["twitch-native", "twitch-archive", "donation-links"]
+# Full-only capabilities. Their code is not compiled into store builds.
+# Native Twitch playback through GQL + usher (TWI-004, ADR-0011 §5).
+twitch-native = []
+# Twitch VOD downloads and live recording (TWI-017, TWI-018).
+twitch-archive = []
+# External donation links (ADR-0007, ADR-0011 DEC-003).
+donation-links = []

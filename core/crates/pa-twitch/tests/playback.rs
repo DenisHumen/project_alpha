@@ -233,7 +233,7 @@ fn error_codes_and_fallback() {
     assert!(!PlaybackError::Transport("x".into()).falls_back_to_embed());
 }
 
-#[cfg(feature = "full")]
+#[cfg(pa_twitch_native)]
 mod native {
     use super::*;
     use pa_twitch::playback::{NativePlayback, PlaybackDecision, QualityPreference};

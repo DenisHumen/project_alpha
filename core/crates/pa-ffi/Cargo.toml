@@ -15,10 +15,15 @@ name = "pa_ffi"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [features]
+# Build flavor (ADR-0007, CORE-013): exactly one of them in release builds;
+# neither means `store`. See docs/dev/flavors.md.
+store = ["pa-flavor/store"]
+full = ["pa-flavor/full"]
 # Builds the `uniffi-bindgen` CLI used by `just core bindings`. Not part of the shipped library.
 cli = ["uniffi/cli", "uniffi/cargo-metadata"]
 
 [dependencies]
+pa-flavor = { path = "../pa-flavor" }
 pa-playback = { path = "../pa-playback" }
 pa-runtime = { path = "../pa-runtime" }
 pa-secrets = { path = "../pa-secrets" }

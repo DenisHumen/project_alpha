@@ -18,4 +18,4 @@ mod version;
 pub use playback::*;
 pub use runtime::*;
 pub use secrets::*;
-pub use version::core_version;
+pub use version::{build_capabilities, build_flavor, core_version};
