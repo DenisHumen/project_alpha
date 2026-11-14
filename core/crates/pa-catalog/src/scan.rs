@@ -9,10 +9,11 @@
 //! so queries on the catalog keep working while it runs (WAL).
 
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use pa_library::rusqlite::params;
 use pa_scanner::{CancelToken, FolderOptions, MusicOptions, ScanError, ScanEvent, ScanOptions};
-use pa_vfs::LocalFs;
+use pa_vfs::{LocalFs, VfsPath};
 
 use crate::{Catalog, Error, sources};
 
@@ -59,6 +60,70 @@ impl ScanUpdate {
     }
 }
 
+/// Start, end and fatal error of one source's scan in the `sources` status
+/// columns (NET-011), shown by the Sources screen (UI-005). Written on a
+/// short connection of its own; the end is written on drop, so every exit
+/// of the pipeline (errors, cancel) closes the scan. Status writes are best
+/// effort: a failure never fails the scan.
+struct ScanStatus<'a> {
+    db: &'a Path,
+    id: i64,
+    error: Option<String>,
+}
+
+impl<'a> ScanStatus<'a> {
+    fn start(db: &'a Path, id: i64) -> Self {
+        Self::write(
+            db,
+            "UPDATE sources SET last_scan_started_at_ms = ?2, last_scan_finished_at_ms = NULL
+             WHERE id = ?1",
+            id,
+            None,
+        );
+        Self {
+            db,
+            id,
+            error: None,
+        }
+    }
+
+    /// The source could not be scanned: `message` becomes its last error.
+    fn fail(&mut self, message: String) {
+        self.error = Some(message);
+    }
+
+    fn write(db: &Path, sql: &str, id: i64, error: Option<&str>) {
+        if let Ok(conn) = pa_library::open(db) {
+            let now = crate::now_ms();
+            let _ = match error {
+                Some(e) => conn.execute(sql, params![id, now, e]),
+                None => conn.execute(sql, params![id, now]),
+            };
+        }
+    }
+}
+
+impl Drop for ScanStatus<'_> {
+    fn drop(&mut self) {
+        match self.error.take() {
+            Some(e) => Self::write(
+                self.db,
+                "UPDATE sources SET last_scan_finished_at_ms = ?2, last_error = ?3,
+                     last_error_at_ms = ?2
+                 WHERE id = ?1",
+                self.id,
+                Some(&e),
+            ),
+            None => Self::write(
+                self.db,
+                "UPDATE sources SET last_scan_finished_at_ms = ?2 WHERE id = ?1",
+                self.id,
+                None,
+            ),
+        }
+    }
+}
+
 fn n(v: usize) -> u64 {
     u64::try_from(v).unwrap_or(u64::MAX)
 }
@@ -98,21 +163,26 @@ impl Catalog {
                 u.error = Some(format!("{}: {msg}", src.name));
                 u
             };
+            let mut status = ScanStatus::start(&self.path, src.id);
             let mut u = ScanUpdate::new(ScanPhase::Connecting, Some(src.id), found);
             u.current_path = Some(src.uri.clone());
             on_update(u);
             let Some(root) = roots.get(&src.id).cloned().or(src.local_root.clone()) else {
+                status.fail("no local path for this source".into());
                 on_update(fail(found, "no local path for this source".into()));
                 continue;
             };
             if !root.is_dir() {
                 // Offline drive / unmounted share: keep the items.
-                on_update(fail(found, format!("folder not found: {}", root.display())));
+                let msg = format!("folder not found: {}", root.display());
+                status.fail(msg.clone());
+                on_update(fail(found, msg));
                 continue;
             }
             let vfs = match LocalFs::new(&root) {
                 Ok(v) => v,
                 Err(e) => {
+                    status.fail(e.to_string());
                     on_update(fail(found, e.to_string()));
                     continue;
                 }
@@ -143,6 +213,7 @@ impl Catalog {
             ) {
                 Ok(r) => r,
                 Err(ScanError::SourceUnavailable(e)) => {
+                    status.fail(e.to_string());
                     on_update(fail(found, e.to_string()));
                     continue;
                 }
@@ -205,4 +276,113 @@ impl Catalog {
         on_update(done);
         Ok(())
     }
+}
+
+/// What [`Catalog::rescan_folders`] changed in `files`.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct RescanReport {
+    /// Media files seen in the rescanned folders.
+    pub files_seen: u64,
+    /// New files.
+    pub added: u64,
+    /// Files whose size or mtime changed.
+    pub changed: u64,
+    /// Files seen again after they went missing.
+    pub restored: u64,
+    /// Files gone since the last scan (soft-deleted).
+    pub removed: u64,
+}
+
+impl RescanReport {
+    /// `true` if the media files of the library changed.
+    #[must_use]
+    pub fn has_changes(&self) -> bool {
+        self.added + self.changed + self.restored + self.removed > 0
+    }
+}
+
+impl Catalog {
+    /// Incremental rescan of some folders of one source (the change
+    /// watcher, LIB-005): lists only `folders` (paths relative to the
+    /// source root, each with everything below it) and runs the rest of
+    /// the pipeline on what changed: music tags, the folder structure of
+    /// those folders, fingerprints and recognition of new files, the
+    /// search index. `root` is the local path of the source root.
+    ///
+    /// Serialized with [`scan`](Self::scan). A root that is not a folder
+    /// (offline drive, unmounted share) is an error and nothing changes.
+    pub fn rescan_folders(
+        &self,
+        source_id: i64,
+        root: &Path,
+        folders: &[VfsPath],
+        cancel: &CancelToken,
+    ) -> Result<RescanReport, Error> {
+        let _serial = self.scan_lock.lock().unwrap_or_else(|e| e.into_inner());
+        let mut conn = pa_library::open(&self.path)?;
+        if sources::get(&conn, source_id)?.is_none() {
+            return Err(Error::NotFound(format!("source {source_id}")));
+        }
+        if !root.is_dir() {
+            return Err(Error::Io(format!("folder not found: {}", root.display())));
+        }
+        let vfs = LocalFs::new(root).map_err(|e| Error::Io(e.to_string()))?;
+        let mut out = RescanReport::default();
+        for folder in folders {
+            if cancel.is_cancelled() {
+                return Ok(out);
+            }
+            let options = ScanOptions {
+                subtree: Some(folder.clone()),
+                ..ScanOptions::default()
+            };
+            let r = pa_scanner::scan(&mut conn, source_id, &vfs, &options, cancel, &mut |_| {})?;
+            out.files_seen += n(r.files_seen);
+            out.added += n(r.added);
+            out.changed += n(r.changed);
+            out.restored += n(r.restored);
+            out.removed += n(r.marked_missing);
+        }
+        if out.has_changes() {
+            pa_scanner::index_music(
+                &mut conn,
+                source_id,
+                &vfs,
+                &MusicOptions::default(),
+                cancel,
+                &mut |_| {},
+            )?;
+        }
+        // Sidecars, NFO and art can change without a media file.
+        for folder in folders {
+            analyze_subtree(&mut conn, source_id, &vfs, folder, cancel);
+        }
+        if out.has_changes() {
+            crate::fingerprint::fill_missing(&mut conn, source_id, &vfs, &mut |_, _| {})?;
+            crate::recognize::run(&mut conn, source_id, &mut |_, _| {})?;
+            {
+                let tx = conn.transaction()?;
+                crate::recognize::remove_orphans(&tx)?;
+                tx.commit()?;
+            }
+            pa_library::search::sync(&conn)?;
+        }
+        Ok(out)
+    }
+}
+
+/// Folder structure of one subtree. A failure leaves the groups as they
+/// were until the next full scan.
+fn analyze_subtree(
+    conn: &mut pa_library::rusqlite::Connection,
+    source_id: i64,
+    vfs: &LocalFs,
+    folder: &VfsPath,
+    cancel: &CancelToken,
+) {
+    let options = FolderOptions {
+        subtree: Some(folder.clone()),
+        ..FolderOptions::default()
+    };
+    let _ = pa_scanner::analyze_folders(conn, source_id, vfs, &options, cancel, &mut |_| {});
 }

@@ -94,6 +94,21 @@ abstract class Library {
   /// renamed and searched again. The item is locked against re-matching.
   Future<void> fixMatch(String itemId, {int? tmdbId, String? title, int? year});
 
+  /// Starts following the auto-scan sources (LIB-005), replacing a running
+  /// watcher: local folders are rescanned a moment after files change in
+  /// them, network shares ([smbPasswords] by source id) on a timer of
+  /// [networkInterval]. With [scanOnStart] every followed source is scanned
+  /// once right away. The item streams update on their own. Implementations
+  /// without a watcher do nothing.
+  Future<void> startWatching({
+    Map<String, String> smbPasswords = const {},
+    Duration networkInterval = const Duration(minutes: 15),
+    bool scanOnStart = true,
+  });
+
+  /// Stops the watcher of [startWatching]; does nothing if none runs.
+  Future<void> stopWatching();
+
   Future<void> close();
 }
 
@@ -1034,6 +1049,17 @@ VALUES (?, ?, ?, ?, ?)''',
     }
     _notify();
   }
+
+  /// The v0 library has no watcher: rescans are manual.
+  @override
+  Future<void> startWatching({
+    Map<String, String> smbPasswords = const {},
+    Duration networkInterval = const Duration(minutes: 15),
+    bool scanOnStart = true,
+  }) async {}
+
+  @override
+  Future<void> stopWatching() async {}
 
   @override
   Future<void> close() async {

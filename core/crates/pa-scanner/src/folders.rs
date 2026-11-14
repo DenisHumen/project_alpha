@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 
 use pa_library::groups::{Role, save_groups};
 use pa_library::rusqlite::{Connection, OptionalExtension};
-use pa_vfs::{Vfs, VfsPath};
+use pa_vfs::{ErrorKind, Vfs, VfsPath};
 
 use crate::scan::{CancelToken, ScanError, ScanEvent, ScanProgress, system_now_ms};
 use crate::structure::{ListedFile, StructureOptions, analyze, is_structure_file, parse_nfo_ids};
@@ -39,6 +39,12 @@ pub struct FolderOptions {
     pub read_nfo: bool,
     /// Clock override, Unix milliseconds (tests).
     pub now_ms: Option<i64>,
+    /// Analyze only this folder and everything below it (the incremental
+    /// rescan after a change, LIB-005): only groups whose root is inside it
+    /// are written or removed. Groups rooted above it (a show folder when
+    /// one season changed) wait for the next full run. `None`: the whole
+    /// source.
+    pub subtree: Option<VfsPath>,
 }
 
 impl Default for FolderOptions {
@@ -50,6 +56,7 @@ impl Default for FolderOptions {
             skip_hidden: true,
             read_nfo: true,
             now_ms: None,
+            subtree: None,
         }
     }
 }
@@ -158,13 +165,16 @@ pub fn analyze_folders(
     let mut failed: Vec<String> = Vec::new();
     let mut progress = ScanProgress::default();
     let filter = StructureWalk { options };
+    let start = options.subtree.clone().unwrap_or_else(VfsPath::root);
+    let start_depth = start.components().count();
     let stop = Arc::new(AtomicBool::new(false));
     let walked = std::thread::scope(|s| {
         let rx = walk::spawn(
             s,
             vfs,
             &filter,
-            VfsPath::root(),
+            start.clone(),
+            start_depth,
             options.threads,
             Arc::clone(&stop),
         );
@@ -185,6 +195,8 @@ pub fn analyze_folders(
                         on_event(&ScanEvent::Progress(progress.clone()));
                     }
                     Err(e) if listed.dir.is_root() => break Err(ScanError::SourceUnavailable(e)),
+                    // The analyzed folder is gone: its groups are removed.
+                    Err(e) if listed.dir == start && e.kind() == ErrorKind::NotFound => {}
                     Err(e) => {
                         report.dirs_failed += 1;
                         on_event(&ScanEvent::DirFailed {
@@ -241,6 +253,28 @@ pub fn analyze_folders(
             }
         }
     }
+    if !start.is_root() {
+        // Only the groups inside the subtree are this run's business.
+        groups.retain(|g| is_under_or_eq(&g.root, start.as_str()));
+        let mut root_group = false;
+        for root in group_roots(conn, source_id)? {
+            if root == "/" {
+                root_group = true;
+            } else if !is_under_or_eq(&root, start.as_str()) {
+                failed.push(root);
+            }
+        }
+        if root_group {
+            // `keep_under` cannot keep the group of the source root without
+            // keeping everything: it is saved again as stored.
+            groups.extend(
+                pa_library::groups::source_groups(conn, source_id)?
+                    .into_iter()
+                    .filter(|g| g.group.root == "/")
+                    .map(|g| g.group),
+            );
+        }
+    }
     report.groups = groups.len();
     let saved = save_groups(conn, source_id, &groups, &failed, now)?;
     report.written = saved.written;
@@ -248,6 +282,23 @@ pub fn analyze_folders(
     report.removed = saved.removed;
     report.elapsed = started.elapsed();
     Ok(report)
+}
+
+/// Roots of the stored groups of a source.
+fn group_roots(conn: &Connection, source_id: i64) -> Result<Vec<String>, ScanError> {
+    let mut stmt = conn.prepare("SELECT root_path FROM file_groups WHERE source_id = ?1")?;
+    let rows = stmt.query_map([source_id], |r| r.get::<_, String>(0))?;
+    Ok(rows.collect::<Result<_, _>>()?)
+}
+
+/// `path` is folder `dir` or inside it.
+fn is_under_or_eq(path: &str, dir: &str) -> bool {
+    let dir = dir.trim_end_matches('/');
+    dir.is_empty()
+        || path == dir
+        || path
+            .strip_prefix(dir)
+            .is_some_and(|rest| rest.starts_with('/'))
 }
 
 fn load_durations(conn: &Connection, source_id: i64) -> Result<HashMap<String, u64>, ScanError> {

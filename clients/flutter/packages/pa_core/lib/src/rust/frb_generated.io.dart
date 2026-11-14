@@ -5,7 +5,6 @@
 
 import 'api/events.dart';
 import 'api/library.dart';
-import 'api/library_query.dart';
 import 'api/recognition.dart';
 import 'api/sources.dart';
 import 'api/version.dart';
@@ -80,6 +79,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<CoreWatchEvent> dco_decode_StreamSink_core_watch_event_Sse(
+    dynamic raw,
+  );
+
+  @protected
   RustStreamSink<int> dco_decode_StreamSink_u_32_Sse(dynamic raw);
 
   @protected
@@ -101,15 +105,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreItem dco_decode_box_autoadd_core_item(dynamic raw);
 
   @protected
-  CoreLibraryFilter dco_decode_box_autoadd_core_library_filter(dynamic raw);
-
-  @protected
-  CoreLibraryQuery dco_decode_box_autoadd_core_library_query(dynamic raw);
-
-  @protected
-  CoreLibrarySort dco_decode_box_autoadd_core_library_sort(dynamic raw);
-
-  @protected
   CoreMetadataSettings dco_decode_box_autoadd_core_metadata_settings(
     dynamic raw,
   );
@@ -121,7 +116,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreSourceInput dco_decode_box_autoadd_core_source_input(dynamic raw);
 
   @protected
-  CoreViewPrefs dco_decode_box_autoadd_core_view_prefs(dynamic raw);
+  CoreWatchSettings dco_decode_box_autoadd_core_watch_settings(dynamic raw);
 
   @protected
   DiscKind dco_decode_box_autoadd_disc_kind(dynamic raw);
@@ -154,22 +149,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_box_autoadd_u_8(dynamic raw);
 
   @protected
-  CoreAlphabetEntry dco_decode_core_alphabet_entry(dynamic raw);
-
-  @protected
   CoreContinueItem dco_decode_core_continue_item(dynamic raw);
-
-  @protected
-  CoreFacets dco_decode_core_facets(dynamic raw);
-
-  @protected
-  CoreFolderEntry dco_decode_core_folder_entry(dynamic raw);
-
-  @protected
-  CoreHdrFacet dco_decode_core_hdr_facet(dynamic raw);
-
-  @protected
-  CoreHdrFilter dco_decode_core_hdr_filter(dynamic raw);
 
   @protected
   CoreImportReport dco_decode_core_import_report(dynamic raw);
@@ -179,18 +159,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItemKind dco_decode_core_item_kind(dynamic raw);
-
-  @protected
-  CoreItemPage dco_decode_core_item_page(dynamic raw);
-
-  @protected
-  CoreLibraryFilter dco_decode_core_library_filter(dynamic raw);
-
-  @protected
-  CoreLibraryQuery dco_decode_core_library_query(dynamic raw);
-
-  @protected
-  CoreLibrarySort dco_decode_core_library_sort(dynamic raw);
 
   @protected
   CoreManagedSource dco_decode_core_managed_source(dynamic raw);
@@ -205,28 +173,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreProgress dco_decode_core_progress(dynamic raw);
 
   @protected
-  CoreResolution dco_decode_core_resolution(dynamic raw);
-
-  @protected
-  CoreResolutionFacet dco_decode_core_resolution_facet(dynamic raw);
-
-  @protected
   CoreScanPhase dco_decode_core_scan_phase(dynamic raw);
 
   @protected
   CoreScanUpdate dco_decode_core_scan_update(dynamic raw);
 
   @protected
-  CoreSmartShelf dco_decode_core_smart_shelf(dynamic raw);
-
-  @protected
-  CoreSortField dco_decode_core_sort_field(dynamic raw);
-
-  @protected
   CoreSource dco_decode_core_source(dynamic raw);
-
-  @protected
-  CoreSourceFacet dco_decode_core_source_facet(dynamic raw);
 
   @protected
   CoreSourceInput dco_decode_core_source_input(dynamic raw);
@@ -244,13 +197,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreSpeedReport dco_decode_core_speed_report(dynamic raw);
 
   @protected
-  CoreTextFacet dco_decode_core_text_facet(dynamic raw);
+  CoreWatchEvent dco_decode_core_watch_event(dynamic raw);
 
   @protected
-  CoreViewPrefs dco_decode_core_view_prefs(dynamic raw);
-
-  @protected
-  CoreWatchState dco_decode_core_watch_state(dynamic raw);
+  CoreWatchSettings dco_decode_core_watch_settings(dynamic raw);
 
   @protected
   DiscKind dco_decode_disc_kind(dynamic raw);
@@ -289,19 +239,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
-  List<CoreAlphabetEntry> dco_decode_list_core_alphabet_entry(dynamic raw);
-
-  @protected
   List<CoreContinueItem> dco_decode_list_core_continue_item(dynamic raw);
-
-  @protected
-  List<CoreFolderEntry> dco_decode_list_core_folder_entry(dynamic raw);
-
-  @protected
-  List<CoreHdrFacet> dco_decode_list_core_hdr_facet(dynamic raw);
-
-  @protected
-  List<CoreHdrFilter> dco_decode_list_core_hdr_filter(dynamic raw);
 
   @protected
   List<CoreItem> dco_decode_list_core_item(dynamic raw);
@@ -310,37 +248,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<CoreManagedSource> dco_decode_list_core_managed_source(dynamic raw);
 
   @protected
-  List<CoreResolution> dco_decode_list_core_resolution(dynamic raw);
-
-  @protected
-  List<CoreResolutionFacet> dco_decode_list_core_resolution_facet(dynamic raw);
-
-  @protected
-  List<CoreSmartShelf> dco_decode_list_core_smart_shelf(dynamic raw);
-
-  @protected
   List<CoreSource> dco_decode_list_core_source(dynamic raw);
 
   @protected
-  List<CoreSourceFacet> dco_decode_list_core_source_facet(dynamic raw);
-
-  @protected
   List<CoreSourceRoot> dco_decode_list_core_source_root(dynamic raw);
-
-  @protected
-  List<CoreTextFacet> dco_decode_list_core_text_facet(dynamic raw);
-
-  @protected
-  List<CoreWatchState> dco_decode_list_core_watch_state(dynamic raw);
 
   @protected
   List<EpisodeNumber> dco_decode_list_episode_number(dynamic raw);
 
   @protected
   List<FilenameHypothesis> dco_decode_list_filename_hypothesis(dynamic raw);
-
-  @protected
-  Int64List dco_decode_list_prim_i_64_strict(dynamic raw);
 
   @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
@@ -359,11 +276,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItem? dco_decode_opt_box_autoadd_core_item(dynamic raw);
-
-  @protected
-  CoreLibraryFilter? dco_decode_opt_box_autoadd_core_library_filter(
-    dynamic raw,
-  );
 
   @protected
   CoreProgress? dco_decode_opt_box_autoadd_core_progress(dynamic raw);
@@ -471,6 +383,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<CoreWatchEvent> sse_decode_StreamSink_core_watch_event_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RustStreamSink<int> sse_decode_StreamSink_u_32_Sse(
     SseDeserializer deserializer,
   );
@@ -494,21 +411,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreItem sse_decode_box_autoadd_core_item(SseDeserializer deserializer);
 
   @protected
-  CoreLibraryFilter sse_decode_box_autoadd_core_library_filter(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  CoreLibraryQuery sse_decode_box_autoadd_core_library_query(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  CoreLibrarySort sse_decode_box_autoadd_core_library_sort(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   CoreMetadataSettings sse_decode_box_autoadd_core_metadata_settings(
     SseDeserializer deserializer,
   );
@@ -524,7 +426,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  CoreViewPrefs sse_decode_box_autoadd_core_view_prefs(
+  CoreWatchSettings sse_decode_box_autoadd_core_watch_settings(
     SseDeserializer deserializer,
   );
 
@@ -559,24 +461,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
 
   @protected
-  CoreAlphabetEntry sse_decode_core_alphabet_entry(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   CoreContinueItem sse_decode_core_continue_item(SseDeserializer deserializer);
-
-  @protected
-  CoreFacets sse_decode_core_facets(SseDeserializer deserializer);
-
-  @protected
-  CoreFolderEntry sse_decode_core_folder_entry(SseDeserializer deserializer);
-
-  @protected
-  CoreHdrFacet sse_decode_core_hdr_facet(SseDeserializer deserializer);
-
-  @protected
-  CoreHdrFilter sse_decode_core_hdr_filter(SseDeserializer deserializer);
 
   @protected
   CoreImportReport sse_decode_core_import_report(SseDeserializer deserializer);
@@ -586,20 +471,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItemKind sse_decode_core_item_kind(SseDeserializer deserializer);
-
-  @protected
-  CoreItemPage sse_decode_core_item_page(SseDeserializer deserializer);
-
-  @protected
-  CoreLibraryFilter sse_decode_core_library_filter(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  CoreLibraryQuery sse_decode_core_library_query(SseDeserializer deserializer);
-
-  @protected
-  CoreLibrarySort sse_decode_core_library_sort(SseDeserializer deserializer);
 
   @protected
   CoreManagedSource sse_decode_core_managed_source(
@@ -620,30 +491,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreProgress sse_decode_core_progress(SseDeserializer deserializer);
 
   @protected
-  CoreResolution sse_decode_core_resolution(SseDeserializer deserializer);
-
-  @protected
-  CoreResolutionFacet sse_decode_core_resolution_facet(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   CoreScanPhase sse_decode_core_scan_phase(SseDeserializer deserializer);
 
   @protected
   CoreScanUpdate sse_decode_core_scan_update(SseDeserializer deserializer);
 
   @protected
-  CoreSmartShelf sse_decode_core_smart_shelf(SseDeserializer deserializer);
-
-  @protected
-  CoreSortField sse_decode_core_sort_field(SseDeserializer deserializer);
-
-  @protected
   CoreSource sse_decode_core_source(SseDeserializer deserializer);
-
-  @protected
-  CoreSourceFacet sse_decode_core_source_facet(SseDeserializer deserializer);
 
   @protected
   CoreSourceInput sse_decode_core_source_input(SseDeserializer deserializer);
@@ -663,13 +517,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreSpeedReport sse_decode_core_speed_report(SseDeserializer deserializer);
 
   @protected
-  CoreTextFacet sse_decode_core_text_facet(SseDeserializer deserializer);
+  CoreWatchEvent sse_decode_core_watch_event(SseDeserializer deserializer);
 
   @protected
-  CoreViewPrefs sse_decode_core_view_prefs(SseDeserializer deserializer);
-
-  @protected
-  CoreWatchState sse_decode_core_watch_state(SseDeserializer deserializer);
+  CoreWatchSettings sse_decode_core_watch_settings(
+    SseDeserializer deserializer,
+  );
 
   @protected
   DiscKind sse_decode_disc_kind(SseDeserializer deserializer);
@@ -710,27 +563,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
-  List<CoreAlphabetEntry> sse_decode_list_core_alphabet_entry(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   List<CoreContinueItem> sse_decode_list_core_continue_item(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreFolderEntry> sse_decode_list_core_folder_entry(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreHdrFacet> sse_decode_list_core_hdr_facet(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreHdrFilter> sse_decode_list_core_hdr_filter(
     SseDeserializer deserializer,
   );
 
@@ -743,40 +576,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  List<CoreResolution> sse_decode_list_core_resolution(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreResolutionFacet> sse_decode_list_core_resolution_facet(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreSmartShelf> sse_decode_list_core_smart_shelf(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   List<CoreSource> sse_decode_list_core_source(SseDeserializer deserializer);
 
   @protected
-  List<CoreSourceFacet> sse_decode_list_core_source_facet(
-    SseDeserializer deserializer,
-  );
-
-  @protected
   List<CoreSourceRoot> sse_decode_list_core_source_root(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreTextFacet> sse_decode_list_core_text_facet(
-    SseDeserializer deserializer,
-  );
-
-  @protected
-  List<CoreWatchState> sse_decode_list_core_watch_state(
     SseDeserializer deserializer,
   );
 
@@ -789,9 +592,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<FilenameHypothesis> sse_decode_list_filename_hypothesis(
     SseDeserializer deserializer,
   );
-
-  @protected
-  Int64List sse_decode_list_prim_i_64_strict(SseDeserializer deserializer);
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
@@ -810,11 +610,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreItem? sse_decode_opt_box_autoadd_core_item(SseDeserializer deserializer);
-
-  @protected
-  CoreLibraryFilter? sse_decode_opt_box_autoadd_core_library_filter(
-    SseDeserializer deserializer,
-  );
 
   @protected
   CoreProgress? sse_decode_opt_box_autoadd_core_progress(
@@ -940,6 +735,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_core_watch_event_Sse(
+    RustStreamSink<CoreWatchEvent> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_u_32_Sse(
     RustStreamSink<int> self,
     SseSerializer serializer,
@@ -967,24 +768,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_box_autoadd_core_library_filter(
-    CoreLibraryFilter self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_core_library_query(
-    CoreLibraryQuery self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_box_autoadd_core_library_sort(
-    CoreLibrarySort self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_box_autoadd_core_metadata_settings(
     CoreMetadataSettings self,
     SseSerializer serializer,
@@ -1003,8 +786,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_box_autoadd_core_view_prefs(
-    CoreViewPrefs self,
+  void sse_encode_box_autoadd_core_watch_settings(
+    CoreWatchSettings self,
     SseSerializer serializer,
   );
 
@@ -1051,31 +834,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
 
   @protected
-  void sse_encode_core_alphabet_entry(
-    CoreAlphabetEntry self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_core_continue_item(
     CoreContinueItem self,
     SseSerializer serializer,
   );
-
-  @protected
-  void sse_encode_core_facets(CoreFacets self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_core_folder_entry(
-    CoreFolderEntry self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_core_hdr_facet(CoreHdrFacet self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_core_hdr_filter(CoreHdrFilter self, SseSerializer serializer);
 
   @protected
   void sse_encode_core_import_report(
@@ -1088,27 +850,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_core_item_kind(CoreItemKind self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_core_item_page(CoreItemPage self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_core_library_filter(
-    CoreLibraryFilter self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_core_library_query(
-    CoreLibraryQuery self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_core_library_sort(
-    CoreLibrarySort self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_core_managed_source(
@@ -1132,18 +873,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_core_progress(CoreProgress self, SseSerializer serializer);
 
   @protected
-  void sse_encode_core_resolution(
-    CoreResolution self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_core_resolution_facet(
-    CoreResolutionFacet self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_core_scan_phase(CoreScanPhase self, SseSerializer serializer);
 
   @protected
@@ -1153,22 +882,7 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_core_smart_shelf(
-    CoreSmartShelf self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_core_sort_field(CoreSortField self, SseSerializer serializer);
-
-  @protected
   void sse_encode_core_source(CoreSource self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_core_source_facet(
-    CoreSourceFacet self,
-    SseSerializer serializer,
-  );
 
   @protected
   void sse_encode_core_source_input(
@@ -1201,14 +915,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_core_text_facet(CoreTextFacet self, SseSerializer serializer);
+  void sse_encode_core_watch_event(
+    CoreWatchEvent self,
+    SseSerializer serializer,
+  );
 
   @protected
-  void sse_encode_core_view_prefs(CoreViewPrefs self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_core_watch_state(
-    CoreWatchState self,
+  void sse_encode_core_watch_settings(
+    CoreWatchSettings self,
     SseSerializer serializer,
   );
 
@@ -1252,32 +966,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_core_alphabet_entry(
-    List<CoreAlphabetEntry> self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_list_core_continue_item(
     List<CoreContinueItem> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_folder_entry(
-    List<CoreFolderEntry> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_hdr_facet(
-    List<CoreHdrFacet> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_hdr_filter(
-    List<CoreHdrFilter> self,
     SseSerializer serializer,
   );
 
@@ -1291,50 +981,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
-  void sse_encode_list_core_resolution(
-    List<CoreResolution> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_resolution_facet(
-    List<CoreResolutionFacet> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_smart_shelf(
-    List<CoreSmartShelf> self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_list_core_source(
     List<CoreSource> self,
     SseSerializer serializer,
   );
 
   @protected
-  void sse_encode_list_core_source_facet(
-    List<CoreSourceFacet> self,
-    SseSerializer serializer,
-  );
-
-  @protected
   void sse_encode_list_core_source_root(
     List<CoreSourceRoot> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_text_facet(
-    List<CoreTextFacet> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_core_watch_state(
-    List<CoreWatchState> self,
     SseSerializer serializer,
   );
 
@@ -1347,12 +1001,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_filename_hypothesis(
     List<FilenameHypothesis> self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_list_prim_i_64_strict(
-    Int64List self,
     SseSerializer serializer,
   );
 
@@ -1380,12 +1028,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_core_item(
     CoreItem? self,
-    SseSerializer serializer,
-  );
-
-  @protected
-  void sse_encode_opt_box_autoadd_core_library_filter(
-    CoreLibraryFilter? self,
     SseSerializer serializer,
   );
 

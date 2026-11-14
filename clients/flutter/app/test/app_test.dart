@@ -145,11 +145,15 @@ void main() {
       await settle(tester);
       await tester.tap(find.text('Add source'));
       await settle(tester, 4);
-      await tester.tap(find.text('SMB share (beta)'));
+      await tester.tap(find.text('SMB share (Windows, NAS)'));
       await settle(tester, 3);
       await tester.enterText(
-        find.widgetWithText(TextField, 'Share address'),
-        'smb://nas.local/media',
+        find.widgetWithText(TextField, 'Server'),
+        'nas.local',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Shared folder'),
+        'media',
       );
       await tester.enterText(
         find.widgetWithText(TextField, 'Username (optional)'),

@@ -8,7 +8,7 @@ import 'library_query.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `count`, `item_ref`, `items`, `signed`, `small`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// `true` if `path` is a database of the Dart `pa_library` v0.
 Future<bool> isLegacyV0Library({required String path}) =>
@@ -154,6 +154,17 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   Future<List<CoreItem>> shows();
 
   Future<List<CoreSource>> sources();
+
+  /// Starts the change watcher (LIB-005), replacing a running one: local
+  /// auto-scan sources are watched with OS notifications and rescanned
+  /// incrementally, mounted network shares on a timer. Every rescan comes
+  /// as an event; the stream stays open until
+  /// [`stop_watcher`](Self::stop_watcher).
+  Stream<CoreWatchEvent> startWatcher({required CoreWatchSettings settings});
+
+  /// Stops the change watcher (a running rescan is cancelled) and closes
+  /// its stream. Does nothing if none runs.
+  Future<void> stopWatcher();
 
   Future<List<CoreItem>> tracks();
 
@@ -544,6 +555,9 @@ class CoreSource {
   /// Local path of a `file://` root.
   final String? localRoot;
 
+  /// Followed by the change watcher ([`CoreLibrary::start_watcher`]).
+  final bool autoScan;
+
   const CoreSource({
     required this.id,
     required this.kind,
@@ -551,6 +565,7 @@ class CoreSource {
     required this.uri,
     this.username,
     this.localRoot,
+    required this.autoScan,
   });
 
   @override
@@ -560,7 +575,8 @@ class CoreSource {
       name.hashCode ^
       uri.hashCode ^
       username.hashCode ^
-      localRoot.hashCode;
+      localRoot.hashCode ^
+      autoScan.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -572,7 +588,8 @@ class CoreSource {
           name == other.name &&
           uri == other.uri &&
           username == other.username &&
-          localRoot == other.localRoot;
+          localRoot == other.localRoot &&
+          autoScan == other.autoScan;
 }
 
 /// Local path of a source that is not `file://` (a mounted share).
@@ -592,6 +609,99 @@ class CoreSourceRoot {
           runtimeType == other.runtimeType &&
           sourceId == other.sourceId &&
           path == other.path;
+}
+
+/// A rescan done by the change watcher.
+class CoreWatchEvent {
+  final PlatformInt64 sourceId;
+
+  /// The whole source was scanned (start, timer, many changes).
+  final bool full;
+
+  /// Rescanned folders, relative to the source root.
+  final List<String> folders;
+  final PlatformInt64 added;
+  final PlatformInt64 changed;
+  final PlatformInt64 removed;
+
+  /// The library may have changed: refresh the views.
+  final bool mayHaveChanged;
+  final String? error;
+
+  const CoreWatchEvent({
+    required this.sourceId,
+    required this.full,
+    required this.folders,
+    required this.added,
+    required this.changed,
+    required this.removed,
+    required this.mayHaveChanged,
+    this.error,
+  });
+
+  @override
+  int get hashCode =>
+      sourceId.hashCode ^
+      full.hashCode ^
+      folders.hashCode ^
+      added.hashCode ^
+      changed.hashCode ^
+      removed.hashCode ^
+      mayHaveChanged.hashCode ^
+      error.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoreWatchEvent &&
+          runtimeType == other.runtimeType &&
+          sourceId == other.sourceId &&
+          full == other.full &&
+          folders == other.folders &&
+          added == other.added &&
+          changed == other.changed &&
+          removed == other.removed &&
+          mayHaveChanged == other.mayHaveChanged &&
+          error == other.error;
+}
+
+/// Settings of the change watcher ([`CoreLibrary::start_watcher`]).
+class CoreWatchSettings {
+  /// Local paths of mounted network shares.
+  final List<CoreSourceRoot> roots;
+
+  /// Rescan interval of network shares, seconds; 0: no timer.
+  final int networkIntervalSecs;
+
+  /// Quiet time after a change before the rescan, milliseconds.
+  final int debounceMs;
+
+  /// Scan every followed source when the watcher starts.
+  final bool scanOnStart;
+
+  const CoreWatchSettings({
+    required this.roots,
+    required this.networkIntervalSecs,
+    required this.debounceMs,
+    required this.scanOnStart,
+  });
+
+  @override
+  int get hashCode =>
+      roots.hashCode ^
+      networkIntervalSecs.hashCode ^
+      debounceMs.hashCode ^
+      scanOnStart.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoreWatchSettings &&
+          runtimeType == other.runtimeType &&
+          roots == other.roots &&
+          networkIntervalSecs == other.networkIntervalSecs &&
+          debounceMs == other.debounceMs &&
+          scanOnStart == other.scanOnStart;
 }
 
 /// Error of a library call; Dart receives it as an exception.

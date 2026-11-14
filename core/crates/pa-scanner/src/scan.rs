@@ -33,6 +33,11 @@ pub struct ScanOptions {
     pub batch_size: usize,
     /// Clock override, Unix milliseconds (tests). `None`: the system clock.
     pub now_ms: Option<i64>,
+    /// Scan only this folder and everything below it: the incremental
+    /// rescan after a change (LIB-005). Rows outside it are not read or
+    /// written; a folder that no longer exists marks its rows missing.
+    /// `None`: the whole source.
+    pub subtree: Option<VfsPath>,
 }
 
 impl Default for ScanOptions {
@@ -43,6 +48,7 @@ impl Default for ScanOptions {
             grace_period: DEFAULT_GRACE_PERIOD,
             batch_size: 500,
             now_ms: None,
+            subtree: None,
         }
     }
 }
@@ -259,7 +265,21 @@ pub fn scan(
     if exists.is_none() {
         return Err(ScanError::SourceNotFound(source_id));
     }
-    let known = load_known(conn, source_id)?;
+    let start = options.subtree.clone().unwrap_or_else(VfsPath::root);
+    let start_depth = start.components().count();
+    if !start.is_root() && !subtree_scanned(&start, &options.rules) {
+        // A folder the full scan skips (extras, hidden, too deep): nothing
+        // of it is in `files`.
+        return Ok(ScanReport {
+            now_ms: now,
+            elapsed: started.elapsed(),
+            ..ScanReport::default()
+        });
+    }
+    let mut known = load_known(conn, source_id)?;
+    if !start.is_root() {
+        known.retain(|path, _| is_under(path, &start));
+    }
 
     let mut run = Run {
         conn,
@@ -267,6 +287,7 @@ pub fn scan(
         now,
         batch_size: options.batch_size.max(1),
         known,
+        start: start.clone(),
         pending: Vec::new(),
         failed_dirs: Vec::new(),
         report: ScanReport {
@@ -282,7 +303,8 @@ pub fn scan(
             s,
             vfs,
             &options.rules,
-            VfsPath::root(),
+            start,
+            start_depth,
             options.threads,
             Arc::clone(&stop),
         );
@@ -321,6 +343,8 @@ struct Run<'c> {
     source_id: i64,
     now: i64,
     batch_size: usize,
+    /// The first folder listed: the source root or [`ScanOptions::subtree`].
+    start: VfsPath,
     /// Rows not seen yet in this scan, by path.
     known: HashMap<String, Known>,
     pending: Vec<Op>,
@@ -339,6 +363,8 @@ impl Run<'_> {
         let files = match listed.result {
             Ok(files) => files,
             Err(e) if listed.dir.is_root() => return Err(ScanError::SourceUnavailable(e)),
+            // The rescanned folder is gone: its rows are marked missing.
+            Err(e) if listed.dir == self.start && e.kind() == ErrorKind::NotFound => Vec::new(),
             Err(e) => {
                 self.report.dirs_failed += 1;
                 on_event(&ScanEvent::DirFailed {
@@ -482,6 +508,18 @@ fn load_known(conn: &Connection, source_id: i64) -> Result<HashMap<String, Known
         ))
     })?;
     Ok(rows.collect::<Result<_, _>>()?)
+}
+
+/// Whether the full scan enters every folder of `dir` (a subtree root).
+fn subtree_scanned(dir: &VfsPath, rules: &ScanRules) -> bool {
+    let mut depth = 0;
+    for name in dir.components() {
+        depth += 1;
+        if depth > rules.max_depth || !rules.enter_folder(name) {
+            return false;
+        }
+    }
+    true
 }
 
 /// `path` is inside folder `dir` (any depth).

@@ -1,0 +1,7047 @@
+{
+  "report_version": 1,
+  "recognizer": "tmdb-v0",
+  "auto_threshold": 0.75,
+  "corpus": {
+    "sources": [
+      "test.jsonl"
+    ],
+    "cases": 422,
+    "input_files": 1070,
+    "splits": {
+      "test": 422
+    }
+  },
+  "overall": {
+    "items": 351,
+    "scorable": 351,
+    "auto": 347,
+    "review": 0,
+    "manual": 4,
+    "auto_correct": 336,
+    "silent_errors": 11,
+    "precision_at_auto": 0.9683,
+    "coverage": 0.988604,
+    "recall": 0.957265,
+    "silent_error_rate": 0.031339,
+    "review_rate": 0.0,
+    "manual_rate": 0.011396,
+    "ece": 0.02219,
+    "reliability": [
+      {
+        "lower": 0.8,
+        "upper": 0.9,
+        "count": 22,
+        "mean_confidence": 0.85,
+        "accuracy": 0.5
+      },
+      {
+        "lower": 0.9,
+        "upper": 1.0,
+        "count": 325,
+        "mean_confidence": 1.0,
+        "accuracy": 1.0
+      }
+    ],
+    "episodes": {
+      "tmdb": {
+        "labelled": 94,
+        "auto": 94,
+        "correct": 82,
+        "precision": 0.87234,
+        "recall": 0.87234
+      }
+    },
+    "parse": {
+      "episodes": {
+        "labelled": 94,
+        "correct": 89,
+        "accuracy": 0.946809
+      },
+      "number": {
+        "labelled": 94,
+        "correct": 89,
+        "accuracy": 0.946809
+      },
+      "part": {
+        "labelled": 63,
+        "correct": 63,
+        "accuracy": 1.0
+      },
+      "release_group": {
+        "labelled": 87,
+        "correct": 87,
+        "accuracy": 1.0
+      },
+      "season": {
+        "labelled": 90,
+        "correct": 90,
+        "accuracy": 1.0
+      },
+      "title": {
+        "labelled": 322,
+        "correct": 321,
+        "accuracy": 0.996894
+      },
+      "year": {
+        "labelled": 144,
+        "correct": 144,
+        "accuracy": 1.0
+      }
+    }
+  },
+  "per_category": {
+    "A10": {
+      "items": 41,
+      "scorable": 41,
+      "auto": 41,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 41,
+      "silent_errors": 0,
+      "precision_at_auto": 1.0,
+      "coverage": 1.0,
+      "recall": 1.0,
+      "silent_error_rate": 0.0,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.0,
+      "reliability": [
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 41,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {},
+      "parse": {
+        "release_group": {
+          "labelled": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 12,
+          "correct": 12,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 12,
+          "correct": 12,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A11": {
+      "items": 66,
+      "scorable": 66,
+      "auto": 66,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 66,
+      "silent_errors": 0,
+      "precision_at_auto": 1.0,
+      "coverage": 1.0,
+      "recall": 1.0,
+      "silent_error_rate": 0.0,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.0,
+      "reliability": [
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 66,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {},
+      "parse": {
+        "release_group": {
+          "labelled": 7,
+          "correct": 7,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 66,
+          "correct": 66,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A12": {
+      "items": 23,
+      "scorable": 23,
+      "auto": 23,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 23,
+      "silent_errors": 0,
+      "precision_at_auto": 1.0,
+      "coverage": 1.0,
+      "recall": 1.0,
+      "silent_error_rate": 0.0,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.0,
+      "reliability": [
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 23,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {},
+      "parse": {
+        "title": {
+          "labelled": 23,
+          "correct": 23,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 19,
+          "correct": 19,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A13": {
+      "items": 63,
+      "scorable": 63,
+      "auto": 63,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 63,
+      "silent_errors": 0,
+      "precision_at_auto": 1.0,
+      "coverage": 1.0,
+      "recall": 1.0,
+      "silent_error_rate": 0.0,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.0,
+      "reliability": [
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 63,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {},
+      "parse": {
+        "part": {
+          "labelled": 63,
+          "correct": 63,
+          "accuracy": 1.0
+        },
+        "release_group": {
+          "labelled": 36,
+          "correct": 36,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 63,
+          "correct": 63,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 63,
+          "correct": 63,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A14": {
+      "items": 100,
+      "scorable": 100,
+      "auto": 97,
+      "review": 0,
+      "manual": 3,
+      "auto_correct": 97,
+      "silent_errors": 0,
+      "precision_at_auto": 1.0,
+      "coverage": 0.97,
+      "recall": 0.97,
+      "silent_error_rate": 0.0,
+      "review_rate": 0.0,
+      "manual_rate": 0.03,
+      "ece": 0.0,
+      "reliability": [
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 97,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {
+        "tmdb": {
+          "labelled": 50,
+          "auto": 50,
+          "correct": 50,
+          "precision": 1.0,
+          "recall": 1.0
+        }
+      },
+      "parse": {
+        "episodes": {
+          "labelled": 50,
+          "correct": 50,
+          "accuracy": 1.0
+        },
+        "number": {
+          "labelled": 50,
+          "correct": 50,
+          "accuracy": 1.0
+        },
+        "part": {
+          "labelled": 16,
+          "correct": 16,
+          "accuracy": 1.0
+        },
+        "release_group": {
+          "labelled": 35,
+          "correct": 35,
+          "accuracy": 1.0
+        },
+        "season": {
+          "labelled": 46,
+          "correct": 46,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 95,
+          "correct": 94,
+          "accuracy": 0.989474
+        },
+        "year": {
+          "labelled": 40,
+          "correct": 40,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A15": {
+      "items": 4,
+      "scorable": 4,
+      "auto": 4,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 2,
+      "silent_errors": 2,
+      "precision_at_auto": 0.5,
+      "coverage": 1.0,
+      "recall": 0.5,
+      "silent_error_rate": 0.5,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.425,
+      "reliability": [
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 2,
+          "mean_confidence": 0.85,
+          "accuracy": 0.0
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 2,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {},
+      "parse": {
+        "title": {
+          "labelled": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 2,
+          "correct": 2,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A5": {
+      "items": 19,
+      "scorable": 19,
+      "auto": 19,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 19,
+      "silent_errors": 0,
+      "precision_at_auto": 1.0,
+      "coverage": 1.0,
+      "recall": 1.0,
+      "silent_error_rate": 0.0,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.0,
+      "reliability": [
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 19,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {
+        "tmdb": {
+          "labelled": 5,
+          "auto": 5,
+          "correct": 5,
+          "precision": 1.0,
+          "recall": 1.0
+        }
+      },
+      "parse": {
+        "episodes": {
+          "labelled": 5,
+          "correct": 5,
+          "accuracy": 1.0
+        },
+        "number": {
+          "labelled": 5,
+          "correct": 5,
+          "accuracy": 1.0
+        },
+        "season": {
+          "labelled": 5,
+          "correct": 5,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 19,
+          "correct": 19,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 14,
+          "correct": 14,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A6": {
+      "items": 95,
+      "scorable": 95,
+      "auto": 95,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 94,
+      "silent_errors": 1,
+      "precision_at_auto": 0.989474,
+      "coverage": 1.0,
+      "recall": 0.989474,
+      "silent_error_rate": 0.010526,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.005789,
+      "reliability": [
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 3,
+          "mean_confidence": 0.85,
+          "accuracy": 0.666667
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 92,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {
+        "tmdb": {
+          "labelled": 24,
+          "auto": 24,
+          "correct": 24,
+          "precision": 1.0,
+          "recall": 1.0
+        }
+      },
+      "parse": {
+        "episodes": {
+          "labelled": 24,
+          "correct": 24,
+          "accuracy": 1.0
+        },
+        "number": {
+          "labelled": 24,
+          "correct": 24,
+          "accuracy": 1.0
+        },
+        "part": {
+          "labelled": 36,
+          "correct": 36,
+          "accuracy": 1.0
+        },
+        "release_group": {
+          "labelled": 87,
+          "correct": 87,
+          "accuracy": 1.0
+        },
+        "season": {
+          "labelled": 24,
+          "correct": 24,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 87,
+          "correct": 87,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 52,
+          "correct": 52,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A7": {
+      "items": 77,
+      "scorable": 77,
+      "auto": 74,
+      "review": 0,
+      "manual": 3,
+      "auto_correct": 69,
+      "silent_errors": 5,
+      "precision_at_auto": 0.932432,
+      "coverage": 0.961039,
+      "recall": 0.896104,
+      "silent_error_rate": 0.064935,
+      "review_rate": 0.0,
+      "manual_rate": 0.038961,
+      "ece": 0.04527,
+      "reliability": [
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 11,
+          "mean_confidence": 0.85,
+          "accuracy": 0.545455
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 63,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {
+        "tmdb": {
+          "labelled": 35,
+          "auto": 35,
+          "correct": 32,
+          "precision": 0.914286,
+          "recall": 0.914286
+        }
+      },
+      "parse": {
+        "episodes": {
+          "labelled": 35,
+          "correct": 35,
+          "accuracy": 1.0
+        },
+        "number": {
+          "labelled": 35,
+          "correct": 35,
+          "accuracy": 1.0
+        },
+        "release_group": {
+          "labelled": 10,
+          "correct": 10,
+          "accuracy": 1.0
+        },
+        "season": {
+          "labelled": 31,
+          "correct": 31,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 77,
+          "correct": 77,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 35,
+          "correct": 35,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A8": {
+      "items": 16,
+      "scorable": 16,
+      "auto": 15,
+      "review": 0,
+      "manual": 1,
+      "auto_correct": 11,
+      "silent_errors": 4,
+      "precision_at_auto": 0.733333,
+      "coverage": 0.9375,
+      "recall": 0.6875,
+      "silent_error_rate": 0.25,
+      "review_rate": 0.0,
+      "manual_rate": 0.0625,
+      "ece": 0.206667,
+      "reliability": [
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 6,
+          "mean_confidence": 0.85,
+          "accuracy": 0.333333
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 9,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {},
+      "parse": {
+        "release_group": {
+          "labelled": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 16,
+          "correct": 16,
+          "accuracy": 1.0
+        },
+        "year": {
+          "labelled": 2,
+          "correct": 2,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "A9": {
+      "items": 22,
+      "scorable": 22,
+      "auto": 22,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 18,
+      "silent_errors": 4,
+      "precision_at_auto": 0.818182,
+      "coverage": 1.0,
+      "recall": 0.818182,
+      "silent_error_rate": 0.181818,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.127273,
+      "reliability": [
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 8,
+          "mean_confidence": 0.85,
+          "accuracy": 0.5
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 14,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {
+        "tmdb": {
+          "labelled": 22,
+          "auto": 22,
+          "correct": 13,
+          "precision": 0.590909,
+          "recall": 0.590909
+        }
+      },
+      "parse": {
+        "episodes": {
+          "labelled": 22,
+          "correct": 17,
+          "accuracy": 0.772727
+        },
+        "number": {
+          "labelled": 22,
+          "correct": 17,
+          "accuracy": 0.772727
+        },
+        "release_group": {
+          "labelled": 3,
+          "correct": 3,
+          "accuracy": 1.0
+        },
+        "season": {
+          "labelled": 22,
+          "correct": 22,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 22,
+          "correct": 22,
+          "accuracy": 1.0
+        }
+      }
+    }
+  },
+  "per_kind": {
+    "movie": {
+      "items": 191,
+      "scorable": 191,
+      "auto": 187,
+      "review": 0,
+      "manual": 4,
+      "auto_correct": 183,
+      "silent_errors": 4,
+      "precision_at_auto": 0.97861,
+      "coverage": 0.979058,
+      "recall": 0.958115,
+      "silent_error_rate": 0.020942,
+      "review_rate": 0.0,
+      "manual_rate": 0.020942,
+      "ece": 0.016578,
+      "reliability": [
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 6,
+          "mean_confidence": 0.85,
+          "accuracy": 0.333333
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 181,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {},
+      "parse": {
+        "part": {
+          "labelled": 63,
+          "correct": 63,
+          "accuracy": 1.0
+        },
+        "release_group": {
+          "labelled": 56,
+          "correct": 56,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 162,
+          "correct": 161,
+          "accuracy": 0.993827
+        },
+        "year": {
+          "labelled": 144,
+          "correct": 144,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "show": {
+      "items": 160,
+      "scorable": 160,
+      "auto": 160,
+      "review": 0,
+      "manual": 0,
+      "auto_correct": 153,
+      "silent_errors": 7,
+      "precision_at_auto": 0.95625,
+      "coverage": 1.0,
+      "recall": 0.95625,
+      "silent_error_rate": 0.04375,
+      "review_rate": 0.0,
+      "manual_rate": 0.0,
+      "ece": 0.02875,
+      "reliability": [
+        {
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 16,
+          "mean_confidence": 0.85,
+          "accuracy": 0.5625
+        },
+        {
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 144,
+          "mean_confidence": 1.0,
+          "accuracy": 1.0
+        }
+      ],
+      "episodes": {
+        "tmdb": {
+          "labelled": 94,
+          "auto": 94,
+          "correct": 82,
+          "precision": 0.87234,
+          "recall": 0.87234
+        }
+      },
+      "parse": {
+        "episodes": {
+          "labelled": 94,
+          "correct": 89,
+          "accuracy": 0.946809
+        },
+        "number": {
+          "labelled": 94,
+          "correct": 89,
+          "accuracy": 0.946809
+        },
+        "release_group": {
+          "labelled": 31,
+          "correct": 31,
+          "accuracy": 1.0
+        },
+        "season": {
+          "labelled": 90,
+          "correct": 90,
+          "accuracy": 1.0
+        },
+        "title": {
+          "labelled": 160,
+          "correct": 160,
+          "accuracy": 1.0
+        }
+      }
+    }
+  },
+  "kinds": [
+    "movie",
+    "show"
+  ],
+  "performance": {
+    "provider_calls": 564,
+    "calls_per_1000_files": 527.102804,
+    "tape_misses": 0
+  },
+  "items": [
+    {
+      "case_id": "v0-a10-127-hours-039",
+      "path": "Movies/127 Hours (2010)/127 Hours (2010)-interview.mkv",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-127-hours-039",
+      "path": "Movies/127 Hours (2010)/127 Hours (2010).mkv",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-127-hours-039",
+      "path": "Movies/127 Hours (2010)/Trailers/Official Trailer.mkv",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-9-to-5-058",
+      "path": "Movies/9 to 5 (1980)/9 to 5 (1980).mkv",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-9-to-5-058",
+      "path": "Movies/9 to 5 (1980)/sample.mkv",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "sample",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-a-star-is-born-083",
+      "path": "Movies/A Star Is Born (2018)/A Star Is Born (2018)-trailer.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-a-star-is-born-083",
+      "path": "Movies/A Star Is Born (2018)/A Star Is Born (2018).mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-a-star-is-born-083",
+      "path": "Movies/A Star Is Born (2018)/Featurettes/Making Of.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-dune-041",
+      "path": "Movies/Dune.1984.480p.TVRip.x264-VoMiT/Dune.1984.480p.TVRip.x264-VoMiT.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-dune-041",
+      "path": "Movies/Dune.1984.480p.TVRip.x264-VoMiT/Featurettes/The Look of the Film.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-dune-041",
+      "path": "Movies/Dune.1984.480p.TVRip.x264-VoMiT/Sample/dune.1984.480p.tvrip.x264-vomit-sample.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "sample",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-godzilla-046",
+      "path": "Movies/Godzilla (1954)/Godzilla (1954)-interview.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-godzilla-046",
+      "path": "Movies/Godzilla (1954)/Godzilla (1954)-teaser.mp4",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-godzilla-046",
+      "path": "Movies/Godzilla (1954)/Godzilla (1954)-trailer.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-godzilla-046",
+      "path": "Movies/Godzilla (1954)/Godzilla (1954).mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-halloween-063",
+      "path": "Movies/Halloween (2018)/Deleted Scenes/Deleted Scene 3.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-halloween-063",
+      "path": "Movies/Halloween (2018)/Featurettes/Making Of.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-halloween-063",
+      "path": "Movies/Halloween (2018)/Halloween (2018)-trailer.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-halloween-063",
+      "path": "Movies/Halloween (2018)/Halloween (2018).mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-interstellar-074",
+      "path": "Movies/Interstellar.2014.1080p.BluRay.x264-AMIABLE/Deleted Scenes/Deleted Scene 5.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-interstellar-074",
+      "path": "Movies/Interstellar.2014.1080p.BluRay.x264-AMIABLE/Interstellar.2014.1080p.BluRay.x264-AMIABLE-interview.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-interstellar-074",
+      "path": "Movies/Interstellar.2014.1080p.BluRay.x264-AMIABLE/Interstellar.2014.1080p.BluRay.x264-AMIABLE.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-interstellar-074",
+      "path": "Movies/Interstellar.2014.1080p.BluRay.x264-AMIABLE/Sample/interstellar.2014.1080p.bluray.x264-amiable-sample.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "sample",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-kill-bill-volume-1-030",
+      "path": "Movies/Kill Bill - Volume 1 (2003)/Kill Bill - Volume 1 (2003)-teaser.mp4",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-kill-bill-volume-1-030",
+      "path": "Movies/Kill Bill - Volume 1 (2003)/Kill Bill - Volume 1 (2003)-trailer.mkv",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-kill-bill-volume-1-030",
+      "path": "Movies/Kill Bill - Volume 1 (2003)/Kill Bill - Volume 1 (2003).mkv",
+      "categories": [
+        "A10",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-office-romance-044",
+      "path": "Movies/Office Romance (1977)/Featurettes/The Look of the Film.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-office-romance-044",
+      "path": "Movies/Office Romance (1977)/Office Romance (1977)-teaser.mp4",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-office-romance-044",
+      "path": "Movies/Office Romance (1977)/Office Romance (1977).mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-office-romance-044",
+      "path": "Movies/Office Romance (1977)/Trailers/Official Trailer.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-the-dark-knight-015",
+      "path": "Movies/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE-interview.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-the-dark-knight-015",
+      "path": "Movies/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE-teaser.mp4",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-the-dark-knight-015",
+      "path": "Movies/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE-trailer.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-the-dark-knight-015",
+      "path": "Movies/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE/The.Dark.Knight.2008.2160p.UHD.BluRay.x264-HONE.mkv",
+      "categories": [
+        "A10",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-the-prestige-086",
+      "path": "Movies/The Prestige (2006)/Deleted Scenes/Deleted Scene 5.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-the-prestige-086",
+      "path": "Movies/The Prestige (2006)/The Prestige (2006)-interview.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-the-prestige-086",
+      "path": "Movies/The Prestige (2006)/The Prestige (2006).mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-the-prestige-086",
+      "path": "Movies/The Prestige (2006)/Trailers/Official Trailer.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-total-recall-096",
+      "path": "Movies/Total Recall (1990)/Total Recall (1990)-interview.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a10-total-recall-096",
+      "path": "Movies/Total Recall (1990)/Total Recall (1990).mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a10-total-recall-096",
+      "path": "Movies/Total Recall (1990)/Trailers/Official Trailer.mkv",
+      "categories": [
+        "A10"
+      ],
+      "kind": "movie",
+      "role": "extra",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-008",
+      "path": "Recordings/Jimmy Kimmel Live! (15.11.2005).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-014",
+      "path": "Recordings/Jimmy Kimmel Live! (12.09.2012).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-014",
+      "path": "Recordings/Jimmy Kimmel Live! (13.09.2012).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-014",
+      "path": "Recordings/Jimmy Kimmel Live! (17.09.2012).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-028",
+      "path": "Shows/Jimmy Kimmel Live!/Jimmy.Kimmel.Live.2022-01-20.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-028",
+      "path": "Shows/Jimmy Kimmel Live!/Jimmy.Kimmel.Live.2022-01-24.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-040",
+      "path": "TV/Jimmy Kimmel Live!/Jimmy.Kimmel.Live.2012.07.12.720p.WEB.h264-MiNX.mkv",
+      "categories": [
+        "A11",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-040",
+      "path": "TV/Jimmy Kimmel Live!/Jimmy.Kimmel.Live.2012.07.16.720p.WEB.h264-DEFLATE.mkv",
+      "categories": [
+        "A11",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-076",
+      "path": "Recordings/Jimmy Kimmel Live! (15.12.2009).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-076",
+      "path": "Recordings/Jimmy Kimmel Live! (16.12.2009).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-076",
+      "path": "Recordings/Jimmy Kimmel Live! (17.12.2009).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-077",
+      "path": "TV/Jimmy Kimmel Live!/Jimmy.Kimmel.Live.2012.04.02.720p.WEB.h264-BLOW.mkv",
+      "categories": [
+        "A11",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-100",
+      "path": "TV/Jimmy Kimmel Live!/Season 2014/Jimmy Kimmel Live! - 2014-02-10.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-100",
+      "path": "TV/Jimmy Kimmel Live!/Season 2014/Jimmy Kimmel Live! - 2014-02-11.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-100",
+      "path": "TV/Jimmy Kimmel Live!/Season 2014/Jimmy Kimmel Live! - 2014-02-12.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-jimmy-kimmel-live-118",
+      "path": "TV/Jimmy Kimmel Live!/Season 2015/Jimmy Kimmel Live! - 2015-02-26.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-019",
+      "path": "TV/The Daily Show/The.Daily.Show.2019.06.10.720p.WEB.h264-LOL.mkv",
+      "categories": [
+        "A11",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-019",
+      "path": "TV/The Daily Show/The.Daily.Show.2019.06.11.720p.WEB.h264-ROVERS.mkv",
+      "categories": [
+        "A11",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-019",
+      "path": "TV/The Daily Show/The.Daily.Show.2019.06.12.720p.WEB.h264-TEPES.mkv",
+      "categories": [
+        "A11",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-037",
+      "path": "Recordings/The Daily Show (26.10.2022).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-037",
+      "path": "Recordings/The Daily Show (27.10.2022).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-058",
+      "path": "Recordings/The Daily Show (25.02.2020).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-058",
+      "path": "Recordings/The Daily Show (26.02.2020).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-058",
+      "path": "Recordings/The Daily Show (27.02.2020).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-071",
+      "path": "Shows/The Daily Show/The.Daily.Show.2018-05-07.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-071",
+      "path": "Shows/The Daily Show/The.Daily.Show.2018-05-08.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-071",
+      "path": "Shows/The Daily Show/The.Daily.Show.2018-05-09.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-113",
+      "path": "Recordings/The Daily Show (23.01.2019).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-113",
+      "path": "Recordings/The Daily Show (24.01.2019).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-115",
+      "path": "Shows/The Daily Show/The.Daily.Show.2019-12-02.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-115",
+      "path": "Shows/The Daily Show/The.Daily.Show.2019-12-03.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-115",
+      "path": "Shows/The Daily Show/The.Daily.Show.2019-12-04.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-daily-show-115",
+      "path": "Shows/The Daily Show/The.Daily.Show.2019-12-05.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-039",
+      "path": "Recordings/The Late Late Show with James Corden (12.06.2017).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-039",
+      "path": "Recordings/The Late Late Show with James Corden (13.06.2017).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-049",
+      "path": "TV/The Late Late Show with James Corden/Season 2023/The Late Late Show with James Corden - 2023-04-20.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-049",
+      "path": "TV/The Late Late Show with James Corden/Season 2023/The Late Late Show with James Corden - 2023-04-24.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-087",
+      "path": "Shows/The Late Late Show with James Corden/The.Late.Late.Show.with.James.Corden.2020-05-07.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-087",
+      "path": "Shows/The Late Late Show with James Corden/The.Late.Late.Show.with.James.Corden.2020-05-11.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-105",
+      "path": "Recordings/The Late Late Show with James Corden (09.11.2017).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-late-late-show-with-james-corden-105",
+      "path": "Recordings/The Late Late Show with James Corden (13.11.2017).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-001",
+      "path": "TV/The View/Season 2015/The View - 2015-09-29.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-001",
+      "path": "TV/The View/Season 2015/The View - 2015-09-30.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-006",
+      "path": "Recordings/The View (09.09.2024).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-006",
+      "path": "Recordings/The View (10.09.2024).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-006",
+      "path": "Recordings/The View (11.09.2024).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-012",
+      "path": "TV/The View/Season 2023/The View - 2023-02-10.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-015",
+      "path": "Recordings/The View (10.12.2021).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-015",
+      "path": "Recordings/The View (13.12.2021).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-015",
+      "path": "Recordings/The View (14.12.2021).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-015",
+      "path": "Recordings/The View (15.12.2021).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-018",
+      "path": "Recordings/The View (10.05.2019).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-018",
+      "path": "Recordings/The View (13.05.2019).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-018",
+      "path": "Recordings/The View (14.05.2019).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-024",
+      "path": "TV/The View/Season 2025/The View - 2025-07-09.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-048",
+      "path": "TV/The View/The.View.2026.05.05.720p.WEB.h264-LOL.mkv",
+      "categories": [
+        "A11",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-057",
+      "path": "Recordings/The View (23.12.2020).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-074",
+      "path": "Recordings/The View (25.09.2002).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-074",
+      "path": "Recordings/The View (26.09.2002).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-074",
+      "path": "Recordings/The View (27.09.2002).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-074",
+      "path": "Recordings/The View (30.09.2002).mp4",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-082",
+      "path": "Shows/The View/The.View.2019-01-18.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-082",
+      "path": "Shows/The View/The.View.2019-01-21.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-082",
+      "path": "Shows/The View/The.View.2019-01-22.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-082",
+      "path": "Shows/The View/The.View.2019-01-23.1080p.WEB-DL.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a11-the-view-117",
+      "path": "TV/The View/Season 2002/The View - 2002-02-26.mkv",
+      "categories": [
+        "A11"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a12-127-hours-068",
+      "path": "Images/127.Hours.2010.BluRay.iso",
+      "categories": [
+        "A12",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-2-fast-2-furious-095",
+      "path": "Images/2_FAST_2_FURIOUS.iso",
+      "categories": [
+        "A12",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a12-alien-058",
+      "path": "Images/Alien (1979) [DVD9].iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-crash-105",
+      "path": "Images/Crash.1996.BluRay.iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-everything-everywhere-all-at-once-082",
+      "path": "BD/EVERYTHING EVERYWHERE ALL AT ONCE",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a12-fantastic-four-111",
+      "path": "Movies/Fantastic.Four.2015.COMPLETE.BLURAY",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-fight-club-041",
+      "path": "Images/Fight Club (1999) [DVD9].iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-fight-club-054",
+      "path": "Images/Fight.Club.1999.BluRay.iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-fight-club-086",
+      "path": "Movies/Fight.Club.1999.COMPLETE.BLURAY",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-hellboy-038",
+      "path": "DVD/Hellboy (2004)",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-mad-max-fury-road-027",
+      "path": "Movies/Mad.Max.Fury.Road.2015.COMPLETE.BLURAY",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-mad-max-fury-road-077",
+      "path": "BD/MAD MAX - FURY ROAD",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a12-oldboy-048",
+      "path": "Images/Oldboy (2003) [DVD9].iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-oldboy-091",
+      "path": "Movies/Oldboy (2003)",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-robocop-042",
+      "path": "Images/RoboCop.2014.BluRay.iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-super-8-103",
+      "path": "Images/Super.8.2011.BluRay.iso",
+      "categories": [
+        "A12",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-suspiria-036",
+      "path": "Movies/Suspiria.1977.COMPLETE.BLURAY",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-suspiria-052",
+      "path": "Images/Suspiria (1977) [DVD9].iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-the-dark-knight-081",
+      "path": "Images/The Dark Knight (2008) [DVD9].iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-the-dark-knight-104",
+      "path": "BD/THE DARK KNIGHT",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a12-the-fly-003",
+      "path": "Images/The Fly (1986) [DVD9].iso",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-the-italian-job-032",
+      "path": "DVD/The Italian Job (2003)",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a12-the-master-and-margarita-019",
+      "path": "Movies/The Master and Margarita (2024)",
+      "categories": [
+        "A12"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-13-going-on-30-001",
+      "path": "Movies/13 Going on 30 (2004)/13 Going on 30 (2004) - part1.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-13-going-on-30-001",
+      "path": "Movies/13 Going on 30 (2004)/13 Going on 30 (2004) - part2.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-13-going-on-30-018",
+      "path": "Movies/13.Going.on.30.2004.DVDRip.XviD-iMBT/13.going.on.30.2004.dvdrip.xvid-imbt.cd1.avi",
+      "categories": [
+        "A13",
+        "A6",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-13-going-on-30-018",
+      "path": "Movies/13.Going.on.30.2004.DVDRip.XviD-iMBT/13.going.on.30.2004.dvdrip.xvid-imbt.cd2.avi",
+      "categories": [
+        "A13",
+        "A6",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-13-going-on-30-068",
+      "path": "Movies/13.Going.on.30.2004.DVDRip.XviD-DoNE/13.Going.on.30.2004.DVDRip.XviD-DoNE.CD1.avi",
+      "categories": [
+        "A13",
+        "A6",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-13-going-on-30-068",
+      "path": "Movies/13.Going.on.30.2004.DVDRip.XviD-DoNE/13.Going.on.30.2004.DVDRip.XviD-DoNE.CD2.avi",
+      "categories": [
+        "A13",
+        "A6",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-28-days-later-014",
+      "path": "Movies/28.Days.Later.2002.DVDRip.XviD-MAXSPEED/28.days.later.2002.dvdrip.xvid-maxspeed.cd1.avi",
+      "categories": [
+        "A13",
+        "A6",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-28-days-later-014",
+      "path": "Movies/28.Days.Later.2002.DVDRip.XviD-MAXSPEED/28.days.later.2002.dvdrip.xvid-maxspeed.cd2.avi",
+      "categories": [
+        "A13",
+        "A6",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-28-days-later-056",
+      "path": "Movies/28 Days Later (2002)/28 Days Later (2002) Disc 1.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-28-days-later-056",
+      "path": "Movies/28 Days Later (2002)/28 Days Later (2002) Disc 2.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-9-to-5-011",
+      "path": "Movies/9 to 5 (1980)/9 to 5 (1980) - part1.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-9-to-5-011",
+      "path": "Movies/9 to 5 (1980)/9 to 5 (1980) - part2.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-9-to-5-107",
+      "path": "Movies/9 to 5 (1980)/9 to 5 (1980) Disc 1.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-9-to-5-107",
+      "path": "Movies/9 to 5 (1980)/9 to 5 (1980) Disc 2.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-alien-089",
+      "path": "Movies/Alien (1979)/Alien (1979) Disc 1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-alien-089",
+      "path": "Movies/Alien (1979)/Alien (1979) Disc 2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-aliens-071",
+      "path": "Movies/Aliens.1986.DVDRip.XviD-DiAMOND/aliens.1986.dvdrip.xvid-diamond.cd1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-aliens-071",
+      "path": "Movies/Aliens.1986.DVDRip.XviD-DiAMOND/aliens.1986.dvdrip.xvid-diamond.cd2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-crash-038",
+      "path": "Movies/Crash.1996.DVDRip.XviD-DiAMOND/Crash.1996.DVDRip.XviD-DiAMOND.CD1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-crash-038",
+      "path": "Movies/Crash.1996.DVDRip.XviD-DiAMOND/Crash.1996.DVDRip.XviD-DiAMOND.CD2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-crash-046",
+      "path": "Movies/Crash.1996.DVDRip.XviD-KLAXXON/Crash.1996.DVDRip.XviD-KLAXXON.CD1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-crash-046",
+      "path": "Movies/Crash.1996.DVDRip.XviD-KLAXXON/Crash.1996.DVDRip.XviD-KLAXXON.CD2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-dune-021",
+      "path": "Movies/Dune.1984.DVDRip.XviD-VoMiT/Dune.1984.DVDRip.XviD-VoMiT.CD1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-dune-021",
+      "path": "Movies/Dune.1984.DVDRip.XviD-VoMiT/Dune.1984.DVDRip.XviD-VoMiT.CD2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-godzilla-033",
+      "path": "Movies/Godzilla.1954.DVDRip.XviD-MAXSPEED/godzilla.1954.dvdrip.xvid-maxspeed.cd1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-godzilla-033",
+      "path": "Movies/Godzilla.1954.DVDRip.XviD-MAXSPEED/godzilla.1954.dvdrip.xvid-maxspeed.cd2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-godzilla-042",
+      "path": "Movies/Godzilla.1954.DVDRip.XviD-ViSiON/godzilla.1954.dvdrip.xvid-vision.cd1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-godzilla-042",
+      "path": "Movies/Godzilla.1954.DVDRip.XviD-ViSiON/godzilla.1954.dvdrip.xvid-vision.cd2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-godzilla-079",
+      "path": "Movies/Godzilla (1954)/Godzilla (1954) - part1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-godzilla-079",
+      "path": "Movies/Godzilla (1954)/Godzilla (1954) - part2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-hellboy-022",
+      "path": "Movies/Hellboy.2004.DVDRip.XviD-DoNE/hellboy.2004.dvdrip.xvid-done.cd1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-hellboy-022",
+      "path": "Movies/Hellboy.2004.DVDRip.XviD-DoNE/hellboy.2004.dvdrip.xvid-done.cd2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-kill-bill-volume-1-063",
+      "path": "Movies/Kill Bill - Volume 1 (2003)/Kill Bill - Volume 1 (2003) - part1.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-kill-bill-volume-1-063",
+      "path": "Movies/Kill Bill - Volume 1 (2003)/Kill Bill - Volume 1 (2003) - part2.mkv",
+      "categories": [
+        "A13",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-night-watch-039",
+      "path": "Movies/Night.Watch.2004.DVDRip.XviD-DiAMOND/Night.Watch.2004.DVDRip.XviD-DiAMOND.CD1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-night-watch-039",
+      "path": "Movies/Night.Watch.2004.DVDRip.XviD-DiAMOND/Night.Watch.2004.DVDRip.XviD-DiAMOND.CD2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-ocean-s-eleven-010",
+      "path": "Movies/Ocean's Eleven (2001)/Ocean's Eleven (2001) Disc 1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-ocean-s-eleven-010",
+      "path": "Movies/Ocean's Eleven (2001)/Ocean's Eleven (2001) Disc 2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-ocean-s-eleven-015",
+      "path": "Movies/Oceans.Eleven.2001.DVDRip.XviD-DoNE/Oceans.Eleven.2001.DVDRip.XviD-DoNE.CD1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-ocean-s-eleven-015",
+      "path": "Movies/Oceans.Eleven.2001.DVDRip.XviD-DoNE/Oceans.Eleven.2001.DVDRip.XviD-DoNE.CD2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-office-romance-009",
+      "path": "Movies/Office Romance (1977)/Office Romance (1977) Disc 1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-office-romance-009",
+      "path": "Movies/Office Romance (1977)/Office Romance (1977) Disc 2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-office-romance-009",
+      "path": "Movies/Office Romance (1977)/Office Romance (1977) Disc 3.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-office-romance-106",
+      "path": "Movies/Office.Romance.1977.DVDRip.XviD-DiAMOND/office.romance.1977.dvdrip.xvid-diamond.cd1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-office-romance-106",
+      "path": "Movies/Office.Romance.1977.DVDRip.XviD-DiAMOND/office.romance.1977.dvdrip.xvid-diamond.cd2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-office-romance-106",
+      "path": "Movies/Office.Romance.1977.DVDRip.XviD-DiAMOND/office.romance.1977.dvdrip.xvid-diamond.cd3.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-oldboy-110",
+      "path": "Movies/Oldboy.2003.DVDRip.XviD-DoNE/Oldboy.2003.DVDRip.XviD-DoNE.CD1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-oldboy-110",
+      "path": "Movies/Oldboy.2003.DVDRip.XviD-DoNE/Oldboy.2003.DVDRip.XviD-DoNE.CD2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-one-hundred-and-one-dalmatians-045",
+      "path": "Movies/One Hundred and One Dalmatians (1961)/One Hundred and One Dalmatians (1961) Disc 1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-one-hundred-and-one-dalmatians-045",
+      "path": "Movies/One Hundred and One Dalmatians (1961)/One Hundred and One Dalmatians (1961) Disc 2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-one-hundred-and-one-dalmatians-101",
+      "path": "Movies/One Hundred and One Dalmatians (1961)/One Hundred and One Dalmatians (1961) - part1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-one-hundred-and-one-dalmatians-101",
+      "path": "Movies/One Hundred and One Dalmatians (1961)/One Hundred and One Dalmatians (1961) - part2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-planet-of-the-apes-041",
+      "path": "Movies/Planet of the Apes (2001)/Planet of the Apes (2001) - part1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-planet-of-the-apes-041",
+      "path": "Movies/Planet of the Apes (2001)/Planet of the Apes (2001) - part2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-planet-of-the-apes-102",
+      "path": "Movies/Planet.of.the.Apes.2001.DVDRip.XviD-ViSiON/planet.of.the.apes.2001.dvdrip.xvid-vision.cd1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-planet-of-the-apes-102",
+      "path": "Movies/Planet.of.the.Apes.2001.DVDRip.XviD-ViSiON/planet.of.the.apes.2001.dvdrip.xvid-vision.cd2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-planet-of-the-apes-102",
+      "path": "Movies/Planet.of.the.Apes.2001.DVDRip.XviD-ViSiON/planet.of.the.apes.2001.dvdrip.xvid-vision.cd3.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-suspiria-013",
+      "path": "Movies/Suspiria.1977.DVDRip.XviD-DoNE/suspiria.1977.dvdrip.xvid-done.cd1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-suspiria-013",
+      "path": "Movies/Suspiria.1977.DVDRip.XviD-DoNE/suspiria.1977.dvdrip.xvid-done.cd2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-the-italian-job-098",
+      "path": "Movies/The.Italian.Job.2003.DVDRip.XviD-FXG/The.Italian.Job.2003.DVDRip.XviD-FXG.CD1.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-the-italian-job-098",
+      "path": "Movies/The.Italian.Job.2003.DVDRip.XviD-FXG/The.Italian.Job.2003.DVDRip.XviD-FXG.CD2.avi",
+      "categories": [
+        "A13",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-total-recall-080",
+      "path": "Movies/Total Recall (1990)/Total Recall (1990) - part1.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a13-total-recall-080",
+      "path": "Movies/Total Recall (1990)/Total Recall (1990) - part2.mkv",
+      "categories": [
+        "A13"
+      ],
+      "kind": "movie",
+      "role": "part",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "part": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-127-hours-109",
+      "path": "Кино/127 Hours (2010)/127 Hours (2010).mkv",
+      "categories": [
+        "A14",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-127-hours-114",
+      "path": "Movies/127 Hours (2010)/127 Hours (2010).mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-13-going-on-30-006",
+      "path": "Кино/13.Going.on.30.2004.480p.DVD5.XviD-KLAXXON/13.Going.on.30.2004.480p.DVD5.XviD-KLAXXON.avi",
+      "categories": [
+        "A14",
+        "A6",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-13-going-on-30-051",
+      "path": "Films/13 Going on 30 (2004)/13 Going on 30.mkv",
+      "categories": [
+        "A14",
+        "A8"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-003",
+      "path": "TV Shows/1923/Season 1/1923.S01E01.720p.NF.WEBRip.AVC-HONE.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-003",
+      "path": "TV Shows/1923/Season 1/1923.S01E02.720p.NF.WEBRip.x264-AVS.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-003",
+      "path": "TV Shows/1923/Season 1/1923.S01E03.1080p.BluRay.x264-SiGMA.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-003",
+      "path": "TV Shows/1923/Season 1/1923.S01E04.1080p.WEB.AVC-NOGRP.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-003",
+      "path": "TV Shows/1923/Season 1/1923.S01E05.2160p.NF.WEBRip.AVC-EVO.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-003",
+      "path": "TV Shows/1923/Season 1/1923.S01E06.720p.WEB.x265-LOL.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-029",
+      "path": "TV Shows/1923/Season 1/1923.S01E03.1080p.HDTV.x264-DEFLATE.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-029",
+      "path": "TV Shows/1923/Season 1/1923.S01E04.1080p.HDTV.x265-KILLERS.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-029",
+      "path": "TV Shows/1923/Season 1/1923.S01E05.1080p.BluRay.HEVC-GECKOS.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-085",
+      "path": "Series/1923.S01/1923 - S01E04.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-085",
+      "path": "Series/1923.S01/1923 - S01E05.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-085",
+      "path": "Series/1923.S01/1923 - S01E06.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-085",
+      "path": "Series/1923.S01/1923 - S01E07.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-085",
+      "path": "Series/1923.S01/1923 - S01E08.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-120",
+      "path": "TV/1923/Season 01/1923.S01E06.1080p.AMZN.WEB-DL.HEVC-LOL.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-120",
+      "path": "TV/1923/Season 01/1923.S01E07.720p.HDTV.x265-ION10.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-120",
+      "path": "TV/1923/Season 01/1923.S01E08.1080p.HDTV.AVC-AVS.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-125",
+      "path": "TV/1923/Season 01/1923.S01E03.1080p.BluRay.H.264-CiNEFiLE.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-125",
+      "path": "TV/1923/Season 01/1923.S01E04.1080p.HDTV.H.264-SPARKS.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-125",
+      "path": "TV/1923/Season 01/1923.S01E05.2160p.NF.WEBRip.x264-FLUX.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-125",
+      "path": "TV/1923/Season 01/1923.S01E06.1080p.WEB.HEVC-RARBG.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-1923-125",
+      "path": "TV/1923/Season 01/1923.S01E07.720p.NF.WEBRip.x265-TEPES.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-2-broke-girls-017",
+      "path": "TV Shows/2 Broke Girls/Season 2/2 Broke Girls - S02E01.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-2-broke-girls-017",
+      "path": "TV Shows/2 Broke Girls/Season 2/2 Broke Girls - S02E02.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-2-broke-girls-017",
+      "path": "TV Shows/2 Broke Girls/Season 2/2 Broke Girls - S02E03.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-2-broke-girls-024",
+      "path": "Series/2.Broke.Girls.S06/2 Broke Girls 6x01.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-2-broke-girls-024",
+      "path": "Series/2.Broke.Girls.S06/2 Broke Girls 6x02.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-2-fast-2-furious-038",
+      "path": "Films/2 Fast 2 Furious (2003)/2 Fast 2 Furious 2003 480p TVRip.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-2-fast-2-furious-081",
+      "path": "Films/2 Fast 2 Furious (2003)/2 Fast 2 Furious.mkv",
+      "categories": [
+        "A14",
+        "A8"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-28-days-later-015",
+      "path": "Кино/28.Days.Later.2002.576p.DVDRip.DivX-ViSiON/28.Days.Later.2002.576p.DVDRip.DivX-ViSiON.avi",
+      "categories": [
+        "A14",
+        "A6",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-28-days-later-018",
+      "path": "Films/28 Days Later (2002)/28 Days Later [2002] [720p] [BluRay].mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-28-days-later-128",
+      "path": "Кино/28 Days Later (2002)/28 Days Later.mkv",
+      "categories": [
+        "A14",
+        "A8",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-008",
+      "path": "Series/3.Body.Problem.S01/3 Body Problem 1x02.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-008",
+      "path": "Series/3.Body.Problem.S01/3 Body Problem 1x03.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-008",
+      "path": "Series/3.Body.Problem.S01/3 Body Problem 1x04.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-008",
+      "path": "Series/3.Body.Problem.S01/3 Body Problem 1x05.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-008",
+      "path": "Series/3.Body.Problem.S01/3 Body Problem 1x06.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-008",
+      "path": "Series/3.Body.Problem.S01/3 Body Problem 1x07.avi",
+      "categories": [
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-089",
+      "path": "Series/3.Body.Problem.S01/3.Body.Problem.S01E03.1080p.WEB.HEVC-ION10.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-089",
+      "path": "Series/3.Body.Problem.S01/3.Body.Problem.S01E04.1080p.WEB.x264-ION10.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-089",
+      "path": "Series/3.Body.Problem.S01/3.Body.Problem.S01E05.1080p.BluRay.H.264-CMRG.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-3-body-problem-089",
+      "path": "Series/3.Body.Problem.S01/3.Body.Problem.S01E06.2160p.AMZN.WEB-DL.x264-LOL.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-500-days-of-summer-022",
+      "path": "Films/(500) Days of Summer (2009)/(500) Days of Summer [2009] [720p] [WEBRip].mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "manual",
+      "work": "none",
+      "parse": {
+        "title": false,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-9-130",
+      "path": "Films/9.2009.720p.BluRay.HEVC-playWEB/9.2009.720p.BluRay.HEVC-playWEB.mkv",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-9-to-5-005",
+      "path": "Movies/9 to 5 (1980)/9 to 5 1980 720p BluRay.mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-9-to-5-040",
+      "path": "Films/9 to 5 (1980)/9 to 5 [1980] [576p] [TVRip].mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-9-to-5-054",
+      "path": "Movies/9 to 5 (1980)/9 to 5.mkv",
+      "categories": [
+        "A14",
+        "A8"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a14-9-to-5-080",
+      "path": "Films/9.to.5.1980.480p.SATRip.XviD-NeDiVx/9.to.5.1980.480p.SATRip.XviD-NeDiVx.avi",
+      "categories": [
+        "A14",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a14-iron-man-2-044",
+      "path": "Movies/Iron Man 2 (2010)/Iron Man 2 (2010).mkv",
+      "categories": [
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-500-days-of-summer-044",
+      "path": "Movies/(500) Days of Summer (2009)/500 дней лета 2009 1080p.mkv",
+      "categories": [
+        "A5",
+        "A7",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-9-to-5-084",
+      "path": "Movies/С девяти до пяти | 9 to 5 (1980) 720p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-aladdin-066",
+      "path": "Movies/Aladdin (1992)/Аладдин 1992 480p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-aladdin-072",
+      "path": "Movies/Аладдин | Aladdin (1992) 480p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-fantastic-four-056",
+      "path": "Movies/Фантастическая четвёрка | Fantastic Four (2015) 720p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-godzilla-054",
+      "path": "Movies/Godzilla (1954)/Годзилла 1954 576p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-no-country-for-old-men-031",
+      "path": "Movies/Старикам тут не место | No Country for Old Men (2007) 1080p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-no-country-for-old-men-108",
+      "path": "Movies/No Country for Old Men (2007)/Старикам тут не место 2007 1080p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-ocean-s-eleven-115",
+      "path": "Movies/Ocean's Eleven (2001)/Одиннадцать друзей Оушена 2001 720p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a5-the-fly-009",
+      "path": "Movies/The Fly (1986)/Муха 1986 480p.mkv",
+      "categories": [
+        "A5",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-28-days-later-071",
+      "path": "Фильмы/28.Days.Later.2002.720p.WEBRip.H.264-DRONES/28.Days.Later.2002.720p.WEBRip.H.264-DRONES.mkv",
+      "categories": [
+        "A6",
+        "A7",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-9-047",
+      "path": "Фильмы/9.2009.2160p.UHD.BluRay.H.264-DiMENSION/9.2009.2160p.UHD.BluRay.H.264-DiMENSION.mkv",
+      "categories": [
+        "A6",
+        "A7",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-alien-016",
+      "path": "Downloads/Alien.1979.576p.SATRip.XviD-DoNE/Alien.1979.576p.SATRip.XviD-DoNE.avi",
+      "categories": [
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-aliens-072",
+      "path": "Downloads/Aliens.1986.576p.DVD5.DivX-FXG/Aliens.1986.576p.DVD5.DivX-FXG.avi",
+      "categories": [
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-deadpool-2-098",
+      "path": "Фильмы/Deadpool.2.2018.1080p.WEBRip.x264-CiNEFiLE/Deadpool.2.2018.1080p.WEBRip.x264-CiNEFiLE.mkv",
+      "categories": [
+        "A6",
+        "A7",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-fight-club-106",
+      "path": "Movies/Fight.Club.1999.576p.SATRip.XviD-iMBT/Fight.Club.1999.576p.SATRip.XviD-iMBT.avi",
+      "categories": [
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-hellboy-102",
+      "path": "Фильмы/Hellboy.2004.576p.DVDRip.x264-MAXSPEED/Hellboy.2004.576p.DVDRip.x264-MAXSPEED.mkv",
+      "categories": [
+        "A6",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-memento-077",
+      "path": "Фильмы/Memento.2000.576p.TVRip.x264-KLAXXON/Memento.2000.576p.TVRip.x264-KLAXXON.mkv",
+      "categories": [
+        "A6",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a6-the-master-and-margarita-082",
+      "path": "Downloads/The.Master.and.Margarita.2024.1080p.WEB-DL.AVC-KILLERS/The.Master.and.Margarita.2024.1080p.WEB-DL.AVC-KILLERS.mkv",
+      "categories": [
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-1923-068",
+      "path": "TV/1923/Season 02/1923 - 2 сезон 3 серия.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-1923-068",
+      "path": "TV/1923/Season 02/1923 - 2 сезон 5 серия.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-1923-068",
+      "path": "TV/1923/Season 02/1923.S02E04.1080p.rus.Пифагор.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-1923-068",
+      "path": "TV/1923/Season 02/1923.S02E06.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-022",
+      "path": "Сериалы/Две девицы на мели ∕ 2 Broke Girls/Сезон 6/13 серия.mkv",
+      "categories": [
+        "A7",
+        "A5",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-022",
+      "path": "Сериалы/Две девицы на мели ∕ 2 Broke Girls/Сезон 6/2.Broke.Girls.S06E10.1080p.rus.NewStudio.mkv",
+      "categories": [
+        "A7",
+        "A5",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-022",
+      "path": "Сериалы/Две девицы на мели ∕ 2 Broke Girls/Сезон 6/2.Broke.Girls.S06E11.1080p.rus.NewStudio.mkv",
+      "categories": [
+        "A7",
+        "A5",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-022",
+      "path": "Сериалы/Две девицы на мели ∕ 2 Broke Girls/Сезон 6/Две девицы на мели - 6 сезон 12 серия.mkv",
+      "categories": [
+        "A7",
+        "A5",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-022",
+      "path": "Сериалы/Две девицы на мели ∕ 2 Broke Girls/Сезон 6/Две девицы на мели - 6 сезон 9 серия.mkv",
+      "categories": [
+        "A7",
+        "A5",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-088",
+      "path": "TV/2 Broke Girls/Season 04/05 серия.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-088",
+      "path": "TV/2 Broke Girls/Season 04/07 серия.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-088",
+      "path": "TV/2 Broke Girls/Season 04/08 серия.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-2-broke-girls-088",
+      "path": "TV/2 Broke Girls/Season 04/Dve.devitsy.na.meli.S04E06.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-28-days-later-082",
+      "path": "Кино/28.dney.spustya.2002.DVDRip.480p.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "manual",
+      "work": "none",
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-3-body-problem-064",
+      "path": "TV/3 Body Problem/Season 01/05 серия.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-3-body-problem-064",
+      "path": "TV/3 Body Problem/Season 01/3.Body.Problem.S01E04.1080p.rus.LostFilm.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-3-body-problem-064",
+      "path": "TV/3 Body Problem/Season 01/Zadacha.trekh.tel.S01E03.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-9-to-5-086",
+      "path": "Видео/Фильмы/С девяти до пяти ∕ 9 to 5 (1980) DVD5 576p.mkv",
+      "categories": [
+        "A7",
+        "A5"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-battlestar-galactica-095",
+      "path": "Сериалы/Звёздный крейсер Галактика/Сезон 4/10 серия.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-battlestar-galactica-095",
+      "path": "Сериалы/Звёздный крейсер Галактика/Сезон 4/Battlestar.Galactica.S04E08.1080p.rus.NewStudio.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-battlestar-galactica-095",
+      "path": "Сериалы/Звёздный крейсер Галактика/Сезон 4/Battlestar.Galactica.S04E11.1080p.rus.NewStudio.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-battlestar-galactica-095",
+      "path": "Сериалы/Звёздный крейсер Галактика/Сезон 4/Battlestar.Galactica.S04E12.1080p.rus.NewStudio.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-battlestar-galactica-095",
+      "path": "Сериалы/Звёздный крейсер Галактика/Сезон 4/Звёздный крейсер Галактика - 4 сезон 9 серия.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-cinderella-078",
+      "path": "Кино/Золушка ∕ Cinderella (1950) TVRip 480p.mkv",
+      "categories": [
+        "A7",
+        "A5"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-come-and-see-001",
+      "path": "Видео/Фильмы/Иди и смотри (1985)/Иди и смотри 1985 720p.avi",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-come-and-see-092",
+      "path": "Movies/Иди и смотри (1985) DVDRip 576p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-everything-everywhere-all-at-once-084",
+      "path": "Movies/Всё везде и сразу (2022)/Всё везде и сразу (2022) BluRay 1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-fantastic-four-060",
+      "path": "Фильмы/Фантастическая четвёрка (2015)/Fantastic Four (Фантастическая четвёрка) 2015 1080p.mkv",
+      "categories": [
+        "A7",
+        "A5"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-fantastic-four-112",
+      "path": "Видео/Фильмы/Фантастическая четвёрка (2015)/Fantastic Four (Фантастическая четвёрка) 2015 1080p.mkv",
+      "categories": [
+        "A7",
+        "A5"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-fight-club-141",
+      "path": "Фильмы/Бойцовский клуб (1999)/Boytsovskiy.klub.1999.TVRip.480p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-flight-crew-063",
+      "path": "Movies/Экипаж (2016).mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-godzilla-055",
+      "path": "Фильмы/Годзилла (1954)/Годзилла.1954.SATRip.576p.MVO.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-iron-man-2-040",
+      "path": "Кино/Zheleznyy.chelovek.2.2010.WEBRip.720p.mkv",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "manual",
+      "work": "none",
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-kill-bill-volume-1-005",
+      "path": "Фильмы/Убить Билла. Фильм 1 (2003)/Убить Билла. Фильм 1 2003 576p.avi",
+      "categories": [
+        "A7",
+        "A14"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-liquidation-104",
+      "path": "TV/Liquidation/Season 01/Likvidatsiya.S01E05.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-liquidation-104",
+      "path": "TV/Liquidation/Season 01/Likvidatsiya.S01E06.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-shameless-097",
+      "path": "Сериалы/Бесстыдники/Сезон 11/01 серия.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-shameless-097",
+      "path": "Сериалы/Бесстыдники/Сезон 11/Besstydniki.S11E03.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-shameless-097",
+      "path": "Сериалы/Бесстыдники/Сезон 11/Shameless.S11E02.1080p.rus.LostFilm.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-shameless-097",
+      "path": "Сериалы/Бесстыдники/Сезон 11/Shameless.S11E04.1080p.rus.LostFilm.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-shameless-097",
+      "path": "Сериалы/Бесстыдники/Сезон 11/Shameless.S11E05.1080p.rus.LostFilm.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-ted-lasso-111",
+      "path": "Сериалы/Тед Лассо/Сезон 2/10 серия.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-ted-lasso-111",
+      "path": "Сериалы/Тед Лассо/Сезон 2/Ted.Lasso.S02E09.1080p.rus.NewStudio.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-ted-lasso-111",
+      "path": "Сериалы/Тед Лассо/Сезон 2/Ted.Lasso.S02E11.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-the-dark-knight-126",
+      "path": "Кино/Тёмный рыцарь (2008)/Тёмный рыцарь (2008).mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-the-master-and-margarita-053",
+      "path": "Видео/Фильмы/Мастер и Маргарита (2024)/Master.i.Margarita.2024.HDTV.1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-total-recall-049",
+      "path": "Фильмы/Вспомнить всё (1990) DVDRip 480p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a7-twin-peaks-065",
+      "path": "Сериалы/Твин Пикс/Сезон 1/Tvin.Piks.S01E04.WEB-DL.1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-twin-peaks-065",
+      "path": "Сериалы/Твин Пикс/Сезон 1/Twin.Peaks.S01E03.1080p.rus.TVShows.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-twin-peaks-065",
+      "path": "Сериалы/Твин Пикс/Сезон 1/Twin.Peaks.S01E06.1080p.rus.TVShows.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-twin-peaks-065",
+      "path": "Сериалы/Твин Пикс/Сезон 1/Твин Пикс - 1 сезон 5 серия.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a7-us-087",
+      "path": "Кино/Мы (2019) BluRay 1080p.mkv",
+      "categories": [
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a8-cinderella-012",
+      "path": "Кино/Cinderella (1950)/Cinderella.576p.DVDRip.XviD-DiMENSION.mkv",
+      "categories": [
+        "A8",
+        "A6",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-cinderella-033",
+      "path": "Movies/Cinderella (1950)/Cinderella.480p.DVDRip.XviD-TEPES.mkv",
+      "categories": [
+        "A8",
+        "A6"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-cinderella-047",
+      "path": "Кино/Zolushka.1080p.mkv",
+      "categories": [
+        "A8",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "manual",
+      "work": "none",
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-cinderella-100",
+      "path": "Movies/Cinderella.mkv",
+      "categories": [
+        "A8"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-cinderella-116",
+      "path": "Movies/Cinderella/Cinderella (2015).mkv",
+      "categories": [
+        "A8",
+        "A15"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a8-cinderella-116",
+      "path": "Movies/Cinderella/Cinderella.mkv",
+      "categories": [
+        "A8",
+        "A15"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-scarface-058",
+      "path": "Кино/Лицо со шрамом 720p.mkv",
+      "categories": [
+        "A8",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-scarface-068",
+      "path": "Кино/Scarface (1932)/Scarface.480p.DVD5.DivX-SVA.mkv",
+      "categories": [
+        "A8",
+        "A6",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-the-fly-015",
+      "path": "Movies/The Fly/The Fly (1986).mkv",
+      "categories": [
+        "A8",
+        "A15"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "parse": {
+        "title": true,
+        "year": true
+      }
+    },
+    {
+      "case_id": "v0-a8-the-fly-015",
+      "path": "Movies/The Fly/The Fly.mkv",
+      "categories": [
+        "A8",
+        "A15"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-the-fly-055",
+      "path": "Кино/Муха 576p.mkv",
+      "categories": [
+        "A8",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "parse": {
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a8-the-fly-126",
+      "path": "Кино/The.Fly.480p.DVD5.DivX-W4NK3R.mkv",
+      "categories": [
+        "A8",
+        "A6",
+        "A7"
+      ],
+      "kind": "movie",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "parse": {
+        "release_group": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-1923-004",
+      "path": "Series/1923.S01/1923 1x02-1x03.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": false,
+        "number": false,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-1923-004",
+      "path": "Series/1923.S01/1923 1x04.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-1923-005",
+      "path": "Series/1923.S01/1923 1x01-1x02.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": false,
+        "number": false,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-1923-005",
+      "path": "Series/1923.S01/1923 1x03.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-1923-005",
+      "path": "Series/1923.S01/1923 1x04-1x05.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": false,
+        "number": false,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-2-broke-girls-059",
+      "path": "TV/2 Broke Girls/Season 05/2.Broke.Girls.S05E04E05.1080p.WEB-DL.AVC-FGT.mkv",
+      "categories": [
+        "A9",
+        "A6",
+        "A14"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-037",
+      "path": "Series/Battlestar.Galactica.S01/Battlestar Galactica - S01E09-E10.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-037",
+      "path": "Series/Battlestar.Galactica.S01/Battlestar Galactica - S01E11.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-113",
+      "path": "Series/Battlestar.Galactica.S01/Battlestar.Galactica.S01E06E07.720p.BluRay.x265-TEPES.mkv",
+      "categories": [
+        "A9",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-113",
+      "path": "Series/Battlestar.Galactica.S01/Battlestar.Galactica.S01E08E09.1080p.AMZN.WEB-DL.AVC-iNTERNAL.mkv",
+      "categories": [
+        "A9",
+        "A6"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "release_group": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-116",
+      "path": "TV/Battlestar Galactica/Season 01/Battlestar Galactica - S01E03-E04.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-116",
+      "path": "TV/Battlestar Galactica/Season 01/Battlestar Galactica - S01E05-E06.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-117",
+      "path": "Series/Battlestar.Galactica.S01/Battlestar Galactica - S01E09-E10.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-battlestar-galactica-117",
+      "path": "Series/Battlestar.Galactica.S01/Battlestar Galactica - S01E11-E12.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "wrong",
+      "confidence": 0.85,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-interns-026",
+      "path": "Series/Interns.S05/Interns 5x14-5x15.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": false,
+        "number": false,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-interns-026",
+      "path": "Series/Interns.S05/Interns 5x16-5x17.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": false
+      },
+      "parse": {
+        "episodes": false,
+        "number": false,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-interns-026",
+      "path": "Series/Interns.S05/Interns 5x18.avi",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-liquidation-118",
+      "path": "TV/Liquidation/Season 01/Liquidation - S01E02-E03.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-liquidation-118",
+      "path": "TV/Liquidation/Season 01/Liquidation - S01E04.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-liquidation-118",
+      "path": "TV/Liquidation/Season 01/Liquidation - S01E05-E06.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-liquidation-118",
+      "path": "TV/Liquidation/Season 01/Liquidation - S01E07.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    },
+    {
+      "case_id": "v0-a9-succession-119",
+      "path": "Series/Succession.S04/Succession - S04E06-E07.mkv",
+      "categories": [
+        "A9"
+      ],
+      "kind": "show",
+      "role": "main",
+      "decision": "auto",
+      "work": "correct",
+      "confidence": 1.0,
+      "episodes": {
+        "tmdb": true
+      },
+      "parse": {
+        "episodes": true,
+        "number": true,
+        "season": true,
+        "title": true
+      }
+    }
+  ]
+}

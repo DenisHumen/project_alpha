@@ -20,7 +20,11 @@
 //!   genres and episode data for the recognized works;
 //! - library queries ([`Catalog::query`], [`query`], LIB-009): combinable
 //!   filters, sorts and paging, the alphabet index, facets, folder browsing
-//!   with "folders first", per-view preferences and smart shelves.
+//!   with "folders first", per-view preferences and smart shelves;
+//! - the change watcher ([`watch::LibraryWatcher`], LIB-005): OS change
+//!   notifications for local folders, a timer for network shares, and
+//!   incremental rescans of the changed folders
+//!   ([`Catalog::rescan_folders`]).
 //!
 //! Recognition in the scan is local: works are created from parsed titles,
 //! without providers. The metadata run then matches them against TMDB (and
@@ -43,6 +47,7 @@ pub mod recognize;
 mod scan;
 mod sources;
 pub mod uri;
+pub mod watch;
 
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, MutexGuard};
@@ -61,7 +66,7 @@ pub use query::{
     AlphabetEntry, FacetValue, Facets, FolderEntry, HdrFilter, ItemPage, LibraryFilter,
     LibraryQuery, LibrarySort, Resolution, SmartShelf, SortField, ViewPrefs, WatchState,
 };
-pub use scan::{ScanPhase, ScanUpdate};
+pub use scan::{RescanReport, ScanPhase, ScanUpdate};
 pub use sources::Source;
 
 /// Device id written with local progress changes until profiles and
