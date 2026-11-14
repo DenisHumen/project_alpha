@@ -396,7 +396,7 @@ project_alpha/
   - Что: обнаружение Windows-шар (WS-Discovery, NetBIOS NS), Plex (UDP 32414), Jellyfin (UDP 7359); multicast на Apple — только после выдачи entitlement (PKG-012).
   - deps: NET-009 · size: M · parallel: yes · веха: M4 · ref: 02 §4, 04 §1.6
   - done when: в LAN-тесте находятся шара Windows и сервер Jellyfin в Docker.
-- [ ] **NET-011** Менеджер источников
+- [x] **NET-011** Менеджер источников
   - Что: модель источника (тип, адрес, креды в SecretStore, опции, «сканировать в библиотеку», выключение автоскана), статус (онлайн, последний скан, ошибки), тест скорости до источника.
   - deps: NET-001, CORE-007, LIB-001 · size: M · parallel: no · веха: M1 · ref: 01 §2.5 п.3–4, 04 §1.4
   - done when: CRUD-тесты; пароль не попадает ни в SQLite, ни в логи.
