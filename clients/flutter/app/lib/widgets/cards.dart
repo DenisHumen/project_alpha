@@ -361,7 +361,7 @@ class PageTitle extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         d.pageInsets.left,
-        d.pageInsets.top,
+        d.safeTop(context),
         d.pageInsets.right,
         d.isTv ? 12 : 16,
       ),

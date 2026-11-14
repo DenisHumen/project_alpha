@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
             builder: (context, f, _) => _Hero(item: f ?? initial),
           )
         else
-          SizedBox(height: d.pageInsets.top),
+          SizedBox(height: d.safeTop(context)),
         // TODO(SYNC): the handoff banner "Continue on this device" (01 §2.7)
         // goes here once SYNC delivers positions from other devices.
         _Watch<List<ContinueEntry>>(
@@ -463,7 +463,10 @@ class _Hero extends StatelessWidget {
     final d = KDensity.of(context);
     final theme = Theme.of(context);
     final l = context.l10n;
-    final height = d.isTv ? 250.0 : (d.isPhone ? 340.0 : 380.0);
+    // The backdrop runs under the status bar; the text stays below it.
+    final top = d.safeTop(context);
+    final height =
+        (d.isTv ? 250.0 : (d.isPhone ? 340.0 : 380.0)) + top - d.pageInsets.top;
     final meta = [
       if (item.year != null) '${item.year}',
       if (item.kind == ItemKind.show)
@@ -512,7 +515,7 @@ class _Hero extends StatelessWidget {
           Padding(
             padding: EdgeInsets.fromLTRB(
               d.pageInsets.left,
-              d.pageInsets.top,
+              top,
               d.pageInsets.right,
               d.isTv ? 14 : 24,
             ),
