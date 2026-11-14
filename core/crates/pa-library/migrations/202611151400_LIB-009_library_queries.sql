@@ -36,6 +36,10 @@ BEGIN
     UPDATE files SET audio_formats = NULL WHERE id = NEW.id;
 END;
 
+-- Queries join every work to its live matches and files; the partial index
+-- covers that join without reading `matches` rows.
+CREATE INDEX matches_work_live ON matches (work_id, file_id) WHERE state <> 'rejected';
+
 CREATE TABLE view_prefs (
     profile_id    INTEGER NOT NULL REFERENCES profiles (id) ON DELETE CASCADE,
     view          TEXT    NOT NULL CHECK (length(view) BETWEEN 1 AND 128),

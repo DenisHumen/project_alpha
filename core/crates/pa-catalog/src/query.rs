@@ -519,7 +519,7 @@ impl Sql {
     }
 }
 
-/// `SELECT w.id, <extra>, count(*) OVER () ... GROUP BY w.id` for a query.
+/// `SELECT w.id, <columns> ... GROUP BY w.id` for a query.
 /// `order` is appended verbatim.
 fn grouped(query: &LibraryQuery, columns: &str, order: Option<&str>) -> Result<Sql, Error> {
     let f = &query.filter;
@@ -627,29 +627,19 @@ pub(crate) fn run_query(
     offset: usize,
     limit: usize,
 ) -> Result<ItemPage, Error> {
-    let mut sql = grouped(query, "count(*) OVER ()", Some(&order_by(query.sort)))?;
-    let lim = sql.bind(i64::try_from(limit).unwrap_or(i64::MAX));
-    let off = sql.bind(i64::try_from(offset).unwrap_or(i64::MAX));
-    sql.text.push_str(&format!(" LIMIT {lim} OFFSET {off}"));
+    // All matching ids in order, then the page: one pass gives the total
+    // without a window function or a second count query.
+    let sql = grouped(query, "NULL", Some(&order_by(query.sort)))?;
     let mut stmt = conn.prepare_cached(&sql.text)?;
-    let mut total = 0;
-    let mut ids = Vec::new();
+    let mut ids: Vec<i64> = Vec::new();
     let mut rows = stmt.query(params_from_iter(sql.params.iter()))?;
     while let Some(r) = rows.next()? {
-        ids.push(r.get::<_, i64>(0)?);
-        total = to_usize(r.get(1)?);
+        ids.push(r.get(0)?);
     }
     drop(rows);
-    if ids.is_empty() && offset > 0 {
-        // Past the end: the total still matters to the caller.
-        let mut sql = grouped(query, "1", None)?;
-        sql.text = format!("SELECT count(*) FROM ({})", sql.text);
-        total = to_usize(
-            conn.prepare_cached(&sql.text)?
-                .query_row(params_from_iter(sql.params.iter()), |r| r.get(0))?,
-        );
-    }
-    let items = items::works_by_ids(conn, query.kind, &ids)?;
+    let total = ids.len();
+    let page: Vec<i64> = ids.into_iter().skip(offset).take(limit).collect();
+    let items = items::works_by_ids(conn, query.kind, &page)?;
     Ok(ItemPage {
         items,
         total,
