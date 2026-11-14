@@ -6,5 +6,6 @@ pub mod images;
 pub mod library;
 pub mod library_query;
 pub mod recognition;
+pub mod secrets;
 pub mod sources;
 pub mod version;

@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:pa_platform_secrets/pa_platform_secrets.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
@@ -43,6 +44,10 @@ Future<void> main() async {
     if (opened.fallbackReason != null) {
       debugPrint('Library on the v0 fallback: ${opened.fallbackReason}');
     }
+    // CORE-015: on Android the core keeps passwords and tokens in the
+    // Keystore through this callback; desktop uses the OS keychain itself.
+    // Before CoreSources.open, which takes the store opened here.
+    if (opened.onRustCore) await _openCoreSecrets(dir.path);
     // Posters and backdrops through the core's disk cache (LIB-013); without
     // the core they load straight from the network.
     try {
@@ -82,4 +87,14 @@ Future<void> main() async {
       libmpvMissing: libmpvMissing(),
     ),
   );
+}
+
+Future<void> _openCoreSecrets(String dataDir) async {
+  try {
+    final info = await openPlatformSecrets(dataDir: dataDir);
+    if (info != null) debugPrint('Core secrets: ${info.backend}');
+  } catch (e) {
+    // Sources with passwords fail with a `secrets` error until the next start.
+    debugPrint('Core secret store unavailable: $e');
+  }
 }

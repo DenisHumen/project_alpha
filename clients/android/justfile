@@ -24,3 +24,8 @@ test-device: fixtures
     test -n "${ANDROID_SERIAL:-}" || { echo "set ANDROID_SERIAL to the emulator or device to test on" >&2; exit 1; }
     gradle -p clients/android/player connectedDebugAndroidTest -PpaGenDir="$(realpath {{ gen_dir }})" \
         -PpaFixturesDir="$(realpath {{ fixtures_dir }})" --console=plain
+
+# CORE-015: instrumented tests of the Keystore secret store, directly and through the core (set ANDROID_SERIAL)
+secrets-test-device:
+    test -n "${ANDROID_SERIAL:-}" || { echo "set ANDROID_SERIAL to the emulator or device to test on" >&2; exit 1; }
+    gradle -p clients/android/secrets connectedDebugAndroidTest -PpaGenDir="$(realpath {{ gen_dir }})" --console=plain

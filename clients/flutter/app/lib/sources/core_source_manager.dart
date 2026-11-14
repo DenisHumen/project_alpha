@@ -13,7 +13,9 @@ class CoreSourceManager extends SourceManager {
   final CoreSources _core;
 
   /// Opens the manager over the core database at [dbPath]; passwords go to
-  /// the OS keychain or an encrypted file in [dataDir].
+  /// the secret store opened at app start (`openPlatformSecrets`, Android
+  /// Keystore; CORE-015), else the OS keychain or an encrypted file in
+  /// [dataDir].
   static Future<CoreSourceManager> open({
     required String dbPath,
     required String dataDir,

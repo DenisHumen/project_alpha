@@ -10,7 +10,7 @@
 //! | macOS | Keychain (`keyring-core` + `apple-native-keyring-store`) |
 //! | Windows | Credential Manager, DPAPI-protected (`windows-native-keyring-store`) |
 //! | Linux, BSD | Secret Service: GNOME Keyring, KWallet, KeePassXC (`zbus-secret-service-keyring-store`) |
-//! | Android | Keystore + Tink, through the [`PlatformKeystore`] callback |
+//! | Android | Keystore + AES-GCM, through the [`PlatformKeystore`] callback |
 //! | iOS, iPadOS, tvOS | Keychain (`AfterFirstUnlock`), through the [`PlatformKeystore`] callback |
 //!
 //! When a desktop has no keychain (a headless Linux box, a window manager
