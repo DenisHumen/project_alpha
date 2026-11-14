@@ -46,3 +46,7 @@ lib.movies().listen(...);                          // потоки пересы�
 ```sh
 dart pub get && dart analyze && dart test
 ```
+
+## На Rust-ядре (UI-024)
+
+`RustLibrary.open(path, legacyV0Path: …)` — та же `Library` поверх Rust-ядра через `pa_core` (крейт `pa-catalog`: схема v1, `pa-scanner` с тегами музыки, парсер `pa-recognition`, поиск FTS5, прогресс с Up Next) с импортом базы v0. В приложении включается `--dart-define=KINOLUNE_RUST_CORE=true`. Пока без метаданных TMDB (META-013). Тесты (`test/rust_library_test.dart`) вызывают настоящее ядро: нужен `rustup` (Native Assets собирает `pa-frb`).

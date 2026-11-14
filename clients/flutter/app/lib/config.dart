@@ -8,6 +8,10 @@ abstract final class AppConfig {
   /// code). Useful for screenshots and for trying the UI without media.
   static const demo = bool.fromEnvironment('KINOLUNE_DEMO');
 
+  /// Run the library on the Rust core (`pa_core`, UI-024) instead of the
+  /// Dart v0 implementation. The v0 database is imported and kept.
+  static const rustCore = bool.fromEnvironment('KINOLUNE_RUST_CORE');
+
   /// `tv`, `phone` or `desktop`; empty = auto-detect.
   static const _formFactor = String.fromEnvironment('KINOLUNE_FORM_FACTOR');
 

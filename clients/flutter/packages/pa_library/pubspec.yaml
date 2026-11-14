@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 name: pa_library
-description: Kinolune media library (sources, scanner, filename parser v0, TMDB, SQLite storage, progress).
+description: Kinolune media library (sources, scanner, filename parser v0, TMDB, SQLite storage, progress; RustLibrary on the Rust core via pa_core).
 version: 0.1.0
 publish_to: none
 
@@ -10,7 +10,10 @@ environment:
 dependencies:
   audio_metadata_reader: ^1.8.1
   crypto: ^3.0.8
+  flutter_rust_bridge: 2.13.0
   http: ^1.2.0
+  pa_core:
+    path: ../pa_core
   path: ^1.9.0
   sqlite3: ^3.9.1
 

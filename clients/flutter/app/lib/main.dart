@@ -25,6 +25,13 @@ Future<void> main() async {
   final Library library;
   if (AppConfig.demo) {
     library = FakeLibrary.demo();
+  } else if (AppConfig.rustCore) {
+    library = await RustLibrary.open(
+      '${dir.path}/kinolune-core.db',
+      legacyV0Path: '${dir.path}/kinolune.db',
+      // Keep v0 while the Rust core is opt-in, so the app can go back.
+      renameLegacyV0: false,
+    );
   } else {
     library = await Library.open('${dir.path}/kinolune.db');
   }

@@ -11,6 +11,7 @@ export 'package:pa_library/pa_library.dart'
         MediaSource,
         SourceKind,
         Progress,
+        RustLibrary,
         ScanProgress,
         ScanPhase,
         SmbUnsupportedException,

@@ -20,7 +20,16 @@ await parseFilenameWith(path: p, maxHypotheses: 1, useFolders: false);
 filenameParserVersion();                    // версия правил парсера, хранить вместе с результатом
 
 tickStream(count: 3);                       // Stream<int> 0,1,2 — проверка Rust → Dart Stream
+
+final lib = await CoreLibrary.open(path: '/…/kinolune-core.db');  // медиатека на ядре (pa-catalog, UI-024)
+await lib.addSource(kind: 'local', name: 'Фильмы', location: '/media/movies');
+await lib.scan(roots: []).last;              // скан → теги музыки → отпечатки → распознавание → поиск
+await lib.movies(); await lib.search(query: 'matrix', limit: 20);
+await lib.continueWatching(limit: 50);      // «Продолжить» и Up Next
+await lib.importV0(path: '/…/kinolune.db');  // перенос базы pa_library v0
 ```
+
+Приложение использует медиатеку не напрямую, а через адаптер `RustLibrary` из `pa_library` (тот же интерфейс `Library`).
 
 `parseFilename` — замена Dart-парсера v0 из `pa_library` (релиз 0.2): путь передаётся относительно корня источника, папки дают контекст (сезон, название сериала).
 

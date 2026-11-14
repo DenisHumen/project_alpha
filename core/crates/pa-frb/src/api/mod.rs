@@ -2,5 +2,6 @@
 //! Functions exported to Dart. One module per domain.
 
 pub mod events;
+pub mod library;
 pub mod recognition;
 pub mod version;
