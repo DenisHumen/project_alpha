@@ -95,6 +95,9 @@ class CoreVersion {
   /// The version the item plays.
   final bool isDefault;
 
+  /// Why the player cannot play this version, as `CoreItem::unplayable`.
+  final String? unplayable;
+
   const CoreVersion({
     required this.fileId,
     required this.label,
@@ -107,6 +110,7 @@ class CoreVersion {
     this.hdr,
     this.edition,
     required this.isDefault,
+    this.unplayable,
   });
 
   @override
@@ -121,7 +125,8 @@ class CoreVersion {
       resolution.hashCode ^
       hdr.hashCode ^
       edition.hashCode ^
-      isDefault.hashCode;
+      isDefault.hashCode ^
+      unplayable.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -138,5 +143,6 @@ class CoreVersion {
           resolution == other.resolution &&
           hdr == other.hdr &&
           edition == other.edition &&
-          isDefault == other.isDefault;
+          isDefault == other.isDefault &&
+          unplayable == other.unplayable;
 }
