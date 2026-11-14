@@ -605,6 +605,29 @@ mod tests {
         announcer.close();
     }
 
+    /// Real LAN, standard port: a Samba server announced by Avahi is found
+    /// with an address to connect to. Run against the test container
+    /// (core/crates/pa-discovery/tests/servers/README.md):
+    /// `PA_LAN_SMB_INSTANCE='NET-020 Samba' cargo test -p pa-frb -- --ignored lan_samba`.
+    #[test]
+    #[ignore = "uses the real network (multicast on 5353) and a Samba/Avahi host"]
+    fn lan_samba() {
+        let want = std::env::var("PA_LAN_SMB_INSTANCE").unwrap_or_else(|_| "NET-020 Samba".into());
+        let lock = Arc::new(CountingLock::default());
+        let d = CoreDiscovery::with_lock(CoreDiscoveryConfig::default(), Some(lock.clone())).unwrap();
+        d.browse(discovery_source_kinds()).unwrap();
+        let found = until(&format!("{want:?} found"), || {
+            d.services()
+                .into_iter()
+                .find(|s| s.instance == want && s.url.is_some())
+        });
+        println!("found: {found:?}");
+        assert_eq!(found.kind, CoreServiceKind::Smb);
+        assert!(found.url.as_deref().unwrap().starts_with("smb://"));
+        d.close();
+        assert_eq!(*lock.0.lock().unwrap(), [true, false]);
+    }
+
     /// Calls reach the Dart callback in order, even when it answers late.
     #[test]
     fn dart_lock_calls_in_order() {

@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: MPL-2.0
+# NET-020: Samba with Avahi announcing `_smb._tcp` (instance "NET-020 Samba"),
+# the LAN target of `lan_samba` in pa-frb. See README.md.
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends samba avahi-daemon && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /srv/media/Movies && echo test > /srv/media/Movies/readme.txt && \
+    printf "[global]\n  workgroup = WORKGROUP\n  server min protocol = SMB2\n  map to guest = Bad User\n  disable netbios = yes\n  smb ports = 445\n[media]\n  path = /srv/media\n  guest ok = yes\n  read only = yes\n" > /etc/samba/smb.conf && \
+    printf "[server]\nhost-name=net020-samba\nuse-ipv6=no\nallow-interfaces=eth0\nenable-dbus=no\n[publish]\npublish-workstation=no\n[rlimits]\n" > /etc/avahi/avahi-daemon.conf && \
+    printf "<?xml version=\"1.0\" standalone=\"no\"?>\n<!DOCTYPE service-group SYSTEM \"avahi-service.dtd\">\n<service-group>\n  <name>NET-020 Samba</name>\n  <service>\n    <type>_smb._tcp</type>\n    <port>445</port>\n  </service>\n</service-group>\n" > /etc/avahi/services/smb.service
+CMD ["sh", "-c", "avahi-daemon --no-drop-root --no-rlimits -D && exec smbd --foreground --no-process-group --debug-stdout"]
