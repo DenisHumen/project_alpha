@@ -144,10 +144,12 @@ class SearchHistory extends ValueNotifier<List<String>> {
     final q = query.trim();
     if (q.isEmpty) return;
     final key = q.toLowerCase();
-    await _save([
-      q,
-      ...value.where((e) => e.toLowerCase() != key),
-    ].take(max).toList(growable: false));
+    await _save(
+      [
+        q,
+        ...value.where((e) => e.toLowerCase() != key),
+      ].take(max).toList(growable: false),
+    );
   }
 
   Future<void> remove(String query) =>

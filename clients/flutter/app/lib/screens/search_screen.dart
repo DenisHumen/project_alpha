@@ -207,9 +207,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final g in search.groups) _group(context, g),
-      ],
+      children: [for (final g in search.groups) _group(context, g)],
     );
   }
 
@@ -275,8 +273,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       key: ValueKey('search-${items[i].id}'),
                       track: items[i],
                       showArt: true,
-                      onTap: () =>
-                          _open(() => playTracks(context, items, i)),
+                      onTap: () => _open(() => playTracks(context, items, i)),
                     ),
                 ],
               ),

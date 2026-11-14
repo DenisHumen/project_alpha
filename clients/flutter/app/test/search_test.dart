@@ -167,10 +167,7 @@ void main() {
     ) async {
       setSurface(tester, const Size(1280, 800));
       await tester.pumpWidget(
-        testApp(
-          await _services(MemoryPreferences()),
-          section: Section.search,
-        ),
+        testApp(await _services(MemoryPreferences()), section: Section.search),
       );
       await settle(tester);
       await tester.enterText(find.byType(TextField), 'lunar');
