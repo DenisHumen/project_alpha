@@ -30,6 +30,7 @@ flowchart LR
     pa_sync["pa-sync"]
     pa_twitch["pa-twitch"]
     pa_vfs["pa-vfs"]
+    pa_vfs_webdav["pa-vfs-webdav"]
   end
   subgraph g1["server — медиасервер"]
     pa_server["pa-server"]
@@ -70,6 +71,8 @@ flowchart LR
   pa_sync -. dev .-> pa_secrets
   pa_twitch --> pa_secrets
   pa_twitch -. dev .-> pa_twitch
+  pa_vfs_webdav --> pa_discovery
+  pa_vfs_webdav --> pa_vfs
 ```
 
 | Крейт | Каталог | Внешних зависимостей | Описание |
@@ -95,5 +98,6 @@ flowchart LR
 | `pa-sync` | `core/crates/pa-sync` | 11 | Serverless state sync: hybrid logical clock, sync operations, LWW merge, the SQLite outbox (SYNC-001) and the LAN P2P transport (SYNC-006) |
 | `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002) |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
+| `pa-vfs-webdav` | `core/crates/pa-vfs-webdav` | 7 | WebDAV backend of pa-vfs: PROPFIND listing, Range reads with read-ahead, Basic and Digest auth, redirects, TLS pinning (NET-004) |
 
 <!-- END GENERATED: crate-graph -->
