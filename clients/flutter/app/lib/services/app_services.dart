@@ -104,6 +104,29 @@ class AppServices extends ChangeNotifier {
     if (key != null && key.isNotEmpty) await library.setTmdbApiKey(key);
     _loaded = true;
     notifyListeners();
+    unawaited(startWatching());
+  }
+
+  /// Follows the auto-scan sources (LIB-005): new and removed files show up
+  /// in the library on their own, network shares are rescanned on a timer.
+  /// With [scanOnStart] every source is scanned once now (changes made
+  /// while the app was closed). Restarted when the sources change.
+  Future<void> startWatching({bool scanOnStart = true}) async {
+    final passwords = <String, String>{};
+    for (final s in _sources) {
+      if (s.kind != SourceKind.smb) continue;
+      final pwd = await secureStore.read(SecureStore.smbPassword(s.id));
+      if (pwd != null && pwd.isNotEmpty) passwords[s.id] = pwd;
+    }
+    try {
+      await library.startWatching(
+        smbPasswords: passwords,
+        scanOnStart: scanOnStart,
+      );
+    } catch (e) {
+      // The library still works; manual scans stay available.
+      debugPrint('Library watcher not started: $e');
+    }
   }
 
   Future<void> refreshSources() async {
@@ -190,6 +213,8 @@ class AppServices extends ChangeNotifier {
       await secureStore.write(SecureStore.smbPassword(added.id), smbPassword);
     }
     await refreshSources();
+    // The add dialog scans the new source itself.
+    unawaited(startWatching(scanOnStart: false));
     return added;
   }
 
@@ -197,6 +222,7 @@ class AppServices extends ChangeNotifier {
     await library.removeSource(id);
     await secureStore.write(SecureStore.smbPassword(id), null);
     await refreshSources();
+    unawaited(startWatching(scanOnStart: false));
   }
 
   /// Scans one source or all of them; progress is published via [scanProgress].
@@ -279,6 +305,7 @@ class AppServices extends ChangeNotifier {
 
   @override
   void dispose() {
+    unawaited(library.stopWatching());
     locale.dispose();
     showTwitch.dispose();
     music.dispose();

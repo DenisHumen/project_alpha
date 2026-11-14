@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:pa_core/pa_core.dart' show CoreWatchEvent;
 import 'package:pa_library/pa_library.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -185,6 +186,33 @@ void main() {
     await lib.setTmdbApiKey(' k ');
     expect(await lib.tmdbApiKey(), 'k');
     await lib.close();
+  });
+
+  test('the watcher brings a new file into the library in under 5 s', () async {
+    final lib = await RustLibrary.open(p.join(tmp.path, 'db', 'core.db'));
+    addTearDown(lib.close);
+    await addMedia(lib);
+    final events = <CoreWatchEvent>[];
+    final sub = lib.watchEvents.listen(events.add);
+    addTearDown(sub.cancel);
+
+    // The start-up scan.
+    final firstEvent = lib.watchEvents.first;
+    await lib.startWatching();
+    final first = await firstEvent.timeout(const Duration(seconds: 30));
+    expect(first.full, isTrue);
+    expect(await lib.movies().first, hasLength(2));
+
+    final appeared = lib.movies().firstWhere(
+      (ms) => ms.any((m) => m.title == 'Arrival'),
+    );
+    final clock = Stopwatch()..start();
+    media(root, 'Movies/Arrival (2016)/Arrival.2016.1080p.mkv', 9);
+    await appeared.timeout(const Duration(seconds: 5));
+    expect(clock.elapsed, lessThan(const Duration(seconds: 5)));
+    expect(events.any((e) => !e.full && e.added > 0), isTrue);
+
+    await lib.stopWatching();
   });
 
   // --- openAppLibrary: the app's start (UI-024) -----------------------------

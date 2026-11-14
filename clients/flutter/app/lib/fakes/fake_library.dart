@@ -268,6 +268,23 @@ class FakeLibrary implements Library {
     ];
   }
 
+  /// Watcher calls, for tests.
+  int watchStarts = 0;
+  bool watching = false;
+
+  @override
+  Future<void> startWatching({
+    Map<String, String> smbPasswords = const {},
+    Duration networkInterval = const Duration(minutes: 15),
+    bool scanOnStart = true,
+  }) async {
+    watchStarts++;
+    watching = true;
+  }
+
+  @override
+  Future<void> stopWatching() async => watching = false;
+
   @override
   Future<void> close() async {}
 }
