@@ -112,8 +112,7 @@ class CoreSourceDiscovery implements SourceDiscovery {
       onListen: () {
         sub = _core.watch().listen(
           (list) => out.add([
-            for (final s in list)
-              if (discoveredSourceFromCore(s) case final d?) d,
+            for (final s in list) ?discoveredSourceFromCore(s),
           ]),
           onError: out.addError,
         );
