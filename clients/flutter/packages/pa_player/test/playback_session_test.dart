@@ -235,12 +235,14 @@ void main() {
     h.engine.finish();
     await t.pump();
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-    await t.pump();
-    expect(find.byKey(const ValueKey('up-next-countdown')), findsNothing);
+    // No frames while paused: check the controller, then the UI on resume.
+    expect(h.state(t).upNext.phase, UpNextPhase.offered);
     await t.pump(const Duration(seconds: 30));
     expect(h.engine.uris, ['/tv/e1.mkv'], reason: 'no autoplay in background');
     t.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await t.pump();
+    expect(find.byKey(const ValueKey('up-next')), findsOneWidget);
+    expect(find.byKey(const ValueKey('up-next-countdown')), findsNothing);
     await t.tap(find.byKey(const ValueKey('up-next-play')));
     await t.pump();
     expect(h.engine.uris, ['/tv/e2.mkv']);
