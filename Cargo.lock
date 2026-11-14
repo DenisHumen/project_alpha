@@ -2401,6 +2401,7 @@ dependencies = [
  "pa-recognition",
  "pa-scanner",
  "pa-vfs",
+ "serde",
  "serde_json",
  "tempfile",
  "thiserror",

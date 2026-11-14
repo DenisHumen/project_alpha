@@ -54,7 +54,8 @@ pub fn pending_files(
 /// Writes `info` to file `file_id` and marks it probed at `now_ms`.
 ///
 /// `video_json` is the main video stream ([`MediaInfo::main_video`]) as
-/// JSON; `audio_langs` and `sub_langs` are JSON arrays of language codes.
+/// JSON; `audio_langs` and `sub_langs` are JSON arrays of language codes;
+/// `audio_formats` (LIB-009) a JSON array of [`MediaInfo::audio_formats`].
 ///
 /// # Errors
 ///
@@ -69,7 +70,7 @@ pub fn store(
     let duration = info.duration_ms.and_then(|d| i64::try_from(d).ok());
     conn.prepare_cached(
         "UPDATE files SET container = ?2, duration_ms = ?3, video_json = ?4,
-             audio_langs = ?5, sub_langs = ?6, probed_at_ms = ?7
+             audio_langs = ?5, sub_langs = ?6, probed_at_ms = ?7, audio_formats = ?8
          WHERE id = ?1",
     )?
     .execute(params![
@@ -80,6 +81,7 @@ pub fn store(
         to_json(&info.audio_languages()),
         to_json(&info.subtitle_languages()),
         now_ms,
+        to_json(&info.audio_formats()),
     ])?;
     Ok(())
 }
@@ -93,7 +95,7 @@ pub fn store(
 pub fn mark_unreadable(conn: &Connection, file_id: i64, now_ms: i64) -> rusqlite::Result<()> {
     conn.prepare_cached(
         "UPDATE files SET container = NULL, duration_ms = NULL, video_json = NULL,
-             audio_langs = NULL, sub_langs = NULL, probed_at_ms = ?2
+             audio_langs = NULL, sub_langs = NULL, audio_formats = NULL, probed_at_ms = ?2
          WHERE id = ?1",
     )?
     .execute(params![file_id, now_ms])?;
@@ -225,6 +227,7 @@ mod tests {
         );
         let lang = |l: &str| AudioStream {
             common: StreamCommon {
+                codec: "aac".into(),
                 language: Some(l.into()),
                 ..StreamCommon::default()
             },
@@ -276,6 +279,23 @@ mod tests {
         assert_eq!(audio, r#"["rus","eng"]"#);
         assert_eq!(subs, "[]");
         assert_eq!(at, 42);
+        let formats: String = conn
+            .query_row("SELECT audio_formats FROM files WHERE id = 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(formats, r#"["aac"]"#);
+        // A scan that sees the file change resets the probe columns; the
+        // LIB-009 trigger clears the audio formats with them.
+        conn.execute("UPDATE files SET probed_at_ms = NULL WHERE id = 1", [])
+            .unwrap();
+        let formats: Option<String> = conn
+            .query_row("SELECT audio_formats FROM files WHERE id = 1", [], |r| {
+                r.get(0)
+            })
+            .unwrap();
+        assert_eq!(formats, None);
+        store(&conn, 1, &info, 42).unwrap();
 
         let (container, at): (Option<String>, i64) = conn
             .query_row(

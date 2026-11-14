@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import 'library_query.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `count`, `item_ref`, `items`, `signed`, `small`
@@ -25,14 +26,39 @@ abstract class CoreLibrary implements RustOpaqueInterface {
     String? username,
   });
 
+  /// Alphabet index of a query in title order.
+  Future<List<CoreAlphabetEntry>> alphabetIndex({
+    required CoreLibraryQuery query,
+  });
+
+  /// Entries of a folder of a source (`""` = root), sorted, folders first
+  /// if asked.
+  Future<List<CoreFolderEntry>> browse({
+    required PlatformInt64 sourceId,
+    required String dir,
+    required CoreLibrarySort sort,
+    required bool foldersFirst,
+  });
+
   /// Stops the running scan (it keeps what it wrote).
   Future<void> cancelScan();
 
   /// "Continue watching" with Up Next, latest first.
   Future<List<CoreContinueItem>> continueWatching({required int limit});
 
+  Future<CoreSmartShelf> createShelf({
+    required String name,
+    required CoreLibraryQuery query,
+    required bool pinnedHome,
+  });
+
+  Future<void> deleteShelf({required PlatformInt64 id});
+
   /// Episodes of a show item.
   Future<List<CoreItem>> episodes({required String showId});
+
+  /// Filter values present among movies or shows, for filter chips.
+  Future<CoreFacets> facets({required CoreItemKind kind});
 
   /// Fetches provider metadata for the works that need it (new, changed,
   /// stale or previously failed). Run it after [`scan`](Self::scan);
@@ -50,6 +76,9 @@ abstract class CoreLibrary implements RustOpaqueInterface {
     PlatformInt64? tmdbId,
   });
 
+  /// Genres of a movie or show item.
+  Future<List<String>> genres({required String itemId});
+
   /// Imports a `pa_library` v0 database (read-only; renaming it is the
   /// caller's job). Safe to repeat.
   Future<CoreImportReport> importV0({required String path});
@@ -66,6 +95,13 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   Future<CoreProgress?> progress({required String itemId});
 
+  /// One page of a query (`limit` items from `offset`) and the total.
+  Future<CoreItemPage> query({
+    required CoreLibraryQuery query,
+    required int offset,
+    required int limit,
+  });
+
   /// Items of `kind`, newest first.
   Future<List<CoreItem>> recentlyAdded({
     required CoreItemKind kind,
@@ -74,6 +110,9 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   /// Removes a source with everything found in it.
   Future<void> removeSource({required PlatformInt64 id});
+
+  /// Orders the shelves as `ids`; unlisted ones follow.
+  Future<void> reorderShelves({required Int64List ids});
 
   /// Makes the next metadata run ask again: for every work (`all`, e.g.
   /// after a language change) or only for works no provider matched
@@ -100,6 +139,18 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   /// FTS5 search over movies, shows, episodes and tracks.
   Future<List<CoreItem>> search({required String query, required int limit});
 
+  Future<void> setViewPrefs({required CoreViewPrefs prefs});
+
+  /// One page of a shelf's query.
+  Future<CoreItemPage> shelfItems({
+    required PlatformInt64 id,
+    required int offset,
+    required int limit,
+  });
+
+  /// Smart shelves by position; `pinned_only`: those on Home.
+  Future<List<CoreSmartShelf>> shelves({required bool pinnedOnly});
+
   Future<List<CoreItem>> shows();
 
   Future<List<CoreSource>> sources();
@@ -116,6 +167,16 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   Future<void> stopWatcher();
 
   Future<List<CoreItem>> tracks();
+
+  Future<void> updateShelf({
+    required PlatformInt64 id,
+    required String name,
+    required CoreLibraryQuery query,
+    required bool pinnedHome,
+  });
+
+  /// Saved preferences of a view, or its defaults.
+  Future<CoreViewPrefs> viewPrefs({required String view});
 }
 
 /// An entry of "Continue watching".

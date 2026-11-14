@@ -1203,6 +1203,18 @@ fn apply(
         )?;
     }
 
+    // Genres (LIB-009): TMDB names are in the metadata language; AniList
+    // names (English) only when TMDB has none.
+    let tmdb_genres: Vec<&str> = tmdb
+        .map(|d| d.genres.iter().map(|g| g.name.as_str()).collect())
+        .unwrap_or_default();
+    let anilist_genres: Vec<&str> = match anime {
+        Some(a) if tmdb_genres.is_empty() => a.media.genres.iter().map(String::as_str).collect(),
+        _ => Vec::new(),
+    };
+    pa_library::views::set_work_genres(tx, target, "tmdb", &tmdb_genres)?;
+    pa_library::views::set_work_genres(tx, target, "anilist", &anilist_genres)?;
+
     // Artwork.
     tx.execute(
         "DELETE FROM artwork WHERE work_id = ?1 AND provider IN ('tmdb', 'anilist')",

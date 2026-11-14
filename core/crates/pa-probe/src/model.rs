@@ -66,6 +66,43 @@ impl MediaInfo {
     }
 }
 
+impl MediaInfo {
+    /// Audio formats of the file in stream order, without duplicates, as
+    /// slugs for the library's audio filter (LIB-009): the codec family
+    /// (`aac`, `ac3`, `eac3`, `truehd`, `dts`, `dts_hd_ma`, `dts_hd_hra`,
+    /// `flac`, `opus`, `mp3`, `vorbis`, `alac`, `pcm`, or FFmpeg's codec
+    /// name), followed by `atmos` / `dts_x` for object audio.
+    #[must_use]
+    pub fn audio_formats(&self) -> Vec<String> {
+        let mut out = Vec::new();
+        for a in &self.audio {
+            out.push(audio_format(&a.common.codec, a.common.profile.as_deref()));
+            match a.object_audio {
+                Some(ObjectAudio::Atmos) => out.push("atmos".to_owned()),
+                Some(ObjectAudio::DtsX) => out.push("dts_x".to_owned()),
+                None => {}
+            }
+        }
+        dedup(out.into_iter().filter(|f| !f.is_empty()))
+    }
+}
+
+/// Slug of an audio codec with its FFmpeg profile name.
+fn audio_format(codec: &str, profile: Option<&str>) -> String {
+    let codec = codec.to_ascii_lowercase();
+    match codec.as_str() {
+        "dts" => match profile.map(str::to_ascii_lowercase).as_deref() {
+            Some(p) if p.contains("ma") || p.contains("dts:x") => "dts_hd_ma".to_owned(),
+            Some(p) if p.contains("hra") || p.contains("hi res") => "dts_hd_hra".to_owned(),
+            _ => "dts".to_owned(),
+        },
+        "mp3" | "mp3float" | "mp2" => "mp3".to_owned(),
+        c if c.starts_with("pcm_") => "pcm".to_owned(),
+        c if c.starts_with("aac") => "aac".to_owned(),
+        c => c.to_owned(),
+    }
+}
+
 fn dedup(items: impl Iterator<Item = String>) -> Vec<String> {
     let mut out: Vec<String> = Vec::new();
     for item in items {
@@ -296,6 +333,45 @@ pub struct Chapter {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn audio_formats_are_slugs_in_stream_order() {
+        let a = |codec: &str, profile: Option<&str>, object: Option<ObjectAudio>| AudioStream {
+            common: StreamCommon {
+                codec: codec.into(),
+                profile: profile.map(Into::into),
+                ..StreamCommon::default()
+            },
+            object_audio: object,
+            ..AudioStream::default()
+        };
+        let info = MediaInfo {
+            audio: vec![
+                a("truehd", None, Some(ObjectAudio::Atmos)),
+                a("dts", Some("DTS-HD MA"), None),
+                a("dts", Some("DTS-HD HRA"), None),
+                a("dts", Some("DTS"), None),
+                a("eac3", None, Some(ObjectAudio::Atmos)),
+                a("pcm_s24le", None, None),
+                a("ac3", None, None),
+                a("ac3", None, None),
+            ],
+            ..MediaInfo::default()
+        };
+        assert_eq!(
+            info.audio_formats(),
+            [
+                "truehd",
+                "atmos",
+                "dts_hd_ma",
+                "dts_hd_hra",
+                "dts",
+                "eac3",
+                "pcm",
+                "ac3"
+            ]
+        );
+    }
 
     #[test]
     fn dolby_vision_profile_names() {
