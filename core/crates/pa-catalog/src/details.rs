@@ -161,8 +161,7 @@ fn tech(conn: &Connection, file_id: i64) -> Result<Option<TechInfo>, Error> {
             },
         )
         .optional()?;
-    let Some((source_id, uri, path, container, size, duration, video, audio, alangs, slangs)) =
-        row
+    let Some((source_id, uri, path, container, size, duration, video, audio, alangs, slangs)) = row
     else {
         return Ok(None);
     };
@@ -212,10 +211,7 @@ fn tech(conn: &Connection, file_id: i64) -> Result<Option<TechInfo>, Error> {
 }
 
 /// Extras and the clearlogo of the folder group of `file_id`.
-fn group_assets(
-    conn: &Connection,
-    file_id: i64,
-) -> Result<(Vec<Extra>, Option<FileRef>), Error> {
+fn group_assets(conn: &Connection, file_id: i64) -> Result<(Vec<Extra>, Option<FileRef>), Error> {
     let mut stmt = conn.prepare_cached(
         "SELECT g.source_id, s.uri, ga.path, ga.role, ga.extra_type, ga.art_kind,
                 ga.season_number, coalesce(f.size_bytes, ga.size_bytes), f.duration_ms

@@ -272,6 +272,10 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               ),
             ),
           ],
+          if (item.matchConfidence != null) ...[
+            const SizedBox(height: 8),
+            MatchBadge(confidence: item.matchConfidence),
+          ],
           if (item.overview != null) ...[
             SizedBox(height: d.isTv ? 14 : 18),
             Text(
@@ -377,15 +381,6 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
               ),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: d.pageInsets.left,
-                right: d.pageInsets.right,
-                top: 12,
-              ),
-              child: MatchBadge(confidence: item.matchConfidence),
-            ),
           ),
           SliverToBoxAdapter(child: SizedBox(height: d.pageInsets.bottom + 24)),
         ],

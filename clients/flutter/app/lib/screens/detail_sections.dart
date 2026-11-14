@@ -199,12 +199,12 @@ class DetailSection extends StatelessWidget {
 
 /// Crew job in the user's language, else as the provider writes it.
 String jobLabel(AppLocalizations l, String job) => switch (job) {
-  'Director' => l.detailJobDirector,
-  'Screenplay' => l.detailJobScreenplay,
-  'Writer' => l.detailJobWriter,
-  'Novel' => l.detailJobNovel,
-  'Original Music Composer' => l.detailJobComposer,
-  'Director of Photography' => l.detailJobCinematography,
+  'Director' => l.detailJobDirector, // l10n-ignore
+  'Screenplay' => l.detailJobScreenplay, // l10n-ignore
+  'Writer' => l.detailJobWriter, // l10n-ignore
+  'Novel' => l.detailJobNovel, // l10n-ignore
+  'Original Music Composer' => l.detailJobComposer, // l10n-ignore
+  'Director of Photography' => l.detailJobCinematography, // l10n-ignore
   _ => job,
 };
 
