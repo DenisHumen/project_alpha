@@ -308,7 +308,7 @@ impl SyntheticTmdb {
                 .filter(|e| year.is_none() || e.year == year)
                 .filter(|e| {
                     e.words.iter().any(|w| q.iter().all(|x| w.contains(x)))
-                        || e.compact.iter().any(|c| *c == compact)
+                        || e.compact.contains(&compact)
                 })
                 .collect()
         };
@@ -376,7 +376,12 @@ mod tests {
         SyntheticTmdb::new(&[
             record("movie:841", WorkKind::Movie, 1984, &["Dune", "Дюна"]),
             record("movie:438631", WorkKind::Movie, 2021, &["Dune", "Дюна"]),
-            record("movie:101", WorkKind::Movie, 1994, &["Léon: The Professional", "Леон"]),
+            record(
+                "movie:101",
+                WorkKind::Movie,
+                1994,
+                &["Léon: The Professional", "Леон"],
+            ),
             record("tv:70523", WorkKind::Series, 2017, &["Dark", "Тьма"]),
         ])
     }
@@ -393,7 +398,10 @@ mod tests {
     #[test]
     fn synthetic_search_matches_words_kind_and_year() {
         let s = synthetic();
-        assert_eq!(ids(&s.search("movie", "dune", None)), ["movie:438631", "movie:841"]);
+        assert_eq!(
+            ids(&s.search("movie", "dune", None)),
+            ["movie:438631", "movie:841"]
+        );
         assert_eq!(ids(&s.search("movie", "Dune", Some(1984))), ["movie:841"]);
         assert_eq!(ids(&s.search("movie", "Leon", None)), ["movie:101"]);
         assert_eq!(ids(&s.search("movie", "Дюна", None)).len(), 2);

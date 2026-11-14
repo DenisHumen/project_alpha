@@ -474,6 +474,10 @@ fn tmdb_kind(work: &WorkQuery) -> MediaKind {
     }
 }
 
+/// A TMDB search: `(kind, title, year)` → results.
+pub type SearchFn<'a, E> =
+    dyn FnMut(MediaKind, &str, Option<u32>) -> Result<Vec<SearchResult>, E> + 'a;
+
 /// Searches a work by its titles and year and ranks the results with the
 /// local title index: per title (at most [`MAX_QUERIES`]), `search(kind,
 /// title, year)` with the year and, if that finds nothing, without it; the
@@ -482,7 +486,7 @@ fn tmdb_kind(work: &WorkQuery) -> MediaKind {
 /// metadata run, recorded or synthetic in `pa-eval`.
 pub fn match_search<E>(
     work: &WorkQuery,
-    search: &mut dyn FnMut(MediaKind, &str, Option<u32>) -> Result<Vec<SearchResult>, E>,
+    search: &mut SearchFn<'_, E>,
 ) -> Result<Option<SearchMatch>, E> {
     let kind = tmdb_kind(work);
     let year = work.year.and_then(|y| u32::try_from(y).ok());
