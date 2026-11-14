@@ -21,7 +21,7 @@ final class MPVEngineContractTests: XCTestCase {
     private func run(_ name: String) throws {
         let harness = try MPVHarness(fixture: TestMedia.contractFixture())
         defer { try? harness.mpv.closeEngine() }
-        if let failure = playerEngineContractRun(case: name, harness: harness) {
+        if let failure = playerEngineContractRun(name: name, harness: harness) {
             XCTFail("\(name): \(failure)")
         }
     }
@@ -49,7 +49,7 @@ final class MPVEngineContractTests: XCTestCase {
 final class MockEngineRoundTripTests: XCTestCase {
     func testMockPassesEveryCaseOverFFI() throws {
         for name in playerEngineContractCases() {
-            XCTAssertNil(playerEngineContractRun(case: name, harness: mockEngineHarness()), name)
+            XCTAssertNil(playerEngineContractRun(name: name, harness: mockEngineHarness()), name)
         }
     }
 

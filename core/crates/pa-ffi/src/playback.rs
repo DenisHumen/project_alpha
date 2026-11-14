@@ -346,14 +346,16 @@ pub fn player_engine_contract_cases() -> Vec<String> {
 
 /// Runs one contract case against the engine of `harness`.
 ///
-/// Returns `None` when the case passes, otherwise why it failed.
+/// Returns `None` when the case passes, otherwise why it failed. The case
+/// argument is called `name`: a parameter named `case` (a Swift keyword)
+/// breaks the generated C header for Swift.
 #[uniffi::export]
 pub fn player_engine_contract_run(
-    case: String,
+    name: String,
     harness: Arc<dyn PlayerEngineHarness>,
 ) -> Option<String> {
-    let Some((_, run)) = contract::CASES.iter().find(|(n, _)| *n == case) else {
-        return Some(format!("unknown contract case `{case}`"));
+    let Some((_, run)) = contract::CASES.iter().find(|(n, _)| *n == name) else {
+        return Some(format!("unknown contract case `{name}`"));
     };
     let fx = harness.fixture();
     let (Ok(items), Ok(durations_ms)) = (
