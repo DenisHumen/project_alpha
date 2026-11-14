@@ -24,7 +24,9 @@ use std::thread::{self, Thread};
 use std::time::{Duration, Instant};
 
 use flutter_rust_bridge::DartFnFuture;
-use pa_secrets::{OpenOptions, OpenedStore, PlatformKeystore, SecretError, SecretKey, SecretString};
+use pa_secrets::{
+    OpenOptions, OpenedStore, PlatformKeystore, SecretError, SecretKey, SecretString,
+};
 
 /// How long a core thread waits for the platform callback. The Keystore and
 /// the Keychain answer in milliseconds; this only ends a wait for a Dart
@@ -141,7 +143,12 @@ struct DartKeystore {
 }
 
 impl DartKeystore {
-    fn call(&self, op: &str, key: &str, value: Option<&str>) -> pa_secrets::Result<PlatformSecretReply> {
+    fn call(
+        &self,
+        op: &str,
+        key: &str,
+        value: Option<&str>,
+    ) -> pa_secrets::Result<PlatformSecretReply> {
         let call = PlatformSecretCall {
             op: op.into(),
             key: key.into(),
@@ -246,10 +253,7 @@ fn open_platform(
 /// platform store. Call once at app start, before [`CoreSources::open`](super::sources::CoreSources::open).
 pub fn secrets_open_platform(
     data_dir: Option<String>,
-    callback: impl Fn(PlatformSecretCall) -> DartFnFuture<PlatformSecretReply>
-    + Send
-    + Sync
-    + 'static,
+    callback: impl Fn(PlatformSecretCall) -> DartFnFuture<PlatformSecretReply> + Send + Sync + 'static,
 ) -> SecretsResult<CoreSecretStoreInfo> {
     open_platform(
         DartKeystore {
@@ -304,9 +308,7 @@ mod tests {
 
     /// A platform store in a map that answers from another thread, as the
     /// Dart isolate does.
-    fn map_keystore(
-        timeout: Duration,
-    ) -> (DartKeystore, Arc<Mutex<HashMap<String, String>>>) {
+    fn map_keystore(timeout: Duration) -> (DartKeystore, Arc<Mutex<HashMap<String, String>>>) {
         let map = Arc::new(Mutex::new(HashMap::new()));
         let shared = Arc::clone(&map);
         let callback = move |call: PlatformSecretCall| -> DartFnFuture<PlatformSecretReply> {
@@ -391,7 +393,10 @@ mod tests {
         assert_eq!(secret_get(key.clone()).unwrap(), None);
         secret_set(key.clone(), "hunter2-frb".into()).unwrap();
         assert_eq!(map.lock().unwrap()[&key], "hunter2-frb");
-        assert_eq!(secret_get(key.clone()).unwrap().as_deref(), Some("hunter2-frb"));
+        assert_eq!(
+            secret_get(key.clone()).unwrap().as_deref(),
+            Some("hunter2-frb")
+        );
         secret_set(key.clone(), "second".into()).unwrap();
         assert_eq!(secret_get(key.clone()).unwrap().as_deref(), Some("second"));
         // Known values are masked in logs.
