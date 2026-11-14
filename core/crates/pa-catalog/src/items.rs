@@ -93,6 +93,25 @@ pub struct Item {
     pub match_confidence: Option<f64>,
     pub tmdb_id: Option<i64>,
     pub added_at_ms: Option<i64>,
+    /// Poster (episodes: the show's), an https or `file://` URL.
+    pub poster_url: Option<String>,
+    /// Backdrop (episodes: the episode still).
+    pub backdrop_url: Option<String>,
+}
+
+/// Best artwork of a kind for a work (`w.id`) or episode (`e.id`).
+macro_rules! art {
+    ($owner:literal, $id:literal, $kind:literal) => {
+        concat!(
+            "(SELECT a.url FROM artwork a WHERE a.",
+            $owner,
+            " = ",
+            $id,
+            " AND a.kind = '",
+            $kind,
+            "' ORDER BY a.priority, a.id LIMIT 1)"
+        )
+    };
 }
 
 fn is_season_folder(name: &str) -> bool {
@@ -132,39 +151,58 @@ fn relative(path: &str) -> String {
     path.trim_start_matches('/').to_owned()
 }
 
-const MOVIE_SQL: &str = "
+const MOVIE_SQL: &str = concat!(
+    "
 SELECT w.id, w.title, w.original_title, w.year, w.overview,
        (SELECT x.ext_id FROM external_ids x
          WHERE x.work_id = w.id AND x.provider = 'tmdb' AND x.ext_kind = 'movie'),
-       f.source_id, s.uri, f.path, f.duration_ms, m.confidence, f.added_at_ms, min(f.id)
+       f.source_id, s.uri, f.path, f.duration_ms, m.confidence, f.added_at_ms, min(f.id), ",
+    art!("work_id", "w.id", "poster"),
+    ", ",
+    art!("work_id", "w.id", "backdrop"),
+    "
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
 JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
-WHERE w.kind = 'movie'";
+WHERE w.kind = 'movie'"
+);
 
-const SHOW_SQL: &str = "
+const SHOW_SQL: &str = concat!(
+    "
 SELECT w.id, w.title, w.original_title, w.year, w.overview,
        (SELECT x.ext_id FROM external_ids x
          WHERE x.work_id = w.id AND x.provider = 'tmdb' AND x.ext_kind = 'tv'),
        f.source_id, s.uri, min(f.path), NULL, m.confidence,
        (SELECT max(f2.added_at_ms) FROM matches m2 JOIN files f2 ON f2.id = m2.file_id
-         WHERE m2.work_id = w.id AND m2.state <> 'rejected' AND f2.missing_since_ms IS NULL) AS added
+         WHERE m2.work_id = w.id AND m2.state <> 'rejected' AND f2.missing_since_ms IS NULL) AS added, ",
+    art!("work_id", "w.id", "poster"),
+    ", ",
+    art!("work_id", "w.id", "backdrop"),
+    "
 FROM works w
 JOIN matches m ON m.work_id = w.id AND m.state <> 'rejected'
 JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
-WHERE w.kind IN ('show', 'anime')";
+WHERE w.kind IN ('show', 'anime')"
+);
 
-const EPISODE_SQL: &str = "
+const EPISODE_SQL: &str = concat!(
+    "
 SELECT e.id, e.title, e.work_id, e.season_number, ifnull(e.episode_number, e.absolute_number),
-       f.source_id, s.uri, f.path, f.duration_ms, m.confidence, f.added_at_ms, min(f.id)
+       f.source_id, s.uri, f.path, f.duration_ms, m.confidence, f.added_at_ms, min(f.id),
+       e.overview, ",
+    art!("work_id", "e.work_id", "poster"),
+    ", ",
+    art!("episode_id", "e.id", "still"),
+    "
 FROM episodes e
 JOIN match_episodes me ON me.episode_id = e.id
 JOIN matches m ON m.id = me.match_id AND m.state <> 'rejected'
 JOIN files f ON f.id = m.file_id AND f.missing_since_ms IS NULL
 JOIN sources s ON s.id = f.source_id
-WHERE 1";
+WHERE 1"
+);
 
 const TRACK_SQL: &str = "
 SELECT t.id, t.title, t.track_number, t.duration_ms, t.year, a.title,
@@ -198,6 +236,8 @@ fn movie_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         duration_ms: r.get(9)?,
         match_confidence: r.get(10)?,
         added_at_ms: r.get(11)?,
+        poster_url: r.get(13)?,
+        backdrop_url: r.get(14)?,
         show_id: None,
         season: None,
         episode: None,
@@ -224,6 +264,8 @@ fn show_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         duration_ms: None,
         match_confidence: r.get(10)?,
         added_at_ms: r.get(11)?,
+        poster_url: r.get(12)?,
+        backdrop_url: r.get(13)?,
         show_id: None,
         season: None,
         episode: None,
@@ -249,9 +291,11 @@ fn episode_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         duration_ms: r.get(8)?,
         match_confidence: r.get(9)?,
         added_at_ms: r.get(10)?,
+        overview: r.get(12)?,
+        poster_url: r.get(13)?,
+        backdrop_url: r.get(14)?,
         original_title: None,
         year: None,
-        overview: None,
         tmdb_id: None,
         artist: None,
         album: None,
@@ -282,6 +326,8 @@ fn track_row(r: &Row<'_>) -> pa_library::rusqlite::Result<Item> {
         season: None,
         episode: None,
         tmdb_id: None,
+        poster_url: None,
+        backdrop_url: None,
     })
 }
 
