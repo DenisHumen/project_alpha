@@ -33,6 +33,7 @@ use crate::api::library_query::{
     CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
     CoreLibrarySort, CoreSmartShelf, CoreViewPrefs,
 };
+use crate::api::subtitles::CoreSidecarSubtitle;
 use crate::frb_generated::StreamSink;
 
 /// Error of a library call; Dart receives it as an exception.
@@ -896,6 +897,25 @@ impl CoreLibrary {
     /// Genres of a movie or show item.
     pub fn genres(&self, item_id: String) -> Result<Vec<String>> {
         Ok(self.catalog.genres(item_ref(&item_id)?)?)
+    }
+
+    // -----------------------------------------------------------------------
+    // sidecar subtitles (PLAY-007)
+
+    /// Subtitle files of the file `rel_path` of source `source_id` (as in
+    /// `CoreItem` and `CoreVersion`): those named after it first, then those
+    /// of its movie folder. Empty for an unknown file.
+    pub fn sidecar_subtitles(
+        &self,
+        source_id: i64,
+        rel_path: String,
+    ) -> Result<Vec<CoreSidecarSubtitle>> {
+        Ok(self
+            .catalog
+            .sidecar_subtitles(source_id, &rel_path)?
+            .into_iter()
+            .map(Into::into)
+            .collect())
     }
 
     // -----------------------------------------------------------------------

@@ -11,5 +11,6 @@ pub mod recognition;
 pub mod remote_config;
 pub mod secrets;
 pub mod sources;
+pub mod subtitles;
 pub mod sync;
 pub mod version;

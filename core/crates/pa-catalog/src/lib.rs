@@ -31,6 +31,8 @@
 //!   recorded as `pa-sync` ops in the outbox of the same database, and ops
 //!   from other devices are written into the library
 //!   ([`Catalog::apply_remote`]);
+//! - sidecar subtitles of a file ([`Catalog::sidecar_subtitles`], PLAY-007)
+//!   from the LIB-007 folder groups, with language and flags;
 //! - the change watcher ([`watch::LibraryWatcher`], LIB-005): OS change
 //!   notifications for local folders, a timer for network shares, and
 //!   incremental rescans of the changed folders
@@ -64,6 +66,7 @@ pub mod query;
 pub mod recognize;
 mod scan;
 mod sources;
+mod subtitles;
 mod sync;
 pub mod uri;
 pub mod watch;
@@ -90,6 +93,7 @@ pub use query::{
 };
 pub use scan::{RescanReport, ScanPhase, ScanUpdate};
 pub use sources::Source;
+pub use subtitles::Sidecar;
 
 /// Device id written with local progress changes until profiles and
 /// device identity reach the app (SYNC-*).
