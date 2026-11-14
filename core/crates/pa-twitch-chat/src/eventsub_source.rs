@@ -352,10 +352,10 @@ impl Driver {
             return false;
         }
         self.seen.push_back(message_id.to_owned());
-        if self.seen.len() > DEDUP_WINDOW {
-            if let Some(old) = self.seen.pop_front() {
-                self.seen_set.remove(&old);
-            }
+        if self.seen.len() > DEDUP_WINDOW
+            && let Some(old) = self.seen.pop_front()
+        {
+            self.seen_set.remove(&old);
         }
         true
     }
@@ -399,10 +399,10 @@ impl Driver {
                 EventSubFrame::Notification {
                     message_id, event, ..
                 } => {
-                    if let Some(event) = event.filter(|_| self.first_time(&message_id)) {
-                        if !self.emit(event).await {
-                            return End::ConsumerGone;
-                        }
+                    if let Some(event) = event.filter(|_| self.first_time(&message_id))
+                        && !self.emit(event).await
+                    {
+                        return End::ConsumerGone;
                     }
                 }
                 EventSubFrame::Reconnect { reconnect_url } => {

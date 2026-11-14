@@ -31,7 +31,7 @@ fn event(text: &str) -> ChatEvent {
 
 fn message(text: &str) -> ChatMessage {
     match event(text) {
-        ChatEvent::Message(m) => m,
+        ChatEvent::Message(m) => *m,
         other => panic!("expected a message, got {other:?}"),
     }
 }

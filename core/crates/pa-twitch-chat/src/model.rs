@@ -242,8 +242,8 @@ pub enum SourceStatus {
 /// Everything a [`crate::ChatSource`] emits.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ChatEvent {
-    /// A chat line or system notice.
-    Message(ChatMessage),
+    /// A chat line or system notice (boxed: the other events are small).
+    Message(Box<ChatMessage>),
     /// One message deleted by a moderator (show `<message deleted>`).
     MessageDeleted {
         /// Channel.

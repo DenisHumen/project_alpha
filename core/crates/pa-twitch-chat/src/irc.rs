@@ -161,9 +161,9 @@ pub fn interpret(msg: &IrcMessage, own_nick: &str) -> IrcInput {
             })))
         }
         "PRIVMSG" => {
-            privmsg(msg).map_or(IrcInput::Ignore, |m| IrcInput::Event(ChatEvent::Message(m)))
+            privmsg(msg).map_or(IrcInput::Ignore, |m| IrcInput::Event(ChatEvent::Message(Box::new(m))))
         }
-        "USERNOTICE" => IrcInput::Event(ChatEvent::Message(usernotice(msg))),
+        "USERNOTICE" => IrcInput::Event(ChatEvent::Message(Box::new(usernotice(msg)))),
         "CLEARCHAT" => IrcInput::Event(clearchat(msg)),
         "CLEARMSG" => IrcInput::Event(ChatEvent::MessageDeleted {
             channel: channel(msg),

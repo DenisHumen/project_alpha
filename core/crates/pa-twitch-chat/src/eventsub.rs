@@ -185,10 +185,14 @@ fn decode<T: serde::de::DeserializeOwned>(kind: &str, event: Value) -> Result<T,
 pub fn normalise(kind: &str, event: Value, ts_ms: i64) -> Result<Option<ChatEvent>, FrameError> {
     Ok(Some(match kind {
         SUB_CHAT_MESSAGE => {
-            ChatEvent::Message(decode::<ChatMessageEvent>(kind, event)?.into_message(ts_ms))
+            ChatEvent::Message(Box::new(
+                decode::<ChatMessageEvent>(kind, event)?.into_message(ts_ms),
+            ))
         }
         SUB_CHAT_NOTIFICATION => {
-            ChatEvent::Message(decode::<NotificationEvent>(kind, event)?.into_message(ts_ms))
+            ChatEvent::Message(Box::new(
+                decode::<NotificationEvent>(kind, event)?.into_message(ts_ms),
+            ))
         }
         SUB_CHAT_MESSAGE_DELETE => {
             let e: MessageDeleteEvent = decode(kind, event)?;
@@ -381,14 +385,14 @@ fn text_and_emotes(message: EsMessage) -> (String, Vec<EmoteRange>) {
     let mut emotes = Vec::new();
     for f in &message.fragments {
         let len = f.text.chars().count();
-        if f.kind == "emote" {
-            if let Some(e) = &f.emote {
-                emotes.push(EmoteRange {
-                    id: e.id.clone(),
-                    start: offset,
-                    end: offset + len,
-                });
-            }
+        if f.kind == "emote"
+            && let Some(e) = &f.emote
+        {
+            emotes.push(EmoteRange {
+                id: e.id.clone(),
+                start: offset,
+                end: offset + len,
+            });
         }
         joined.push_str(&f.text);
         offset += len;
