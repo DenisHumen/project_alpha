@@ -365,15 +365,21 @@ class MusicIndex {
         for (final n in t.artists) {
           if (n.trim().isEmpty) continue;
           final k = foldName(n);
-          final ar = artist(n);
-          ar.tracks.add(t);
-          if (!ownerKeys.contains(k) && guests.add(k)) ar.appearsOn.add(a);
-        }
-        if (t.artists.isEmpty) {
-          for (final o in owners) {
-            if (o.trim().isNotEmpty) artist(o).tracks.add(t);
+          if (!ownerKeys.contains(k) && guests.add(k)) {
+            artist(n).appearsOn.add(a);
           }
         }
+      }
+    }
+    // Tracks in library order: by track artist, else by album artist.
+    for (final t in tracks) {
+      final names = t.artists.isNotEmpty
+          ? t.artists
+          : (t.albumArtists.isNotEmpty ? t.albumArtists : [?t.artist]);
+      final seen = <String>{};
+      for (final n in names) {
+        if (n.trim().isEmpty || !seen.add(foldName(n))) continue;
+        artist(n).tracks.add(t);
       }
     }
     int newest(MusicAlbum a, MusicAlbum b) {
