@@ -368,9 +368,9 @@ project_alpha/
   - Что: NTLMSSP, подпись и шифрование SMB3 (`smb3_set_seal`), листинг, чтение с read-ahead и параллельным prefetch (буфер 32–256 МБ, настраиваемый), SMB1 только по явному флагу с предупреждением.
   - deps: NET-002, CI-012 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
   - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь).
-- [ ] **NET-004** WebDAV бэкенд
+- [x] **NET-004** WebDAV бэкенд
   - Что: reqwest + quick-xml (PROPFIND), Basic и Digest, Range, редиректы, самоподписанные сертификаты с TOFU.
-  - deps: NET-001, CI-012 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
+  - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
   - done when: контракт-тесты против nginx, Apache, `rclone serve` и Nextcloud.
 - [ ] **NET-005** NFS v3/v4 бэкенд (libnfs) [P1]
   - Что: libnfs (LGPL, динамически), userspace-клиент без mount.
