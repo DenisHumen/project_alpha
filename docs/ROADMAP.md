@@ -345,7 +345,7 @@ project_alpha/
   - Что: cargo features `store`/`full`, `twitch-archive`, `donation-links`; константа флейвора во всех клиентах (dart-define, Gradle flavors, Xcode configs); CI-тест, что store-бинарь не содержит символов и строк архива Twitch и донат-ссылок.
   - deps: CORE-006 · size: M · parallel: no · веха: M1 · ref: S §4, §6; 06 §2.7 п.4
   - done when: CI проверяет store-артефакты всех платформ (`nm` / `strings`) и падает при находке.
-- [ ] **CORE-014** Клиент удалённого конфига без серверов
+- [x] **CORE-014** Клиент удалённого конфига без серверов
   - Что: загрузка подписанного JSON из публичного репо (`config/`, через GitHub Pages или raw), проверка подписи minisign встроенным ключом, ETag, кэш, откат на встроенную копию, флаги kill-switch.
   - deps: CORE-006 · size: S · parallel: yes · веха: M2 · ref: S §3 (Twitch), 06 §2.6
   - done when: тесты: неверная подпись отклоняется; офлайн берётся последняя валидная копия.
@@ -1194,7 +1194,7 @@ project_alpha/
   - deps: TWI-001, TWI-004 · size: M · parallel: yes · веха: M7 · ref: S §6, 06 §1.3
   - done when: отчёт в `docs/adr/`, решение DEC-006 принято.
 - [ ] **TWI-004** Воспроизведение: GQL → usher и удалённый конфиг
-  - Что: PlaybackAccessToken → master playlist для live и VOD; `supported_codecs` по возможностям устройства; выбор качества и audio_only; client-id и хэши persisted queries — в `config/twitch/remote-config.json` (подпись, CORE-014); флаги `twitch.gql_playback`, `chapters_gql`, `chat_replay`, `archive`, `player=embed`; kill-switch по версии приложения.
+  - Что: PlaybackAccessToken → master playlist для live и VOD; `supported_codecs` по возможностям устройства; выбор качества и audio_only; client-id и хэши persisted queries — в секции `twitch` файла `config/remote-config.json` (подпись minisign, CORE-014, ADR-0039); флаги `twitch.gql_playback`, `chapters_gql`, `chat_replay`, `archive`, `player=embed`; kill-switch по версии приложения.
   - deps: TWI-001, CORE-014 · size: M · parallel: yes · веха: M7 · ref: 06 §2.1, §2.6–2.7
   - done when: live и VOD играют на десктопе; при смене конфига функция выключается без релиза.
 - [ ] **TWI-005** Запасной режим: официальный embed

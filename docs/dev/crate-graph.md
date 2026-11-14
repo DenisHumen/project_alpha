@@ -28,6 +28,7 @@ flowchart LR
     pa_probe["pa-probe"]
     pa_proxy["pa-proxy"]
     pa_recognition["pa-recognition"]
+    pa_remote_config["pa-remote-config"]
     pa_runtime["pa-runtime"]
     pa_scanner["pa-scanner"]
     pa_secrets["pa-secrets"]
@@ -69,6 +70,7 @@ flowchart LR
   pa_frb --> pa_imagecache
   pa_frb --> pa_proxy
   pa_frb --> pa_recognition
+  pa_frb --> pa_remote_config
   pa_frb --> pa_secrets
   pa_frb --> pa_sources
   pa_jobs --> pa_library
@@ -131,6 +133,7 @@ flowchart LR
 | `pa-proxy` | `core/crates/pa-proxy` | 1 | Loopback HTTP Range server that streams any pa-vfs ByteSource to players that only take a URL (NET-007) |
 | `pa-recognition` | `core/crates/pa-recognition` | 3 | Media recognition core (sans-IO): filename parser with N-best hypotheses, title normalization and local title index, Provider boundary |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
+| `pa-remote-config` | `core/crates/pa-remote-config` | 5 | Serverless remote config: minisign-signed JSON from the public repo, ETag, disk cache, built-in fallback, kill-switches (CORE-014) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |
 | `pa-scanner` | `core/crates/pa-scanner` | 1 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003); music tags and index (MUS-001); structural folder analysis (LIB-007) |
 | `pa-secrets` | `core/crates/pa-secrets` | 11 | Secret storage of project_alpha: OS keychains, platform callbacks, encrypted-file fallback, log redaction |

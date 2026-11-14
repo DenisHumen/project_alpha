@@ -8,6 +8,7 @@ import 'api/images.dart';
 import 'api/library.dart';
 import 'api/library_query.dart';
 import 'api/recognition.dart';
+import 'api/remote_config.dart';
 import 'api/secrets.dart';
 import 'api/sources.dart';
 import 'api/version.dart';
@@ -34,6 +35,10 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr;
 
   CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_CoreRemoteConfigPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfigPtr;
+
+  CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_CoreSourcesPtr => wire
       ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSourcesPtr;
 
@@ -49,6 +54,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CoreLibrary
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    dynamic raw,
+  );
+
+  @protected
+  CoreRemoteConfig
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
     dynamic raw,
   );
 
@@ -71,6 +82,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreRemoteConfig
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    dynamic raw,
+  );
+
+  @protected
   CoreSources
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     dynamic raw,
@@ -86,6 +103,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Object dco_decode_DartOpaque(dynamic raw);
 
   @protected
+  Map<String, String> dco_decode_Map_String_String_None(dynamic raw);
+
+  @protected
   CoreImageCache
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
     dynamic raw,
@@ -94,6 +114,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CoreLibrary
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    dynamic raw,
+  );
+
+  @protected
+  CoreRemoteConfig
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
     dynamic raw,
   );
 
@@ -299,6 +325,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreTextFacet dco_decode_core_text_facet(dynamic raw);
 
   @protected
+  CoreTwitchFlags dco_decode_core_twitch_flags(dynamic raw);
+
+  @protected
   CoreViewPrefs dco_decode_core_view_prefs(dynamic raw);
 
   @protected
@@ -410,6 +439,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<(String, String)> dco_decode_list_record_string_string(dynamic raw);
+
+  @protected
   MediaHint dco_decode_media_hint(dynamic raw);
 
   @protected
@@ -477,10 +509,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PlatformSecretReply dco_decode_platform_secret_reply(dynamic raw);
 
   @protected
+  (String, String) dco_decode_record_string_string(dynamic raw);
+
+  @protected
+  RemoteConfigError dco_decode_remote_config_error(dynamic raw);
+
+  @protected
+  RemoteConfigRefresh dco_decode_remote_config_refresh(dynamic raw);
+
+  @protected
+  RemoteConfigSource dco_decode_remote_config_source(dynamic raw);
+
+  @protected
+  RemoteConfigStatus dco_decode_remote_config_status(dynamic raw);
+
+  @protected
   SecretsError dco_decode_secrets_error(dynamic raw);
 
   @protected
   SourcesError dco_decode_sources_error(dynamic raw);
+
+  @protected
+  TwitchPlayer dco_decode_twitch_player(dynamic raw);
 
   @protected
   int dco_decode_u_16(dynamic raw);
@@ -516,6 +566,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreRemoteConfig
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreSources
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     SseDeserializer deserializer,
@@ -534,6 +590,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CoreRemoteConfig
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreSources
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     SseDeserializer deserializer,
@@ -541,6 +603,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Object sse_decode_DartOpaque(SseDeserializer deserializer);
+
+  @protected
+  Map<String, String> sse_decode_Map_String_String_None(
+    SseDeserializer deserializer,
+  );
 
   @protected
   CoreImageCache
@@ -551,6 +618,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   CoreLibrary
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreRemoteConfig
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
     SseDeserializer deserializer,
   );
 
@@ -790,6 +863,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreTextFacet sse_decode_core_text_facet(SseDeserializer deserializer);
 
   @protected
+  CoreTwitchFlags sse_decode_core_twitch_flags(SseDeserializer deserializer);
+
+  @protected
   CoreViewPrefs sse_decode_core_view_prefs(SseDeserializer deserializer);
 
   @protected
@@ -935,6 +1011,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<(String, String)> sse_decode_list_record_string_string(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   MediaHint sse_decode_media_hint(SseDeserializer deserializer);
 
   @protected
@@ -1012,10 +1093,38 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  (String, String) sse_decode_record_string_string(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RemoteConfigError sse_decode_remote_config_error(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RemoteConfigRefresh sse_decode_remote_config_refresh(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RemoteConfigSource sse_decode_remote_config_source(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RemoteConfigStatus sse_decode_remote_config_status(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   SecretsError sse_decode_secrets_error(SseDeserializer deserializer);
 
   @protected
   SourcesError sse_decode_sources_error(SseDeserializer deserializer);
+
+  @protected
+  TwitchPlayer sse_decode_twitch_player(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_16(SseDeserializer deserializer);
@@ -1057,6 +1166,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    CoreRemoteConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     CoreSources self,
     SseSerializer serializer,
@@ -1078,6 +1194,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    CoreRemoteConfig self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSources(
     CoreSources self,
     SseSerializer serializer,
@@ -1094,6 +1217,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_DartOpaque(Object self, SseSerializer serializer);
 
   @protected
+  void sse_encode_Map_String_String_None(
+    Map<String, String> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreImageCache(
     CoreImageCache self,
@@ -1104,6 +1233,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
     CoreLibrary self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    CoreRemoteConfig self,
     SseSerializer serializer,
   );
 
@@ -1421,6 +1557,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_core_text_facet(CoreTextFacet self, SseSerializer serializer);
 
   @protected
+  void sse_encode_core_twitch_flags(
+    CoreTwitchFlags self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_view_prefs(CoreViewPrefs self, SseSerializer serializer);
 
   @protected
@@ -1601,6 +1743,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_record_string_string(
+    List<(String, String)> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_media_hint(MediaHint self, SseSerializer serializer);
 
   @protected
@@ -1697,10 +1845,43 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_record_string_string(
+    (String, String) self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_remote_config_error(
+    RemoteConfigError self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_remote_config_refresh(
+    RemoteConfigRefresh self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_remote_config_source(
+    RemoteConfigSource self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_remote_config_status(
+    RemoteConfigStatus self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_secrets_error(SecretsError self, SseSerializer serializer);
 
   @protected
   void sse_encode_sources_error(SourcesError self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_twitch_player(TwitchPlayer self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_16(int self, SseSerializer serializer);
@@ -1801,6 +1982,40 @@ class RustLibWire implements BaseWire {
       );
   late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary =
       _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfigPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfigPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfigPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfig =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreRemoteConfigPtr
           .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
   void
