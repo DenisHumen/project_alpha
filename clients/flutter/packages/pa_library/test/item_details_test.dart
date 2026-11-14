@@ -75,7 +75,10 @@ void main() {
     expect(d.ratings, isEmpty);
     // The scan read no tracks without FFmpeg, but the file is known.
     expect(d.tech, isNotNull);
-    expect(d.tech!.filePath, p.join(root, 'Movies/Arrival (2016)/Arrival.2016.mkv'));
+    expect(
+      d.tech!.filePath,
+      p.join(root, 'Movies/Arrival (2016)/Arrival.2016.mkv'),
+    );
     expect(d.tech!.sizeBytes, 150000);
   });
 
