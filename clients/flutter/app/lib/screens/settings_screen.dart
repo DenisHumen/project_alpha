@@ -61,6 +61,7 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const _ScanSection(),
                   const _TmdbSection(),
+                  const _NavigationSection(),
                   const _LanguageSection(),
                   _Section(
                     title: l.settingsAboutTitle,
@@ -134,6 +135,7 @@ class _NavTile extends StatelessWidget {
     this.onTap,
     this.trailing,
     this.selected,
+    this.toggled,
   });
 
   final IconData icon;
@@ -145,11 +147,15 @@ class _NavTile extends StatelessWidget {
   /// Radio-style tiles report their state to screen readers.
   final bool? selected;
 
+  /// Switch-style tiles report on/off to screen readers.
+  final bool? toggled;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
       selected: selected,
+      toggled: toggled,
       inMutuallyExclusiveGroup: selected != null,
       child: KFocusable(
         onActivate: onTap,
@@ -399,6 +405,40 @@ class _TmdbSectionState extends State<_TmdbSection> {
           style: theme.textTheme.labelSmall,
         ),
       ],
+    );
+  }
+}
+
+/// Navigation options (UI-002): the Twitch section can be hidden.
+class _NavigationSection extends StatelessWidget {
+  const _NavigationSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final services = Services.of(context);
+    final l = context.l10n;
+    return ValueListenableBuilder<bool>(
+      valueListenable: services.showTwitch,
+      builder: (context, show, _) => _Section(
+        title: l.settingsNavigationTitle,
+        children: [
+          _NavTile(
+            icon: Icons.live_tv_outlined,
+            title: l.settingsShowTwitch,
+            subtitle: l.settingsShowTwitchSubtitle,
+            onTap: () => services.setShowTwitch(!show),
+            trailing: ExcludeFocus(
+              child: ExcludeSemantics(
+                child: Switch(
+                  value: show,
+                  onChanged: (v) => services.setShowTwitch(v),
+                ),
+              ),
+            ),
+            toggled: show,
+          ),
+        ],
+      ),
     );
   }
 }

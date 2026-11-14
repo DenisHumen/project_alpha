@@ -26,6 +26,12 @@
   "navMusic": "Music",
   "navSearch": "Search",
   "navSettings": "Settings",
+  "navLibrary": "Library",
+  "@navLibrary": { "description": "Phone tab bar: one tab for Movies and TV Shows." },
+  "navTwitch": "Twitch",
+  "@navTwitch": { "description": "Service name: the same in every locale." },
+  "navProfile": "Profile and settings",
+  "@navProfile": { "description": "Tooltip of the avatar button on the phone Home screen." },
 
   "appLibmpvMissing": "Video playback needs the mpv library, which was not found. Install it with your package manager: “sudo apt install libmpv2” (Debian, Ubuntu), “sudo dnf install mpv-libs” (Fedora) or “sudo pacman -S mpv” (Arch), then restart {appName}.",
   "@appLibmpvMissing": {
@@ -34,6 +40,9 @@
   },
 
   "shellScanningLibrary": "Scanning library…",
+
+  "twitchComingTitle": "Twitch is on its way",
+  "twitchComingMessage": "Live streams and videos from Twitch will appear here in a future version. You can hide this section in Settings.",
 
   "homeEmptyTitle": "Your library is empty",
   "homeEmptyMessage": "Add a folder or a network share in Settings, then run a scan.",
@@ -198,6 +207,9 @@
   "@settingsLanguageEnglish": { "description": "Endonym: the same in every locale." },
   "settingsLanguageRussian": "Русский",
   "@settingsLanguageRussian": { "description": "Endonym: the same in every locale." },
+  "settingsNavigationTitle": "Navigation",
+  "settingsShowTwitch": "Show Twitch",
+  "settingsShowTwitchSubtitle": "Adds the Twitch section to the tab bar and the sidebar.",
   "settingsLanguagePseudo": "Pseudo-locale (debug)",
   "@settingsLanguagePseudo": { "description": "Debug builds only: accented, 40 % longer English for layout checks." },
   "settingsAboutTitle": "About",

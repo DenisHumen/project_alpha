@@ -128,7 +128,7 @@ SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
 
 # Screenshots and generated images in docs and design (project-authored).
 [[annotations]]
-path = ["docs/screenshots/**", "design/**/*.png", "design/**/*.webp", "**/assets/**/*.png"]
+path = ["docs/screenshots/**", "design/**/*.png", "design/**/*.webp", "**/assets/**/*.png", "**/test/goldens/**/*.png"]
 precedence = "closest"
 SPDX-FileCopyrightText = "project_alpha contributors"
 SPDX-License-Identifier = "MPL-2.0"
