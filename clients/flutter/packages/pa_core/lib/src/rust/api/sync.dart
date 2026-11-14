@@ -56,11 +56,21 @@ abstract class CoreSync implements RustOpaqueInterface {
     config: config,
   );
 
+  /// A device at a known `host:port` (when mDNS cannot see it; tests).
+  void peerUp({
+    required String deviceId,
+    required CoreDeviceClass deviceClass,
+    required String addr,
+  });
+
   /// Starts sync if paired; returns whether it runs.
   Future<bool> start();
 
   /// Stops sync (until [`start`](Self::start)).
   Future<void> stop();
+
+  /// `host:port` of the running sync node, if any.
+  String? syncAddr();
 
   /// Removes a device from the family; this device's id leaves the
   /// family.
@@ -80,15 +90,30 @@ class CoreSyncConfig {
   final String deviceName;
   final CoreDeviceClass deviceClass;
 
+  /// Keep the device keys in an encrypted file store in this folder
+  /// instead of the app's secret store (tests; two instances in one
+  /// process need two identities).
+  final String? secretsDir;
+
+  /// Listen on 127.0.0.1 without mDNS (tests: devices are introduced
+  /// with [`CoreSync::peer_up`]).
+  final bool loopback;
+
   const CoreSyncConfig({
     required this.dataDir,
     required this.deviceName,
     required this.deviceClass,
+    this.secretsDir,
+    required this.loopback,
   });
 
   @override
   int get hashCode =>
-      dataDir.hashCode ^ deviceName.hashCode ^ deviceClass.hashCode;
+      dataDir.hashCode ^
+      deviceName.hashCode ^
+      deviceClass.hashCode ^
+      secretsDir.hashCode ^
+      loopback.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -97,7 +122,9 @@ class CoreSyncConfig {
           runtimeType == other.runtimeType &&
           dataDir == other.dataDir &&
           deviceName == other.deviceName &&
-          deviceClass == other.deviceClass;
+          deviceClass == other.deviceClass &&
+          secretsDir == other.secretsDir &&
+          loopback == other.loopback;
 }
 
 /// A device of the family.

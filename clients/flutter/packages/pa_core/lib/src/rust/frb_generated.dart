@@ -74,7 +74,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => 631698635;
+  int get rustContentHash => 1548381638;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -383,9 +383,18 @@ abstract class RustLibApi extends BaseApi {
     required CoreSyncConfig config,
   });
 
+  void crateApiSyncCoreSyncPeerUp({
+    required CoreSync that,
+    required String deviceId,
+    required CoreDeviceClass deviceClass,
+    required String addr,
+  });
+
   Future<bool> crateApiSyncCoreSyncStart({required CoreSync that});
 
   Future<void> crateApiSyncCoreSyncStop({required CoreSync that});
+
+  String? crateApiSyncCoreSyncSyncAddr({required CoreSync that});
 
   Future<void> crateApiSyncCoreSyncUnpair({
     required CoreSync that,
@@ -2769,6 +2778,42 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
+  void crateApiSyncCoreSyncPeerUp({
+    required CoreSync that,
+    required String deviceId,
+    required CoreDeviceClass deviceClass,
+    required String addr,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSync(
+            that,
+            serializer,
+          );
+          sse_encode_String(deviceId, serializer);
+          sse_encode_core_device_class(deviceClass, serializer);
+          sse_encode_String(addr, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 63)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_core_sync_error,
+        ),
+        constMeta: kCrateApiSyncCoreSyncPeerUpConstMeta,
+        argValues: [that, deviceId, deviceClass, addr],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncCoreSyncPeerUpConstMeta => const TaskConstMeta(
+    debugName: "CoreSync_peer_up",
+    argNames: ["that", "deviceId", "deviceClass", "addr"],
+  );
+
+  @override
   Future<bool> crateApiSyncCoreSyncStart({required CoreSync that}) {
     return handler.executeNormal(
       NormalTask(
@@ -2781,7 +2826,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 63,
+            funcId: 64,
             port: port_,
           );
         },
@@ -2812,7 +2857,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 64,
+            funcId: 65,
             port: port_,
           );
         },
@@ -2831,6 +2876,32 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "CoreSync_stop", argNames: ["that"]);
 
   @override
+  String? crateApiSyncCoreSyncSyncAddr({required CoreSync that}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreSync(
+            that,
+            serializer,
+          );
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 66)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_opt_String,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiSyncCoreSyncSyncAddrConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiSyncCoreSyncSyncAddrConstMeta =>
+      const TaskConstMeta(debugName: "CoreSync_sync_addr", argNames: ["that"]);
+
+  @override
   Future<void> crateApiSyncCoreSyncUnpair({
     required CoreSync that,
     required String deviceId,
@@ -2847,7 +2918,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 65,
+            funcId: 67,
             port: port_,
           );
         },
@@ -2876,7 +2947,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 66,
+            funcId: 68,
             port: port_,
           );
         },
@@ -2906,7 +2977,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 67,
+            funcId: 69,
             port: port_,
           );
         },
@@ -2933,7 +3004,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 68)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 70)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2955,7 +3026,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 69)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 71)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2980,7 +3051,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 70,
+            funcId: 72,
             port: port_,
           );
         },
@@ -3008,7 +3079,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 71,
+            funcId: 73,
             port: port_,
           );
         },
@@ -3041,7 +3112,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 72,
+            funcId: 74,
             port: port_,
           );
         },
@@ -3075,7 +3146,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 73,
+            funcId: 75,
             port: port_,
           );
         },
@@ -3105,7 +3176,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 74,
+            funcId: 76,
             port: port_,
           );
         },
@@ -3136,7 +3207,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 75,
+            funcId: 77,
             port: port_,
           );
         },
@@ -3164,7 +3235,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 76,
+            funcId: 78,
             port: port_,
           );
         },
@@ -3196,7 +3267,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 77,
+            funcId: 79,
             port: port_,
           );
         },
@@ -3223,7 +3294,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 78,
+            funcId: 80,
             port: port_,
           );
         },
@@ -3250,7 +3321,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 79,
+            funcId: 81,
             port: port_,
           );
         },
@@ -3280,7 +3351,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 80,
+            funcId: 82,
             port: port_,
           );
         },
@@ -3319,7 +3390,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 81,
+            funcId: 83,
             port: port_,
           );
         },
@@ -3353,7 +3424,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             pdeCallFfi(
               generalizedFrbRustBinding,
               serializer,
-              funcId: 82,
+              funcId: 84,
               port: port_,
             );
           },
@@ -4243,12 +4314,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   CoreSyncConfig dco_decode_core_sync_config(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
     return CoreSyncConfig(
       dataDir: dco_decode_String(arr[0]),
       deviceName: dco_decode_String(arr[1]),
       deviceClass: dco_decode_core_device_class(arr[2]),
+      secretsDir: dco_decode_opt_String(arr[3]),
+      loopback: dco_decode_bool(arr[4]),
     );
   }
 
@@ -5780,10 +5853,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_dataDir = sse_decode_String(deserializer);
     var var_deviceName = sse_decode_String(deserializer);
     var var_deviceClass = sse_decode_core_device_class(deserializer);
+    var var_secretsDir = sse_decode_opt_String(deserializer);
+    var var_loopback = sse_decode_bool(deserializer);
     return CoreSyncConfig(
       dataDir: var_dataDir,
       deviceName: var_deviceName,
       deviceClass: var_deviceClass,
+      secretsDir: var_secretsDir,
+      loopback: var_loopback,
     );
   }
 
@@ -7540,6 +7617,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.dataDir, serializer);
     sse_encode_String(self.deviceName, serializer);
     sse_encode_core_device_class(self.deviceClass, serializer);
+    sse_encode_opt_String(self.secretsDir, serializer);
+    sse_encode_bool(self.loopback, serializer);
   }
 
   @protected
@@ -8760,6 +8839,18 @@ class CoreSyncImpl extends RustOpaque implements CoreSync {
   Future<CoreSyncDevice> join({required String input}) =>
       RustLib.instance.api.crateApiSyncCoreSyncJoin(that: this, input: input);
 
+  /// A device at a known `host:port` (when mDNS cannot see it; tests).
+  void peerUp({
+    required String deviceId,
+    required CoreDeviceClass deviceClass,
+    required String addr,
+  }) => RustLib.instance.api.crateApiSyncCoreSyncPeerUp(
+    that: this,
+    deviceId: deviceId,
+    deviceClass: deviceClass,
+    addr: addr,
+  );
+
   /// Starts sync if paired; returns whether it runs.
   Future<bool> start() =>
       RustLib.instance.api.crateApiSyncCoreSyncStart(that: this);
@@ -8767,6 +8858,10 @@ class CoreSyncImpl extends RustOpaque implements CoreSync {
   /// Stops sync (until [`start`](Self::start)).
   Future<void> stop() =>
       RustLib.instance.api.crateApiSyncCoreSyncStop(that: this);
+
+  /// `host:port` of the running sync node, if any.
+  String? syncAddr() =>
+      RustLib.instance.api.crateApiSyncCoreSyncSyncAddr(that: this);
 
   /// Removes a device from the family; this device's id leaves the
   /// family.
