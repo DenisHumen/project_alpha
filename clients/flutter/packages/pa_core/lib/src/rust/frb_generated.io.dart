@@ -359,6 +359,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreMetadataUpdate dco_decode_core_metadata_update(dynamic raw);
 
   @protected
+  CorePlayPart dco_decode_core_play_part(dynamic raw);
+
+  @protected
   CorePlaylist dco_decode_core_playlist(dynamic raw);
 
   @protected
@@ -524,6 +527,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreManagedSource> dco_decode_list_core_managed_source(dynamic raw);
+
+  @protected
+  List<CorePlayPart> dco_decode_list_core_play_part(dynamic raw);
 
   @protected
   List<CorePlaylist> dco_decode_list_core_playlist(dynamic raw);
@@ -1028,6 +1034,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  CorePlayPart sse_decode_core_play_part(SseDeserializer deserializer);
+
+  @protected
   CorePlaylist sse_decode_core_playlist(SseDeserializer deserializer);
 
   @protected
@@ -1219,6 +1228,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreManagedSource> sse_decode_list_core_managed_source(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CorePlayPart> sse_decode_list_core_play_part(
     SseDeserializer deserializer,
   );
 
@@ -1872,6 +1886,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_play_part(CorePlayPart self, SseSerializer serializer);
+
+  @protected
   void sse_encode_core_playlist(CorePlaylist self, SseSerializer serializer);
 
   @protected
@@ -2126,6 +2143,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_managed_source(
     List<CoreManagedSource> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_play_part(
+    List<CorePlayPart> self,
     SseSerializer serializer,
   );
 

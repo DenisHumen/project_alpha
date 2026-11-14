@@ -33,6 +33,10 @@ class MediaVersion {
   /// The version the item plays.
   final bool isDefault;
 
+  /// Why the player cannot play this version (a disc image), as
+  /// [LibraryItem.unplayable].
+  final Unplayable? unplayable;
+
   const MediaVersion({
     required this.id,
     required this.label,
@@ -44,6 +48,7 @@ class MediaVersion {
     this.sizeBytes = 0,
     this.durationMs,
     this.isDefault = false,
+    this.unplayable,
   });
 
   /// The URI to hand to the player.
@@ -56,7 +61,8 @@ class MediaVersion {
       other.label == label &&
       other.filePath == filePath &&
       other.streamUri == streamUri &&
-      other.isDefault == isDefault;
+      other.isDefault == isDefault &&
+      other.unplayable == unplayable;
 
   @override
   int get hashCode => Object.hash(id, label, filePath, isDefault);

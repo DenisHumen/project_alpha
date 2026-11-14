@@ -135,6 +135,15 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   static Future<CoreLibrary> open({required String path}) =>
       RustLib.instance.api.crateApiLibraryCoreLibraryOpen(path: path);
 
+  /// The files that play the file `rel_path` of source `source_id` (as
+  /// in `CoreItem` and `CoreVersion`) as one movie (LIB-020): every part
+  /// of a split file (`cd1`, `cd2`) or of a DVD title set (VOBs) in
+  /// order, else the file alone. Empty for an unknown file.
+  Future<List<CorePlayPart>> playParts({
+    required PlatformInt64 sourceId,
+    required String relPath,
+  });
+
   /// Items of a playlist in order (missing files left out).
   Future<List<CoreItem>> playlistItems({required PlatformInt64 id});
 
@@ -406,6 +415,11 @@ class CoreItem {
   /// on play ([`CoreLibrary::versions`]). 1 for shows and tracks.
   final int versionCount;
 
+  /// Why the player cannot play the item's file, `None` if it can
+  /// (LIB-017, LIB-020): a stable code (`disc_image`) the app translates.
+  /// The app shows the reason instead of opening the player.
+  final String? unplayable;
+
   const CoreItem({
     required this.id,
     required this.kind,
@@ -430,6 +444,7 @@ class CoreItem {
     this.backdropUrl,
     this.localPoster,
     required this.versionCount,
+    this.unplayable,
   });
 
   @override
@@ -456,7 +471,8 @@ class CoreItem {
       posterUrl.hashCode ^
       backdropUrl.hashCode ^
       localPoster.hashCode ^
-      versionCount.hashCode;
+      versionCount.hashCode ^
+      unplayable.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -485,7 +501,8 @@ class CoreItem {
           posterUrl == other.posterUrl &&
           backdropUrl == other.backdropUrl &&
           localPoster == other.localPoster &&
-          versionCount == other.versionCount;
+          versionCount == other.versionCount &&
+          unplayable == other.unplayable;
 }
 
 /// Kind of a library item.

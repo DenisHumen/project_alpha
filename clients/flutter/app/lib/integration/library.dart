@@ -46,4 +46,7 @@ export 'package:pa_library/pa_library.dart'
         searchPerGroupDefault,
         // PLAY-007 sidecar subtitles
         LibrarySubtitles,
-        SidecarSubtitle;
+        SidecarSubtitle,
+        // LIB-020 discs and split movies
+        LibraryParts,
+        Unplayable;

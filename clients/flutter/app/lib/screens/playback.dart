@@ -26,6 +26,10 @@ Future<void> playVideo(
   // LIB-010: a movie with several versions asks which one to play.
   final item = await chooseVersion(context, original);
   if (item == null || !context.mounted) return;
+  // LIB-020: a disc image and the like say why instead of opening the player.
+  if (item.unplayable case final reason?) {
+    return showUnplayable(context, reason);
+  }
   final services = Services.read(context);
   final l = context.l10n;
   final library = services.library;
@@ -56,7 +60,7 @@ Future<PlayRequest> _request(
 ) async {
   final series = item.kind == ItemKind.episode ? item.showId : null;
   return PlayRequest(
-    uri: item.playbackUri,
+    uri: await playbackUriOf(services.library, item),
     title: item.kind == ItemKind.episode
         ? '${episodeCode(l, item)}  ${item.title}'
         : item.title,
@@ -68,6 +72,43 @@ Future<PlayRequest> _request(
     subtitleMemory: series == null
         ? null
         : await services.subtitleMemory(series),
+  );
+}
+
+/// What the player opens for [item] (LIB-020): all parts of a split movie
+/// or a DVD title set as one mpv EDL timeline, else the item's own URI.
+/// Progress stays with the item.
+Future<String> playbackUriOf(Library library, LibraryItem item) async {
+  if (library is! LibraryParts) return item.playbackUri;
+  try {
+    final parts = await (library as LibraryParts).playParts(item);
+    if (parts.length > 1) return partsUri(parts);
+  } catch (e) {
+    debugPrint('Parts of ${item.id} not read: $e');
+  }
+  return item.playbackUri;
+}
+
+/// Tells why [item]'s file cannot be played (LIB-020), in place of the
+/// player.
+Future<void> showUnplayable(BuildContext context, Unplayable reason) {
+  final l = context.l10n;
+  return showDialog<void>(
+    context: context,
+    builder: (context) => AlertDialog(
+      key: const ValueKey('unplayable-dialog'),
+      title: Text(l.libraryUnplayableTitle),
+      content: Text(switch (reason) {
+        Unplayable.discImage => l.libraryUnplayableDiscImage,
+        Unplayable.other => l.libraryUnplayableOther,
+      }),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l.libraryUnplayableOk),
+        ),
+      ],
+    ),
   );
 }
 

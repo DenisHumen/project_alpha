@@ -6,7 +6,44 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `eq`, `fmt`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `eq`, `eq`, `fmt`, `fmt`, `from`, `from`
+
+/// One file of what an item plays (LIB-020): a part of a split movie or of
+/// a DVD title set, or the item's only file.
+class CorePlayPart {
+  /// Path relative to the source root; network files play through the
+  /// stream proxy.
+  final String relPath;
+
+  /// Absolute path for local sources.
+  final String? localPath;
+  final PlatformInt64 sizeBytes;
+  final PlatformInt64? durationMs;
+
+  const CorePlayPart({
+    required this.relPath,
+    this.localPath,
+    required this.sizeBytes,
+    this.durationMs,
+  });
+
+  @override
+  int get hashCode =>
+      relPath.hashCode ^
+      localPath.hashCode ^
+      sizeBytes.hashCode ^
+      durationMs.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CorePlayPart &&
+          runtimeType == other.runtimeType &&
+          relPath == other.relPath &&
+          localPath == other.localPath &&
+          sizeBytes == other.sizeBytes &&
+          durationMs == other.durationMs;
+}
 
 /// A subtitle file next to a video, found by the folder analysis (LIB-007).
 class CoreSidecarSubtitle {
