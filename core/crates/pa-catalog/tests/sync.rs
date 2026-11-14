@@ -3,7 +3,6 @@
 //! LAN service, and a position played on one shows up in "Continue
 //! watching" of the other; "watched" follows.
 
-use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::Path;
 use std::sync::Arc;
@@ -66,7 +65,7 @@ fn device(name: &str, class: DeviceClass) -> Device {
         .add_source(None, "local", "Media", root.to_str().unwrap(), None)
         .unwrap();
     catalog
-        .scan(None, &HashMap::new(), &CancelToken::new(), &mut |_| {})
+        .scan(None, &CancelToken::new(), &mut |_| {})
         .unwrap();
     let config = ServiceConfig {
         bind_ip: IpAddr::V4(Ipv4Addr::LOCALHOST),
