@@ -83,17 +83,19 @@ impl MasterPlaylist {
             }
         }
         if variants.is_empty() {
-            return Err(PlaybackError::Decode("master playlist has no variants".into()));
+            return Err(PlaybackError::Decode(
+                "master playlist has no variants".into(),
+            ));
         }
         Ok(Self { variants })
     }
 
     /// The source variant, else the video variant with the most bandwidth.
     pub fn source(&self) -> Option<&Variant> {
-        self.variants.iter().find(|v| v.is_source).or_else(|| {
-            self.video()
-                .max_by_key(|v| (v.height(), v.bandwidth))
-        })
+        self.variants
+            .iter()
+            .find(|v| v.is_source)
+            .or_else(|| self.video().max_by_key(|v| (v.height(), v.bandwidth)))
     }
 
     /// The audio-only variant, if Twitch offers one.
@@ -134,10 +136,13 @@ fn variant(
     });
     let frame_rate = attrs.get("FRAME-RATE").and_then(|f| f.parse().ok());
     let group_id = attrs.get("VIDEO").cloned().unwrap_or_default();
-    let name = names.get(&group_id).cloned().unwrap_or_else(|| match resolution {
-        Some((_, h)) => format!("{h}p"),
-        None => group_id.clone(),
-    });
+    let name = names
+        .get(&group_id)
+        .cloned()
+        .unwrap_or_else(|| match resolution {
+            Some((_, h)) => format!("{h}p"),
+            None => group_id.clone(),
+        });
     let is_source = group_id == "chunked" || name.contains("(source)");
     let quality = name.replace("(source)", "").trim().to_owned();
     Ok(Variant {

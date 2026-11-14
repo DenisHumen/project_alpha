@@ -7,8 +7,8 @@ use std::sync::Arc;
 
 use pa_remote_config::{ClientContext, KillSwitch, PlayerMode, RemoteConfig, flags};
 use pa_twitch::playback::{
-    DeviceCodecs, EmbedReason, Flavor, PlaybackError, PlaybackTarget,
-    PlayerChoice, TwitchFeatures, TwitchPlayback,
+    DeviceCodecs, EmbedReason, Flavor, PlaybackError, PlaybackTarget, PlayerChoice, TwitchFeatures,
+    TwitchPlayback,
 };
 use pa_twitch::testing::FixtureTransport;
 
@@ -58,7 +58,10 @@ async fn embed_without_network(config: &RemoteConfig, version: &str) -> EmbedRea
         .resolve(&live(), DeviceCodecs::H264_ONLY)
         .await
         .unwrap();
-    assert!(transport.requests().is_empty(), "embed path must not call Twitch");
+    assert!(
+        transport.requests().is_empty(),
+        "embed path must not call Twitch"
+    );
     let embed = decision.as_embed().expect("embed decision").clone();
     assert_eq!(embed.target, live());
     embed.reason
@@ -97,13 +100,19 @@ fn store_flavor_is_always_embed_and_gql_free() {
 fn flags_and_player_mode_select_embed() {
     let mut off = gql_on();
     off.flags.insert(flags::TWITCH_GQL_PLAYBACK.into(), false);
-    assert_eq!(full_reason(&off, "0.1.0"), Some(EmbedReason::GqlPlaybackOff));
+    assert_eq!(
+        full_reason(&off, "0.1.0"),
+        Some(EmbedReason::GqlPlaybackOff)
+    );
     let f = TwitchFeatures::resolve_for(&off, &ctx("0.1.0"), Flavor::Full);
     assert!(!f.chapters_gql, "GQL chapters follow GQL playback");
 
     let mut no_id = gql_on();
     no_id.twitch.gql_client_id = None;
-    assert_eq!(full_reason(&no_id, "0.1.0"), Some(EmbedReason::GqlPlaybackOff));
+    assert_eq!(
+        full_reason(&no_id, "0.1.0"),
+        Some(EmbedReason::GqlPlaybackOff)
+    );
 
     let mut embed = gql_on();
     embed.twitch.player = PlayerMode::Embed;
@@ -127,7 +136,11 @@ fn kill_switch_by_app_version() {
     });
     assert_eq!(full_reason(&config, "0.1.0-alpha.3"), killed);
     assert_eq!(full_reason(&config, "0.4.0"), killed);
-    assert_eq!(full_reason(&config, "0.4.1"), None, "newer apps stay native");
+    assert_eq!(
+        full_reason(&config, "0.4.1"),
+        None,
+        "newer apps stay native"
+    );
 }
 
 #[tokio::test(flavor = "current_thread")]
@@ -174,7 +187,14 @@ fn targets_are_validated() {
             video_id: "1234567890".into()
         }
     );
-    for bad in ["", "a/b", "../x", "x?y=1", "name with space", &"a".repeat(26)] {
+    for bad in [
+        "",
+        "a/b",
+        "../x",
+        "x?y=1",
+        "name with space",
+        &"a".repeat(26),
+    ] {
         assert!(PlaybackTarget::live(bad).is_err(), "{bad:?}");
     }
     for bad in ["", "v", "12a", "1/2"] {
@@ -200,7 +220,10 @@ fn supported_codecs_follow_device() {
 #[test]
 fn error_codes_and_fallback() {
     assert_eq!(PlaybackError::GqlHashInvalid.code(), "gql_hash_invalid");
-    assert_eq!(PlaybackError::IntegrityRequired.code(), "integrity_required");
+    assert_eq!(
+        PlaybackError::IntegrityRequired.code(),
+        "integrity_required"
+    );
     let restricted = PlaybackError::Restricted {
         code: "vod_manifest_restricted".into(),
     };
@@ -232,7 +255,10 @@ mod native {
     }
 
     fn playback(transport: &Arc<FixtureTransport>, config: &RemoteConfig) -> TwitchPlayback {
-        TwitchPlayback::new(TwitchFeatures::resolve(config, &ctx("0.1.0")), transport.clone())
+        TwitchPlayback::new(
+            TwitchFeatures::resolve(config, &ctx("0.1.0")),
+            transport.clone(),
+        )
     }
 
     async fn native(
@@ -284,14 +310,28 @@ mod native {
                 .starts_with("https://usher.ttvnw.net/api/channel/hls/fake_streamer_one.m3u8?")
         );
         assert!(n.master_url.contains("supported_codecs=h265%2Ch264"));
-        assert!(n.master_url.contains("sig=1111aaaa2222bbbb3333cccc4444dddd5555eeee"));
+        assert!(
+            n.master_url
+                .contains("sig=1111aaaa2222bbbb3333cccc4444dddd5555eeee")
+        );
         assert!(n.master_url.contains("token=%7B%22adblock%22%3Afalse"));
         assert!(n.master_url.contains("allow_source=true"));
         assert!(n.master_url.contains("allow_audio_only=true"));
-        assert_eq!(n.access_token.signature, "1111aaaa2222bbbb3333cccc4444dddd5555eeee");
+        assert_eq!(
+            n.access_token.signature,
+            "1111aaaa2222bbbb3333cccc4444dddd5555eeee"
+        );
 
-        let qualities: Vec<&str> = n.playlist.variants.iter().map(|v| v.quality.as_str()).collect();
-        assert_eq!(qualities, ["1080p60", "720p60", "480p", "160p", "audio_only"]);
+        let qualities: Vec<&str> = n
+            .playlist
+            .variants
+            .iter()
+            .map(|v| v.quality.as_str())
+            .collect();
+        assert_eq!(
+            qualities,
+            ["1080p60", "720p60", "480p", "160p", "audio_only"]
+        );
         let source = n.playlist.select(QualityPreference::Source).unwrap();
         assert!(source.is_source && !source.audio_only);
         assert_eq!(source.resolution, Some((1920, 1080)));
@@ -302,11 +342,17 @@ mod native {
             "https://video-weaver.zz01.example.invalid/v1/playlist/chunked.m3u8"
         );
         assert_eq!(
-            n.playlist.select(QualityPreference::AtMost(720)).unwrap().quality,
+            n.playlist
+                .select(QualityPreference::AtMost(720))
+                .unwrap()
+                .quality,
             "720p60"
         );
         assert_eq!(
-            n.playlist.select(QualityPreference::AtMost(100)).unwrap().quality,
+            n.playlist
+                .select(QualityPreference::AtMost(100))
+                .unwrap()
+                .quality,
             "160p",
             "below every variant falls back to the smallest"
         );
@@ -336,7 +382,10 @@ mod native {
         assert!(n.master_url.contains("supported_codecs=h264&"));
         assert_eq!(n.playlist.variants.len(), 3);
         let source = n.playlist.source().unwrap();
-        assert_eq!((source.group_id.as_str(), source.quality.as_str()), ("chunked", "1080p60"));
+        assert_eq!(
+            (source.group_id.as_str(), source.quality.as_str()),
+            ("chunked", "1080p60")
+        );
         assert!(source.is_source);
         let audio = n.playlist.audio_only().unwrap();
         assert_eq!(audio.quality, "Audio Only");
@@ -366,7 +415,11 @@ mod native {
                 .await
                 .unwrap_err();
             assert_eq!(err, expected);
-            assert_eq!(transport.requests().len(), 1, "no usher call after a GQL failure");
+            assert_eq!(
+                transport.requests().len(),
+                1,
+                "no usher call after a GQL failure"
+            );
         }
 
         let transport = Arc::new(FixtureTransport::new());
@@ -392,7 +445,10 @@ mod native {
             .resolve(&live(), DeviceCodecs::H264_ONLY)
             .await
             .unwrap_err();
-        assert!(matches!(err, PlaybackError::Gql { status: 400, .. }), "{err:?}");
+        assert!(
+            matches!(err, PlaybackError::Gql { status: 400, .. }),
+            "{err:?}"
+        );
     }
 
     #[tokio::test(flavor = "current_thread")]
@@ -402,7 +458,10 @@ mod native {
             .push_fixture(include_str!("fixtures/playback/gql_token_vod.json"))
             .push_fixture(include_str!("fixtures/playback/usher_restricted.json"));
         let err = playback(&transport, &gql_on())
-            .resolve(&PlaybackTarget::vod("1234567890").unwrap(), DeviceCodecs::H264_ONLY)
+            .resolve(
+                &PlaybackTarget::vod("1234567890").unwrap(),
+                DeviceCodecs::H264_ONLY,
+            )
             .await
             .unwrap_err();
         assert_eq!(
@@ -412,7 +471,11 @@ mod native {
             }
         );
         assert_eq!(transport.remaining(), 0);
-        assert_eq!(transport.requests().len(), 2, "no retry with other parameters");
+        assert_eq!(
+            transport.requests().len(),
+            2,
+            "no retry with other parameters"
+        );
 
         let transport = Arc::new(FixtureTransport::new());
         transport
@@ -422,7 +485,11 @@ mod native {
             .resolve_or_embed(&live(), DeviceCodecs::H264_ONLY)
             .await
             .unwrap_err();
-        assert_eq!(err, PlaybackError::Unavailable, "offline is not an embed case");
+        assert_eq!(
+            err,
+            PlaybackError::Unavailable,
+            "offline is not an embed case"
+        );
     }
 
     #[tokio::test(flavor = "current_thread")]
