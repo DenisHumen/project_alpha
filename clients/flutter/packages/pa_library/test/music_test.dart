@@ -211,7 +211,10 @@ void main() {
         [for (final a in idx.recentlyPlayedAlbums()) a.title],
         ['Album', 'B'],
       );
-      expect([for (final a in idx.recentlyAddedAlbums()) a.title], ['B', 'Album']);
+      expect(
+        [for (final a in idx.recentlyAddedAlbums()) a.title],
+        ['B', 'Album'],
+      );
     });
 
     test('mixes are deterministic', () {
@@ -220,14 +223,13 @@ void main() {
           track('t$i', genres: [i.isEven ? 'Jazz' : 'Rock']),
       ];
       final a = MusicIndex(tracks).mixes(favoriteIds: {'t1', 't2', 't3'});
-      final b = MusicIndex(tracks.reversed.toList()).mixes(
-        favoriteIds: {'t3', 't2', 't1'},
+      final b = MusicIndex(
+        tracks.reversed.toList(),
+      ).mixes(favoriteIds: {'t3', 't2', 't1'});
+      expect(
+        [for (final m in a) m.kind],
+        [MusicMixKind.favorites, MusicMixKind.genre, MusicMixKind.genre],
       );
-      expect([for (final m in a) m.kind], [
-        MusicMixKind.favorites,
-        MusicMixKind.genre,
-        MusicMixKind.genre,
-      ]);
       expect([for (final m in a) m.name], ['', 'Jazz', 'Rock']);
       for (var i = 0; i < a.length; i++) {
         expect(
@@ -238,8 +240,10 @@ void main() {
       // Shuffled, not in library order.
       final jazz = [for (final t in a[1].tracks) t.id];
       expect(jazz.toSet(), {'t0', 't2', 't4', 't6', 't8', 't10'});
-      expect(MusicIndex(tracks).mixes(favoriteIds: {'t1'}).first.kind,
-          MusicMixKind.genre);
+      expect(
+        MusicIndex(tracks).mixes(favoriteIds: {'t1'}).first.kind,
+        MusicMixKind.genre,
+      );
     });
   });
 
@@ -300,7 +304,9 @@ void main() {
       ]) {
         final f = File(p.join(root, rel));
         f.parent.createSync(recursive: true);
-        f.writeAsBytesSync(List.generate(150000, (i) => (i * 31 + seed) & 0xff));
+        f.writeAsBytesSync(
+          List.generate(150000, (i) => (i * 31 + seed) & 0xff),
+        );
       }
       lib = await RustLibrary.open(p.join(tmp.path, 'db', 'core.db'));
       await lib.addSource(

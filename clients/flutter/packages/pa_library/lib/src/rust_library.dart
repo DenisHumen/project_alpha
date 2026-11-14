@@ -526,30 +526,30 @@ class RustLibrary
   /// one.
   Stream<T> _watch<T>(Future<T> Function() query, {Stream<void>? also}) =>
       Stream.multi((c) {
-    var started = 0;
-    var shown = 0;
-    Future<void> emit() async {
-      if (_closed) return;
-      final n = ++started;
-      try {
-        final v = await query();
-        if (n > shown && !c.isClosed) {
-          shown = n;
-          c.add(v);
+        var started = 0;
+        var shown = 0;
+        Future<void> emit() async {
+          if (_closed) return;
+          final n = ++started;
+          try {
+            final v = await query();
+            if (n > shown && !c.isClosed) {
+              shown = n;
+              c.add(v);
+            }
+          } catch (e, st) {
+            if (!_closed && !c.isClosed) c.addError(e, st);
+          }
         }
-      } catch (e, st) {
-        if (!_closed && !c.isClosed) c.addError(e, st);
-      }
-    }
 
-    emit();
-    final sub = _changes.stream.listen((_) => emit());
-    final other = also?.listen((_) => emit());
-    c.onCancel = () async {
-      await sub.cancel();
-      await other?.cancel();
-    };
-  });
+        emit();
+        final sub = _changes.stream.listen((_) => emit());
+        final other = also?.listen((_) => emit());
+        c.onCancel = () async {
+          await sub.cancel();
+          await other?.cancel();
+        };
+      });
 
   Future<List<LibraryItem>> _items(Future<List<CoreItem>> f) async =>
       (await f).map(_item).toList();
@@ -1161,7 +1161,9 @@ class RustLibrary
 
   @override
   Stream<List<MusicPlaylist>> musicPlaylists() => _watch(
-    () async => [for (final p in await _core.musicPlaylists()) _musicPlaylist(p)],
+    () async => [
+      for (final p in await _core.musicPlaylists()) _musicPlaylist(p),
+    ],
     also: _musicChanges.stream,
   );
 

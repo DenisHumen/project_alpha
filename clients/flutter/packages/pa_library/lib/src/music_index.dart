@@ -50,8 +50,10 @@ class MusicAlbum {
   bool get isMultiDisc =>
       discs.length > 1 || tracks.any((t) => (t.discTotal ?? 1) > 1);
 
-  List<MusicTrack> disc(int n) =>
-      [for (final t in tracks) if ((t.discNumber ?? 1) == n) t];
+  List<MusicTrack> disc(int n) => [
+    for (final t in tracks)
+      if ((t.discNumber ?? 1) == n) t,
+  ];
 
   /// The most common format of the tracks (`FLAC 24/96`).
   String? get formatLabel {
@@ -156,9 +158,11 @@ int stableHash(String s) {
 /// [tracks] in an order shuffled by [seed]: the same input gives the same
 /// order on every device and run.
 List<MusicTrack> stableShuffle(List<MusicTrack> tracks, String seed) {
-  final keyed = [
-    for (final t in tracks) (stableHash('$seed\u0000${t.id}'), t),
-  ]..sort((a, b) => a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.id.compareTo(b.$2.id));
+  final keyed = [for (final t in tracks) (stableHash('$seed\u0000${t.id}'), t)]
+    ..sort(
+      (a, b) =>
+          a.$1 != b.$1 ? a.$1.compareTo(b.$1) : a.$2.id.compareTo(b.$2.id),
+    );
   return [for (final (_, t) in keyed) t];
 }
 
@@ -232,11 +236,14 @@ class MusicIndex {
 
   /// Tracks played most recently first.
   List<MusicTrack> recentlyPlayed({int limit = 20}) {
-    final played = [for (final t in tracks) if (t.lastPlayedAt != null) t]
-      ..sort((a, b) {
-        final c = b.lastPlayedAt!.compareTo(a.lastPlayedAt!);
-        return c != 0 ? c : a.id.compareTo(b.id);
-      });
+    final played =
+        [
+          for (final t in tracks)
+            if (t.lastPlayedAt != null) t,
+        ]..sort((a, b) {
+          final c = b.lastPlayedAt!.compareTo(a.lastPlayedAt!);
+          return c != 0 ? c : a.id.compareTo(b.id);
+        });
     return played.take(limit).toList();
   }
 
@@ -254,25 +261,31 @@ class MusicIndex {
 
   /// Most played tracks (by play count, then last play).
   List<MusicTrack> frequentlyPlayed({int limit = 20}) {
-    final played = [for (final t in tracks) if (t.playCount > 0) t]
-      ..sort((a, b) {
-        final c = b.playCount.compareTo(a.playCount);
-        if (c != 0) return c;
-        final l = (b.lastPlayedAt ?? DateTime(0)).compareTo(
-          a.lastPlayedAt ?? DateTime(0),
-        );
-        return l != 0 ? l : a.id.compareTo(b.id);
-      });
+    final played =
+        [
+          for (final t in tracks)
+            if (t.playCount > 0) t,
+        ]..sort((a, b) {
+          final c = b.playCount.compareTo(a.playCount);
+          if (c != 0) return c;
+          final l = (b.lastPlayedAt ?? DateTime(0)).compareTo(
+            a.lastPlayedAt ?? DateTime(0),
+          );
+          return l != 0 ? l : a.id.compareTo(b.id);
+        });
     return played.take(limit).toList();
   }
 
   /// Albums added most recently first.
   List<MusicAlbum> recentlyAddedAlbums({int limit = 20}) {
-    final list = [for (final a in albums) if (a.addedAt != null) a]
-      ..sort((a, b) {
-        final c = b.addedAt!.compareTo(a.addedAt!);
-        return c != 0 ? c : a.key.compareTo(b.key);
-      });
+    final list =
+        [
+          for (final a in albums)
+            if (a.addedAt != null) a,
+        ]..sort((a, b) {
+          final c = b.addedAt!.compareTo(a.addedAt!);
+          return c != 0 ? c : a.key.compareTo(b.key);
+        });
     return list.take(limit).toList();
   }
 
@@ -288,7 +301,8 @@ class MusicIndex {
   }) {
     final out = <MusicMix>[];
     final favorites = [
-      for (final t in tracks) if (favoriteIds.contains(t.id)) t,
+      for (final t in tracks)
+        if (favoriteIds.contains(t.id)) t,
     ];
     if (favorites.length >= minTracks) {
       out.add(
@@ -300,11 +314,14 @@ class MusicIndex {
         ),
       );
     }
-    final top = [for (final g in genres) if (g.tracks.length >= minTracks) g]
-      ..sort((a, b) {
-        final c = b.tracks.length.compareTo(a.tracks.length);
-        return c != 0 ? c : _byName(a.name, b.name);
-      });
+    final top =
+        [
+          for (final g in genres)
+            if (g.tracks.length >= minTracks) g,
+        ]..sort((a, b) {
+          final c = b.tracks.length.compareTo(a.tracks.length);
+          return c != 0 ? c : _byName(a.name, b.name);
+        });
     for (final g in top.take(genreLimit)) {
       out.add(
         MusicMix(
