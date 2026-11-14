@@ -184,16 +184,12 @@ fn decode<T: serde::de::DeserializeOwned>(kind: &str, event: Value) -> Result<T,
 /// timestamp (chat events carry none of their own).
 pub fn normalise(kind: &str, event: Value, ts_ms: i64) -> Result<Option<ChatEvent>, FrameError> {
     Ok(Some(match kind {
-        SUB_CHAT_MESSAGE => {
-            ChatEvent::Message(Box::new(
-                decode::<ChatMessageEvent>(kind, event)?.into_message(ts_ms),
-            ))
-        }
-        SUB_CHAT_NOTIFICATION => {
-            ChatEvent::Message(Box::new(
-                decode::<NotificationEvent>(kind, event)?.into_message(ts_ms),
-            ))
-        }
+        SUB_CHAT_MESSAGE => ChatEvent::Message(Box::new(
+            decode::<ChatMessageEvent>(kind, event)?.into_message(ts_ms),
+        )),
+        SUB_CHAT_NOTIFICATION => ChatEvent::Message(Box::new(
+            decode::<NotificationEvent>(kind, event)?.into_message(ts_ms),
+        )),
         SUB_CHAT_MESSAGE_DELETE => {
             let e: MessageDeleteEvent = decode(kind, event)?;
             ChatEvent::MessageDeleted {

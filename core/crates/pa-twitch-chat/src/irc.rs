@@ -160,9 +160,9 @@ pub fn interpret(msg: &IrcMessage, own_nick: &str) -> IrcInput {
                 login: channel_login(msg.param(0)),
             })))
         }
-        "PRIVMSG" => {
-            privmsg(msg).map_or(IrcInput::Ignore, |m| IrcInput::Event(ChatEvent::Message(Box::new(m))))
-        }
+        "PRIVMSG" => privmsg(msg).map_or(IrcInput::Ignore, |m| {
+            IrcInput::Event(ChatEvent::Message(Box::new(m)))
+        }),
         "USERNOTICE" => IrcInput::Event(ChatEvent::Message(Box::new(usernotice(msg)))),
         "CLEARCHAT" => IrcInput::Event(clearchat(msg)),
         "CLEARMSG" => IrcInput::Event(ChatEvent::MessageDeleted {
