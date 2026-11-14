@@ -268,6 +268,27 @@ fn music_collections_kinds_and_groups() {
     assert!(only_tracks.iter().all(|h| h.kind == SearchKind::Track));
     assert_eq!(only_tracks.len(), 2);
 
+    // Cap per kind (grouped results, UI-011).
+    let capped = search::search(
+        &conn,
+        "kino",
+        &SearchOptions {
+            per_kind: Some(1),
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    let all = find(&conn, "kino");
+    let kinds = |hits: &[SearchHit]| {
+        let mut k: Vec<SearchKind> = hits.iter().map(|h| h.kind).collect();
+        k.sort();
+        k.dedup();
+        k
+    };
+    assert_eq!(kinds(&capped), kinds(&all));
+    assert_eq!(capped.len(), kinds(&all).len());
+    assert!(all.len() > capped.len());
+
     // Collections of other profiles are hidden.
     let for_profile = |p| {
         search::search(

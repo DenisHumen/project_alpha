@@ -159,6 +159,10 @@ pub struct SearchOptions {
     /// Profile of the viewer: other profiles' collections are left out.
     /// `None` shows every collection.
     pub profile_id: Option<i64>,
+    /// At most this many hits of each kind (grouped results, UI-011): the
+    /// best hits of a crowded kind do not push the others out of `limit`.
+    /// One query ranks every kind, which is cheaper than a query per kind.
+    pub per_kind: Option<usize>,
 }
 
 impl Default for SearchOptions {
@@ -167,6 +171,7 @@ impl Default for SearchOptions {
             limit: DEFAULT_LIMIT,
             kinds: Vec::new(),
             profile_id: None,
+            per_kind: None,
         }
     }
 }
@@ -676,8 +681,9 @@ pub fn search(
          FROM (SELECT rowid, rank FROM search_fts WHERE search_fts MATCH ?1 ORDER BY rank LIMIT ?2) f \
          JOIN search_docs d ON d.id = f.rowid WHERE d.kind IN ({kind_list})"
     );
-    // Without a kind filter the inner LIMIT is exact; with one, fetch more.
-    let fts_limit = if opts.kinds.is_empty() {
+    // Without a kind filter or per-kind cap the inner LIMIT is exact; with
+    // one, fetch more.
+    let fts_limit = if opts.kinds.is_empty() && opts.per_kind.is_none() {
         FTS_CANDIDATES
     } else {
         FTS_CANDIDATES * 4
@@ -743,12 +749,20 @@ pub fn search(
     });
 
     let mut hits = Vec::with_capacity(opts.limit.min(ranked.len()));
+    let mut per_kind: HashMap<SearchKind, usize> = HashMap::new();
     for (score, c) in ranked {
         if hits.len() == opts.limit {
             break;
         }
+        if let Some(cap) = opts.per_kind
+            && per_kind.get(&c.kind).copied().unwrap_or(0) >= cap
+        {
+            continue;
+        }
+        let kind = c.kind;
         if let Some(hit) = details(conn, c, score, opts)? {
             hits.push(hit);
+            *per_kind.entry(kind).or_default() += 1;
         }
     }
     Ok(hits)
