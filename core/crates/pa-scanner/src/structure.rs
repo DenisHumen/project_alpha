@@ -1336,8 +1336,16 @@ mod tests {
             let g = analyze(
                 &[
                     listed("/M/Heat (1995)/BDMV/index.bdmv", 1, None),
-                    listed("/M/Heat (1995)/BDMV/STREAM/00000.m2ts", 9_000, d(10_200_000)),
-                    listed("/M/Heat (1995)/BDMV/STREAM/00001.m2ts", 90_000, d(10_000_000)),
+                    listed(
+                        "/M/Heat (1995)/BDMV/STREAM/00000.m2ts",
+                        9_000,
+                        d(10_200_000),
+                    ),
+                    listed(
+                        "/M/Heat (1995)/BDMV/STREAM/00001.m2ts",
+                        90_000,
+                        d(10_000_000),
+                    ),
                     listed("/M/Heat (1995)/BDMV/STREAM/00002.m2ts", 50, d(20_000)),
                 ],
                 &StructureOptions::default(),
@@ -1366,7 +1374,10 @@ mod tests {
             .playable()
             .map(|e| (e.path.rsplit('/').next().unwrap(), e.part))
             .collect();
-        assert_eq!(parts, [("VTS_02_1.VOB", Some(1)), ("VTS_02_2.VOB", Some(2))]);
+        assert_eq!(
+            parts,
+            [("VTS_02_1.VOB", Some(1)), ("VTS_02_2.VOB", Some(2))]
+        );
         for other in ["VTS_01_1.VOB", "VTS_02_0.VOB"] {
             let e = role_of(&g, &format!("/M/Alien (1979)/VIDEO_TS/{other}")).unwrap();
             assert_eq!(e.role, Role::Ignore, "{other}");

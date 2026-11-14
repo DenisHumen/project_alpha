@@ -204,7 +204,10 @@ fn disc_folders_and_images_are_one_movie_each_with_metadata() {
     );
     assert!(Path::new(bd.local_path.as_deref().unwrap()).is_file());
     assert_eq!((bd.version_count, bd.unplayable), (1, None));
-    assert_eq!(bd.local_poster.as_deref(), Some(&*format!("{BD}/poster.jpg")));
+    assert_eq!(
+        bd.local_poster.as_deref(),
+        Some(&*format!("{BD}/poster.jpg"))
+    );
 
     // DVD: the first VOB of the largest title set; the set is one version.
     let dvd = movie("Alien");

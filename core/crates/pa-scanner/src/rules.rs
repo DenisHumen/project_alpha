@@ -267,7 +267,10 @@ mod tests {
         assert_eq!(media_kind("Dune (2021).MKV"), Some(MediaKind::Video));
         assert_eq!(media_kind("01 - Track.flac"), Some(MediaKind::Audio));
         assert_eq!(media_kind("movie.nfo"), None);
-        assert_eq!(media_kind("Spirited Away (2001).ISO"), Some(MediaKind::Video));
+        assert_eq!(
+            media_kind("Spirited Away (2001).ISO"),
+            Some(MediaKind::Video)
+        );
         assert_eq!(media_kind("VTS_01_1.VOB"), Some(MediaKind::Video));
         assert_eq!(media_kind("mkv"), None);
         assert_eq!(media_kind(".mkv"), None);

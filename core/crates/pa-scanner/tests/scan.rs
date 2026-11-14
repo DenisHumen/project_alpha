@@ -259,7 +259,15 @@ fn disc_streams_and_images_are_recorded() {
         },
         ..opts(T0)
     };
-    scan(&mut conn, 1, &vfs, &old_rules, &CancelToken::new(), &mut |_| {}).unwrap();
+    scan(
+        &mut conn,
+        1,
+        &vfs,
+        &old_rules,
+        &CancelToken::new(),
+        &mut |_| {},
+    )
+    .unwrap();
     assert_eq!(paths(&conn), ["/Images/Spirited Away (2001).iso"]);
 }
 
