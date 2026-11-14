@@ -14,6 +14,28 @@ use pa_vfs::{EntryKind, Vfs, VfsError, VfsPath};
 
 use crate::rules::ScanRules;
 
+/// What a walk lists and records.
+pub(crate) trait WalkFilter: Sync {
+    /// Deepest folder level entered; the source root is level 0.
+    fn max_depth(&self) -> usize;
+    /// Whether the folder `name` inside `parent` is listed.
+    fn enter(&self, parent: &VfsPath, name: &str) -> bool;
+    /// Whether the file `name` is sent to the caller.
+    fn keep(&self, name: &str) -> bool;
+}
+
+impl WalkFilter for ScanRules {
+    fn max_depth(&self) -> usize {
+        self.max_depth
+    }
+    fn enter(&self, _parent: &VfsPath, name: &str) -> bool {
+        self.enter_folder(name)
+    }
+    fn keep(&self, name: &str) -> bool {
+        self.classify(name).is_some()
+    }
+}
+
 /// A media file seen by the walk.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct SeenFile {
@@ -49,7 +71,7 @@ struct Shared {
 pub(crate) fn spawn<'scope, 'env>(
     scope: &'scope std::thread::Scope<'scope, 'env>,
     vfs: &'env dyn Vfs,
-    rules: &'env ScanRules,
+    rules: &'env dyn WalkFilter,
     root: VfsPath,
     threads: usize,
     stop: Arc<AtomicBool>,
@@ -77,7 +99,7 @@ pub(crate) fn spawn<'scope, 'env>(
 
 fn worker(
     vfs: &dyn Vfs,
-    rules: &ScanRules,
+    rules: &dyn WalkFilter,
     shared: &Shared,
     stop: &AtomicBool,
     tx: &SyncSender<Listed>,
@@ -93,11 +115,11 @@ fn worker(
             for e in entries {
                 match e.metadata.kind {
                     EntryKind::Dir => {
-                        if depth < rules.max_depth && rules.enter_folder(&e.name) {
+                        if depth < rules.max_depth() && rules.enter(&dir, &e.name) {
                             subdirs.push((e.path, depth + 1));
                         }
                     }
-                    EntryKind::File if rules.classify(&e.name).is_some() => {
+                    EntryKind::File if rules.keep(&e.name) => {
                         files.push(SeenFile {
                             path: e.path,
                             size: e.metadata.size,

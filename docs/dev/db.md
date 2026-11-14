@@ -60,6 +60,8 @@ erDiagram
   sources ||--o{ folder_rules : ""
   file_groups ||--o{ file_group_members : ""
   files ||--o{ file_group_members : ""
+  file_groups ||--o{ group_assets : ""
+  files |o--o{ group_assets : ""
   files ||--o| parse_results : ""
   files ||--o{ matches : ""
   works ||--o{ external_ids : ""
@@ -128,6 +130,10 @@ erDiagram
 ### `file_group_members`
 
 Файл в группе с ролью: `main`, `part` (с `part_no` для cd1/cd2), `extra` (с `extra_type`: trailer, featurette, NCOP…), `sample`, `subtitle`, `nfo`, `art`.
+
+### `group_assets`
+
+Остальные файлы группы (`LIB-007`), которые не помещаются в `file_group_members`: файлы вне `files` — sidecar-субтитры (`lang` ISO 639-2, флаги `forced`, `hearing_impaired`, `is_default`), NFO (`ids_json` — найденные внешние ID), локальный арт (`art_kind`: poster, fanart, clearlogo, clearart, banner, thumb, discart, scan; `season_number` у `season01-poster.jpg`), extras и сэмплы, которые неглубокий скан пропускает, главная дорожка диска (`BDMV/STREAM/*.m2ts`, VOB) — и файлы с ролью `ignore` (обрезки вроде минутного `part3`). `target_path` — видео, к которому относится sidecar (`NULL` — вся группа); `file_id` — строка `files`, если она есть. У `file_groups` с `LIB-007` есть `disc_unit` (`bdmv`, `video_ts`, `iso`), `analysis_hash` (повторный анализ без изменений ничего не пишет) и `analyzed_at_ms`. Пишет и читает `pa_library::groups`, заполняет `pa_scanner::analyze_folders`.
 
 ### `parse_results`
 

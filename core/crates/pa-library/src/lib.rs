@@ -7,7 +7,9 @@
 //! (playback state, history, "Continue watching", Up Next; LIB-011),
 //! [`music`] (artists, albums, tracks, genres; MUS-001), [`twitch`]
 //! (streamers, favourites, VODs, clips, chapters, saved files, search;
-//! TWI-007) and [`search`] (FTS5 search over the whole library; LIB-008).
+//! TWI-007), [`search`] (FTS5 search over the whole library; LIB-008) and
+//! [`groups`] (structural folder groups: discs, parts, extras, sidecars;
+//! LIB-007).
 //!
 //! ```
 //! let conn = pa_library::open_in_memory().unwrap();
@@ -17,6 +19,7 @@
 //! assert_eq!(profiles, 1); // the default profile
 //! ```
 
+pub mod groups;
 mod migrations;
 pub mod music;
 pub mod progress;

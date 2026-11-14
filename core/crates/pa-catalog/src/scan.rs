@@ -2,7 +2,8 @@
 //! The scan pipeline of one or all sources.
 //!
 //! Per source: list (`pa_scanner::scan`), read music tags
-//! (`pa_scanner::index_music`), fingerprint new files, recognize new videos
+//! (`pa_scanner::index_music`), analyze the folder structure
+//! (`pa_scanner::analyze_folders`), fingerprint new files, recognize new videos
 //! ([`crate::recognize`]). Then orphans are removed and the search index is
 //! brought up to date. The pipeline runs on its own database connection,
 //! so queries on the catalog keep working while it runs (WAL).
@@ -10,7 +11,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use pa_scanner::{CancelToken, MusicOptions, ScanError, ScanEvent, ScanOptions};
+use pa_scanner::{CancelToken, FolderOptions, MusicOptions, ScanError, ScanEvent, ScanOptions};
 use pa_vfs::LocalFs;
 
 use crate::{Catalog, Error, sources};
@@ -168,6 +169,21 @@ impl Catalog {
                 cancel,
                 &mut on_tags,
             )?;
+            // LIB-007: folder structure (discs, parts, extras, sidecars,
+            // NFO, local art) into `pa_library::groups`. A failure is
+            // reported and the pipeline goes on.
+            if let Err(e) = pa_scanner::analyze_folders(
+                &mut conn,
+                src.id,
+                &vfs,
+                &FolderOptions::default(),
+                cancel,
+                &mut |_| {},
+            ) {
+                let mut u = ScanUpdate::new(ScanPhase::Analyzing, Some(src.id), found);
+                u.error = Some(format!("{}: folder analysis: {e}", src.name));
+                on_update(u);
+            }
             let mut report_step = |done: usize, total: usize| {
                 let mut u = ScanUpdate::new(ScanPhase::Analyzing, Some(src.id), found);
                 u.processed = n(done);

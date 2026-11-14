@@ -5,7 +5,7 @@
 //! `docs/research/04` §1.4): list a source through [`pa_vfs::Vfs`] and keep
 //! `files` in [`pa_library`] in step with it, using only the listing
 //! (path, size, mtime). No file is opened: probing (LIB-006), hashing
-//! (LIB-004) and folder analysis (LIB-007) run later on the rows written here.
+//! (LIB-004) and folder analysis ([`analyze_folders`], LIB-007) run later.
 //!
 //! - [`scan`] walks the source in parallel, inserts new files, updates
 //!   changed ones and soft-deletes the ones that disappeared; rows missing
@@ -19,6 +19,11 @@
 //!   and changed audio files with `lofty` ([`read_tags`], path fallback
 //!   [`path_info`]) and fills the music tables of `pa_library::music`
 //!   (artists, albums, tracks, genres, ReplayGain, covers).
+//! - [`analyze_folders`] (LIB-007) runs after [`scan`]: it lists the source
+//!   with the folders and sidecars the scan skips and stores the structure
+//!   of every folder ([`structure::analyze`]): discs (BDMV, VIDEO_TS, ISO)
+//!   as one item, joined parts (`cd1`/`part2`/`disc1`), extras and samples,
+//!   sidecar subtitles, NFO ids and local art, in `pa_library::groups`.
 //!
 //! ```
 //! use pa_scanner::{CancelToken, ScanOptions, scan};
@@ -43,11 +48,15 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
+mod folders;
 mod music;
 mod rules;
 mod scan;
+pub mod structure;
 mod tags;
 mod walk;
+
+pub use folders::{FolderOptions, FolderReport, analyze_folders};
 
 pub use music::{COVER_EXTENSIONS, COVER_NAMES, MusicOptions, MusicReport, index_music};
 
