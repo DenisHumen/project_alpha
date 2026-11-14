@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use pa_remote_config::{ClientContext, KillSwitch, PlayerMode, RemoteConfig, flags};
 use pa_twitch::playback::{
-    DeviceCodecs, EmbedReason, Flavor, PlaybackDecision, PlaybackError, PlaybackTarget,
+    DeviceCodecs, EmbedReason, Flavor, PlaybackError, PlaybackTarget,
     PlayerChoice, TwitchFeatures, TwitchPlayback,
 };
 use pa_twitch::testing::FixtureTransport;
@@ -213,7 +213,7 @@ fn error_codes_and_fallback() {
 #[cfg(feature = "full")]
 mod native {
     use super::*;
-    use pa_twitch::playback::{NativePlayback, QualityPreference};
+    use pa_twitch::playback::{NativePlayback, PlaybackDecision, QualityPreference};
     use pa_twitch::testing::fixture;
     use pa_twitch::{HttpResponse, Method};
 
