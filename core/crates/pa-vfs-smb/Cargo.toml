@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-vfs-smb"
+version = "0.1.0"
+description = "SMB2/3 backend of pa-vfs over libsmb2: NTLMSSP, signing, SMB3 encryption, pooled connections, read-ahead with parallel prefetch (NET-003)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+# Contract tests against Samba in Docker (tests/servers/README.md).
+# Off by default: they need the containers and a libsmb2 build.
+server-tests = []
+
+[dependencies]
+pa-smb2 = { path = "../pa-smb2" }
+pa-vfs = { path = "../pa-vfs" }
+
+[dev-dependencies]
+sha2.workspace = true

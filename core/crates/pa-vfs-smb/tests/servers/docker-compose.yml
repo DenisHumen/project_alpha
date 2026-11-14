@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: MPL-2.0
+#
+# Samba servers for the pa-vfs contract suite (NET-003, CI-012).
+# Started by run.sh, which seeds $PA_SMB_DATA first. Ports are bound to
+# 127.0.0.1 only; the user and password are throwaway values from run.sh.
+
+x-samba: &samba
+  image: alpine:3.22
+  command: [sh, /etc/pa/start.sh]
+  volumes:
+    - ./smb.conf:/etc/pa/smb.conf:ro
+    - ./start.sh:/etc/pa/start.sh:ro
+    - ${PA_SMB_DATA}:/data:ro
+  environment: &env
+    PA_SMB_USER: ${PA_SMB_USER}
+    PA_SMB_PASS: ${PA_SMB_PASS}
+
+services:
+  # Shares `media` (plain) and `sealed` (SMB3 encryption required).
+  samba:
+    <<: *samba
+    ports:
+      - 127.0.0.1:18445:445
+
+  # Signing mandatory for every connection.
+  samba-signed:
+    <<: *samba
+    environment:
+      <<: *env
+      PA_SMB_SIGNING: mandatory
+    ports:
+      - 127.0.0.1:18446:445
+
+  # "Wi-Fi" profile of NET-003: 30 ms delay and 1 % loss on the server's
+  # egress (the data direction of reads).
+  samba-netem:
+    <<: *samba
+    cap_add: [NET_ADMIN]
+    environment:
+      <<: *env
+      PA_SMB_NETEM: delay 30ms loss 1%
+    ports:
+      - 127.0.0.1:18447:445

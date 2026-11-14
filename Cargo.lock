@@ -2577,6 +2577,15 @@ name = "pa-vfs"
 version = "0.1.0"
 
 [[package]]
+name = "pa-vfs-smb"
+version = "0.1.0"
+dependencies = [
+ "pa-smb2",
+ "pa-vfs",
+ "sha2",
+]
+
+[[package]]
 name = "pa-vfs-webdav"
 version = "0.1.0"
 dependencies = [
