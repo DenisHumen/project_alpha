@@ -114,8 +114,7 @@ fn wait(what: &str, mut ok: impl FnMut() -> bool) {
 /// pull, then the newest point of stored progress and the others' last
 /// heartbeat, moved on to now.
 fn resume(d: &Device, item: ItemRef) -> (u64, String) {
-    d.service
-        .refresh(Duration::from_millis(PULL_TIMEOUT_MS));
+    d.service.refresh(Duration::from_millis(PULL_TIMEOUT_MS));
     let profile = d.catalog.sync_profile().unwrap();
     let key = d.catalog.sync_key(item).unwrap().unwrap();
     let local = d.catalog.resume_point(item).unwrap();
@@ -280,7 +279,10 @@ fn resume_on_another_process_within_two_seconds_and_takeover() {
     let (pos, at): (u64, u64) = (hint[1].parse().unwrap(), hint[2].parse().unwrap());
     assert_eq!(hint[3], phone.service.device_id(), "the phone's heartbeat");
     let error = pos.abs_diff(position(at));
-    eprintln!("resume on the TV: {pos} ms, phone at {} ms, off by {error} ms", position(at));
+    eprintln!(
+        "resume on the TV: {pos} ms, phone at {} ms, off by {error} ms",
+        position(at)
+    );
     assert!(error <= 2_000, "resume off by {error} ms");
 
     // Takeover: the TV starts the title, the phone pauses and says where.
@@ -289,7 +291,10 @@ fn resume_on_another_process_within_two_seconds_and_takeover() {
     let deadline = Instant::now() + Duration::from_secs(5);
     loop {
         let left = deadline.saturating_duration_since(Instant::now());
-        match events.recv_timeout(left).expect("takeover reaches the phone") {
+        match events
+            .recv_timeout(left)
+            .expect("takeover reaches the phone")
+        {
             ServiceEvent::Takeover(t) => {
                 assert_eq!(t.key, key);
                 assert_eq!(t.profile, profile);
@@ -302,7 +307,13 @@ fn resume_on_another_process_within_two_seconds_and_takeover() {
     let paused_at = position(system_ms());
     phone
         .service
-        .heartbeat(&profile, &key, paused_at, Some(DURATION_MS), PlayState::Paused)
+        .heartbeat(
+            &profile,
+            &key,
+            paused_at,
+            Some(DURATION_MS),
+            PlayState::Paused,
+        )
         .unwrap();
     // A pause also saves durable progress.
     let now = i64::try_from(system_ms()).unwrap();
@@ -318,7 +329,10 @@ fn resume_on_another_process_within_two_seconds_and_takeover() {
     let hint = tv.expect("HINT");
     let pos: u64 = hint[1].parse().unwrap();
     eprintln!("after takeover: {pos} ms, paused at {paused_at} ms");
-    assert!(pos.abs_diff(paused_at) <= 2_000, "resume {pos} vs {paused_at}");
+    assert!(
+        pos.abs_diff(paused_at) <= 2_000,
+        "resume {pos} vs {paused_at}"
+    );
     assert_eq!(hint[3], phone.service.device_id());
 
     tv.send("QUIT");

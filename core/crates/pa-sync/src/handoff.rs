@@ -118,9 +118,7 @@ impl ResumePoint {
         if self.state != Some(PlayState::Playing) {
             return self.position_ms;
         }
-        let elapsed = now_ms
-            .saturating_sub(self.stamp.wall_ms)
-            .min(self.ttl_ms);
+        let elapsed = now_ms.saturating_sub(self.stamp.wall_ms).min(self.ttl_ms);
         let moved = (elapsed as f64 * self.rate).round() as u64;
         let pos = self.position_ms.saturating_add(moved);
         match self.duration_ms {

@@ -382,13 +382,7 @@ fn playback_session_heartbeat_and_takeover() {
     // The phone's clock has seen the desktop's stamp: its pause orders after.
     phone
         .service
-        .heartbeat(
-            "default",
-            &key,
-            125_000,
-            Some(6_000_000),
-            PlayState::Paused,
-        )
+        .heartbeat("default", &key, 125_000, Some(6_000_000), PlayState::Paused)
         .unwrap();
     wait("pause reaches the desktop", Duration::from_secs(5), || {
         pc.service

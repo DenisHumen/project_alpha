@@ -14,8 +14,8 @@
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 use std::path::PathBuf;
-use std::sync::mpsc as std_mpsc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::mpsc as std_mpsc;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError, Weak};
 use std::time::Duration;
 
@@ -23,8 +23,8 @@ use pa_discovery::{
     Advertiser, Announcement, DeviceClass, Discovery, DiscoveryEvent, MdnsBackend, MdnsConfig,
     Registration, ServiceKind, host_for_id,
 };
-use pa_pairing::pair::{Invitation, PairingCode, QR_PREFIX, QrInvite};
 use pa_model::MediaKey;
+use pa_pairing::pair::{Invitation, PairingCode, QR_PREFIX, QrInvite};
 use pa_pairing::{DeviceIdentity, DeviceKind, Family};
 use pa_secrets::SecretStore;
 use tokio::runtime::Runtime;
