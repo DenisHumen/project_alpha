@@ -303,6 +303,36 @@ class _MiniPlayer extends StatelessWidget {
   }
 }
 
+/// System insets (edge to edge on Android, the notch on iOS). The shell
+/// does not pad its pages: their headers start below the status bar
+/// ([KDensity.safeTop], used by `PageTitle` and the Home hero) while
+/// backdrops run under it. This scrim keeps the clock and the status icons
+/// legible over content scrolled beneath them. Without a top inset (desktop,
+/// TV) it draws nothing.
+class _StatusBarScrim extends StatelessWidget {
+  const _StatusBarScrim();
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    // Always positioned: a non-positioned child would size the Stack.
+    return Positioned(
+      left: 0,
+      top: 0,
+      right: 0,
+      height: top,
+      child: top <= 0
+          ? const SizedBox.shrink()
+          : IgnorePointer(
+              child: ColoredBox(
+                key: const ValueKey('status-bar-scrim'),
+                color: KColors.bgBase.withValues(alpha: .72),
+              ),
+            ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------- desktop
 
 /// Library scan progress at the bottom of the sidebar and the rail.
@@ -394,6 +424,7 @@ class _SidebarLayout extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(child: content),
+                const _StatusBarScrim(),
                 const Positioned(
                   left: 24,
                   right: 24,
@@ -520,6 +551,7 @@ class _RailLayout extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(child: content),
+                const _StatusBarScrim(),
                 const Positioned(
                   left: 16,
                   right: 16,
@@ -676,6 +708,7 @@ class _PhoneLayout extends StatelessWidget {
       body: Stack(
         children: [
           Positioned.fill(child: content),
+          const _StatusBarScrim(),
           if (shell.section == Section.home && !shell._nestedCanPop)
             Positioned(
               right: 8,

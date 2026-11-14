@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pa_player/pa_player.dart';
+import 'package:pa_player/src/ui/scrubber.dart';
 import 'package:pa_player/testing.dart';
 
 class _Harness {
@@ -273,5 +274,31 @@ void main() {
     await t.pumpAndSettle();
     expect(find.byType(PlayerScreen), findsNothing);
     expect(h.engine.disposed, isTrue);
+  });
+
+  testWidgets('video and OSD fill the window and follow resizes', (t) async {
+    // Desktop window larger than the 1280x800 default (Linux), then smaller.
+    for (final size in const [Size(1600, 1000), Size(1200, 700)]) {
+      t.view.devicePixelRatio = 1;
+      t.view.physicalSize = size;
+      addTearDown(t.view.reset);
+      final h = await _open(t);
+      // The fake engine's video surface: black, sized by the player.
+      final video = find.byWidgetPredicate(
+        (w) => w is ColoredBox && w.child is SizedBox,
+      );
+      expect(t.getRect(video), Offset.zero & size);
+      h.state(t).osd.show();
+      await t.pump();
+      final bar = t.getRect(find.byType(Scrubber));
+      expect(bar.left, lessThan(80));
+      expect(bar.right, greaterThan(size.width - 80));
+      expect(bar.bottom, greaterThan(size.height - 160));
+      // Resizing the window resizes the video with it.
+      t.view.physicalSize = size / 1.25;
+      await t.pump();
+      expect(t.getRect(video), Offset.zero & (size / 1.25));
+      await t.pumpWidget(const SizedBox());
+    }
   });
 }
