@@ -44,18 +44,18 @@ chmod -R a+rX "$work"
 
 "${compose[@]}" up -d --quiet-pull
 
-wait_port() { # port
-    for _ in $(seq 1 120); do
-        if (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; then return 0; fi
+# Docker's port proxy accepts connections before smbd runs (the containers
+# install Samba first), so wait until smbd listens inside the container.
+wait_ready() { # service
+    for _ in $(seq 1 180); do
+        if "${compose[@]}" exec -T "$1" nc -z 127.0.0.1 445 >/dev/null 2>&1; then return 0; fi
         sleep 1
     done
-    echo "timeout waiting for port $1" >&2
-    "${compose[@]}" logs --tail 50 >&2
+    echo "timeout waiting for $1" >&2
+    "${compose[@]}" logs --tail 50 "$1" >&2
     return 1
 }
-for port in 18445 18446 18447; do wait_port "$port"; done
-# smbd accepts before it has read the user database; give it a moment.
-sleep 2
+for svc in samba samba-signed samba-netem; do wait_ready "$svc"; done
 
 export PA_SMB_SERVER=127.0.0.1:18445
 export PA_SMB_SIGNED_SERVER=127.0.0.1:18446
