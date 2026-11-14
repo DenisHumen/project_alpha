@@ -5,6 +5,7 @@
 
 export 'package:pa_library/pa_library.dart'
     show
+        ArtworkCache,
         Library,
         LibraryItem,
         ItemKind,
@@ -15,6 +16,7 @@ export 'package:pa_library/pa_library.dart'
         resumePositionMs,
         OpenedLibrary,
         openAppLibrary,
+        RustArtworkCache,
         RustLibrary,
         ScanProgress,
         ScanPhase,
