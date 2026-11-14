@@ -9,40 +9,71 @@ import '../services/app_services.dart';
 import '../widgets/format.dart';
 
 /// Opens the fullscreen player (pa_player) on the root navigator and saves
-/// progress to the library.
+/// progress to the library (PLAY-005: every 5 s, on pause, seek, exit and in
+/// the background). Pass the saved position to resume, 0 to start over.
+/// Episodes get Up Next: the next episode of the show plays after a
+/// countdown, resuming where it was left.
 Future<void> playVideo(
   BuildContext context,
   LibraryItem item, {
   int startPositionMs = 0,
 }) async {
   final services = Services.read(context);
-  final title = item.kind == ItemKind.episode
-      ? '${episodeCode(context.l10n, item)}  ${item.title}'
-      : item.title;
+  final l = context.l10n;
+  final library = services.library;
   services.music.pause();
   await Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
       builder: (_) => PlayerScreen(
-        request: PlayRequest(
-          uri: item.filePath,
-          title: title,
-          startPositionMs: startPositionMs,
-          artworkUri: item.backdropUrl ?? item.posterUrl,
-          durationMs: item.durationMs,
-        ),
+        request: _request(l, item, startPositionMs),
         engineFactory: services.playerEngineFactory,
-        onProgress: (pos, dur) => services.library.saveProgress(
-          Progress(
-            itemId: item.id,
-            positionMs: pos,
-            durationMs: dur,
-            updatedAt: DateTime.now(),
-          ),
-        ),
+        onProgress: _saver(library, item),
+        loadNext: _nextLoader(l, library, item),
       ),
     ),
   );
+}
+
+PlayRequest _request(AppLocalizations l, LibraryItem item, int startMs) =>
+    PlayRequest(
+      uri: item.filePath,
+      title: item.kind == ItemKind.episode
+          ? '${episodeCode(l, item)}  ${item.title}'
+          : item.title,
+      startPositionMs: startMs,
+      artworkUri: item.backdropUrl ?? item.posterUrl,
+      durationMs: item.durationMs,
+    );
+
+void Function(int, int) _saver(Library library, LibraryItem item) =>
+    (pos, dur) => library.saveProgress(
+      Progress(
+        itemId: item.id,
+        positionMs: pos,
+        durationMs: dur,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+/// Up Next for an episode: the next one of its show, from its saved
+/// position if it is in progress.
+Future<UpNextItem?> Function()? _nextLoader(
+  AppLocalizations l,
+  Library library,
+  LibraryItem item,
+) {
+  if (item.kind != ItemKind.episode) return null;
+  return () async {
+    final next = await library.nextEpisode(item.id);
+    if (next == null) return null;
+    final start = resumePositionMs(await library.progress(next.id));
+    return UpNextItem(
+      request: _request(l, next, start),
+      onProgress: _saver(library, next),
+      loadNext: _nextLoader(l, library, next),
+    );
+  };
 }
 
 /// Starts [tracks] from [index] in the music player.

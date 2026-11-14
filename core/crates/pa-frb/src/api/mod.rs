@@ -4,4 +4,5 @@
 pub mod events;
 pub mod library;
 pub mod recognition;
+pub mod sources;
 pub mod version;

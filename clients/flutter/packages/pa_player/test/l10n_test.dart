@@ -71,6 +71,9 @@ void main() {
       (en.repeatOne, ru.repeatOne),
       (en.upNext, ru.upNext),
       (en.endOfQueue, ru.endOfQueue),
+      (en.playNow, ru.playNow),
+      (en.cancel, ru.cancel),
+      (en.upNextIn(7), ru.upNextIn(7)),
       (
         en.remainingEndsAt('1:00', '21:40'),
         ru.remainingEndsAt('1:00', '21:40'),
