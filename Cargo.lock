@@ -2404,6 +2404,7 @@ dependencies = [
  "pa-secrets",
  "pa-sources",
  "pa-vfs",
+ "serde",
  "serde_json",
  "tempfile",
  "thiserror",

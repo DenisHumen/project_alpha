@@ -16,8 +16,11 @@
 //! - the import of a `pa_library` v0 database ([`Catalog::import_v0`],
 //!   the part of LIB-015 the app needs);
 //! - provider metadata ([`Catalog::fetch_metadata`], [`metadata`],
-//!   META-013): TMDB / AniList / Shikimori ids, titles, overviews, artwork
-//!   and episode data for the recognized works;
+//!   META-013): TMDB / AniList / Shikimori ids, titles, overviews, artwork,
+//!   genres and episode data for the recognized works;
+//! - library queries ([`Catalog::query`], [`query`], LIB-009): combinable
+//!   filters, sorts and paging, the alphabet index, facets, folder browsing
+//!   with "folders first", per-view preferences and smart shelves;
 //! - the change watcher ([`watch::LibraryWatcher`], LIB-005): OS change
 //!   notifications for local folders, a timer for network shares, and
 //!   incremental rescans of the changed folders
@@ -41,9 +44,11 @@ mod error;
 pub mod fingerprint;
 mod fix;
 mod import_v0;
+mod index;
 mod items;
 pub mod metadata;
 mod progress;
+pub mod query;
 pub mod recognize;
 mod scan;
 mod sources;
@@ -64,6 +69,10 @@ pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
 pub use pa_metadata;
 pub use pa_scanner::CancelToken;
 pub use progress::{ContinueItem, ItemProgress};
+pub use query::{
+    AlphabetEntry, FacetValue, Facets, FolderEntry, HdrFilter, ItemPage, LibraryFilter,
+    LibraryQuery, LibrarySort, Resolution, SmartShelf, SortField, ViewPrefs, WatchState,
+};
 pub use scan::{RescanReport, ScanPhase, ScanUpdate};
 pub use sources::Source;
 
@@ -80,6 +89,9 @@ pub struct Catalog {
     scan_lock: Mutex<()>,
     /// How sources are reached ([`Catalog::set_connector`]).
     connector: RwLock<Arc<dyn Connector>>,
+    /// In-memory index of library queries (LIB-009) and the database state
+    /// it was built from.
+    index: Mutex<Option<(index::Stamp, Arc<index::Index>)>>,
 }
 
 impl Catalog {
@@ -101,12 +113,28 @@ impl Catalog {
             conn: Mutex::new(conn),
             scan_lock: Mutex::new(()),
             connector: RwLock::new(Arc::new(LocalConnector)),
+            index: Mutex::new(None),
         })
     }
 
     /// Path of the database file.
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    /// The query index, rebuilt first if the database changed since it was
+    /// built. `conn` is the locked catalog connection.
+    fn index(&self, conn: &Connection) -> Result<Arc<index::Index>, Error> {
+        let stamp = index::Stamp::of(conn)?;
+        let mut cached = self.index.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some((built, index)) = cached.as_ref()
+            && *built == stamp
+        {
+            return Ok(Arc::clone(index));
+        }
+        let index = Arc::new(index::Index::build(conn)?);
+        *cached = Some((stamp, Arc::clone(&index)));
+        Ok(index)
     }
 
     fn lock(&self) -> MutexGuard<'_, Connection> {

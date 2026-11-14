@@ -7,6 +7,7 @@ library;
 
 export 'src/library.dart'
     show Library, continueWatchingMin, continueWatchingMax, showIdFor;
+export 'src/library_query.dart';
 export 'src/models.dart';
 export 'src/playback_session.dart' show resumePositionMs, nextEpisodeIn;
 export 'src/open_library.dart'

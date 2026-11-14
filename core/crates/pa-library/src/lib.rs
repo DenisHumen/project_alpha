@@ -9,7 +9,8 @@
 //! (streamers, favourites, VODs, clips, chapters, saved files, search;
 //! TWI-007), [`search`] (FTS5 search over the whole library; LIB-008) and
 //! [`groups`] (structural folder groups: discs, parts, extras, sidecars;
-//! LIB-007).
+//! LIB-007) and [`views`] (per-view preferences, smart shelves and work
+//! genres; LIB-009).
 //!
 //! ```
 //! let conn = pa_library::open_in_memory().unwrap();
@@ -25,6 +26,7 @@ pub mod music;
 pub mod progress;
 pub mod search;
 pub mod twitch;
+pub mod views;
 
 use std::fmt;
 use std::path::Path;

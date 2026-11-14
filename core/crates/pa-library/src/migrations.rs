@@ -39,6 +39,7 @@ pub const MIGRATIONS: &[MigrationFile] = &[
     migration!(202611142200, "202611142200_META-013_artwork_metadata"),
     migration!(202611142300, "202611142300_NET-011_source_manager"),
     migration!(202611150100, "202611150100_LIB-007_folder_structure"),
+    migration!(202611151400, "202611151400_LIB-009_library_queries"),
 ];
 
 impl MigrationFile {

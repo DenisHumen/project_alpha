@@ -19,6 +19,7 @@ pa-recognition = { path = "../pa-recognition" }
 pa-scanner = { path = "../pa-scanner" }
 pa-sources = { path = "../pa-sources" }
 pa-vfs = { path = "../pa-vfs" }
+serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 
