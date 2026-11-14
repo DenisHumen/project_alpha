@@ -34,7 +34,9 @@ impl ByteSource for MemFile {
         self.0.len() as u64
     }
     fn read_at(&self, offset: u64, buf: &mut [u8]) -> pa_vfs::Result<usize> {
-        let start = usize::try_from(offset).unwrap_or(usize::MAX).min(self.0.len());
+        let start = usize::try_from(offset)
+            .unwrap_or(usize::MAX)
+            .min(self.0.len());
         let n = buf.len().min(self.0.len() - start);
         buf[..n].copy_from_slice(&self.0[start..start + n]);
         Ok(n)
@@ -201,9 +203,11 @@ fn a_network_source_is_scanned_through_the_connector() {
     // Fingerprints were read through the connector too.
     let conn = pa_library::open(cat.path()).unwrap();
     let hashed: i64 = conn
-        .query_row("SELECT count(*) FROM files WHERE oshash IS NOT NULL", [], |r| {
-            r.get(0)
-        })
+        .query_row(
+            "SELECT count(*) FROM files WHERE oshash IS NOT NULL",
+            [],
+            |r| r.get(0),
+        )
         .unwrap();
     assert_eq!(hashed, 3);
 }
@@ -248,7 +252,11 @@ fn folders_of_a_network_source_are_rescanned() {
     scan_errors(&cat);
     connector.fs.put("/Movies/Heat (1995)/Heat.1995.mkv", 9);
     let r = cat
-        .rescan_folders(id, &[VfsPath::parse("/Movies").unwrap()], &CancelToken::new())
+        .rescan_folders(
+            id,
+            &[VfsPath::parse("/Movies").unwrap()],
+            &CancelToken::new(),
+        )
         .unwrap();
     assert_eq!((r.files_seen, r.added), (3, 1));
     assert_eq!(titles(&cat), ["Dune", "Heat", "The Matrix"]);
@@ -322,7 +330,10 @@ fn network_files_play_through_the_proxy() {
     assert_eq!(body, all[all.len() - 100..]);
     assert_eq!(connector.connects.load(Ordering::Relaxed), before);
 
-    let missing = proxy.url(&SourceOpener::resource(id, &VfsPath::parse("/nope.mkv").unwrap()));
+    let missing = proxy.url(&SourceOpener::resource(
+        id,
+        &VfsPath::parse("/nope.mkv").unwrap(),
+    ));
     assert_eq!(get(&proxy, &missing, "bytes=0-").0, 404);
     let unknown = proxy.url(&SourceOpener::resource(999, &path));
     assert_eq!(get(&proxy, &unknown, "bytes=0-").0, 404);

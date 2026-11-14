@@ -227,7 +227,11 @@ fn dropping_the_proxy_stops_listening() {
 /// when curl is not installed).
 #[test]
 fn curl_reads_through_the_proxy() {
-    if std::process::Command::new("curl").arg("--version").output().is_err() {
+    if std::process::Command::new("curl")
+        .arg("--version")
+        .output()
+        .is_err()
+    {
         eprintln!("curl not installed: skipped");
         return;
     }

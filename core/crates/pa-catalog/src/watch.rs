@@ -438,18 +438,16 @@ impl Run {
     fn full_scan(&self, source: &WatchedSource) -> WatchEvent {
         let mut event = WatchEvent::new(source.source_id, true);
         let mut errors = Vec::new();
-        let result = self.catalog.scan(
-            Some(source.source_id),
-            &self.cancel,
-            &mut |u| {
+        let result = self
+            .catalog
+            .scan(Some(source.source_id), &self.cancel, &mut |u| {
                 if let Some(e) = u.error {
                     errors.push(e);
                 }
                 if u.phase == ScanPhase::Done {
                     event.report.files_seen = u.files_found;
                 }
-            },
-        );
+            });
         if let Err(e) = result {
             errors.push(e.to_string());
         }

@@ -145,8 +145,7 @@ fn hidden_and_unrelated_changes_rescan_nothing_visible() {
 #[test]
 fn rescan_folders_without_changes_reports_none() {
     let (_dir, root, cat) = setup();
-    cat.scan(None, &CancelToken::new(), &mut |_| {})
-        .unwrap();
+    cat.scan(None, &CancelToken::new(), &mut |_| {}).unwrap();
     let id = cat.sources().unwrap()[0].id;
     let folders = [VfsPath::parse("/Movies").unwrap()];
     let r = cat

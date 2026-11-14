@@ -253,7 +253,6 @@ impl From<c::ScanUpdate> for CoreScanUpdate {
     }
 }
 
-
 /// What [`CoreLibrary::import_v0`] did.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoreImportReport {
@@ -395,12 +394,15 @@ impl CoreLibrary {
     /// Until this is called only local folders are scanned. Fails if the
     /// secret store cannot be opened; local folders keep working.
     pub fn connect_sources(&self, data_dir: String) -> Result<()> {
-        let opened = crate::shared::secret_store(Path::new(&data_dir)).map_err(|e| LibraryError {
-            message: format!("secret store: {e}"),
-        })?;
-        let manager = pa_sources::SourceManager::open(self.catalog.path(), opened.store)
-            .map_err(|e| LibraryError {
-                message: e.to_string(),
+        let opened =
+            crate::shared::secret_store(Path::new(&data_dir)).map_err(|e| LibraryError {
+                message: format!("secret store: {e}"),
+            })?;
+        let manager =
+            pa_sources::SourceManager::open(self.catalog.path(), opened.store).map_err(|e| {
+                LibraryError {
+                    message: e.to_string(),
+                }
             })?;
         self.catalog
             .set_connector(Arc::new(c::SourcesConnector::new(Arc::new(manager))));
@@ -418,14 +420,17 @@ impl CoreLibrary {
         if proxy.is_none() {
             let opener: Arc<dyn pa_proxy::Opener> = self.opener.clone();
             *proxy = Some(
-                pa_proxy::Proxy::start(opener, pa_proxy::ProxyOptions::default()).map_err(
-                    |e| LibraryError {
+                pa_proxy::Proxy::start(opener, pa_proxy::ProxyOptions::default()).map_err(|e| {
+                    LibraryError {
                         message: format!("stream proxy: {e}"),
-                    },
-                )?,
+                    }
+                })?,
             );
         }
-        Ok(proxy.as_ref().map(pa_proxy::Proxy::base_url).unwrap_or_default())
+        Ok(proxy
+            .as_ref()
+            .map(pa_proxy::Proxy::base_url)
+            .unwrap_or_default())
     }
 
     pub fn sources(&self) -> Result<Vec<CoreSource>> {

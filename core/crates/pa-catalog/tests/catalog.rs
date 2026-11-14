@@ -32,10 +32,8 @@ fn library_folder(root: &Path) {
 
 fn scan_all(cat: &Catalog) -> Vec<ScanUpdate> {
     let mut updates = Vec::new();
-    cat.scan(None, &CancelToken::new(), &mut |u| {
-        updates.push(u)
-    })
-    .unwrap();
+    cat.scan(None, &CancelToken::new(), &mut |u| updates.push(u))
+        .unwrap();
     updates
 }
 

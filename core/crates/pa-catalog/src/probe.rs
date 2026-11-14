@@ -61,15 +61,7 @@ fn run_with(
     let mut done = 0;
     on_progress(done, total);
     while !cancel.is_cancelled() {
-        let report = match probe_pending(
-            conn,
-            source_id,
-            vfs,
-            ffmpeg,
-            &options,
-            &|_| true,
-            BATCH,
-        ) {
+        let report = match probe_pending(conn, source_id, vfs, ffmpeg, &options, &|_| true, BATCH) {
             Ok(r) => r,
             Err(PendingError::Db(e)) => return Err(e.into()),
             Err(PendingError::Probe(e)) => return Ok(Some(format!("probe: {e}"))),

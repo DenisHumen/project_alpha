@@ -53,8 +53,10 @@ fn add(s: &Setup, kind: SourceKind, name: &str, address: &str, password: &str) -
 
 fn scan(cat: &Catalog, id: i64) -> Vec<String> {
     let mut errors = Vec::new();
-    cat.scan(Some(id), &CancelToken::new(), &mut |u| errors.extend(u.error))
-        .unwrap();
+    cat.scan(Some(id), &CancelToken::new(), &mut |u| {
+        errors.extend(u.error)
+    })
+    .unwrap();
     errors
 }
 
@@ -101,10 +103,7 @@ fn scan_and_stream(kind: SourceKind, address: &str) {
         ProxyOptions::default(),
     )
     .unwrap();
-    let url = proxy.url(&SourceOpener::resource(
-        id,
-        &VfsPath::parse(rel).unwrap(),
-    ));
+    let url = proxy.url(&SourceOpener::resource(id, &VfsPath::parse(rel).unwrap()));
     let (status, body) = get(&proxy, &url, "bytes=100000-199999");
     assert_eq!(status, 206);
     assert_eq!(body, local[100_000..200_000]);
@@ -117,7 +116,11 @@ fn scan_and_stream(kind: SourceKind, address: &str) {
     // An incremental rescan goes through the same connection path.
     let r = s
         .cat
-        .rescan_folders(id, &[VfsPath::parse("/Movies").unwrap()], &CancelToken::new())
+        .rescan_folders(
+            id,
+            &[VfsPath::parse("/Movies").unwrap()],
+            &CancelToken::new(),
+        )
         .unwrap();
     assert_eq!((r.files_seen, r.added), (2, 0));
 }
@@ -137,14 +140,17 @@ fn a_wrong_password_is_reported_without_leaking_it() {
     let s = setup();
     let wrong = "wrong-pass-0451";
     let smb = add(&s, SourceKind::Smb, "NAS", &var("PA_SERVERS_SMB"), wrong);
-    let dav = add(&s, SourceKind::WebDav, "DAV", &var("PA_SERVERS_WEBDAV"), wrong);
+    let dav = add(
+        &s,
+        SourceKind::WebDav,
+        "DAV",
+        &var("PA_SERVERS_WEBDAV"),
+        wrong,
+    );
     for id in [smb, dav] {
         let errors = scan(&s.cat, id);
         assert_eq!(errors.len(), 1, "{errors:?}");
-        assert!(
-            errors[0].contains("authentication failed"),
-            "{errors:?}"
-        );
+        assert!(errors[0].contains("authentication failed"), "{errors:?}");
         assert!(!errors[0].contains(wrong));
     }
     assert!(titles(&s.cat).is_empty());

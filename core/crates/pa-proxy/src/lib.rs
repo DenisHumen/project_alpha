@@ -208,7 +208,8 @@ fn accept_loop(listener: &TcpListener, shared: &Arc<Shared>) {
             return;
         }
         let Ok(stream) = stream else { continue };
-        let busy = shared.connections.fetch_add(1, Ordering::AcqRel) >= shared.options.max_connections;
+        let busy =
+            shared.connections.fetch_add(1, Ordering::AcqRel) >= shared.options.max_connections;
         let conn_shared = Arc::clone(shared);
         let spawned = std::thread::Builder::new()
             .name("pa-proxy-conn".into())
@@ -268,7 +269,11 @@ mod tests {
 
     #[test]
     fn paths_round_trip() {
-        for p in ["Movies/Dune (2021)/Dune.mkv", "Сериалы/Ёлки #1?.mkv", "a%b/c+d e"] {
+        for p in [
+            "Movies/Dune (2021)/Dune.mkv",
+            "Сериалы/Ёлки #1?.mkv",
+            "a%b/c+d e",
+        ] {
             let e = encode_path(p);
             assert!(!e.contains(' ') && !e.contains('?') && !e.contains('#'));
             assert_eq!(decode_path(&e).as_deref(), Some(p));

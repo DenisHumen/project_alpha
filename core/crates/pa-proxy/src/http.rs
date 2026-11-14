@@ -286,7 +286,11 @@ fn respond(w: &mut impl Write, req: &Request, shared: &Shared) -> io::Result<boo
                 w,
                 "HTTP/1.1 416 {}\r\nContent-Range: bytes */{size}\r\nContent-Length: 0\r\nConnection: {}\r\n\r\n",
                 reason(416),
-                if req.keep_alive { "keep-alive" } else { "close" }
+                if req.keep_alive {
+                    "keep-alive"
+                } else {
+                    "close"
+                }
             )?;
             w.flush()?;
             return Ok(true);
@@ -296,7 +300,11 @@ fn respond(w: &mut impl Write, req: &Request, shared: &Shared) -> io::Result<boo
         "HTTP/1.1 {status} {}\r\nContent-Type: {}\r\nContent-Length: {len}\r\nAccept-Ranges: bytes\r\nCache-Control: no-store\r\nConnection: {}\r\n",
         reason(status),
         content_type(&resource),
-        if req.keep_alive { "keep-alive" } else { "close" }
+        if req.keep_alive {
+            "keep-alive"
+        } else {
+            "close"
+        }
     );
     if status == 206 {
         head.push_str(&format!(
@@ -366,7 +374,8 @@ mod tests {
 
     #[test]
     fn request_heads() {
-        let mut r = &b"\r\nHEAD /t/a.mkv HTTP/1.1\r\nRange: bytes=1-2\r\nConnection: close\r\n\r\n"[..];
+        let mut r =
+            &b"\r\nHEAD /t/a.mkv HTTP/1.1\r\nRange: bytes=1-2\r\nConnection: close\r\n\r\n"[..];
         let req = read_request(&mut r).unwrap();
         assert!(req.head_only && !req.keep_alive);
         assert_eq!(req.target, "/t/a.mkv");
