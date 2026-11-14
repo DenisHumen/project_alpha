@@ -39,6 +39,7 @@
 | [0031](0031-webdav-backend-blocking-reqwest.md) | WebDAV-бэкенд: блокирующий reqwest, свои редиректы и Digest, pinning самоподписанного сертификата | Предложен | NET-004 |
 | [0032](0032-app-library-on-rust-core.md) | Медиатека приложения на Rust-ядре: крейт `pa-catalog`, адаптер `RustLibrary`, отпечаток OSHash | Предложен | UI-024 |
 | [0033](0033-libsmb2-runtime-loading.md) | SMB через libsmb2: загрузка в рантайме, пул контекстов, read-ahead с параллельным prefetch | Предложен | NET-002, NET-003 |
+| [NNNN](NNNN-pa-probe-libavformat-runtime.md) | `pa-probe`: libavformat в рантайме, зеркало префиксов структур, окно чтения «голова + хвост» | Предложен | LIB-006 |
 
 ## Запланированные ADR
 
