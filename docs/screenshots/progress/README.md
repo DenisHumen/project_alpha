@@ -29,3 +29,8 @@
   затем `compare` с бейзлайном `abstain` — «регресса нет». Markdown-отчёт отрисован в headless Chrome (разделы «по категориям» и пустая калибровка опущены).
 - **NAS-ОС**: `build-image.sh` → локальный реестр → `make-disk.sh` (~5 мин), QEMU 2 vCPU / 3 GiB, `-vga std`;
   снимки через `screendump` монитора QEMU, команды набраны на консоли через `sendkey` (одноразовый пароль root только в этой VM, VM удалена).
+- **PLAY-007 (субтитры)**, `play-007/`: debug-APK x86_64 с нашим libmpv на эмуляторе Android 14 (AVD без Google APIs).
+  Фильм — `testsrc2` из ffmpeg с sidecar-файлами `*.en.srt` и `*.ru.forced.srt`; локальная папка `/sdcard/Movies` и WebDAV
+  (nginx в Docker на сервере сборки, эмулятор ходит через `10.0.2.2`; файлы играют через loopback-прокси).
+  Системный стиль задан через `adb shell settings put secure accessibility_captioning_*` (жёлтый моноширинный текст на синем,
+  масштаб 1,5); `android-standard-style.png` — субтитры при выключенных системных субтитрах.

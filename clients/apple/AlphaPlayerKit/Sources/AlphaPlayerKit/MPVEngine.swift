@@ -610,6 +610,50 @@ public final class MPVEngine: PlayerEngine, @unchecked Sendable {
         }
     }
 
+    /// Loads a sidecar subtitle (PLAY-007) without selecting it, with its
+    /// title and language, so the caller can pick a track afterwards.
+    public func addSidecarSubtitle(uri: String, title: String, language: String?) throws {
+        try sync {
+            try checkLoaded()
+            guard !uri.isEmpty else {
+                throw EngineError.InvalidArgument(details: "empty subtitle uri")
+            }
+            guard let mpv else { throw EngineError.Closed }
+            var args = ["sub-add", Self.mpvPath(uri), "auto", title]
+            if let language, !language.isEmpty { args.append(language) }
+            let code = mpv.command(args)
+            if code < 0 {
+                throw EngineError.Source(details: "cannot load \(uri): \(MPVHandle.describe(code))")
+            }
+            let tracks = readTracks()
+            emit(.tracksChanged(audio: tracks.audio.map(\.track), subtitles: tracks.subtitles.map(\.track)))
+        }
+    }
+
+    /// Applies a subtitle look (PLAY-007): the user's settings or
+    /// `SystemCaptions.current().style()`. Options this mpv does not know
+    /// are skipped. Can be called at any time, also before a file opens.
+    public func setSubtitleStyle(_ style: SubtitleStyle) throws {
+        try sync {
+            guard let mpv else { throw EngineError.Closed }
+            for option in style.mpvOptions() {
+                mpv.set(option.name, option.value)
+            }
+        }
+    }
+
+    /// Shifts subtitles (PLAY-007): positive shows them later, negative
+    /// earlier (mpv `sub-delay`).
+    public func setSubtitleDelay(milliseconds: Int64) throws {
+        try sync {
+            guard let mpv else { throw EngineError.Closed }
+            let code = mpv.set("sub-delay", double: Double(milliseconds) / 1000)
+            if code < 0 {
+                throw EngineError.Internal(details: "sub-delay: \(MPVHandle.describe(code))")
+            }
+        }
+    }
+
     public func stats() throws -> PlaybackStats {
         try sync {
             try checkLoaded()

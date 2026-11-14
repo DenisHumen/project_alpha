@@ -11,6 +11,9 @@ import '../engine/media_kit_engine.dart';
 import '../engine/player_engine.dart';
 import '../l10n/pa_player_strings.dart';
 import '../play_request.dart';
+import '../subtitles/subtitle_overlay.dart';
+import '../subtitles/subtitle_policy.dart';
+import '../subtitles/subtitle_style.dart';
 import '../ui/focus_button.dart';
 import '../ui/scrubber.dart';
 import '../ui/tokens.dart';
@@ -33,6 +36,14 @@ import 'up_next.dart';
 /// Up Next card that counts [upNextCountdown] down and plays the next item
 /// in the same player ([continuousPlayback]); Enter plays it now, Esc
 /// cancels.
+///
+/// Subtitles (PLAY-007): the sidecars of [PlayRequest.subtitles] are loaded
+/// on open and a track is picked by [pickSubtitle] (the series' remembered
+/// choice, else the user's [subtitleLanguages] and forced tracks); the
+/// overlay draws them in the [subtitleSettings] style, by default the
+/// system caption style. A choice or delay made in the subtitles panel is
+/// reported to [onSubtitleMemory] for the request's series and carries over
+/// to the next episode.
 class PlayerScreen extends StatefulWidget {
   const PlayerScreen({
     super.key,
@@ -45,6 +56,10 @@ class PlayerScreen extends StatefulWidget {
     this.loadNext,
     this.continuousPlayback = true,
     this.upNextCountdown = const Duration(seconds: 10),
+    this.subtitleSettings,
+    this.subtitleLanguages = const [],
+    this.captionStyleLoader,
+    this.onSubtitleMemory,
   });
 
   final PlayRequest request;
@@ -67,6 +82,21 @@ class PlayerScreen extends StatefulWidget {
   /// card waits for "Play now".
   final bool continuousPlayback;
   final Duration upNextCountdown;
+
+  /// Subtitle style settings; null: the defaults (system style).
+  final ValueListenable<SubtitleSettings>? subtitleSettings;
+
+  /// Languages the user reads, best first (ISO 639 codes, e.g. the UI
+  /// language). The system caption language comes first if set.
+  final List<String> subtitleLanguages;
+
+  /// Reads the system caption style; default [SystemCaptionStyle.read].
+  final Future<SystemCaptionStyle?> Function()? captionStyleLoader;
+
+  /// Called when the user picks a subtitle track or changes the delay of
+  /// an item with a [PlayRequest.seriesKey].
+  final void Function(String seriesKey, SubtitleMemory memory)?
+  onSubtitleMemory;
 
   @override
   State<PlayerScreen> createState() => PlayerScreenState();
@@ -91,7 +121,23 @@ class PlayerScreenState extends State<PlayerScreen>
   final FocusNode _scrubberFocus = FocusNode(debugLabel: 'player-scrubber');
   final FocusNode _playFocus = FocusNode(debugLabel: 'player-play');
   bool _finished = false;
-  bool _subtitleAdded = false;
+  bool _subtitlesLoaded = false;
+
+  /// Auto-selection of the subtitle track runs once per file, after its
+  /// sidecars are in the track list (or after [_subtitleWait]).
+  bool _autoSelectPending = false;
+  Timer? _autoSelectTimer;
+  int _subtitleGeneration = 0;
+  static const _subtitleWait = Duration(milliseconds: 1500);
+
+  /// System caption style (null: none on this platform).
+  SystemCaptionStyle? systemCaptions;
+  late Future<void> _captionsLoaded;
+
+  /// Choice and delay made in this session, and the series they belong to:
+  /// the next episode of the same series starts with them.
+  SubtitleMemory? _sessionMemory;
+  String? _sessionSeries;
   bool _fullscreen = false;
   bool _closing = false;
   Offset? _doubleTapAt;
@@ -115,14 +161,162 @@ class PlayerScreenState extends State<PlayerScreen>
     _startProgress();
     engine.state.addListener(_onEngine);
     osd.addListener(_onOsd);
+    widget.subtitleSettings?.addListener(_onSubtitleSettings);
     WidgetsBinding.instance.addObserver(this);
-    engine.open([
-      request.uri,
-    ], start: Duration(milliseconds: request.startPositionMs));
+    _captionsLoaded = _loadCaptionStyle();
+    _openCurrent();
     _fetchNext();
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     }
+  }
+
+  /// Opens [request] in the engine with its subtitle delay.
+  Future<void> _openCurrent() {
+    _subtitleGeneration++;
+    _autoSelectTimer?.cancel();
+    _autoSelectPending = false;
+    // The first duration the engine reports after this loads the file's
+    // subtitles (engines reset the duration when a file is opened).
+    _subtitlesLoaded = false;
+    final opened = engine.open(
+      [request.uri],
+      start: Duration(milliseconds: request.startPositionMs),
+      autoLoadSubtitles: request.subtitles == null,
+    );
+    // sub-delay is an option of the player, not of the file: set it for
+    // every file, to the series' value or back to zero.
+    final delay = _memoryFor(request)?.delay ?? Duration.zero;
+    if (delay != engine.state.value.subtitleDelay) {
+      engine.setSubtitleDelay(delay);
+    }
+    return opened;
+  }
+
+  Future<void> _loadCaptionStyle() async {
+    final loader = widget.captionStyleLoader ?? SystemCaptionStyle.read;
+    SystemCaptionStyle? style;
+    try {
+      style = await loader();
+    } catch (_) {
+      style = null;
+    }
+    if (!mounted) return;
+    if (style != systemCaptions) setState(() => systemCaptions = style);
+  }
+
+  void _onSubtitleSettings() {
+    if (mounted) setState(() {});
+  }
+
+  /// The subtitle look now.
+  SubtitleAppearance get subtitleAppearance =>
+      (widget.subtitleSettings?.value ?? const SubtitleSettings()).resolve(
+        systemCaptions,
+      );
+
+  /// What is remembered for [r]'s series: this session's choice if it is
+  /// the same series, else what the app stored.
+  SubtitleMemory? _memoryFor(PlayRequest r) {
+    final key = r.seriesKey;
+    if (key != null && key == _sessionSeries) return _sessionMemory;
+    return r.subtitleMemory;
+  }
+
+  SubtitlePreferences get subtitlePreferences => SubtitlePreferences(
+    languages: [?systemCaptions?.locale, ...widget.subtitleLanguages],
+    captionsOn: systemCaptions?.enabled ?? false,
+  );
+
+  /// Loads the sidecars of the file just opened and schedules the
+  /// auto-selection of a track.
+  Future<void> _loadSubtitles() async {
+    final generation = _subtitleGeneration;
+    final r = request;
+    for (final sub in r.subtitles ?? const <ExternalSubtitle>[]) {
+      await engine.addSubtitle(sub);
+      if (generation != _subtitleGeneration) return;
+    }
+    if (r.subtitleUri != null) {
+      // An explicit file of the request: shown as is.
+      await engine.addExternalSubtitle(r.subtitleUri!);
+      return;
+    }
+    if (!mounted || generation != _subtitleGeneration) return;
+    _autoSelectPending = true;
+    _autoSelectTimer?.cancel();
+    _autoSelectTimer = Timer(
+      (r.subtitles ?? const []).isEmpty
+          ? const Duration(milliseconds: 300)
+          : _subtitleWait,
+      _autoSelect,
+    );
+    _checkSidecarsListed();
+  }
+
+  /// Auto-selects as soon as every sidecar is in the track list.
+  void _checkSidecarsListed() {
+    final subs = request.subtitles;
+    if (!_autoSelectPending || subs == null || subs.isEmpty) return;
+    final titles = {for (final t in engine.state.value.subtitleTracks) t.title};
+    if (subs.every((s) => titles.contains(s.title))) _autoSelect();
+  }
+
+  Future<void> _autoSelect() async {
+    if (!_autoSelectPending) return;
+    _autoSelectPending = false;
+    _autoSelectTimer?.cancel();
+    final generation = _subtitleGeneration;
+    await _captionsLoaded;
+    if (!mounted || _closing || generation != _subtitleGeneration) return;
+    final s = engine.state.value;
+    final pick = pickSubtitle(
+      s.subtitleTracks,
+      preferences: subtitlePreferences,
+      remembered: _memoryFor(request)?.choice,
+      audioLanguage: s.audioTrack?.language,
+    );
+    if (pick != null) await engine.setSubtitleTrack(pick);
+  }
+
+  /// The user picked a subtitle track (or off) in the panel.
+  Future<void> selectSubtitle(MediaTrack track) async {
+    _autoSelectPending = false;
+    _autoSelectTimer?.cancel();
+    await engine.setSubtitleTrack(track);
+    _remember(
+      (_memoryFor(request) ?? const SubtitleMemory()).copyWith(
+        choice: SubtitleChoice.of(track),
+      ),
+    );
+  }
+
+  /// The user loaded a subtitle file from the panel.
+  Future<void> addSubtitleFile(String path) async {
+    _autoSelectPending = false;
+    _autoSelectTimer?.cancel();
+    await engine.addExternalSubtitle(path);
+  }
+
+  /// Shifts subtitles; positive: later. Limited to
+  /// ±[SubtitleMemory.maxDelayMs].
+  Future<void> setSubtitleDelay(Duration delay) async {
+    final ms = delay.inMilliseconds.clamp(
+      -SubtitleMemory.maxDelayMs,
+      SubtitleMemory.maxDelayMs,
+    );
+    final d = Duration(milliseconds: ms);
+    await engine.setSubtitleDelay(d);
+    _remember(
+      (_memoryFor(request) ?? const SubtitleMemory()).copyWith(delay: d),
+    );
+  }
+
+  void _remember(SubtitleMemory memory) {
+    final key = request.seriesKey;
+    _sessionMemory = memory;
+    _sessionSeries = key;
+    if (key != null) widget.onSubtitleMemory?.call(key, memory);
   }
 
   void _startProgress() {
@@ -156,12 +350,11 @@ class PlayerScreenState extends State<PlayerScreen>
   void _onEngine() {
     final s = engine.state.value;
     osd.playing = s.playing;
-    if (!_subtitleAdded &&
-        request.subtitleUri != null &&
-        s.duration > Duration.zero) {
-      _subtitleAdded = true;
-      engine.addExternalSubtitle(request.subtitleUri!);
+    if (!_subtitlesLoaded && s.duration > Duration.zero) {
+      _subtitlesLoaded = true;
+      _loadSubtitles();
     }
+    _checkSidecarsListed();
     if (s.completed && !_finished && s.duration > Duration.zero) {
       _finished = true;
       _progress?.report(position: s.duration);
@@ -191,26 +384,25 @@ class PlayerScreenState extends State<PlayerScreen>
       _onProgress = next.onProgress;
       _loadNext = next.loadNext;
       _finished = false;
-      _subtitleAdded = false;
       _endHandled = false;
     });
     final generation = ++_nextGeneration;
-    engine
-        .open([
-          next.request.uri,
-        ], start: Duration(milliseconds: next.request.startPositionMs))
-        .then((_) {
-          if (mounted && !_closing && generation == _nextGeneration) {
-            _startProgress();
-            _fetchNext();
-          }
-        });
+    _openCurrent().then((_) {
+      if (mounted && !_closing && generation == _nextGeneration) {
+        _startProgress();
+        _fetchNext();
+      }
+    });
     osd.show();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) return;
+    if (state == AppLifecycleState.resumed) {
+      // The caption settings may have changed while the app was away.
+      _captionsLoaded = _loadCaptionStyle();
+      return;
+    }
     // Backgrounded, hidden or about to be killed: save now.
     _progress?.report();
     if (state != AppLifecycleState.inactive) upNext.stopCountdown();
@@ -233,6 +425,8 @@ class PlayerScreenState extends State<PlayerScreen>
     WidgetsBinding.instance.removeObserver(this);
     engine.state.removeListener(_onEngine);
     osd.removeListener(_onOsd);
+    widget.subtitleSettings?.removeListener(_onSubtitleSettings);
+    _autoSelectTimer?.cancel();
     _progress?.close();
     upNext.dispose();
     osd.dispose();
@@ -463,6 +657,15 @@ class PlayerScreenState extends State<PlayerScreen>
                     onDoubleTapDown: (d) => _doubleTapAt = d.localPosition,
                     onDoubleTap: _onDoubleTap,
                     child: engine.buildVideo(context),
+                  ),
+                  ValueListenableBuilder<EngineState>(
+                    valueListenable: engine.state,
+                    builder: (context, s, _) => SubtitleOverlay(
+                      lines: s.subtitleTrack?.isOff == true
+                          ? const []
+                          : s.subtitleLines,
+                      appearance: subtitleAppearance,
+                    ),
                   ),
                   _BufferingIndicator(engine: engine),
                   ListenableBuilder(
@@ -737,6 +940,9 @@ class _Osd extends StatelessWidget {
                 request: req,
                 osd: state.osd,
                 onClose: state.closePanel,
+                onSelectSubtitle: state.selectSubtitle,
+                onSubtitleFile: state.addSubtitleFile,
+                onSubtitleDelay: state.setSubtitleDelay,
               ),
             ),
           ),

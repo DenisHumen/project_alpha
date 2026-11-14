@@ -43,4 +43,7 @@ export 'package:pa_library/pa_library.dart'
         SearchGroup,
         groupSearchResults,
         searchGroupOrder,
-        searchPerGroupDefault;
+        searchPerGroupDefault,
+        // PLAY-007 sidecar subtitles
+        LibrarySubtitles,
+        SidecarSubtitle;

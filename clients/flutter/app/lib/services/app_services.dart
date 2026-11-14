@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
 
@@ -91,6 +92,17 @@ class AppServices extends ChangeNotifier {
     return const Locale('en');
   }
 
+  /// Subtitle style (PLAY-007): the system caption style by default.
+  final ValueNotifier<SubtitleSettings> subtitleSettings = ValueNotifier(
+    const SubtitleSettings(),
+  );
+
+  /// Languages the user reads subtitles in, best first: the UI language.
+  /// The player puts the system caption language before them.
+  List<String> get subtitleLanguages => [
+    (locale.value ?? systemLocale()).languageCode,
+  ];
+
   /// Whether the Twitch section is in the navigation. Off by default until
   /// the Twitch feature ships (after release 0.1); toggled in Settings.
   final ValueNotifier<bool> showTwitch = ValueNotifier(false);
@@ -128,6 +140,9 @@ class AppServices extends ChangeNotifier {
     locale.value = parseLocaleTag(await preferences.read(Preferences.locale));
     await _syncMetadataLanguage();
     showTwitch.value = await preferences.read(Preferences.showTwitch) == 'true';
+    subtitleSettings.value = SubtitleSettings.fromJson(
+      _json(await preferences.read(Preferences.subtitleSettings)),
+    );
     _sources = await library.sources();
     await _loadManaged();
     await migrateLegacySmbPasswords();
@@ -367,6 +382,35 @@ class AppServices extends ChangeNotifier {
     );
   }
 
+  Future<void> setSubtitleSettings(SubtitleSettings value) async {
+    subtitleSettings.value = value;
+    await preferences.write(
+      Preferences.subtitleSettings,
+      jsonEncode(value.toJson()),
+    );
+  }
+
+  /// Subtitle track and delay remembered for a series (the show id).
+  Future<SubtitleMemory?> subtitleMemory(String series) async {
+    final raw = await preferences.read(Preferences.subtitleSeries(series));
+    return raw == null ? null : SubtitleMemory.fromJson(_json(raw));
+  }
+
+  Future<void> saveSubtitleMemory(String series, SubtitleMemory memory) =>
+      preferences.write(
+        Preferences.subtitleSeries(series),
+        jsonEncode(memory.toJson()),
+      );
+
+  static Object? _json(String? raw) {
+    if (raw == null) return null;
+    try {
+      return jsonDecode(raw);
+    } on FormatException {
+      return null;
+    }
+  }
+
   Future<void> setShowTwitch(bool value) async {
     showTwitch.value = value;
     await preferences.write(Preferences.showTwitch, value ? 'true' : null);
@@ -378,6 +422,7 @@ class AppServices extends ChangeNotifier {
     unawaited(library.stopWatching());
     locale.dispose();
     showTwitch.dispose();
+    subtitleSettings.dispose();
     music.dispose();
     super.dispose();
   }

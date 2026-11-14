@@ -14,6 +14,7 @@ import 'about_screen.dart';
 import 'add_source_dialog.dart';
 import 'devices_screen.dart';
 import 'sources_screen.dart';
+import 'subtitle_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -94,6 +95,7 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                   const _TmdbSection(),
+                  const _SubtitlesSection(),
                   const _NavigationSection(),
                   const _LanguageSection(),
                   _Section(
@@ -438,6 +440,38 @@ class _TmdbSectionState extends State<_TmdbSection> {
           style: theme.textTheme.labelSmall,
         ),
       ],
+    );
+  }
+}
+
+/// Subtitle style (PLAY-007): opens [SubtitleSettingsScreen].
+class _SubtitlesSection extends StatelessWidget {
+  const _SubtitlesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final services = Services.of(context);
+    final l = context.l10n;
+    return ValueListenableBuilder(
+      valueListenable: services.subtitleSettings,
+      builder: (context, settings, _) => _Section(
+        title: l.settingsSubtitlesTitle,
+        subtitle: l.settingsSubtitlesSubtitle,
+        children: [
+          _NavTile(
+            icon: Icons.subtitles_outlined,
+            title: l.subtitlesStyleTitle,
+            subtitle: settings.useSystemStyle
+                ? l.subtitlesSummarySystem
+                : l.subtitlesSummaryCustom,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const SubtitleSettingsScreen(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
