@@ -11,9 +11,17 @@
 //     clients/flutter/packages/media_kit_libs_android_video/android/src/main/jniLibs \
 //     <libmpv-android-arm64-v8a> <libmpv-android-armeabi-v7a> <libmpv-android-x86_64>
 //
+// The same jniLibs/<abi>/ also carry LGPL libsmb2 (libsmb2.so, LIB-019): the
+// Rust core loads it at run time for SMB sources (ADR-0033). It is put there by
+//
+//   tools/libsmb2/bundle.sh android <same jniLibs> <libsmb2-android-<abi>>...
+//
+// or, for local builds, both sets at once by clients/flutter/app/tool/native_libs.sh.
+//
 // A release build fails when the set is missing or incomplete (an APK without
-// libmpv cannot play anything); a debug build only warns. Override with
-// -Pkinolune.allowMissingLibmpv=true (e.g. a UI-only release build).
+// libmpv cannot play anything, without libsmb2 it has no SMB); a debug build
+// only warns. Override with -Pkinolune.allowMissingLibmpv=true (e.g. a UI-only
+// release build).
 
 group 'com.alexmercerind.media_kit_libs_android_video'
 version '1.0'
@@ -59,6 +67,8 @@ android {
 def kinoluneLibmpvSet = [
     'libmpv.so', 'libavcodec.so', 'libavfilter.so', 'libavformat.so', 'libavutil.so',
     'libswresample.so', 'libswscale.so', 'libmediakitandroidhelper.so',
+    // tools/libsmb2 (LIB-019); keep in sync with tools/libsmb2/bundle.sh.
+    'libsmb2.so',
 ]
 
 def kinoluneLibmpvProblems = {
@@ -77,11 +87,12 @@ def kinoluneLibmpvProblems = {
     return problems
 }
 
-def kinoluneLibmpvHelp = 'Fill it with tools/mpv/bundle.sh android <jniLibs> <libmpv-android-*>... ' +
+def kinoluneLibmpvHelp = 'Fill it with clients/flutter/app/tool/native_libs.sh (CI artifacts or a local build), ' +
+    'or tools/mpv/bundle.sh and tools/libsmb2/bundle.sh android <jniLibs> <artifacts>... ' +
     '(see clients/flutter/packages/media_kit_libs_android_video/README.md).'
 
 tasks.register('checkKinoluneLibmpv') {
-    description = 'Fails when jniLibs lacks the libmpv set from tools/mpv (PLAY-013).'
+    description = 'Fails when jniLibs lacks the libmpv set (tools/mpv, PLAY-013) or libsmb2 (LIB-019).'
     doLast {
         def problems = kinoluneLibmpvProblems()
         if (problems.isEmpty()) {
@@ -101,7 +112,8 @@ tasks.register('warnKinoluneLibmpv') {
         def problems = kinoluneLibmpvProblems()
         if (!problems.isEmpty()) {
             logger.warn("WARNING: Kinolune libmpv set incomplete (${problems.join('; ')}): " +
-                "video playback will not work in this build. ${kinoluneLibmpvHelp}")
+                "without libmpv.so the app stops at start, without libsmb2.so SMB sources fail. " +
+                "${kinoluneLibmpvHelp}")
         }
     }
 }

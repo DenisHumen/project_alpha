@@ -44,6 +44,25 @@ Licence texts for these components are in `licenses/` (SPDX texts) and
 | `Apache-2.0.txt` | Vulkan-Headers (declarations only), glad-generated loader |
 | `FTL.txt` | FreeType |
 
+## SMB client (libsmb2)
+
+SMB network sources use [libsmb2](https://github.com/sahlberg/libsmb2)
+(LGPL-2.1-or-later), our own shared build from the recipe in
+[`tools/libsmb2`](https://github.com/DenisHumen/project_alpha/tree/main/tools/libsmb2)
+(no Kerberos, no other dependencies). The app does not link it: the core
+loads it at run time when an SMB source is opened.
+
+- **Android** (APK): `lib/<abi>/libsmb2.so`.
+- **Linux** (tar.gz, AppImage): `lib/libsmb2.so.1`; its licence texts
+  (`libsmb2-COPYING`, `libsmb2-LICENCE-LGPL-2.1.txt`) and build record are in
+  `licenses/libsmb2/`.
+
+The corresponding source (the upstream tarball, our build recipe and patches)
+is attached to the same GitHub Release
+(`kinolune-<version>-libsmb2-sources.tar.xz`). You may rebuild the library
+with `tools/libsmb2/build.sh <target>` and replace it: in the APK (then re-sign
+it with your own key) or in the Linux bundle's `lib/` directory.
+
 ## Metadata
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
