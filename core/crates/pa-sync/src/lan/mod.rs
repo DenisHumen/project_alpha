@@ -43,6 +43,9 @@ use crate::{Error, Op, OpId};
 use election::Hub;
 use state::{Shared, Source};
 
+/// Most inbound links (handshakes included) a node keeps at once.
+pub const MAX_LINKS: usize = 256;
+
 /// Settings of a [`LanNode`].
 #[derive(Debug, Clone)]
 pub struct LanConfig {
@@ -92,7 +95,9 @@ impl LanConfig {
 pub enum LanEvent {
     /// A new op from another device: apply it.
     Op(Op),
-    /// The hub stored our op: remove it from the outbox.
+    /// The hub holds our op: remove it from the outbox. A LAN hub keeps its
+    /// journal in memory, so an op acked here is lost only if the hub and
+    /// every device it reached restart before passing it on.
     Acked(OpId),
     /// What another device is playing now (instant resume).
     Playback(PlaybackUpdate),
@@ -247,6 +252,9 @@ async fn accept_loop(shared: Arc<Shared>, listener: TcpListener) {
             tokio::time::sleep(Duration::from_millis(100)).await;
             continue;
         };
+        if links.len() >= MAX_LINKS {
+            continue;
+        }
         let shared = Arc::clone(&shared);
         links.spawn(async move {
             if let Err(e) = conn::accept(shared, tcp).await {

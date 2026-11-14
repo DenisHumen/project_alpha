@@ -14,6 +14,7 @@ use tokio::time::timeout;
 use tokio_rustls::{TlsAcceptor, TlsConnector};
 use tokio_tungstenite::WebSocketStream;
 use tokio_tungstenite::tungstenite::Message as Ws;
+use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
 
 use super::state::{Shared, Side};
 use super::tls::{self, TlsSide, channel_nonce, io_err};
@@ -39,7 +40,7 @@ async fn dial_inner(shared: &Arc<Shared>, hub_id: String, addr: SocketAddr) -> i
             .await?;
         let nonces = nonces(stream.get_ref().1, TlsSide::Client)?;
         let url = format!("wss://{}{PATH}", tls::SERVER_NAME);
-        let (ws, _) = tokio_tungstenite::client_async(url, stream)
+        let (ws, _) = tokio_tungstenite::client_async_with_config(url, stream, Some(ws_config()))
             .await
             .map_err(io_err)?;
         Ok((ws, nonces))
@@ -57,13 +58,20 @@ pub(crate) async fn accept(shared: Arc<Shared>, tcp: TcpStream) -> io::Result<()
             .accept(tcp)
             .await?;
         let nonces = nonces(stream.get_ref().1, TlsSide::Server)?;
-        let ws = tokio_tungstenite::accept_async(stream)
+        let ws = tokio_tungstenite::accept_async_with_config(stream, Some(ws_config()))
             .await
             .map_err(io_err)?;
         Ok((ws, nonces))
     })
     .await?;
     run(&shared, ws, Side::Down, nonces).await
+}
+
+/// Frames above the protocol limit are refused before they are buffered.
+fn ws_config() -> WebSocketConfig {
+    WebSocketConfig::default()
+        .max_message_size(Some(proto::MAX_FRAME_LEN))
+        .max_frame_size(Some(proto::MAX_FRAME_LEN))
 }
 
 async fn within<T>(limit: Duration, f: impl Future<Output = io::Result<T>>) -> io::Result<T> {
@@ -140,10 +148,17 @@ where
         let _ = tx.send(None);
     };
 
-    // Handshake: hello both ways, then auth both ways.
+    // Handshake: hello both ways, then auth both ways, all within one
+    // deadline (a peer cannot stall it with junk frames).
     let limit = shared.config.handshake_timeout;
+    let deadline = tokio::time::Instant::now() + limit;
+    let mut first = async || {
+        tokio::time::timeout_at(deadline, next(&mut stream, limit))
+            .await
+            .map_err(|_| io::Error::new(io::ErrorKind::TimedOut, "handshake timed out"))?
+    };
     send(&Message::Hello(shared.lock().hello(&side, own_nonce.clone())));
-    let hello = match next(&mut stream, limit).await? {
+    let hello = match first().await? {
         (_, Message::Hello(h)) => h,
         _ => {
             fail(code::HANDSHAKE);
@@ -165,7 +180,7 @@ where
         pa_pairing::auth::prove(identity, &hello.device_id, &own_nonce, &peer_nonce)
     };
     send(&Message::Auth(Auth { sig }));
-    let authorized = match next(&mut stream, limit).await? {
+    let authorized = match first().await? {
         (_, Message::Auth(a)) => shared
             .lock()
             .verify(&hello.device_id, &peer_nonce, &own_nonce, &a.sig)
@@ -177,6 +192,7 @@ where
         return Err(reject("peer is not a family member"));
     }
 
+    drop(first);
     let id = shared.lock().register(side, &hello, tx.clone());
     let _registered = Registered { shared, id };
     let dead_after = shared.config.dead_after;
