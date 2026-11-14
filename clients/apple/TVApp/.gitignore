@@ -3,3 +3,5 @@
 TVApp.xcodeproj/
 DerivedData/
 *.xcresult
+# Written by xcodegen from the `info` keys in project.yml (NET-020).
+Info.plist

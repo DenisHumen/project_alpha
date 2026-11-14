@@ -10,11 +10,13 @@
 
 uniffi::setup_scaffolding!();
 
+mod discovery;
 mod playback;
 mod runtime;
 mod secrets;
 mod version;
 
+pub use discovery::*;
 pub use playback::*;
 pub use runtime::*;
 pub use secrets::*;

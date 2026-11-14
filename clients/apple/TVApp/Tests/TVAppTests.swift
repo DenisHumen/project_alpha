@@ -36,4 +36,10 @@ final class TVAppTests: XCTestCase {
         XCTAssertEqual(BuildInfo.coreFlavor, BuildInfo.flavor.rawValue)
         XCTAssertEqual(BuildInfo.coreCapabilities.isEmpty, BuildInfo.flavor == .store)
     }
+
+    func testInfoPlistAllowsBonjourOfEveryCoreType() {
+        // NET-020 (ADR-0019): NWBrowser only sees types listed in NSBonjourServices.
+        XCTAssertEqual(Set(LocalNetwork.declaredBonjourServices), Set(LocalNetwork.coreBonjourServices))
+        XCTAssertFalse(LocalNetwork.usageDescription?.isEmpty ?? true)
+    }
 }

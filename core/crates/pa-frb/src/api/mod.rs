@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 //! Functions exported to Dart. One module per domain.
 
+pub mod discovery;
 pub mod events;
 pub mod images;
 pub mod library;
