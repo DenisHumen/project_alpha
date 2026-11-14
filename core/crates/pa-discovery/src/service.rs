@@ -241,7 +241,8 @@ pub struct ServerTxt {
     /// `name`: display name; the instance name is used when absent.
     pub name: Option<String>,
     /// `fp`: fingerprint of the server TLS certificate or key for pinning
-    /// (SRV-004 defines the format; recommended `sha256:<hex>`).
+    /// (SRV-004: `sha256:<hex>` of the DER certificate, see `Fingerprint`
+    /// with the `tls` feature).
     pub fingerprint: Option<String>,
 }
 

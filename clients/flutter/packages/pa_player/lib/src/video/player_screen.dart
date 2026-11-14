@@ -9,6 +9,7 @@ import 'package:media_kit_video/media_kit_video.dart' as mkv;
 
 import '../engine/media_kit_engine.dart';
 import '../engine/player_engine.dart';
+import '../l10n/pa_player_strings.dart';
 import '../play_request.dart';
 import '../ui/focus_button.dart';
 import '../ui/scrubber.dart';
@@ -18,6 +19,8 @@ import 'osd_panels.dart';
 import 'progress_reporter.dart';
 
 /// Fullscreen video player with a tvOS-style OSD.
+///
+/// Texts come from [PaPlayerStrings.of] (English and Russian).
 ///
 /// Controls: mouse/touch; keyboard (Space play/pause, ←/→ ±10 s, ↑/↓ show
 /// OSD and move focus, F fullscreen, I info, Esc back); Android TV remote
@@ -401,6 +404,9 @@ class _Osd extends StatelessWidget {
   Widget build(BuildContext context) {
     final engine = state.engine;
     final req = state.widget.request;
+    final l = PaPlayerStrings.of(context);
+    final compact = _isCompactOsd(MediaQuery.sizeOf(context).width);
+    final side = compact ? 16.0 : 48.0;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -448,8 +454,8 @@ class _Osd extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    left: 24,
-                    right: 24,
+                    left: compact ? 8 : 24,
+                    right: compact ? 8 : 24,
                     top: 16,
                     child: SafeArea(
                       bottom: false,
@@ -457,7 +463,7 @@ class _Osd extends StatelessWidget {
                         children: [
                           FocusIconButton(
                             icon: Icons.arrow_back_rounded,
-                            tooltip: 'Back',
+                            tooltip: l.back,
                             onPressed: state.exit,
                           ),
                           const SizedBox(width: 12),
@@ -485,8 +491,12 @@ class _Osd extends StatelessWidget {
                     child: SafeArea(
                       top: false,
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(48, 0, 48, 28),
-                        child: _BottomBar(state: state, engine: engine),
+                        padding: EdgeInsets.fromLTRB(side, 0, side, 28),
+                        child: _BottomBar(
+                          state: state,
+                          engine: engine,
+                          compact: compact,
+                        ),
                       ),
                     ),
                   ),
@@ -515,23 +525,98 @@ class _Osd extends StatelessWidget {
   }
 }
 
+/// Narrow windows (phones in portrait): the OSD bottom bar puts transport
+/// and panel buttons on two centred rows instead of one.
+bool _isCompactOsd(double width) => width < 600;
+
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.state, required this.engine});
+  const _BottomBar({
+    required this.state,
+    required this.engine,
+    required this.compact,
+  });
   final PlayerScreenState state;
   final PlayerEngine engine;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<EngineState>(
       valueListenable: engine.state,
       builder: (context, s, _) {
-        final remaining = s.duration - s.position;
+        final left = s.duration - s.position;
+        final remaining = left.isNegative ? Duration.zero : left;
         final rate = s.rate <= 0 ? 1.0 : s.rate;
         final endsAt = DateTime.now().add(
           Duration(milliseconds: (remaining.inMilliseconds / rate).round()),
         );
         final endsLabel =
             '${endsAt.hour.toString().padLeft(2, '0')}:${endsAt.minute.toString().padLeft(2, '0')}';
+        final l = PaPlayerStrings.of(context);
+        const gap = SizedBox(width: 8);
+        final transport = <Widget>[
+          FocusIconButton(
+            key: const ValueKey('osd-back10'),
+            icon: Icons.replay_10_rounded,
+            tooltip: l.back10,
+            onPressed: () => state.seekBy(-state.widget.seekStep),
+          ),
+          gap,
+          FocusIconButton(
+            key: const ValueKey('osd-play'),
+            focusNode: state._playFocus,
+            icon: s.playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            tooltip: s.playing ? l.pause : l.play,
+            size: 60,
+            onPressed: state.togglePlay,
+          ),
+          gap,
+          FocusIconButton(
+            key: const ValueKey('osd-fwd10'),
+            icon: Icons.forward_10_rounded,
+            tooltip: l.forward10,
+            onPressed: () => state.seekBy(state.widget.seekStep),
+          ),
+        ];
+        final panels = <Widget>[
+          FocusIconButton(
+            key: const ValueKey('osd-audio'),
+            icon: Icons.graphic_eq_rounded,
+            tooltip: l.audio,
+            onPressed: () => state.osd.openPanel(OsdPanel.audio),
+          ),
+          gap,
+          FocusIconButton(
+            key: const ValueKey('osd-subtitles'),
+            icon: Icons.subtitles_rounded,
+            tooltip: l.subtitles,
+            active: s.subtitleTrack != null && !s.subtitleTrack!.isOff,
+            onPressed: () => state.osd.openPanel(OsdPanel.subtitles),
+          ),
+          gap,
+          FocusIconButton(
+            key: const ValueKey('osd-speed'),
+            icon: Icons.speed_rounded,
+            tooltip: l.speedWithRate(formatRate(s.rate)),
+            active: s.rate != 1.0,
+            onPressed: () => state.osd.openPanel(OsdPanel.speed),
+          ),
+          gap,
+          FocusIconButton(
+            key: const ValueKey('osd-info'),
+            icon: Icons.info_outline_rounded,
+            tooltip: l.info,
+            onPressed: () => state.osd.openPanel(OsdPanel.info),
+          ),
+          if (state._isDesktop) ...[
+            gap,
+            FocusIconButton(
+              icon: Icons.fullscreen_rounded,
+              tooltip: l.fullscreen,
+              onPressed: state.toggleFullscreen,
+            ),
+          ],
+        ];
         return FocusTraversalGroup(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -545,76 +630,24 @@ class _BottomBar extends StatelessWidget {
                 buffer: s.buffer,
                 onSeek: state.seekTo,
                 endLabel: s.duration > Duration.zero
-                    ? '-${formatDuration(remaining)} · ends at $endsLabel'
+                    ? l.remainingEndsAt(formatDuration(remaining), endsLabel)
                     : '',
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  FocusIconButton(
-                    key: const ValueKey('osd-back10'),
-                    icon: Icons.replay_10_rounded,
-                    tooltip: 'Back 10 s',
-                    onPressed: () => state.seekBy(-state.widget.seekStep),
-                  ),
-                  const SizedBox(width: 8),
-                  FocusIconButton(
-                    key: const ValueKey('osd-play'),
-                    focusNode: state._playFocus,
-                    icon: s.playing
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    tooltip: s.playing ? 'Pause' : 'Play',
-                    size: 60,
-                    onPressed: state.togglePlay,
-                  ),
-                  const SizedBox(width: 8),
-                  FocusIconButton(
-                    key: const ValueKey('osd-fwd10'),
-                    icon: Icons.forward_10_rounded,
-                    tooltip: 'Forward 10 s',
-                    onPressed: () => state.seekBy(state.widget.seekStep),
-                  ),
-                  const Spacer(),
-                  FocusIconButton(
-                    key: const ValueKey('osd-audio'),
-                    icon: Icons.graphic_eq_rounded,
-                    tooltip: 'Audio',
-                    onPressed: () => state.osd.openPanel(OsdPanel.audio),
-                  ),
-                  const SizedBox(width: 8),
-                  FocusIconButton(
-                    key: const ValueKey('osd-subtitles'),
-                    icon: Icons.subtitles_rounded,
-                    tooltip: 'Subtitles',
-                    active: s.subtitleTrack != null && !s.subtitleTrack!.isOff,
-                    onPressed: () => state.osd.openPanel(OsdPanel.subtitles),
-                  ),
-                  const SizedBox(width: 8),
-                  FocusIconButton(
-                    key: const ValueKey('osd-speed'),
-                    icon: Icons.speed_rounded,
-                    tooltip: 'Speed (${formatRate(s.rate)})',
-                    active: s.rate != 1.0,
-                    onPressed: () => state.osd.openPanel(OsdPanel.speed),
-                  ),
-                  const SizedBox(width: 8),
-                  FocusIconButton(
-                    key: const ValueKey('osd-info'),
-                    icon: Icons.info_outline_rounded,
-                    tooltip: 'Info',
-                    onPressed: () => state.osd.openPanel(OsdPanel.info),
-                  ),
-                  if (state._isDesktop) ...[
-                    const SizedBox(width: 8),
-                    FocusIconButton(
-                      icon: Icons.fullscreen_rounded,
-                      tooltip: 'Fullscreen (F)',
-                      onPressed: state.toggleFullscreen,
-                    ),
-                  ],
-                ],
-              ),
+              if (compact) ...[
+                Row(
+                  key: const ValueKey('osd-transport'),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: transport,
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  key: const ValueKey('osd-panels'),
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: panels,
+                ),
+              ] else
+                Row(children: [...transport, const Spacer(), ...panels]),
             ],
           ),
         );

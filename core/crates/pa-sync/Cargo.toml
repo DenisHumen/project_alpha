@@ -2,20 +2,51 @@
 [package]
 name = "pa-sync"
 version = "0.1.0"
-description = "Serverless state sync: hybrid logical clock, sync operations, LWW merge and the SQLite outbox (SYNC-001)"
+description = "Serverless state sync: hybrid logical clock, sync operations, LWW merge, the SQLite outbox (SYNC-001) and the LAN P2P transport (SYNC-006)"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 publish.workspace = true
 
+[features]
+# LAN P2P transport (SYNC-006): mDNS discovery, hub election, WebSocket over
+# TLS 1.3 (rustls + ring) bound to the pairing keys. Off by default, so the
+# sans-IO core stays free of a runtime.
+lan = [
+    "dep:futures-util",
+    "dep:pa-discovery",
+    "dep:pa-pairing",
+    "dep:rcgen",
+    "dep:rustls",
+    "dep:tokio",
+    "dep:tokio-rustls",
+    "dep:tokio-tungstenite",
+    "dep:tracing",
+]
+
 [dependencies]
+futures-util = { workspace = true, optional = true, features = ["sink"] }
+pa-discovery = { path = "../pa-discovery", optional = true }
 pa-library = { path = "../pa-library" }
 pa-model = { path = "../pa-model" }
+pa-pairing = { path = "../pa-pairing", optional = true }
+rcgen = { workspace = true, optional = true, features = ["crypto", "ring"] }
+rustls = { workspace = true, optional = true, features = ["ring", "std"] }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+tokio = { workspace = true, optional = true, features = ["macros", "net", "rt", "sync", "time"] }
+tokio-rustls = { workspace = true, optional = true, features = ["ring"] }
+tokio-tungstenite = { workspace = true, optional = true }
+tracing = { workspace = true, optional = true }
 uuid.workspace = true
 
 [dev-dependencies]
+pa-secrets = { path = "../pa-secrets" }
 proptest.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+
+[[test]]
+name = "lan"
+required-features = ["lan"]

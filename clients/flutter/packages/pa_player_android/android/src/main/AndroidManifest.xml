@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- ADR-0008: own Activity; a display mode switch (AFR, HDR) must not recreate the player. -->
+        <activity
+            android:name="dev.projectalpha.player.flutter.PlayerActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|layoutDirection|fontScale|screenLayout|density|uiMode|colorMode"
+            android:hardwareAccelerated="true" />
+    </application>
+</manifest>

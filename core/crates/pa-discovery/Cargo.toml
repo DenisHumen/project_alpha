@@ -14,7 +14,12 @@ default = ["mdns"]
 # Pure-Rust mDNS responder and browser (mdns-sd). Without it the crate only
 # has the model, the registry and the platform-browser backend (iOS/tvOS).
 mdns = ["dep:mdns-sd"]
+# Certificate pinning of our server (SRV-004): the `fp` fingerprint format
+# and a rustls verifier that trusts one certificate (ring provider).
+tls = ["dep:rustls", "dep:sha2"]
 
 [dependencies]
 mdns-sd = { workspace = true, optional = true }
+rustls = { workspace = true, optional = true, features = ["ring", "std", "tls12"] }
+sha2 = { workspace = true, optional = true }
 thiserror.workspace = true

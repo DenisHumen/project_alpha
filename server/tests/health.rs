@@ -26,6 +26,11 @@ async fn get(addr: SocketAddr, path: &str) -> (u16, String) {
 fn config() -> Config {
     Config {
         listen: "127.0.0.1:0".parse().unwrap(),
+        // Plain HTTP: these tests speak raw HTTP/WebSocket (TLS: tls_mdns.rs).
+        tls: pa_server::config::TlsConfig {
+            enabled: false,
+            ..Default::default()
+        },
         ..Config::default()
     }
 }

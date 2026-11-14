@@ -276,6 +276,25 @@ impl TitleIndex {
         &self.records
     }
 
+    /// Records with a title whose [`TitleKey::base`] (the loose key without
+    /// season/part/year qualifiers) is `base`, ascending and deduplicated.
+    /// The scorer uses it to find the entries of an anime franchise
+    /// (`Boku no Hero Academia`, `… 2nd Season`, `… (2018)`).
+    pub fn records_with_base(&self, base: &str) -> Vec<usize> {
+        let mut out: Vec<usize> = self
+            .base
+            .get(base)
+            .map(|list| {
+                list.iter()
+                    .map(|&e| self.entries[e as usize].record as usize)
+                    .collect()
+            })
+            .unwrap_or_default();
+        out.sort_unstable();
+        out.dedup();
+        out
+    }
+
     /// Adds a record and returns its position. Titles that normalize to the
     /// same loose key as an earlier title of the record are indexed once.
     pub fn insert(&mut self, record: TitleRecord) -> usize {

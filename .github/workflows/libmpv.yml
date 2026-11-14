@@ -16,14 +16,29 @@ on:
       - "tools/mpv/**"
       - "tools/ffmpeg/**"
       - ".github/workflows/libmpv.yml"
+  # Warms the build caches on main; tag builds (release-app.yml) can read them.
+  push:
+    branches: [main]
+    paths:
+      - "tools/mpv/**"
+      - "tools/ffmpeg/**"
+      - ".github/workflows/libmpv.yml"
   workflow_dispatch:
+  # release-app.yml (PLAY-013): the app bundles these artifacts. `release`
+  # builds only what the app ships (Linux x86_64, Android ABIs, sources).
+  workflow_call:
+    inputs:
+      release:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
+  # As a called workflow, github.workflow is the caller's name: no clash.
   group: libmpv-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   # Every file that defines what gets built; artifacts are cached by its hash.
@@ -93,7 +108,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [linux-x86_64, windows-x86_64]
+        target: ${{ fromJSON(inputs.release && '["linux-x86_64"]' || '["linux-x86_64","windows-x86_64"]') }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -189,9 +204,9 @@ jobs:
           if-no-files-found: error
 
   apple:
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: ${{ matrix.target }}
     needs: sources
+    if: ${{ !inputs.release && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: macos-15
     timeout-minutes: 120
     strategy:

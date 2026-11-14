@@ -333,7 +333,7 @@ project_alpha/
   - Что: Flutter (Android, iOS, iPadOS, macOS, Windows, Linux) и tvOS (TV-001) показывают `core_version()` и собираются в CI.
   - deps: CORE-002, CORE-003, CORE-004, UI-001, TV-001, CI-004, CI-005, CI-007 · size: S · parallel: yes · веха: M0 · ref: S §9 этап 0, 04 §6 п.1
   - done when: скриншоты со всех платформ в PR; все job CI зелёные.
-- [ ] **CORE-011** `pa-jobs`: персистентная очередь задач
+- [x] **CORE-011** `pa-jobs`: персистентная очередь задач
   - Что: таблица `jobs`, состояния queued → waiting_resources → running → paused/retrying → done/failed/cancelled, приоритеты (live-запись выше всего), лимиты параллельности по типу, backoff, пауза по сети, батарее и Wi-Fi-only, события прогресса.
   - deps: CORE-006, LIB-001 · size: M · parallel: yes · веха: M1 · ref: 04 §1.10
   - done when: задача переживает kill процесса и докачивается; property-тест переходов состояний.
@@ -360,17 +360,17 @@ project_alpha/
   - Что: `Vfs` (list, stat, open → `ByteSource{read_at, size}`), `LocalFs`, общий контракт-тест-сьют, который обязаны проходить все бэкенды.
   - deps: REPO-001, CORE-005 · size: S · parallel: no · веха: M1 · ref: 02 §1.4, 04 §1.3
   - done when: контракт-тесты проходят на LocalFs под Linux, Windows и macOS.
-- [ ] **NET-002** libsmb2: сборка и `smb2-sys`
+- [x] **NET-002** libsmb2: сборка и `smb2-sys`
   - Что: вендоринг libsmb2 (LGPL-2.1), сборка динамической библиотеки для всех таргетов (на iOS и tvOS — embedded framework), безопасная Rust-обёртка.
   - deps: NET-001, CI-004 · size: M · parallel: yes · веха: M1 · ref: 02 §3.1, §4
   - done when: на всех таргетах бинарь линкуется динамически (проверка `otool`/`ldd`/`dumpbin`).
-- [ ] **NET-003** SMB2/3 бэкенд
+- [x] **NET-003** SMB2/3 бэкенд
   - Что: NTLMSSP, подпись и шифрование SMB3 (`smb3_set_seal`), листинг, чтение с read-ahead и параллельным prefetch (буфер 32–256 МБ, настраиваемый), SMB1 только по явному флагу с предупреждением.
   - deps: NET-002, CI-012 · size: L · parallel: yes · веха: M1 · ref: 02 §4, 04 §5.2
-  - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь).
-- [ ] **NET-004** WebDAV бэкенд
+  - done when: контракт-тесты против Samba в CI; поток 80 Мбит/с держится при netem-профиле «Wi-Fi» (30 мс, 1 % потерь). Итог: контракт-тесты есть; на профиле с потерями 29–66 Мбит/с — цель по скорости вынесена в NET-021 (ADR-0033).
+- [x] **NET-004** WebDAV бэкенд
   - Что: reqwest + quick-xml (PROPFIND), Basic и Digest, Range, редиректы, самоподписанные сертификаты с TOFU.
-  - deps: NET-001, CI-012 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
+  - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 02 §4
   - done when: контракт-тесты против nginx, Apache, `rclone serve` и Nextcloud.
 - [ ] **NET-005** NFS v3/v4 бэкенд (libnfs) [P1]
   - Что: libnfs (LGPL, динамически), userspace-клиент без mount.
@@ -384,7 +384,7 @@ project_alpha/
   - Что: `127.0.0.1:<port>` со случайным токеном в пути, отдаёт любой ByteSource с поддержкой Range; лимиты соединений; запасной путь для AVPlayer и ExoPlayer.
   - deps: NET-001 · size: S · parallel: yes · веха: M1 · ref: 02 §1.4, 04 §1.2
   - done when: ffprobe и curl читают файл через прокси; запрос без токена получает 403.
-- [ ] **NET-008** Адаптеры ByteSource для FFmpeg и mpv
+- [x] **NET-008** Адаптеры ByteSource для FFmpeg и mpv
   - Что: FFmpeg `AVIOContext` (read/seek) и mpv `stream_cb` (C ABI) поверх ByteSource.
   - deps: NET-001, PLAY-001 · size: M · parallel: yes · веха: M1 · ref: 02 §4
   - done when: тест: libavformat открывает MKV с WebDAV через адаптер; mpv играет `pa://<id>`.
@@ -437,6 +437,10 @@ project_alpha/
   - Что: Android — `MulticastLock` (`CHANGE_WIFI_MULTICAST_STATE`) как реализация `pa_discovery::MulticastLock`; iOS и tvOS — `NWBrowser` как `PlatformBrowser`, `Info.plist` (`NSLocalNetworkUsageDescription`, `NSBonjourServices` из `bonjour_services()`); экспорт через FFI.
   - deps: NET-009, CORE-002 · size: S · parallel: yes · веха: M1 · ref: ADR-0019, 02 §4
   - done when: тестовый Samba с Avahi находится на Android и в iOS-симуляторе.
+- [ ] **NET-021** SMB: скорость на каналах с потерями
+  - Что: адаптивное число соединений и размер окна prefetch по измеренной скорости и RTT в `pa-vfs-smb`; профиль замера, близкий к реальному Wi-Fi (потери исправляет канальный уровень), плюс прежний netem-профиль.
+  - deps: NET-003 · size: M · parallel: yes · веха: M2 · ref: ADR-0033
+  - done when: 80 Мбит/с на профиле «30 мс, 1 % потерь» или обоснованный пересмотр цели в ADR-0033 с замером на реальном Wi-Fi.
 
 ### 3.5. LIB — медиатека: БД, сканер, поиск, прогресс
 
@@ -468,7 +472,7 @@ project_alpha/
   - Что: дисковые структуры (BDMV, VIDEO_TS, ISO) как один элемент; склейка частей (cd1/part1/disc1); extras (`-trailer`, Featurettes, NCOP/NCED, sample, «файл меньше N % длительности соседей»); sidecar-субтитры (`movie.ru.forced.srt`); NFO; локальный арт (poster, fanart, clearlogo).
   - deps: LIB-003 · size: M · parallel: yes · веха: M1 · ref: 03 §4.2 [1], 01 §1.5
   - done when: таблица тест-кейсов A10, A12 и A13 из таксономии проходит.
-- [ ] **LIB-008** Поиск FTS5
+- [x] **LIB-008** Поиск FTS5
   - Что: индекс фильмов, сериалов, эпизодов, людей, коллекций, Twitch-VOD и стримеров, музыки; ранжирование; нормализация с транслитом; группировка результатов.
   - deps: LIB-001 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5, 06 §5.3
   - done when: запрос «ирония судьбы» находит `Ironiya.sudby…`; поиск по 50 000 элементам быстрее 50 мс.
@@ -607,6 +611,10 @@ project_alpha/
   - Что: перевести `draft`-записи корпуса v0 (`tools/recognition-eval/corpus`) в `verified`: позиции `tmdb` сериалов (сейчас из эфирного порядка TVmaze) и `tmdb`/`tvdb_absolute` аниме (правила `titles.yaml`) сверить с API TMDB/TVDB через клиент META-009; добавить вторую схему OVA/спешлам, где она есть; расхождения — в `titles.yaml` и `notes`; затем пересчитать бейзлайны.
   - deps: META-002, META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §6.1
   - done when: все записи A1–A4, A9 и A16 `verified` (или `disputed` с `notes`); `corpus-validate --strict` без ошибок.
+- [x] **META-026** Скорер кандидатов v0 по локальному индексу: работа, запись франшизы и эпизод
+  - Что: выделено из META-014 (та ждёт META-013 и LIB-006): sans-IO модуль `pa_recognition::score` — для каждого файла группы топ-10 `TitleIndex` по N-best гипотезам парсера → интерпретации кандидата (тип и год; для аниме — франшиза из записей с общим базовым ключом названия: номер внутри записи, абсолютный номер через франшизу, явный сезон → n-я запись, перелив номера в следующие записи) → ручные веса, уверенность из лучшего балла и отрыва от другой работы; файлы без своего названия берут решение папки. Адаптер `pa-eval run --recognizer scorer` (офлайн, без провайдеров). Признаки длительности, языка и хэша, запись в Match и совместные ограничения по группе остаются в META-014.
+  - deps: META-003, META-007, META-008 · size: M · parallel: yes · веха: M2 · ref: 03 §4.2 [5]
+  - done when: на train + dev тихие ошибки ≤ 1 % при пороге авто 0.9, Coverage выше `naive`; test прогнан один раз, отчёт в `baselines/v0/`.
 
 ### 3.7. PLAY — общий плеерный слой
 
@@ -658,7 +666,7 @@ project_alpha/
   - Что: Cast sender на Android и iOS (только в флейворах без ограничений F-Droid — Cast SDK проприетарный); AirPlay нативно на Apple; на Cast отдаётся HLS от сервера или файл через прокси.
   - deps: PLAY-003 · size: M · parallel: yes · веха: M5 · ref: 01 §1.5
   - done when: воспроизведение на Chromecast и Apple TV по AirPlay с синхронизацией прогресса.
-- [ ] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
+- [x] **PLAY-013** Наш libmpv в Android-сборке приложения вместо jar media_kit
   - Что: локальная копия `media_kit_libs_android_video` через `dependency_overrides`: Java-обвязка остаётся, скачивание готовых jar убирается; `jniLibs` наполняются `tools/mpv/bundle.sh android` из артефактов `libmpv-android-*` (PLAY-002); `check-native-licences.sh` проверяет APK.
   - deps: PLAY-002 · size: S · parallel: yes · веха: M1 · ref: tools/mpv/README.md
   - done when: release-APK содержит только наши LGPL `libmpv.so`/FFmpeg, видео воспроизводится на устройстве, проверка лицензий зелёная.
@@ -673,7 +681,7 @@ project_alpha/
   - Что: в `spikes/android-player` сравнить PlatformView (SurfaceView, Hybrid Composition) и отдельную Activity с нативным SurfaceView; проверить HDR10, DV и AFR на Shield или Chromecast GTV; оверлей OSD на Flutter или нативный.
   - deps: — · size: M · parallel: yes · веха: M0 · ref: 02 §1.3, §2.8
   - done when: ADR-0008 с замерами и выбранным вариантом.
-- [ ] **PLAY-AND-002** Плагин `pa_player_android` на Media3
+- [x] **PLAY-AND-002** Плагин `pa_player_android` на Media3
   - Что: ExoPlayer по выбранной в спайке схеме, реализация `PlayerEngine` через UniFFI, события и треки, связь с Flutter OSD.
   - deps: PLAY-AND-001, CORE-004, PLAY-003, UI-001 · size: L · parallel: no · веха: M1 · ref: 02 §2.2, §7
   - done when: instrumented-тест воспроизводит MKV H.264 и HEVC; seek и смена дорожек работают.
@@ -810,7 +818,7 @@ project_alpha/
   - Что: `clients/flutter`: структура по фичам (`lib/features/<f>/`), go_router с файлом `routes.dart` у каждой фичи, state management по ADR (рекомендация — Riverpod), подключение `pa_core`, флейворы store и full (dart-define, Gradle flavors, Xcode schemes), общие состояния (пустое, skeleton, ошибка источника, ретрай).
   - deps: CORE-002 · size: M · parallel: no · веха: M0 · ref: 02 §7, 01 §4.9 п.10
   - done when: приложение собирается на 5 Flutter-платформах в обоих флейворах; widget-тест каркаса.
-- [ ] **UI-002** Адаптивная навигация
+- [x] **UI-002** Адаптивная навигация
   - Что: телефон — tab bar «Главная · Библиотека · Twitch · Музыка · Поиск», профиль и настройки через аватар; планшет и десктоп — sidebar; TV — верхнее меню или rail (через TV-002); брейкпоинты compact < 600, medium < 1024, expanded < 1440, large.
   - deps: UI-001 · size: M · parallel: no · веха: M1 · ref: 01 §2.5–2.6, §4.3, §4.10 п.4
   - done when: golden-тесты каркаса на 4 плотностях; вкладку Twitch можно скрыть настройкой.
@@ -886,10 +894,14 @@ project_alpha/
   - Что: gen-l10n (ARB), ключи с префиксом фичи, плюрализация для ru (one, few, many), форматы дат и чисел; CI-проверка отсутствующих ключей; псевдолокализация.
   - deps: UI-001 · size: M · parallel: yes · веха: M1 · ref: CLAUDE.md (язык), 01 §4.4
   - done when: CI падает на непереведённом ключе; длинные русские строки не обрезаются в golden-тестах.
-- [ ] **UI-023** Исправить баги со скриншотов дизайна 2026-11-14
+- [x] **UI-023** Исправить баги со скриншотов дизайна 2026-11-14
   - Что: (1) плеер на телефоне в портрете — нижняя панель управления переполняется на 150 px; (2) на телефоне нижняя навигация подсвечивает «Главная» на экране настроек; (3) страница лицензий (showLicensePage) пустая — проверить регистрацию LicenseRegistry; (4) перевести строки `pa_player` (OSD, мини-плеер, «Сейчас играет») через собственный API строк пакета с ru/en.
   - deps: UI-020 · size: M · parallel: yes · веха: M1 · ref: docs/dev/release-0.1-contract.md
   - done when: layout-тест плеера в портрете на телефоне без overflow; навигация подсвечивает активный раздел; лицензии видны; RU-скриншоты плеера на русском.
+- [ ] **UI-024** Приложение на Rust-ядре: медиатека, сканер, поиск, прогресс через `pa_core`
+  - Что: заменить Dart `pa_library` v0 в приложении на Rust-ядро через `pa_core` (FRB): pa-library (схема v1, импорт v0 — LIB-015), pa-scanner, парсер+индекс тайтлов, поиск FTS5, прогресс/«Продолжить»/Up Next, музыка. Dart-пакет остаётся адаптером за тем же интерфейсом `Library`.
+  - deps: CORE-002, LIB-003, LIB-008, LIB-011, META-007 · size: L · parallel: no · веха: M2 · ref: docs/dev/release-0.1-contract.md
+  - done when: приложение на Linux и Android работает целиком на Rust-ядре; тесты приложения зелёные; старая база v0 импортируется.
 - [ ] **UI-021** Доступность
   - Что: Semantics для TalkBack, VoiceOver, Narrator и Orca; порядок фокуса клавиатурой; контраст; Reduce Motion (кроссфейд вместо переходов).
   - deps: UI-003 · size: M · parallel: yes · веха: M1 · ref: 01 §1.5 (VoiceOver/TalkBack — P0), §4.7
@@ -901,7 +913,7 @@ project_alpha/
 
 ### 3.12. TV — Android TV (Flutter), режим Big Picture и tvOS (SwiftUI)
 
-- [ ] **TV-001** Каркас tvOS-приложения на SwiftUI
+- [x] **TV-001** Каркас tvOS-приложения на SwiftUI
   - Что: `clients/apple/TVApp` (Xcode-проект с SwiftPM), подключение PACore, экран с `core_version()`, store-флейвор.
   - deps: CORE-003 · size: S · parallel: yes · веха: M0 · ref: 02 §1.3, §7
   - done when: собирается в CI и запускается в симуляторе tvOS.
@@ -972,11 +984,11 @@ project_alpha/
   - Что: ключ — внешние ID + S/E; иначе отпечаток контента (OSHash); музыка — MBID или хэш тегов и длительности; Twitch — свои ключи; одна шара по разным путям (`smb://nas` и `smb://192.168.1.5`).
   - deps: SYNC-001, LIB-004 · size: M · parallel: yes · веха: M3 · ref: 04 §1.8, 06 §5.2
   - done when: тест: один файл на двух устройствах с разными путями даёт один ключ.
-- [ ] **SYNC-005** Pairing устройств («семья устройств»)
+- [x] **SYNC-005** Pairing устройств («семья устройств»)
   - Что: общие ключи через QR или 6-значный код в LAN, список устройств, отзыв устройства, ротация ключей; без облака.
   - deps: SYNC-001, CORE-007 · size: M · parallel: yes · веха: M3 · ref: S §2
   - done when: отозванное устройство больше не может подключиться (тест).
-- [ ] **SYNC-006** P2P-транспорт в LAN и выбор хаба
+- [x] **SYNC-006** P2P-транспорт в LAN и выбор хаба
   - Что: mDNS `_alpha-sync._tcp` (ADR-0019; `_projectalpha-sync` длиннее 15 символов RFC 6763), WebSocket между устройствами, шифрование (Noise или TLS с ключами из pairing); хабом становится любое включённое устройство (приоритет: сервер, десктоп, ТВ, телефон).
   - deps: SYNC-002, SYNC-005, NET-009 · size: L · parallel: yes · веха: M3 · ref: S §2
   - done when: три устройства в LAN сходятся; при выключении хаба выбирается новый меньше чем за 10 с.
@@ -1019,7 +1031,7 @@ project_alpha/
   - Что: локальные пользователи (админ и домочадцы), Argon2, PASETO v4.public (access на 15 мин, refresh с ротацией), PIN-профили, rate limit на логин, pairing клиента по QR или коду (без облачного аккаунта), полностью офлайн.
   - deps: SRV-001, SYNC-005 · size: M · parallel: yes · веха: M4 · ref: 04 §1.5 (Auth), §5.3
   - done when: тесты перебора (блокировка), ротации и отзыва токенов.
-- [ ] **SRV-004** TLS и mDNS-анонс
+- [x] **SRV-004** TLS и mDNS-анонс
   - Что: самоподписанный сертификат, анонс `_projectalpha._tcp` (TXT: id, v, name, fp), pinning отпечатка в клиенте (TOFU); HTTP без TLS — только по явной опции.
   - deps: SRV-001, NET-009 · size: S · parallel: yes · веха: M4 · ref: 04 §1.6, §5.2
   - done when: клиент находит сервер и отклоняет подменённый сертификат.
@@ -1086,7 +1098,7 @@ project_alpha/
   - Что: Artist, ReleaseGroup, Release, Recording, Track (MBID), AudioFile, жанры, композиторы, вид «папки»; чтение тегов (ID3v2, Vorbis, MP4, APE через lofty), встроенные обложки и `folder.jpg`, мультидиск.
   - deps: LIB-001, LIB-003 · size: M · parallel: yes · веха: M6 · ref: 03 §5 (музыка), 01 §4.11
   - done when: коллекция из 5 000 треков индексируется; сборники разбираются правильно.
-- [ ] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
+- [x] **MUS-002** Воспроизведение v1 через libmpv в аудиорежиме
   - Что: `gapless-audio`, `prefetch-playlist`, `replaygain=track|album` на десктопе и Android; на Apple — MPVKit audio.
   - deps: PLAY-002, MUS-001 · size: M · parallel: no · веха: M6 · ref: 02 §5.2 (вариант A)
   - done when: тестовый gapless-альбом без пауз на стыках (проверка по сэмплам).
@@ -1142,6 +1154,10 @@ project_alpha/
   - Что: синхронизация очереди и позиции (по аналогии со Spotify Connect, через SYNC); Last.fm и ListenBrainz с ключом пользователя [P2]; эквалайзер [P2].
   - deps: MUS-003, SYNC-003 · size: M · parallel: yes · веха: M6 · ref: 01 §4.11, §1.5
   - done when: очередь продолжается на втором устройстве с той же позиции.
+- [ ] **MUS-016** Аудиорежим MPVKit на Apple (`AudioKit`)
+  - Что: часть MUS-002 для Apple: `clients/apple/AudioKit` на MPVKit (LGPL) с тем же профилем, что `AudioProfile` в `pa_player` (gapless, prefetch, ReplayGain track/album/auto, pre-amp, защита от клиппинга); проверка стыков по сэмплам, как в `gapless_libmpv_test.dart`.
+  - deps: MUS-002, PLAY-APL-001 · size: S · parallel: yes · веха: M6 · ref: 02 §5.2 (вариант A), ADR-NNNN (music-audio-mode-libmpv)
+  - done when: XCTest на macOS проигрывает тестовый альбом через MPVKit без пауз на стыках (проверка по сэмплам).
 
 ### 3.16. TWI — Twitch
 
@@ -1169,7 +1185,7 @@ project_alpha/
   - Что: prefetch-сегменты, индикатор задержки, кнопка «К эфиру», DVR в пределах окна плейлиста, «Смотреть с начала эфира» через VOD текущего стрима; распознавание рекламы по EXT-X-DATERANGE, плашка «Реклама · 0:15», запрет перемотки во время рекламы; никакой блокировки рекламы.
   - deps: TWI-004, PLAY-003 · size: M · parallel: yes · веха: M7 · ref: 06 §2.4, §6.4
   - done when: тест подтверждает, что рекламные сегменты не отбрасываются; задержка в low-latency-режиме меньше 5 с.
-- [ ] **TWI-007** Модель данных Twitch в библиотеке
+- [x] **TWI-007** Модель данных Twitch в библиотеке
   - Что: Streamer, Category, Favourite, LiveSession, Video, CategorySegment, Clip, TwitchAsset, ChatLog, RecordRule; миграции; секция «Стримы» (стример — как сериал, VOD — как эпизод).
   - deps: LIB-001, TWI-001 · size: M · parallel: yes · веха: M7 · ref: 06 §5.1, §5.3
   - done when: миграции и тесты запросов; поиск FTS5 индексирует VOD и стримеров.
@@ -1355,7 +1371,7 @@ project_alpha/
   - Что: primitive (палитра, отступы 4–100, радиусы, тени), semantic (`bg/base`, `text/*`, `accent`, `accent/live`, `focus/*`, `badge/*`, `scrim`, `glass/thin|regular|thick`, `motion/*`), component (`poster/focus/scale` и т. п.), профили плотности (TV, desktop, tablet, phone).
   - deps: DSN-001 · size: M · parallel: yes · веха: M0 · ref: 01 §4.3–4.7, §4.10 п.1–2
   - done when: JSON проходит валидацию DTCG; значения из 01 §4 перенесены.
-- [ ] **DSN-003** Пайплайн Style Dictionary и контраст-линт
+- [x] **DSN-003** Пайплайн Style Dictionary и контраст-линт
   - Что: генерация `tokens.dart`, `Tokens.swift`, `tokens.css` (админки и сайт) в CI; проверка актуальности сгенерированного; проверка контраста WCAG AA для текстовых пар.
   - deps: DSN-002, REPO-001 · size: S · parallel: yes · веха: M0 · ref: 01 §5.2 (CI-шаги)
   - done when: изменение токена без перегенерации роняет CI; пара с контрастом меньше 4.5:1 роняет CI.
@@ -1756,7 +1772,7 @@ project_alpha/
 |---|---|---|---|
 | DEC | 8 | SYNC | 12 |
 | REPO | 13 | SRV | 18 |
-| CI | 12 | MUS | 15 |
+| CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
 | NET | 20 | DIST | 27 |
 | LIB | 15 | DSN | 15 |

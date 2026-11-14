@@ -6,6 +6,7 @@ library;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import 'src/engine/audio_profile.dart';
 import 'src/engine/player_engine.dart';
 
 /// In-memory engine. Tests drive it with [emit] / [advance] / [finish] and
@@ -18,6 +19,9 @@ class FakePlayerEngine implements PlayerEngine {
   final ValueNotifier<EngineState> _state = ValueNotifier(const EngineState());
   final List<String> calls = [];
   List<String> uris = const [];
+
+  /// Last profile passed to [setAudioProfile].
+  AudioProfile? audioProfile;
   bool disposed = false;
 
   @override
@@ -94,6 +98,12 @@ class FakePlayerEngine implements PlayerEngine {
   @override
   Future<void> setRepeat(QueueRepeat mode) async =>
       calls.add('repeat:${mode.name}');
+
+  @override
+  Future<void> setAudioProfile(AudioProfile profile) async {
+    calls.add('profile:${profile.replayGain.name}');
+    audioProfile = profile;
+  }
 
   @override
   Future<void> setAudioTrack(MediaTrack track) async {

@@ -30,6 +30,10 @@ class AppServices extends ChangeNotifier {
   /// UI language chosen in Settings; null = follow the system locale.
   final ValueNotifier<Locale?> locale = ValueNotifier(null);
 
+  /// Whether the Twitch section is in the navigation. Off by default until
+  /// the Twitch feature ships (after release 0.1); toggled in Settings.
+  final ValueNotifier<bool> showTwitch = ValueNotifier(false);
+
   /// Overrides the media_kit engine (tests use pa_player's FakePlayerEngine).
   final PlayerEngineFactory? playerEngineFactory;
 
@@ -45,6 +49,7 @@ class AppServices extends ChangeNotifier {
 
   Future<void> init() async {
     locale.value = parseLocaleTag(await preferences.read(Preferences.locale));
+    showTwitch.value = await preferences.read(Preferences.showTwitch) == 'true';
     _sources = await library.sources();
     final key = await secureStore.read(SecureStore.tmdbKey);
     if (key != null && key.isNotEmpty) await library.setTmdbApiKey(key);
@@ -128,9 +133,15 @@ class AppServices extends ChangeNotifier {
     );
   }
 
+  Future<void> setShowTwitch(bool value) async {
+    showTwitch.value = value;
+    await preferences.write(Preferences.showTwitch, value ? 'true' : null);
+  }
+
   @override
   void dispose() {
     locale.dispose();
+    showTwitch.dispose();
     music.dispose();
     super.dispose();
   }

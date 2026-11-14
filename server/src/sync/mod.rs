@@ -16,9 +16,14 @@
 //!   `(profile, key)` stays in memory for [`SyncConfig::playback_ttl_secs`]
 //!   and is sent to each device right after the handshake (instant resume).
 //!
-//! There is no authentication yet: the server listens on loopback by default
-//! and devices are trusted. Pairing and tokens come with SYNC-005 and
-//! SRV-003, which will answer unknown devices with `error{unauthorized}`.
+//! - **Authentication** (SYNC-005): the hub's `hello` carries a nonce; a
+//!   device answers with `auth`, a signature of its paired device key, and
+//!   the hub proves itself the same way. Unknown and revoked devices get
+//!   `error{unauthorized}` and are disconnected; a device revoked while
+//!   connected is disconnected at once. Paired devices get a `family`
+//!   update (roster and family key) after the handshake and after every
+//!   change. [`SyncConfig::require_pairing`] = false lets unpaired devices
+//!   in (tests, a trusted loopback setup).
 
 pub mod journal;
 mod playback;
@@ -28,11 +33,12 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use axum::extract::ws::{Message as WsMessage, Utf8Bytes, WebSocket};
 use pa_sync::proto::{
-    self, Ack, Change, ErrorFrame, Hello, Message, OpFrame, ProtoRange, Role, code,
+    self, Ack, Auth, Change, ErrorFrame, Family, Hello, Message, OpFrame, ProtoRange, Role, code,
 };
 use tokio::sync::{OwnedSemaphorePermit, Semaphore, broadcast, watch};
 
 pub use crate::config::SyncConfig;
+use crate::pairing::{FamilyEvent, Pairing};
 use crate::{Error, Library};
 use journal::{JournalError, SqliteJournal};
 use playback::PlaybackCache;
@@ -71,6 +77,8 @@ struct Inner {
     max_connections: u32,
     shutdown: watch::Sender<bool>,
     next_conn: std::sync::atomic::AtomicU64,
+    pairing: Pairing,
+    require_pairing: bool,
 }
 
 /// The sync hub; cheap to clone.
@@ -81,16 +89,20 @@ pub struct Hub {
 
 impl Hub {
     /// A hub with the journal at `journal` that writes progress into
-    /// `library`. Blocking (opens SQLite).
+    /// `library`, with the device family in `data_dir` (founded on first
+    /// start; `addr` goes into pairing QR codes). Blocking (opens SQLite).
     pub fn open(
         journal: &std::path::Path,
         library: Library,
         config: &SyncConfig,
+        data_dir: &std::path::Path,
+        addr: Option<String>,
     ) -> Result<Self, Error> {
         let journal = SqliteJournal::open(journal).map_err(|source| Error::Sync {
             path: journal.to_owned(),
             source,
         })?;
+        let pairing = Pairing::open(data_dir, journal.hub_id(), addr)?;
         let (events, _) = broadcast::channel(FANOUT_CAPACITY);
         let max_connections = config.max_connections.max(1);
         Ok(Self {
@@ -107,6 +119,8 @@ impl Hub {
                 max_connections,
                 shutdown: watch::channel(false).0,
                 next_conn: std::sync::atomic::AtomicU64::new(1),
+                pairing,
+                require_pairing: config.require_pairing,
             }),
         })
     }
@@ -114,6 +128,11 @@ impl Hub {
     /// `device_id` of the hub.
     pub fn hub_id(&self) -> &str {
         &self.inner.hub_id
+    }
+
+    /// The device family of the server.
+    pub fn pairing(&self) -> &Pairing {
+        &self.inner.pairing
     }
 
     /// A connection slot, or `None` when [`SyncConfig::max_connections`]
@@ -163,13 +182,14 @@ impl Hub {
         self.journal().head()
     }
 
-    fn hello(&self) -> Message {
+    fn hello(&self, nonce: &str) -> Message {
         Message::Hello(Hello {
             proto: ProtoRange::LOCAL,
             device_id: self.inner.hub_id.clone(),
             role: Role::Hub,
             cursor: None,
             head: Some(self.head()),
+            nonce: Some(nonce.to_owned()),
         })
     }
 
@@ -189,6 +209,7 @@ impl Hub {
             socket,
             id,
             device: None,
+            authenticated: false,
             last_seen: Instant::now(),
         };
         match conn.run().await {
@@ -208,9 +229,11 @@ enum ConnError {
     Socket(#[from] axum::Error),
     #[error("{0}")]
     Protocol(&'static str),
+    #[error("random generator: {0}")]
+    Random(String),
 }
 
-fn now_ms() -> i64 {
+pub(crate) fn now_ms() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |d| i64::try_from(d.as_millis()).unwrap_or(i64::MAX))
@@ -234,6 +257,8 @@ struct Connection {
     socket: WebSocket,
     id: u64,
     device: Option<String>,
+    /// The device proved its paired key.
+    authenticated: bool,
     last_seen: Instant,
 }
 
@@ -281,8 +306,10 @@ impl Connection {
         // Subscribe before the handshake so nothing published meanwhile is
         // lost: it is delivered right after the handshake.
         let mut events = self.hub.inner.events.subscribe();
+        let mut family = self.hub.inner.pairing.events();
         let mut shutdown = self.hub.inner.shutdown.subscribe();
-        let hello = self.hub.hello();
+        let nonce = pa_pairing::auth::nonce().map_err(|e| ConnError::Random(e.to_string()))?;
+        let hello = self.hub.hello(&nonce);
         self.send(&hello).await?;
 
         // Handshake: both sides send `hello` first (spec §4.1).
@@ -297,7 +324,45 @@ impl Connection {
             Err(e) => return self.fail(code::PROTO_UNSUPPORTED, &e.to_string()).await,
         };
         self.device = Some(remote.device_id.clone());
-        tracing::info!(conn = self.id, device = %remote.device_id, version, "sync: connected");
+        if let Some(device_nonce) = &remote.nonce {
+            // Prove the hub to the device, then check the device.
+            let sig = self
+                .hub
+                .inner
+                .pairing
+                .prove(&remote.device_id, &nonce, device_nonce);
+            self.send(&Message::Auth(Auth { sig })).await?;
+            match tokio::time::timeout(HANDSHAKE_TIMEOUT, self.next_message()).await {
+                Ok(Ok(Some(Message::Auth(auth)))) => {
+                    match self.hub.inner.pairing.verify(
+                        &remote.device_id,
+                        device_nonce,
+                        &nonce,
+                        &auth.sig,
+                    ) {
+                        Ok(()) => self.authenticated = true,
+                        Err(e) if self.hub.inner.require_pairing => {
+                            tracing::info!(conn = self.id, device = %remote.device_id, reason = %e, "sync: unauthorized");
+                            return self.fail(code::UNAUTHORIZED, "device is not paired").await;
+                        }
+                        Err(e) => {
+                            tracing::debug!(conn = self.id, reason = %e, "sync: unpaired device admitted");
+                        }
+                    }
+                }
+                Ok(Ok(None)) => return Ok(()),
+                Ok(Err(e)) => return Err(e),
+                Ok(Ok(Some(_))) | Err(_) => {
+                    return self.fail(code::UNAUTHORIZED, "auth expected").await;
+                }
+            }
+        } else if self.hub.inner.require_pairing {
+            return self.fail(code::UNAUTHORIZED, "pairing required").await;
+        }
+        tracing::info!(conn = self.id, device = %remote.device_id, version, paired = self.authenticated, "sync: connected");
+        if self.authenticated {
+            self.send_family().await?;
+        }
 
         // Instant resume: what is playing right now on other devices.
         let recent = {
@@ -340,6 +405,19 @@ impl Connection {
                     }
                     Err(broadcast::error::RecvError::Closed) => return Ok(()),
                 },
+                event = family.recv() => match event {
+                    Ok(FamilyEvent::Revoked(ids)) if ids.iter().any(|id| Some(id) == self.device.as_ref()) => {
+                        tracing::info!(conn = self.id, device = self.device(), "sync: device revoked");
+                        return self.fail(code::UNAUTHORIZED, "device revoked").await;
+                    }
+                    Ok(FamilyEvent::Changed) | Err(broadcast::error::RecvError::Lagged(_)) => {
+                        if self.authenticated {
+                            self.send_family().await?;
+                        }
+                    }
+                    Ok(FamilyEvent::Revoked(_)) => {}
+                    Err(broadcast::error::RecvError::Closed) => return Ok(()),
+                },
                 _ = ping.tick() => {
                     if self.last_seen.elapsed() > IDLE_TIMEOUT {
                         return Err(ConnError::Protocol("idle"));
@@ -349,6 +427,36 @@ impl Connection {
                 () = async { let _ = shutdown.wait_for(|stop| *stop).await; } => {
                     let _ = self.socket.send(WsMessage::Close(None)).await;
                     return Ok(());
+                }
+            }
+        }
+    }
+
+    /// Sends the device its `family` update (roster and sealed key).
+    async fn send_family(&mut self) -> Result<(), ConnError> {
+        let device = self.device().to_owned();
+        let pairing = self.hub.inner.pairing.clone();
+        let body = tokio::task::spawn_blocking(move || pairing.update_for(&device))
+            .await
+            .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()));
+        match body {
+            Some(body) => self.send(&Message::Family(Family { body })).await,
+            None => Ok(()),
+        }
+    }
+
+    /// Next message that decodes; bad frames get `bad_message`. `None`:
+    /// the device closed.
+    async fn next_message(&mut self) -> Result<Option<Message>, ConnError> {
+        loop {
+            let Some(text) = self.recv().await? else {
+                return Ok(None);
+            };
+            match proto::decode(text.as_str()) {
+                Ok(msg) => return Ok(Some(msg)),
+                Err(e) => {
+                    self.send(&error(code::BAD_MESSAGE, Some(&e.to_string()), None))
+                        .await?;
                 }
             }
         }
@@ -411,9 +519,19 @@ impl Connection {
                     Err(e) => tracing::error!(conn = self.id, error = %e, "sync: pull failed"),
                 }
             }
-            // A second hello, acks of fanned-out ops, frames meant for
-            // devices and types of newer versions: nothing to do.
+            Message::Family(update) if self.authenticated => {
+                let pairing = self.hub.inner.pairing.clone();
+                let device = self.device().to_owned();
+                tokio::task::spawn_blocking(move || pairing.apply_update(&device, &update.body))
+                    .await
+                    .unwrap_or_else(|e| std::panic::resume_unwind(e.into_panic()));
+            }
+            // A second hello or auth, acks of fanned-out ops, frames meant
+            // for devices, family updates of unpaired devices and types of
+            // newer versions: nothing to do.
             Message::Hello(_)
+            | Message::Auth(_)
+            | Message::Family(_)
             | Message::Ack(_)
             | Message::Change(_)
             | Message::PullEnd(_)

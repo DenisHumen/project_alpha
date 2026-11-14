@@ -4,6 +4,7 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api/events.dart';
+import 'api/library.dart';
 import 'api/recognition.dart';
 import 'api/version.dart';
 import 'dart:async';
@@ -20,8 +21,35 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     required super.portManager,
   });
 
+  CrossPlatformFinalizerArg
+  get rust_arc_decrement_strong_count_CoreLibraryPtr => wire
+      ._rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr;
+
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  CoreLibrary
+  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    dynamic raw,
+  );
+
+  @protected
+  CoreLibrary
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    dynamic raw,
+  );
+
+  @protected
+  CoreLibrary
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    dynamic raw,
+  );
+
+  @protected
+  RustStreamSink<CoreScanUpdate> dco_decode_StreamSink_core_scan_update_Sse(
+    dynamic raw,
+  );
 
   @protected
   RustStreamSink<int> dco_decode_StreamSink_u_32_Sse(dynamic raw);
@@ -39,6 +67,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AirDate dco_decode_box_autoadd_air_date(dynamic raw);
 
   @protected
+  CoreItem dco_decode_box_autoadd_core_item(dynamic raw);
+
+  @protected
+  CoreProgress dco_decode_box_autoadd_core_progress(dynamic raw);
+
+  @protected
   DiscKind dco_decode_box_autoadd_disc_kind(dynamic raw);
 
   @protected
@@ -48,6 +82,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ExtraKind dco_decode_box_autoadd_extra_kind(dynamic raw);
 
   @protected
+  double dco_decode_box_autoadd_f_64(dynamic raw);
+
+  @protected
+  int dco_decode_box_autoadd_i_32(dynamic raw);
+
+  @protected
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
   int dco_decode_box_autoadd_u_16(dynamic raw);
 
   @protected
@@ -55,6 +98,33 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int dco_decode_box_autoadd_u_8(dynamic raw);
+
+  @protected
+  CoreContinueItem dco_decode_core_continue_item(dynamic raw);
+
+  @protected
+  CoreImportReport dco_decode_core_import_report(dynamic raw);
+
+  @protected
+  CoreItem dco_decode_core_item(dynamic raw);
+
+  @protected
+  CoreItemKind dco_decode_core_item_kind(dynamic raw);
+
+  @protected
+  CoreProgress dco_decode_core_progress(dynamic raw);
+
+  @protected
+  CoreScanPhase dco_decode_core_scan_phase(dynamic raw);
+
+  @protected
+  CoreScanUpdate dco_decode_core_scan_update(dynamic raw);
+
+  @protected
+  CoreSource dco_decode_core_source(dynamic raw);
+
+  @protected
+  CoreSourceRoot dco_decode_core_source_root(dynamic raw);
 
   @protected
   DiscKind dco_decode_disc_kind(dynamic raw);
@@ -72,6 +142,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double dco_decode_f_32(dynamic raw);
 
   @protected
+  double dco_decode_f_64(dynamic raw);
+
+  @protected
   FilenameHypothesis dco_decode_filename_hypothesis(dynamic raw);
 
   @protected
@@ -81,7 +154,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int dco_decode_i_32(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  LibraryError dco_decode_library_error(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<CoreContinueItem> dco_decode_list_core_continue_item(dynamic raw);
+
+  @protected
+  List<CoreItem> dco_decode_list_core_item(dynamic raw);
+
+  @protected
+  List<CoreSource> dco_decode_list_core_source(dynamic raw);
+
+  @protected
+  List<CoreSourceRoot> dco_decode_list_core_source_root(dynamic raw);
 
   @protected
   List<EpisodeNumber> dco_decode_list_episode_number(dynamic raw);
@@ -102,6 +193,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AirDate? dco_decode_opt_box_autoadd_air_date(dynamic raw);
 
   @protected
+  CoreItem? dco_decode_opt_box_autoadd_core_item(dynamic raw);
+
+  @protected
+  CoreProgress? dco_decode_opt_box_autoadd_core_progress(dynamic raw);
+
+  @protected
   DiscKind? dco_decode_opt_box_autoadd_disc_kind(dynamic raw);
 
   @protected
@@ -109,6 +206,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ExtraKind? dco_decode_opt_box_autoadd_extra_kind(dynamic raw);
+
+  @protected
+  double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
+
+  @protected
+  int? dco_decode_opt_box_autoadd_i_32(dynamic raw);
+
+  @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
 
   @protected
   int? dco_decode_opt_box_autoadd_u_16(dynamic raw);
@@ -135,7 +241,33 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  BigInt dco_decode_usize(dynamic raw);
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  CoreLibrary
+  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreLibrary
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreLibrary
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<CoreScanUpdate> sse_decode_StreamSink_core_scan_update_Sse(
+    SseDeserializer deserializer,
+  );
 
   @protected
   RustStreamSink<int> sse_decode_StreamSink_u_32_Sse(
@@ -155,6 +287,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AirDate sse_decode_box_autoadd_air_date(SseDeserializer deserializer);
 
   @protected
+  CoreItem sse_decode_box_autoadd_core_item(SseDeserializer deserializer);
+
+  @protected
+  CoreProgress sse_decode_box_autoadd_core_progress(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DiscKind sse_decode_box_autoadd_disc_kind(SseDeserializer deserializer);
 
   @protected
@@ -164,6 +304,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ExtraKind sse_decode_box_autoadd_extra_kind(SseDeserializer deserializer);
 
   @protected
+  double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
+
+  @protected
+  int sse_decode_box_autoadd_i_32(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
   int sse_decode_box_autoadd_u_16(SseDeserializer deserializer);
 
   @protected
@@ -171,6 +320,33 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_box_autoadd_u_8(SseDeserializer deserializer);
+
+  @protected
+  CoreContinueItem sse_decode_core_continue_item(SseDeserializer deserializer);
+
+  @protected
+  CoreImportReport sse_decode_core_import_report(SseDeserializer deserializer);
+
+  @protected
+  CoreItem sse_decode_core_item(SseDeserializer deserializer);
+
+  @protected
+  CoreItemKind sse_decode_core_item_kind(SseDeserializer deserializer);
+
+  @protected
+  CoreProgress sse_decode_core_progress(SseDeserializer deserializer);
+
+  @protected
+  CoreScanPhase sse_decode_core_scan_phase(SseDeserializer deserializer);
+
+  @protected
+  CoreScanUpdate sse_decode_core_scan_update(SseDeserializer deserializer);
+
+  @protected
+  CoreSource sse_decode_core_source(SseDeserializer deserializer);
+
+  @protected
+  CoreSourceRoot sse_decode_core_source_root(SseDeserializer deserializer);
 
   @protected
   DiscKind sse_decode_disc_kind(SseDeserializer deserializer);
@@ -188,6 +364,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   double sse_decode_f_32(SseDeserializer deserializer);
 
   @protected
+  double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
   FilenameHypothesis sse_decode_filename_hypothesis(
     SseDeserializer deserializer,
   );
@@ -199,7 +378,29 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  LibraryError sse_decode_library_error(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<CoreContinueItem> sse_decode_list_core_continue_item(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CoreItem> sse_decode_list_core_item(SseDeserializer deserializer);
+
+  @protected
+  List<CoreSource> sse_decode_list_core_source(SseDeserializer deserializer);
+
+  @protected
+  List<CoreSourceRoot> sse_decode_list_core_source_root(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<EpisodeNumber> sse_decode_list_episode_number(
@@ -224,6 +425,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   AirDate? sse_decode_opt_box_autoadd_air_date(SseDeserializer deserializer);
 
   @protected
+  CoreItem? sse_decode_opt_box_autoadd_core_item(SseDeserializer deserializer);
+
+  @protected
+  CoreProgress? sse_decode_opt_box_autoadd_core_progress(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   DiscKind? sse_decode_opt_box_autoadd_disc_kind(SseDeserializer deserializer);
 
   @protected
@@ -235,6 +444,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   ExtraKind? sse_decode_opt_box_autoadd_extra_kind(
     SseDeserializer deserializer,
   );
+
+  @protected
+  double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
+
+  @protected
+  int? sse_decode_opt_box_autoadd_i_32(SseDeserializer deserializer);
+
+  @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
 
   @protected
   int? sse_decode_opt_box_autoadd_u_16(SseDeserializer deserializer);
@@ -261,8 +479,38 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  BigInt sse_decode_usize(SseDeserializer deserializer);
+
+  @protected
   void sse_encode_AnyhowException(
     AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    CoreLibrary self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    CoreLibrary self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    CoreLibrary self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_core_scan_update_Sse(
+    RustStreamSink<CoreScanUpdate> self,
     SseSerializer serializer,
   );
 
@@ -285,6 +533,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_box_autoadd_air_date(AirDate self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_core_item(
+    CoreItem self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_core_progress(
+    CoreProgress self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_disc_kind(
     DiscKind self,
     SseSerializer serializer,
@@ -303,6 +563,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_i_32(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_u_16(int self, SseSerializer serializer);
 
   @protected
@@ -310,6 +582,45 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_u_8(int self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_continue_item(
+    CoreContinueItem self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_import_report(
+    CoreImportReport self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_item(CoreItem self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_item_kind(CoreItemKind self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_progress(CoreProgress self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_scan_phase(CoreScanPhase self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_scan_update(
+    CoreScanUpdate self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_source(CoreSource self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_core_source_root(
+    CoreSourceRoot self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_disc_kind(DiscKind self, SseSerializer serializer);
@@ -327,6 +638,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_f_32(double self, SseSerializer serializer);
 
   @protected
+  void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
   void sse_encode_filename_hypothesis(
     FilenameHypothesis self,
     SseSerializer serializer,
@@ -339,7 +653,34 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_library_error(LibraryError self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_core_continue_item(
+    List<CoreContinueItem> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_item(List<CoreItem> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_core_source(
+    List<CoreSource> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_source_root(
+    List<CoreSourceRoot> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_episode_number(
@@ -372,6 +713,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_opt_box_autoadd_core_item(
+    CoreItem? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_core_progress(
+    CoreProgress? self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_box_autoadd_disc_kind(
     DiscKind? self,
     SseSerializer serializer,
@@ -386,6 +739,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_opt_box_autoadd_extra_kind(
     ExtraKind? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_32(int? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
     SseSerializer serializer,
   );
 
@@ -412,6 +777,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_usize(BigInt self, SseSerializer serializer);
 }
 
 // Section: wire_class
@@ -427,4 +795,38 @@ class RustLibWire implements BaseWire {
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
     : _lookup = dynamicLibrary.lookup;
+
+  void
+  rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary',
+      );
+  late final _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary =
+      _rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  void
+  rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+    ffi.Pointer<ffi.Void> ptr,
+  ) {
+    return _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary(
+      ptr,
+    );
+  }
+
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+        'frbgen_pa_core_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary',
+      );
+  late final _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibrary =
+      _rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCoreLibraryPtr
+          .asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 }

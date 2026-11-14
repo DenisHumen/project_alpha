@@ -128,7 +128,7 @@ SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
 
 # Screenshots and generated images in docs and design (project-authored).
 [[annotations]]
-path = ["docs/screenshots/**", "design/**/*.png", "design/**/*.webp", "**/assets/**/*.png"]
+path = ["docs/screenshots/**", "design/**/*.png", "design/**/*.webp", "**/assets/**/*.png", "**/test/goldens/**/*.png"]
 precedence = "closest"
 SPDX-FileCopyrightText = "project_alpha contributors"
 SPDX-License-Identifier = "MPL-2.0"
@@ -167,10 +167,22 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = ["2014 The Flutter Authors", "project_alpha contributors"]
 SPDX-License-Identifier = "BSD-3-Clause AND MPL-2.0"
 
-# Patches to third-party LGPL sources (mpv, FFmpeg and their libraries) are
+# Patches to third-party LGPL sources (mpv, FFmpeg and their libraries, libsmb2) are
 # distributed under the licence of the code they modify.
 [[annotations]]
-path = ["tools/ffmpeg/patches/**/*.patch", "tools/mpv/patches/**/*.patch"]
+path = ["tools/ffmpeg/patches/**/*.patch", "tools/mpv/patches/**/*.patch", "tools/libsmb2/patches/**/*.patch"]
 precedence = "override"
 SPDX-FileCopyrightText = "project_alpha contributors"
 SPDX-License-Identifier = "LGPL-2.1-or-later"
+
+# Java glue, manifest and settings copied unchanged from media_kit_libs_android_video
+# 1.3.8 (MIT, LICENSE next to them) for our local override package (PLAY-013).
+# Its build.gradle is ours and carries its own MPL-2.0 header.
+[[annotations]]
+path = [
+  "clients/flutter/packages/media_kit_libs_android_video/android/settings.gradle",
+  "clients/flutter/packages/media_kit_libs_android_video/android/src/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2021 Hitesh Kumar Saini"
+SPDX-License-Identifier = "MIT"

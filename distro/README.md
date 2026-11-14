@@ -23,9 +23,9 @@
 
 ## Что в образе
 
-- **Наши сервисы — заглушки** (`/usr/libexec/alpha/alpha-stub`, Python): `alpha-media` (:8096), `alpha-admin` (:80), `alpha-updated` (:7091, наружу не открыт). Каждая отвечает `GET /health` и `/healthz` JSON-ом с версией образа. Юниты с `DynamicUser=yes` и `ProtectSystem=strict`.
+- **Наши сервисы — заглушки** (`/usr/libexec/alpha/alpha-stub`, Python): `alpha-media` (:8487), `alpha-admin` (:80), `alpha-updated` (:7091, наружу не открыт). Каждая отвечает `GET /health` и `/healthz` JSON-ом с версией образа. Юниты с `DynamicUser=yes` и `ProtectSystem=strict`.
 - **Samba**: SMB3, `vfs_fruit` для macOS, шара `Media` → `/var/srv/media` (гостевое чтение). **wsdd** (Windows), **Avahi** + nss-mdns (`<hostname>.local`).
-- **firewalld**: зона по умолчанию `home`; открыты samba, mdns, ws-discovery, http, https, 8096/tcp. (ssh и dhcpv6-client остаются из стандартной зоны `home` — на прототипе SSH нужен для тестов; выключение по умолчанию — в DIST-013.)
+- **firewalld**: зона по умолчанию `home`; открыты samba, mdns, ws-discovery, http, https, 8487/tcp. (ssh и dhcpv6-client остаются из стандартной зоны `home` — на прототипе SSH нужен для тестов; выключение по умолчанию — в DIST-013.)
 - **smartd**, **chronyd**, **greenboot** (проверки появятся в DIST-011), **Cockpit** установлен, `cockpit.socket` выключен.
 - `bootc-fetch-apply-updates.timer` **замаскирован**: обновлениями будет управлять `alpha-updated` (DIST-009).
 - Версия образа — `/usr/share/alpha/version` (`ALPHA_OS_VERSION`, build-arg).

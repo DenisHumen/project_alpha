@@ -13,11 +13,14 @@
 //!   with version negotiation, `pb.update`/`pb.takeover` for instant resume,
 //!   op exchange with opaque versioned payloads, acks and journal cursors.
 //! - [`library`]: `Replica` as the sync sink of `pa_library::progress`
-//!   (LIB-011) and writing received progress ops into the library.
+//!   (LIB-011) and of Twitch favourites (`pa_library::twitch`, TWI-007),
+//!   and writing received progress and follow ops into the library.
 //!
-//! Transports (LAN P2P, journal in a shared folder, the user's own server,
-//! iroh) are later tasks; they move [`proto`] frames and call
-//! [`Replica::receive`].
+//! - `lan` (feature `lan`): the LAN P2P transport (SYNC-006): mDNS, hub
+//!   election, WebSocket over TLS 1.3 bound to the pairing keys.
+//!
+//! Other transports (journal in a shared folder, the user's own server,
+//! iroh) move the same [`proto`] frames and call [`Replica::receive`].
 //!
 //! ```
 //! use pa_model::{MediaKey, MediaKind};
@@ -43,6 +46,8 @@
 //! ```
 
 pub mod hlc;
+#[cfg(feature = "lan")]
+pub mod lan;
 pub mod library;
 pub mod op;
 pub mod outbox;

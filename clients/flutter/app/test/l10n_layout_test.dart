@@ -37,6 +37,15 @@ final _flows = <String, (Section, _Step?)>{
       await settle(t, 6);
     },
   ),
+  // UI-023: the player's OSD in the app language, without overflow.
+  'player': (
+    Section.movies,
+    (t, _) async {
+      await _tap(t, 'The Quiet Orbit');
+      await t.tap(find.byIcon(Icons.play_arrow_rounded).first);
+      await settle(t, 10);
+    },
+  ),
   'settings': (Section.settings, null),
   'add-source': (Section.settings, (t, l) => _tap(t, l.addSourceTitle)),
   'about': (
@@ -52,6 +61,7 @@ final _flows = <String, (Section, _Step?)>{
 const _surfaces = <String, (FormFactor, Size, double)>{
   'desktop': (FormFactor.desktop, Size(1280, 800), 1),
   'phone': (FormFactor.phone, Size(390, 844), 2),
+  'tablet': (FormFactor.phone, Size(820, 1180), 2), // rail (UI-002)
   'tv': (FormFactor.tv, Size(960, 540), 2),
 };
 

@@ -14,6 +14,9 @@
 //!   hub stores and forwards ops it cannot read (newer schema, E2E later).
 //! - `ack`, `change`, `pull`, `pull.end` move ops between an outbox and a
 //!   hub [`Journal`] with per-journal cursors.
+//! - `hello.nonce` and [`Message::Auth`] authenticate paired devices
+//!   (SYNC-005, `pa-pairing`); [`Message::Family`] carries roster updates
+//!   and the rotated family key between members.
 
 use std::collections::HashMap;
 
@@ -43,6 +46,10 @@ pub const MAX_PULL_LIMIT: u32 = 1_000;
 pub const MAX_RATE: f64 = 16.0;
 /// [`Payload::enc`] of a plain (not encrypted) payload.
 pub const ENC_PLAIN: &str = "plain";
+/// Longest `hello.nonce` and `auth.sig`, in characters (hex).
+pub const MAX_AUTH_LEN: usize = 256;
+/// Largest [`Family::body`].
+pub const MAX_FAMILY_LEN: usize = 192 * 1024;
 
 /// Error codes of [`ErrorFrame::code`].
 pub mod code {
@@ -136,6 +143,26 @@ pub struct Hello {
     /// Head of the sender's own journal, if it keeps one.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub head: Option<Cursor>,
+    /// Fresh random challenge (hex) for the peer's [`Auth`]; set by paired
+    /// devices and hubs (SYNC-005).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub nonce: Option<String>,
+}
+
+/// `auth`: proof that the sender holds the key of its paired device: an
+/// Ed25519 signature (hex) over both device ids and both `hello.nonce`s
+/// (`pa_pairing::auth`). Sent right after receiving the peer's `hello`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Auth {
+    pub sig: String,
+}
+
+/// `family`: a roster update and the family key sealed to the receiver
+/// (`pa_pairing::FamilyUpdate` as JSON text), sent by a member after the
+/// handshake and after pairing or revoking a device.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Family {
+    pub body: String,
 }
 
 /// Playback state in a [`PlaybackUpdate`].
@@ -303,6 +330,10 @@ pub enum Message {
     PullEnd(PullEnd),
     #[serde(rename = "error")]
     Error(ErrorFrame),
+    #[serde(rename = "auth")]
+    Auth(Auth),
+    #[serde(rename = "family")]
+    Family(Family),
     /// A message of a newer version; receivers ignore it. Never encoded.
     #[serde(other)]
     Unknown,
@@ -312,6 +343,13 @@ fn check_hlc(hlc: &Hlc) -> Result<(), Error> {
     is_valid_device_id(&hlc.device)
         .then_some(())
         .ok_or(Error::Invalid("device id"))
+}
+
+fn check_auth_text(text: &str, what: &'static str) -> Result<(), Error> {
+    let ok = !text.is_empty()
+        && text.len() <= MAX_AUTH_LEN
+        && text.bytes().all(|b| b.is_ascii_hexdigit());
+    ok.then_some(()).ok_or(Error::Invalid(what))
 }
 
 fn check_key(key: &MediaKey) -> Result<(), Error> {
@@ -330,6 +368,9 @@ impl Message {
                 }
                 if !is_valid_device_id(&h.device_id) {
                     return Err(Error::Invalid("device id"));
+                }
+                if let Some(nonce) = &h.nonce {
+                    check_auth_text(nonce, "nonce")?;
                 }
                 h.cursor
                     .iter()
@@ -366,6 +407,13 @@ impl Message {
                 p.cursor.as_ref().map_or(Ok(()), Cursor::validate)
             }
             Self::PullEnd(e) => e.cursor.validate(),
+            Self::Auth(a) => check_auth_text(&a.sig, "auth signature"),
+            Self::Family(f) => {
+                if f.body.is_empty() || f.body.len() > MAX_FAMILY_LEN {
+                    return Err(Error::Invalid("family update"));
+                }
+                Ok(())
+            }
             Self::Error(e) => {
                 if e.code.is_empty() || e.code.len() > 64 {
                     return Err(Error::Invalid("error code"));
@@ -434,6 +482,16 @@ impl Journal {
             log: self.log.clone(),
             seq: self.frames.len() as u64,
         }
+    }
+
+    /// Journal id.
+    pub fn log(&self) -> &str {
+        &self.log
+    }
+
+    /// Stored frames in `seq` order.
+    pub fn iter(&self) -> impl Iterator<Item = &OpFrame> {
+        self.frames.iter()
     }
 
     /// Stores an op frame. Returns its `seq` and whether it is new; a

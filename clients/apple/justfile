@@ -1,27 +1,42 @@
 # SPDX-License-Identifier: MPL-2.0
-# `apple` module: Swift: AlphaPlayerKit, TVApp, AudioKit (PLAY-APL, TV, MUS).
-# Owned by the PLAY-APL workstream (docs/ROADMAP.md §0.4).
+# `apple` module: Swift: AlphaPlayerKit, TVApp, AudioKit. Needs macOS with Xcode.
 
-set working-directory := '../..'
+root := justfile_directory() / ".." / ".."
+kit := root / "clients/apple/AlphaPlayerKit"
 
-kit := 'clients/apple/AlphaPlayerKit'
+# List recipes
+info:
+    @just --list apple
 
-# Contract fixtures (two MKVs + SRT) into DIR; needs ffmpeg
-fixtures dir='target/pa-fixtures':
-    {{ kit }}/scripts/make-fixtures.sh {{ dir }}
+# PACoreFFI.xcframework for the tvOS slices (CORE-003)
+tv-core:
+    {{root}}/tools/bindings/build-xcframework.sh tvos tvos-sim
 
-# QA-002 MKV samples into DIR (selected recipes of tools/qa/media)
-qa-media dir='target/pa-qa-media':
-    python3 {{ kit }}/scripts/make-qa-media.py {{ dir }}
+# Generate TVApp.xcodeproj from project.yml (XcodeGen, ADR-NNNN)
+tv-project:
+    cd {{root}}/clients/apple/TVApp && xcodegen generate
 
-# AlphaPlayerKit XCTest + licence check (ios | tvos | macos); macOS + Xcode, after `just core xcframework`
-test platform='ios' fixtures='target/pa-fixtures' qa='target/pa-qa-media':
-    {{ kit }}/scripts/test.sh {{ platform }} "$PWD/{{ fixtures }}" "$PWD/{{ qa }}"
+# Unit and UI tests of the tvOS app on a simulator (TV-001)
+tv-test simulator="Apple TV 4K (3rd generation)": tv-project
+    xcodebuild test -project {{root}}/clients/apple/TVApp/TVApp.xcodeproj -scheme TVApp \
+      -destination 'platform=tvOS Simulator,name={{simulator}}' -skipPackagePluginValidation
 
-# MPVKit licence gate on the manifest
-check-license:
-    {{ kit }}/scripts/check-license.sh manifest
+# AlphaPlayerKit: contract fixtures (two MKVs + SRT) into DIR; needs ffmpeg (PLAY-APL-001)
+player-fixtures dir=(root / "target/pa-fixtures"):
+    {{kit}}/scripts/make-fixtures.sh {{dir}}
 
-# AlphaPlayerKit tests on Linux against the distro libmpv in Docker (dev only, not the Apple CI)
-test-linux *args:
-    {{ kit }}/scripts/linux-dev-test.sh docker {{ args }}
+# AlphaPlayerKit: QA-002 MKV samples into DIR (selected recipes of tools/qa/media)
+player-qa-media dir=(root / "target/pa-qa-media"):
+    python3 {{kit}}/scripts/make-qa-media.py {{dir}}
+
+# AlphaPlayerKit XCTest + licence gate (ios | tvos | macos); after `just core xcframework`
+player-test platform="ios" fixtures=(root / "target/pa-fixtures") qa=(root / "target/pa-qa-media"):
+    {{kit}}/scripts/test.sh {{platform}} {{fixtures}} {{qa}}
+
+# MPVKit licence gate on the manifest (dev profile; `--store` fails with MPVKit by design)
+player-check-license *args:
+    {{kit}}/scripts/check-license.sh manifest {{args}}
+
+# AlphaPlayerKit tests on Linux with the distro libmpv in Docker (dev only, not the Apple CI)
+player-test-linux *args:
+    {{kit}}/scripts/linux-dev-test.sh docker {{args}}

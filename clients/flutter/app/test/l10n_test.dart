@@ -36,6 +36,7 @@ const _exempt = [
   'lib/l10n/',
   'lib/fakes/',
   'lib/branding.dart',
+  'lib/licenses.dart',
   'lib/main.dart',
 ];
 
@@ -152,6 +153,7 @@ void main() {
         'show',
         'format',
         'fixMatch',
+        'twitch',
         'addSource',
         'settings',
         'about',

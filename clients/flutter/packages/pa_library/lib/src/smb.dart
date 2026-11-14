@@ -132,6 +132,17 @@ class SmbResolver {
     return ProcessResult(proc.pid, code, await out, await err);
   }
 
+  /// Local path of [url] if the share is already mounted, without mounting
+  /// it. Null when it is not mounted or SMB is not supported here.
+  Future<String?> mounted(String url) async {
+    if (!Platform.isLinux && gvfsRootOverride == null) return null;
+    try {
+      return findGvfsPath(SmbUrl.parse(url), await _gvfsRoot());
+    } on FormatException {
+      return null;
+    }
+  }
+
   Future<String> resolve(
     String url, {
     String? username,

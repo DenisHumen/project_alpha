@@ -13,6 +13,11 @@ dependencies:
   pa_player:
     path: ..
 
+# Same libmpv as the app (PLAY-013): fill its jniLibs with tools/mpv/bundle.sh.
+dependency_overrides:
+  media_kit_libs_android_video:
+    path: ../../media_kit_libs_android_video
+
 dev_dependencies:
   flutter_lints: ^6.0.0
 
