@@ -13,6 +13,7 @@ import 'api/recognition.dart';
 import 'api/remote_config.dart';
 import 'api/secrets.dart';
 import 'api/sources.dart';
+import 'api/subtitles.dart';
 import 'api/sync.dart';
 import 'api/version.dart';
 import 'dart:async';
@@ -385,6 +386,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreServiceKind dco_decode_core_service_kind(dynamic raw);
 
   @protected
+  CoreSidecarSubtitle dco_decode_core_sidecar_subtitle(dynamic raw);
+
+  @protected
   CoreSmartShelf dco_decode_core_smart_shelf(dynamic raw);
 
   @protected
@@ -535,6 +539,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreServiceKind> dco_decode_list_core_service_kind(dynamic raw);
+
+  @protected
+  List<CoreSidecarSubtitle> dco_decode_list_core_sidecar_subtitle(dynamic raw);
 
   @protected
   List<CoreSmartShelf> dco_decode_list_core_smart_shelf(dynamic raw);
@@ -1052,6 +1059,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CoreServiceKind sse_decode_core_service_kind(SseDeserializer deserializer);
 
   @protected
+  CoreSidecarSubtitle sse_decode_core_sidecar_subtitle(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   CoreSmartShelf sse_decode_core_smart_shelf(SseDeserializer deserializer);
 
   @protected
@@ -1232,6 +1244,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<CoreServiceKind> sse_decode_list_core_service_kind(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<CoreSidecarSubtitle> sse_decode_list_core_sidecar_subtitle(
     SseDeserializer deserializer,
   );
 
@@ -1900,6 +1917,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_core_sidecar_subtitle(
+    CoreSidecarSubtitle self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_core_smart_shelf(
     CoreSmartShelf self,
     SseSerializer serializer,
@@ -2133,6 +2156,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_core_service_kind(
     List<CoreServiceKind> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_core_sidecar_subtitle(
+    List<CoreSidecarSubtitle> self,
     SseSerializer serializer,
   );
 

@@ -7,6 +7,7 @@ import '../frb_generated.dart';
 import 'library_lists.dart';
 import 'library_query.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+import 'subtitles.dart';
 
 // These functions are ignored because they are not marked as `pub`: `catalog`, `count`, `item_ref`, `items`, `set_sync_hook`, `signed`, `small`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
@@ -248,6 +249,14 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   Future<List<CoreSmartShelf>> shelves({required bool pinnedOnly});
 
   Future<List<CoreItem>> shows();
+
+  /// Subtitle files of the file `rel_path` of source `source_id` (as in
+  /// `CoreItem` and `CoreVersion`): those named after it first, then those
+  /// of its movie folder. Empty for an unknown file.
+  Future<List<CoreSidecarSubtitle>> sidecarSubtitles({
+    required PlatformInt64 sourceId,
+    required String relPath,
+  });
 
   Future<List<CoreSource>> sources();
 
