@@ -17,7 +17,11 @@
 //!   the part of LIB-015 the app needs);
 //! - provider metadata ([`Catalog::fetch_metadata`], [`metadata`],
 //!   META-013): TMDB / AniList / Shikimori ids, titles, overviews, artwork
-//!   and episode data for the recognized works.
+//!   and episode data for the recognized works;
+//! - the change watcher ([`watch::LibraryWatcher`], LIB-005): OS change
+//!   notifications for local folders, a timer for network shares, and
+//!   incremental rescans of the changed folders
+//!   ([`Catalog::rescan_folders`]).
 //!
 //! Recognition in the scan is local: works are created from parsed titles,
 //! without providers. The metadata run then matches them against TMDB (and
@@ -38,6 +42,7 @@ pub mod recognize;
 mod scan;
 mod sources;
 pub mod uri;
+pub mod watch;
 
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
@@ -52,7 +57,7 @@ pub use metadata::{MetadataOptions, MetadataProviders, MetadataReport};
 pub use pa_metadata;
 pub use pa_scanner::CancelToken;
 pub use progress::{ContinueItem, ItemProgress};
-pub use scan::{ScanPhase, ScanUpdate};
+pub use scan::{RescanReport, ScanPhase, ScanUpdate};
 pub use sources::Source;
 
 /// Device id written with local progress changes until profiles and

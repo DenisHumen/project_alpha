@@ -460,7 +460,7 @@ project_alpha/
   - Что: OSHash (размер + 64 КБ в начале и конце, 2 range-запроса) для всех файлов; ed2k (MD4, блоки по 9 500 КБ) — фоновой задачей, по умолчанию только на сервере и десктопе.
   - deps: LIB-003 · size: S · parallel: yes · веха: M1 · ref: 03 §4.2 [0], [2]
   - done when: тест-векторы OSHash и ed2k совпадают с эталонными реализациями.
-- [ ] **LIB-005** Watcher изменений
+- [x] **LIB-005** Watcher изменений
   - Что: `notify` (inotify, FSEvents, ReadDirectoryChangesW) с дебаунсом для локальных путей; SMB2 CHANGE_NOTIFY там, где поддерживается; для остальных сетевых источников — таймер, скан при открытии и pull-to-refresh.
   - deps: LIB-003 · size: M · parallel: yes · веха: M1 · ref: 04 §1.4 п.3, §1.5
   - done when: новый файл в локальной папке появляется в библиотеке меньше чем за 5 с.
@@ -509,6 +509,14 @@ project_alpha/
   - Что: refinery 0.10 держит rusqlite ≤0.40 → libsqlite3-sys 0.38 с уязвимым встроенным SQLite (RUSTSEC-2026-0459, CVE-2026-119375; фикс в libsqlite3-sys ≥0.39). Заменить refinery на rusqlite_migration (или свой раннер по `PRAGMA user_version`) и поднять rusqlite до ≥0.42 во всём workspace.
   - deps: LIB-001 · size: S · parallel: yes · веха: M1 · ref: docs/dev/db.md
   - done when: `cargo deny check advisories` зелёный; тесты pa-library и pa-runtime проходят; миграции v1 применяются на новой и существующей БД.
+- [ ] **LIB-017** Образы дисков в скане медиатеки
+  - Что: скан записывает `.iso` и разделы VIDEO_TS/BDMV (`.vob`, `.m2ts`) в `files`, чтобы группы LIB-007 доходили до распознавания и приложения как один элемент; выбор основного потока для воспроизведения диска.
+  - deps: LIB-007 · size: S · parallel: yes · веха: M2 · ref: ADR-0032, META-013
+  - done when: папка BDMV и файл ISO появляются в приложении одним фильмом с метаданными; тест в `pa-catalog`.
+- [ ] **LIB-018** Скан и воспроизведение сетевых источников через `pa-vfs`
+  - Что: скан `pa-catalog` читает SMB и WebDAV через бэкенды `pa-vfs` из `pa-sources` (`SourceManager::connect`), без монтирования gio; приложение перестаёт хранить пароль SMB во flutter_secure_storage (только pa-secrets); воспроизведение сетевых файлов через `pa-player-io` (ByteSource) или loopback-прокси NET-007; переключатель автоскана на экране «Источники» (LIB-005).
+  - deps: NET-011, LIB-005, UI-005 · size: L · parallel: no · веха: M1 · ref: ADR-0033, UI-005 PR «Решения владельца»
+  - done when: SMB- и WebDAV-источник сканируются и воспроизводятся на Linux и Android без gio; пароль хранится в одном месте; тесты против Samba/WebDAV в docker на сервере сборки.
 ### 3.6. META — распознавание и метаданные
 
 - [x] **META-001** Таксономия, гайд по разметке, формат корпуса
@@ -559,7 +567,7 @@ project_alpha/
   - Что: TVDB v4 (только ключ пользователя), TVmaze (daily-шоу, CC BY-SA), Fanart.tv (clearlogo и clearart, ключ проекта плюс личный ключ), OpenSubtitles moviehash → ID.
   - deps: META-009 · size: M · parallel: yes · веха: M2 · ref: 03 §3.1
   - done when: тесты на записанных ответах; daily-шоу (A11) матчатся по дате.
-- [ ] **META-013** Базовый матчер для M1: название + год → TMDB
+- [x] **META-013** Базовый матчер для M1: название + год → TMDB
   - Что: простой путь для M1: лучшая гипотеза парсера → поиск TMDB → выбор по названию, году и типу; результат пишется в Match с `decided_by=scorer_v0`. Сам матчер и запись в медиатеку выделены в META-027 (сделано); здесь остаются учёт групп LIB-007 и замер на корпусе: адаптер `pa-eval run --recognizer tmdb` на записанных ответах TMDB (локально, не в git — условия TMDB).
   - deps: META-005, META-009, LIB-007 · size: S · parallel: yes · веха: M1 · ref: 03 §4.4
   - done when: на западном подмножестве корпуса точность ≥ 85 % (бейзлайн для сравнения).
@@ -619,6 +627,10 @@ project_alpha/
   - Что: выделено из META-013 (та ждёт LIB-007), чтобы приложение на Rust-ядре (UI-024) не теряло постеры и описания: `Catalog::fetch_metadata` в `pa-catalog` — работы без свежих метаданных → TMDB (по известному id или поиск по названиям и году, ранжирование `TitleIndex`) → детали, переводы (ru/en), сезоны; аниме — AniList (romaji/en/native, MAL id, обложка) и Shikimori (русское название и описание). Пишет external_ids, titles, overview, год, длительность, статус, artwork (постер, фон, кадры эпизодов), данные эпизодов; матчи парсера → `decided_by=scorer`, `model_version=scorer_v0`, ниже 0.92 — `auto_review`; один TMDB id у двух работ — слияние. Миграция: `artwork`, `work_metadata`, `episodes.overview`. `pa-frb`: `fetch_metadata` / `reset_metadata`, постер и фон у `CoreItem`; `RustLibrary` запускает прогон после скана.
   - deps: META-009, META-010, META-026 · size: M · parallel: yes · веха: M2 · ref: 03 §4.4, §4.7
   - done when: тесты `pa-catalog` на синтетических ответах провайдеров (фильм, сериал из двух папок, аниме без TMDB, исправление по id, отозванный ключ, офлайн) зелёные; `Item` отдаёт постер и описание.
+- [ ] **META-028** Замер распознавания на реальных ответах TMDB
+  - Что: записать локальную «плёнку» ответов TMDB (`pa-eval run --recognizer tmdb --record-tmdb`) ключом владельца по корпусу v0, прогнать замер META-013 на ней; плёнку не коммитить (условия TMDB), в репозиторий — только метрики.
+  - deps: META-013, DEC-008 · size: S · parallel: yes · веха: M2 · ref: tools/recognition-eval/baselines/v0
+  - done when: точность на западном подмножестве теста ≥ 85 % на реальных ответах, 0 тихих ошибок при пороге 0.92; отчёт в baselines.
 
 ### 3.7. PLAY — общий плеерный слой
 
@@ -834,7 +846,7 @@ project_alpha/
   - Что: выбор режима (только приложение / свой сервер / Plex, Jellyfin, Emby), язык, создание профиля, добавление первого источника с автообнаруженными вариантами.
   - deps: UI-002, NET-011 · size: M · parallel: yes · веха: M1 · ref: S §1 (режимы A/B/C), 01 §2.2
   - done when: integration-тест проходит онбординг с WebDAV из docker-compose.
-- [ ] **UI-005** Экран «Источники» и формы
+- [x] **UI-005** Экран «Источники» и формы
   - Что: список со статусом (онлайн, последний скан, ошибки, «Пересканировать»), добавление (обнаруженные — сверху, ручные типы — ниже), формы SMB, NFS, WebDAV, SFTP, FTP, Plex, Jellyfin, Emby; выбор папок для скана, прогресс индексации, тест скорости.
   - deps: UI-002, NET-011, LIB-003 · size: M · parallel: yes · веха: M1 · ref: 01 §2.2 (добавление источника), §2.5 п.3
   - done when: widget-тесты форм; ошибки подключения выводятся понятным текстом по кодам из CORE-009.
@@ -1779,11 +1791,11 @@ project_alpha/
 | CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
 | NET | 21 | DIST | 27 |
-| LIB | 16 | DSN | 16 |
-| META | 27 | PKG | 17 |
+| LIB | 18 | DSN | 16 |
+| META | 28 | PKG | 17 |
 | PLAY | 14 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
 | PLAY-DSK | 9 | LEGAL | 10 |
 | PLAY-APL | 13 | SITE | 6 |
 | UI | 24 | COMM | 6 |
-| TV | 13 | **Всего** | **365** (357 задач + 8 решений владельца) |
+| TV | 13 | **Всего** | **369** (361 задач + 8 решений владельца) |

@@ -47,6 +47,10 @@ pub struct Report {
     pub overall: Metrics,
     pub per_category: BTreeMap<String, Metrics>,
     pub per_kind: BTreeMap<String, Metrics>,
+    /// Work kinds the metrics are restricted to ([`Report::restrict_kinds`]);
+    /// empty — all items.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub kinds: Vec<String>,
     pub performance: Performance,
     /// Every labelled unit, sorted by `(case_id, path)`.
     pub items: Vec<ItemOutcome>,
@@ -97,30 +101,16 @@ pub fn run(
         }
     }
     items.sort_by(|a, b| (&a.case_id, &a.path).cmp(&(&b.case_id, &b.path)));
-
-    let mut per_category: BTreeMap<String, Vec<&ItemOutcome>> = BTreeMap::new();
-    let mut per_kind: BTreeMap<String, Vec<&ItemOutcome>> = BTreeMap::new();
-    for item in &items {
-        for cat in &item.categories {
-            per_category.entry(cat.clone()).or_default().push(item);
-        }
-        if let Some(kind) = &item.kind {
-            per_kind.entry(kind.clone()).or_default().push(item);
-        }
-    }
-    let group = |m: BTreeMap<String, Vec<&ItemOutcome>>| {
-        m.into_iter()
-            .map(|(k, v)| (k, Metrics::from_items(v)))
-            .collect()
-    };
+    let (overall, per_category, per_kind) = aggregate(&items);
 
     Report {
         report_version: REPORT_VERSION,
         recognizer: recognizer.name().to_owned(),
         auto_threshold: threshold,
-        overall: Metrics::from_items(&items),
-        per_category: group(per_category),
-        per_kind: group(per_kind),
+        overall,
+        per_category,
+        per_kind,
+        kinds: Vec::new(),
         performance: Performance {
             provider_calls: counting.calls,
             calls_per_1000_files: (info.input_files > 0).then(|| {
@@ -133,7 +123,55 @@ pub fn run(
     }
 }
 
+type Aggregates = (
+    Metrics,
+    BTreeMap<String, Metrics>,
+    BTreeMap<String, Metrics>,
+);
+
+/// Overall metrics and the per-category and per-kind slices of `items`.
+fn aggregate(items: &[ItemOutcome]) -> Aggregates {
+    let mut per_category: BTreeMap<String, Vec<&ItemOutcome>> = BTreeMap::new();
+    let mut per_kind: BTreeMap<String, Vec<&ItemOutcome>> = BTreeMap::new();
+    for item in items {
+        for cat in &item.categories {
+            per_category.entry(cat.clone()).or_default().push(item);
+        }
+        if let Some(kind) = &item.kind {
+            per_kind.entry(kind.clone()).or_default().push(item);
+        }
+    }
+    let group = |m: BTreeMap<String, Vec<&ItemOutcome>>| {
+        m.into_iter()
+            .map(|(k, v)| (k, Metrics::from_items(v)))
+            .collect()
+    };
+    (
+        Metrics::from_items(items),
+        group(per_category),
+        group(per_kind),
+    )
+}
+
 impl Report {
+    /// Keeps only items whose labelled work is of one of `kinds` (`movie`,
+    /// `show`, `anime`) and recomputes the metrics: the western subset of
+    /// the corpus is `movie,show`. Provider counts stay those of the run.
+    #[must_use]
+    pub fn restrict_kinds(mut self, kinds: &[String]) -> Self {
+        self.items
+            .retain(|i| i.kind.as_ref().is_some_and(|k| kinds.contains(k)));
+        let (overall, per_category, per_kind) = aggregate(&self.items);
+        self.overall = overall;
+        self.per_category = per_category;
+        self.per_kind = per_kind;
+        let mut kinds = kinds.to_vec();
+        kinds.sort();
+        kinds.dedup();
+        self.kinds = kinds;
+        self
+    }
+
     pub fn to_json(&self) -> String {
         let mut s = serde_json::to_string_pretty(self).expect("report serializes");
         s.push('\n');
@@ -163,6 +201,13 @@ impl Report {
             c.input_files,
             self.auto_threshold
         );
+        if !self.kinds.is_empty() {
+            let _ = writeln!(
+                o,
+                "Подмножество: элементы с работами типов {}\n",
+                self.kinds.join(", ")
+            );
+        }
 
         let _ = writeln!(o, "## Итог\n");
         metrics_header(&mut o, "Группа");

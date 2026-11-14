@@ -2,10 +2,11 @@
 //! `pa-eval` CLI.
 //!
 //! ```text
-//! pa-eval run [--recognizer naive|parser|abstain|scorer] [--tape TAPE.jsonl] [--threshold X]
+//! pa-eval run [--recognizer naive|parser|abstain|scorer|tmdb] [--tape TAPE.jsonl]
+//!             [--synthetic-tmdb RECORDS.jsonl] [--record-tmdb OUT.jsonl] [--threshold X]
 //!             [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--signals OUT.jsonl]
-//!             [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
-//!             CORPUS.jsonl...
+//!             [--kinds movie,show] [--no-validate] [--json OUT.json] [--md OUT.md]
+//!             [--misses OUT.jsonl] CORPUS.jsonl...
 //! pa-eval compare --baseline BASE.json --current CUR.json
 //!             [--max-silent-regression-pp 0.2] [--md OUT.md]
 //! pa-eval candidates [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--k 1,3,5,10]
@@ -17,9 +18,10 @@ use std::collections::BTreeSet;
 use std::process::ExitCode;
 use std::time::Instant;
 
-use pa_eval::provider::{Provider, ProviderError, ProviderRequest};
+use pa_eval::provider::{Provider, ProviderError, ProviderRequest, RecordingProvider};
 use pa_eval::recognizer::{Abstain, Naive, Parser};
 use pa_eval::scorer::{Scorer, SignalLine};
+use pa_eval::tmdb::{SyntheticTmdb, Tmdb};
 use pa_eval::{Corpus, DEFAULT_THRESHOLD, Recognizer, ReplayProvider, Report, Tape};
 use serde_json::Value;
 
@@ -41,10 +43,11 @@ impl Provider for MissLog {
 }
 
 const USAGE: &str = "usage:
-  pa-eval run [--recognizer naive|parser|abstain|scorer] [--tape TAPE.jsonl] [--threshold X]
+  pa-eval run [--recognizer naive|parser|abstain|scorer|tmdb] [--tape TAPE.jsonl]
+              [--synthetic-tmdb RECORDS.jsonl] [--record-tmdb OUT.jsonl] [--threshold X]
               [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--signals OUT.jsonl]
-              [--no-validate] [--json OUT.json] [--md OUT.md] [--misses OUT.jsonl]
-              CORPUS.jsonl...
+              [--kinds movie,show] [--no-validate] [--json OUT.json] [--md OUT.md]
+              [--misses OUT.jsonl] CORPUS.jsonl...
   pa-eval compare --baseline BASE.json --current CUR.json
               [--max-silent-regression-pp 0.2] [--md OUT.md]
   pa-eval candidates [--anime AOD.jsonl] [--catalog RECORDS.jsonl]... [--k 1,3,5,10]
@@ -126,17 +129,36 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
             "--anime",
             "--catalog",
             "--signals",
+            "--synthetic-tmdb",
+            "--record-tmdb",
+            "--kinds",
         ],
         &["--no-validate"],
     )?;
     if files.is_empty() {
         return Err(USAGE.to_owned());
     }
+    let sources = ["--tape", "--synthetic-tmdb", "--record-tmdb"]
+        .iter()
+        .filter(|o| opt(&opts, o).is_some())
+        .count();
+    if sources > 1 {
+        return Err("use one of --tape, --synthetic-tmdb, --record-tmdb".to_owned());
+    }
+    let kinds: Vec<String> = opt(&opts, "--kinds")
+        .map(|k| {
+            k.split(',')
+                .map(|k| k.trim().to_owned())
+                .filter(|k| !k.is_empty())
+                .collect()
+        })
+        .unwrap_or_default();
     let mut scorer = None;
     let mut recognizer: Box<dyn Recognizer> = match opt(&opts, "--recognizer").unwrap_or("naive") {
         "naive" => Box::new(Naive),
         "parser" => Box::new(Parser),
         "abstain" => Box::new(Abstain),
+        "tmdb" => Box::new(Tmdb),
         "scorer" => {
             scorer = Some(Scorer::new(build_index(&opts)?));
             Box::new(Abstain)
@@ -164,15 +186,42 @@ fn cmd_run(args: &[String]) -> Result<ExitCode, String> {
         .collect::<Result<Vec<_>, String>>()?;
     let corpus = Corpus::load(&docs, opt(&opts, "--no-validate").is_none())?;
 
-    let started = Instant::now();
-    let mut provider = MissLog {
+    let mut replay = MissLog {
         inner: ReplayProvider::new(tape),
         missed: BTreeSet::new(),
     };
-    let report = match scorer.as_mut() {
-        Some(s) => pa_eval::run(&corpus, s, &mut provider, threshold),
-        None => pa_eval::run(&corpus, recognizer.as_mut(), &mut provider, threshold),
+    let mut synthetic = match opt(&opts, "--synthetic-tmdb") {
+        Some(path) => {
+            let records = pa_eval::candidates::load_catalog(&read(path)?)
+                .map_err(|e| format!("{path}: {e}"))?;
+            Some(SyntheticTmdb::new(&records))
+        }
+        None => None,
     };
+    let mut recording = match opt(&opts, "--record-tmdb") {
+        Some(_) => Some(RecordingProvider::new(live_tmdb()?)),
+        None => None,
+    };
+    let provider: &mut dyn Provider = match (&mut synthetic, &mut recording) {
+        (Some(s), _) => s,
+        (_, Some(r)) => r,
+        _ => &mut replay,
+    };
+
+    let started = Instant::now();
+    let report = match scorer.as_mut() {
+        Some(s) => pa_eval::run(&corpus, s, provider, threshold),
+        None => pa_eval::run(&corpus, recognizer.as_mut(), provider, threshold),
+    };
+    let report = if kinds.is_empty() {
+        report
+    } else {
+        report.restrict_kinds(&kinds)
+    };
+    if let (Some(path), Some(r)) = (opt(&opts, "--record-tmdb"), recording) {
+        write(path, &r.into_tape().to_jsonl())?;
+    }
+    let provider = replay;
     if let (Some(path), Some(s)) = (opt(&opts, "--signals"), &scorer) {
         let mut text = String::new();
         for (seq, file, m) in &s.log {
@@ -258,6 +307,23 @@ fn cmd_compare(args: &[String]) -> Result<ExitCode, String> {
         eprintln!("silent-error regression in: {}", cmp.regressions.join(", "));
         ExitCode::from(1)
     })
+}
+
+/// A live TMDB client for `--record-tmdb`: the user's key from
+/// `TMDB_API_KEY`, the default language (`ru-RU`, as the app), an in-memory
+/// cache. A recorded tape holds TMDB data: keep it local (TMDB terms), do
+/// not commit it.
+fn live_tmdb() -> Result<pa_catalog::pa_metadata::tmdb::TmdbClient, String> {
+    use pa_catalog::pa_metadata::{cache::MemoryCache, tmdb};
+    let key = std::env::var("TMDB_API_KEY")
+        .ok()
+        .filter(|k| !k.trim().is_empty())
+        .ok_or("--record-tmdb needs the TMDB_API_KEY environment variable")?;
+    Ok(tmdb::TmdbClient::live(
+        tmdb::TmdbConfig::default(),
+        Some(&key),
+        std::sync::Arc::new(MemoryCache::default()),
+    ))
 }
 
 /// Title index from `--anime` and `--catalog` options.

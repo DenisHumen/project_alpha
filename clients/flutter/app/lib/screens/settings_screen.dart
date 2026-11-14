@@ -12,6 +12,7 @@ import '../widgets/cards.dart';
 import '../widgets/focusable.dart';
 import 'about_screen.dart';
 import 'add_source_dialog.dart';
+import 'sources_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -47,6 +48,16 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                       for (final s in services.sources) _SourceTile(source: s),
+                      _NavTile(
+                        icon: Icons.tune,
+                        title: l.sourcesManage,
+                        subtitle: l.sourcesManageSubtitle,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const SourcesScreen(),
+                          ),
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.centerLeft,
@@ -247,7 +258,7 @@ class _SourceTile extends StatelessWidget {
                   ],
                 ),
               );
-              if (ok == true) await services.removeSource(source.id);
+              if (ok == true) await services.deleteSource(source.id);
             },
             icon: const Icon(Icons.delete_outline),
           ),

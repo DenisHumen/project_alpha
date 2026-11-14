@@ -11,8 +11,10 @@ publish.workspace = true
 
 [dependencies]
 pa-anime-mappings = { path = "../../../core/crates/pa-anime-mappings" }
+pa-catalog = { path = "../../../core/crates/pa-catalog" }
 pa-recognition = { path = "../../../core/crates/pa-recognition" }
 pa-recognition-eval = { path = "../../recognition-eval" }
+pa-scanner = { path = "../../../core/crates/pa-scanner" }
 serde.workspace = true
 serde_json.workspace = true
 

@@ -89,6 +89,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<CoreWatchEvent> dco_decode_StreamSink_core_watch_event_Sse(
+    dynamic raw,
+  );
+
+  @protected
   RustStreamSink<int> dco_decode_StreamSink_u_32_Sse(dynamic raw);
 
   @protected
@@ -124,6 +129,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSourceInput dco_decode_box_autoadd_core_source_input(dynamic raw);
+
+  @protected
+  CoreWatchSettings dco_decode_box_autoadd_core_watch_settings(dynamic raw);
 
   @protected
   DiscKind dco_decode_box_autoadd_disc_kind(dynamic raw);
@@ -205,6 +213,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSpeedReport dco_decode_core_speed_report(dynamic raw);
+
+  @protected
+  CoreWatchEvent dco_decode_core_watch_event(dynamic raw);
+
+  @protected
+  CoreWatchSettings dco_decode_core_watch_settings(dynamic raw);
 
   @protected
   DiscKind dco_decode_disc_kind(dynamic raw);
@@ -407,6 +421,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  RustStreamSink<CoreWatchEvent> sse_decode_StreamSink_core_watch_event_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   RustStreamSink<int> sse_decode_StreamSink_u_32_Sse(
     SseDeserializer deserializer,
   );
@@ -446,6 +465,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSourceInput sse_decode_box_autoadd_core_source_input(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  CoreWatchSettings sse_decode_box_autoadd_core_watch_settings(
     SseDeserializer deserializer,
   );
 
@@ -539,6 +563,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   CoreSpeedReport sse_decode_core_speed_report(SseDeserializer deserializer);
+
+  @protected
+  CoreWatchEvent sse_decode_core_watch_event(SseDeserializer deserializer);
+
+  @protected
+  CoreWatchSettings sse_decode_core_watch_settings(
+    SseDeserializer deserializer,
+  );
 
   @protected
   DiscKind sse_decode_disc_kind(SseDeserializer deserializer);
@@ -782,6 +814,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_StreamSink_core_watch_event_Sse(
+    RustStreamSink<CoreWatchEvent> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_StreamSink_u_32_Sse(
     RustStreamSink<int> self,
     SseSerializer serializer,
@@ -829,6 +867,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_box_autoadd_core_source_input(
     CoreSourceInput self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_core_watch_settings(
+    CoreWatchSettings self,
     SseSerializer serializer,
   );
 
@@ -958,6 +1002,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_core_speed_report(
     CoreSpeedReport self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_watch_event(
+    CoreWatchEvent self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_core_watch_settings(
+    CoreWatchSettings self,
     SseSerializer serializer,
   );
 

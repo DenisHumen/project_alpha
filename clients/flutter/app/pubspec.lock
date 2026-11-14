@@ -533,7 +533,7 @@ packages:
     source: hosted
     version: "9.6.4"
   pa_core:
-    dependency: transitive
+    dependency: "direct main"
     description:
       path: "../packages/pa_core"
       relative: true

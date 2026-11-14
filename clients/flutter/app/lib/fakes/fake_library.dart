@@ -46,7 +46,13 @@ class FakeLibrary implements Library {
   @override
   Future<MediaSource> addSource(MediaSource s) async {
     final src = s.id.isEmpty ? s.copyWith(id: 'src-${_nextId++}') : s;
-    _sources.add(src);
+    // An existing id updates the source, as in the real libraries.
+    final i = _sources.indexWhere((x) => x.id == src.id);
+    if (i >= 0) {
+      _sources[i] = src;
+    } else {
+      _sources.add(src);
+    }
     return src;
   }
 
@@ -261,6 +267,23 @@ class FakeLibrary implements Library {
           i,
     ];
   }
+
+  /// Watcher calls, for tests.
+  int watchStarts = 0;
+  bool watching = false;
+
+  @override
+  Future<void> startWatching({
+    Map<String, String> smbPasswords = const {},
+    Duration networkInterval = const Duration(minutes: 15),
+    bool scanOnStart = true,
+  }) async {
+    watchStarts++;
+    watching = true;
+  }
+
+  @override
+  Future<void> stopWatching() async => watching = false;
 
   @override
   Future<void> close() async {}
