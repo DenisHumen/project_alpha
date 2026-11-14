@@ -41,6 +41,7 @@
 | [0033](0033-libsmb2-runtime-loading.md) | SMB через libsmb2: загрузка в рантайме, пул контекстов, read-ahead с параллельным prefetch | Предложен | NET-002, NET-003 |
 | [0034](0034-pa-probe-libavformat-runtime.md) | `pa-probe`: libavformat в рантайме, зеркало префиксов структур, окно чтения «голова + хвост» | Предложен | LIB-006 |
 | [0035](0035-apple-engines-foreign-player-engine-mpvkit.md) | Apple-движки — Swift-реализации `PlayerEngine` через UniFFI foreign trait; MPVKit только LGPL с точной версией | Предложен | PLAY-APL-001 |
+| [NNNN](NNNN-image-cache-in-core.md) | Кэш изображений в ядре (`pa-imagecache`): размеры через URL провайдера, LRU по mtime, декодирование во Flutter | Предложен | LIB-013 |
 
 ## Запланированные ADR
 
