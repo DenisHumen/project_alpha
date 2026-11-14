@@ -221,6 +221,25 @@ fn file_stem(path: &str) -> &str {
     name.rsplit_once('.').map_or(name, |(stem, _)| stem)
 }
 
+/// A lowercase file-name title (`inception.mkv`) takes the casing of the
+/// same title written in an alternative title or in its folder
+/// (`Inception (2010)/`).
+fn better_cased(title: String, alts: &[String], path: &str) -> String {
+    if title.chars().any(char::is_uppercase) {
+        return title;
+    }
+    let key = TitleKey::new(&title).loose;
+    let mut folders = path.rsplit('/').skip(1).take(2).map(|f| {
+        // `Inception (2010) [1080p]` → `Inception`.
+        f.split(['(', '[']).next().unwrap_or(f).trim().to_owned()
+    });
+    alts.iter()
+        .cloned()
+        .chain(&mut folders)
+        .find(|a| a.chars().any(char::is_uppercase) && TitleKey::new(a).loose == key)
+        .unwrap_or(title)
+}
+
 /// What the parser says a file is.
 enum Plan {
     Skip,
@@ -246,6 +265,7 @@ fn plan(path: &str, p: &ParsedName) -> Plan {
         .clone()
         .filter(|t| !t.trim().is_empty())
         .unwrap_or_else(|| file_stem(path).to_owned());
+    let title = better_cased(title, &p.alt_titles, path);
     let year = p.year.map(i64::from);
     let is_episode = p.media == MediaHint::Episode
         || !p.episodes.is_empty()
@@ -448,6 +468,17 @@ mod tests {
                 assert_eq!(numbers[0].kind, "regular");
             }
             _ => panic!("episode expected"),
+        }
+    }
+
+    #[test]
+    fn folder_casing_wins_over_a_lowercase_file_name() {
+        match plan_of("Movies/Inception (2010)/inception.mkv") {
+            Plan::Movie { title, year } => {
+                assert_eq!(title, "Inception");
+                assert_eq!(year, Some(2010));
+            }
+            _ => panic!("movie expected"),
         }
     }
 

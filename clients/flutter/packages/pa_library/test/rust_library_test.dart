@@ -32,10 +32,16 @@ void main() {
     root = p.join(tmp.path, 'media');
     media(root, 'Movies/The.Matrix.1999.1080p.BluRay.x264-GRP.mkv', 1);
     media(root, 'Movies/Inception (2010)/inception.mkv', 2);
-    File(p.join(root, 'Movies/Inception (2010)/poster.jpg')).writeAsBytesSync([1]);
+    File(
+      p.join(root, 'Movies/Inception (2010)/poster.jpg'),
+    ).writeAsBytesSync([1]);
     media(root, 'TV/Breaking Bad/Season 1/Breaking.Bad.S01E01.720p.mkv', 3);
     media(root, 'TV/Breaking Bad/Season 1/Breaking.Bad.S01E02.720p.mkv', 4);
-    media(root, 'Music/Queen/A Night at the Opera/11 - Bohemian Rhapsody.mp3', 5);
+    media(
+      root,
+      'Music/Queen/A Night at the Opera/11 - Bohemian Rhapsody.mp3',
+      5,
+    );
   });
 
   tearDown(() => tmp.deleteSync(recursive: true));
@@ -49,84 +55,87 @@ void main() {
     ),
   );
 
-  test('scan, views, progress and search through the Library interface', () async {
-    final lib = await RustLibrary.open(p.join(tmp.path, 'db', 'core.db'));
-    addTearDown(lib.close);
-    final src = await addMedia(lib);
-    expect(int.tryParse(src.id), isNotNull);
-    expect((await lib.sources()).single.path, root);
+  test(
+    'scan, views, progress and search through the Library interface',
+    () async {
+      final lib = await RustLibrary.open(p.join(tmp.path, 'db', 'core.db'));
+      addTearDown(lib.close);
+      final src = await addMedia(lib);
+      expect(int.tryParse(src.id), isNotNull);
+      expect((await lib.sources()).single.path, root);
 
-    final events = await lib.scan().toList();
-    expect(events.last.isDone, isTrue);
-    expect(events.last.filesFound, 5);
-    expect(events.expand((e) => e.errors), isEmpty);
+      final events = await lib.scan().toList();
+      expect(events.last.isDone, isTrue);
+      expect(events.last.filesFound, 5);
+      expect(events.expand((e) => e.errors), isEmpty);
 
-    final movies = await lib.movies().first;
-    expect(movies.map((m) => (m.title, m.year)), [
-      ('Inception', 2010),
-      ('The Matrix', 1999),
-    ]);
-    expect(movies.first.posterUrl, endsWith('poster.jpg'));
-    expect(
-      movies.last.filePath,
-      p.join(root, 'Movies/The.Matrix.1999.1080p.BluRay.x264-GRP.mkv'),
-    );
+      final movies = await lib.movies().first;
+      expect(movies.map((m) => (m.title, m.year)), [
+        ('Inception', 2010),
+        ('The Matrix', 1999),
+      ]);
+      expect(movies.first.posterUrl, endsWith('poster.jpg'));
+      expect(
+        movies.last.filePath,
+        p.join(root, 'Movies/The.Matrix.1999.1080p.BluRay.x264-GRP.mkv'),
+      );
 
-    final shows = await lib.shows().first;
-    expect(shows.single.title, 'Breaking Bad');
-    expect(shows.single.kind, ItemKind.show);
-    final eps = await lib.episodes(shows.single.id).first;
-    expect(eps.map((e) => (e.season, e.episode)), [(1, 1), (1, 2)]);
-    expect(eps.first.showId, shows.single.id);
+      final shows = await lib.shows().first;
+      expect(shows.single.title, 'Breaking Bad');
+      expect(shows.single.kind, ItemKind.show);
+      final eps = await lib.episodes(shows.single.id).first;
+      expect(eps.map((e) => (e.season, e.episode)), [(1, 1), (1, 2)]);
+      expect(eps.first.showId, shows.single.id);
 
-    final tracks = await lib.tracks().first;
-    expect(tracks.single.kind, ItemKind.track);
-    expect(await lib.recentlyAdded(kind: ItemKind.show).first, hasLength(1));
+      final tracks = await lib.tracks().first;
+      expect(tracks.single.kind, ItemKind.track);
+      expect(await lib.recentlyAdded(kind: ItemKind.show).first, hasLength(1));
 
-    // Progress and "Continue watching" update the stream.
-    final cw = lib.continueWatching();
-    final updates = cw.take(2).toList();
-    await Future<void>.delayed(const Duration(milliseconds: 50));
-    await lib.saveProgress(
-      Progress(
-        itemId: movies.last.id,
-        positionMs: 600000,
-        durationMs: 8000000,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(1000),
-      ),
-    );
-    final rows = (await updates).last;
-    expect(rows.single.$1.id, movies.last.id);
-    expect(rows.single.$2.positionMs, 600000);
-    expect((await lib.progress(movies.last.id))!.durationMs, 8000000);
+      // Progress and "Continue watching" update the stream.
+      final cw = lib.continueWatching();
+      final updates = cw.take(2).toList();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await lib.saveProgress(
+        Progress(
+          itemId: movies.last.id,
+          positionMs: 600000,
+          durationMs: 8000000,
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(1000),
+        ),
+      );
+      final rows = (await updates).last;
+      expect(rows.single.$1.id, movies.last.id);
+      expect(rows.single.$2.positionMs, 600000);
+      expect((await lib.progress(movies.last.id))!.durationMs, 8000000);
 
-    // Up Next after a finished episode.
-    await lib.saveProgress(
-      Progress(
-        itemId: eps.first.id,
-        positionMs: 2990000,
-        durationMs: 3000000,
-        updatedAt: DateTime.fromMillisecondsSinceEpoch(2000),
-      ),
-    );
-    final row = await lib.continueWatching().first;
-    expect(row.first.$1.id, eps.last.id);
+      // Up Next after a finished episode.
+      await lib.saveProgress(
+        Progress(
+          itemId: eps.first.id,
+          positionMs: 2990000,
+          durationMs: 3000000,
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(2000),
+        ),
+      );
+      final row = await lib.continueWatching().first;
+      expect(row.first.$1.id, eps.last.id);
 
-    expect((await lib.search('matrix')).first.title, 'The Matrix');
-    expect(await lib.search('  '), isEmpty);
-    expect(await lib.item('nope'), isNull);
+      expect((await lib.search('matrix')).first.title, 'The Matrix');
+      expect(await lib.search('  '), isEmpty);
+      expect(await lib.item('nope'), isNull);
 
-    await lib.fixMatch(eps.first.id, title: 'Во все тяжкие', year: 2008);
-    final fixed = await lib.item(shows.single.id);
-    expect((fixed!.title, fixed.year), ('Во все тяжкие', 2008));
-    expect(
-      () => lib.fixMatch('m999999', title: 'x'),
-      throwsA(isA<ArgumentError>()),
-    );
+      await lib.fixMatch(eps.first.id, title: 'Во все тяжкие', year: 2008);
+      final fixed = await lib.item(shows.single.id);
+      expect((fixed!.title, fixed.year), ('Во все тяжкие', 2008));
+      expect(
+        () => lib.fixMatch('m999999', title: 'x'),
+        throwsA(isA<ArgumentError>()),
+      );
 
-    await lib.removeSource(src.id);
-    expect(await lib.movies().first, isEmpty);
-  });
+      await lib.removeSource(src.id);
+      expect(await lib.movies().first, isEmpty);
+    },
+  );
 
   test('imports the v0 database of the Dart library once', () async {
     final v0Path = p.join(tmp.path, 'kinolune.db');

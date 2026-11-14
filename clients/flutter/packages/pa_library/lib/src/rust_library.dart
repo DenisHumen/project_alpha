@@ -305,7 +305,11 @@ class RustLibrary implements Library {
     };
     final poster = switch (kind) {
       // Generic names (`poster.jpg`) only for a movie in its own folder.
-      ItemKind.movie => _image(path, video: true, generic: i.relPath.contains('/')),
+      ItemKind.movie => _image(
+        path,
+        video: true,
+        generic: i.relPath.contains('/'),
+      ),
       ItemKind.show => _image(
         p.join(path, 'x.mkv'),
         video: true,
@@ -316,7 +320,9 @@ class RustLibrary implements Library {
     };
     final title = i.title.isNotEmpty
         ? i.title
-        : (kind == ItemKind.episode ? 'Episode ${i.episode ?? ''}' : p.basename(path));
+        : (kind == ItemKind.episode
+              ? 'Episode ${i.episode ?? ''}'
+              : p.basename(path));
     return LibraryItem(
       id: i.id,
       kind: kind,
