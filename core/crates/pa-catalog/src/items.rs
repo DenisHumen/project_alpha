@@ -9,7 +9,7 @@ use std::fmt;
 use std::str::FromStr;
 
 use pa_library::rusqlite::{Connection, OptionalExtension, Row, ToSql, params, params_from_iter};
-use pa_library::search::{SearchKind, SearchOptions};
+use pa_library::search::{MAX_LIMIT, SearchHit, SearchKind, SearchOptions};
 
 use crate::{Catalog, Error, uri};
 
@@ -613,32 +613,90 @@ impl Catalog {
     pub fn search(&self, text: &str, limit: usize) -> Result<Vec<Item>, Error> {
         let conn = self.lock();
         let opts = SearchOptions {
-            limit: limit.clamp(1, pa_library::search::MAX_LIMIT),
-            kinds: vec![
-                SearchKind::Movie,
-                SearchKind::Show,
-                SearchKind::Anime,
-                SearchKind::Episode,
-                SearchKind::Track,
-            ],
-            profile_id: None,
+            limit: limit.clamp(1, MAX_LIMIT),
+            kinds: all_search_kinds(),
+            ..SearchOptions::default()
         };
-        let hits = pa_library::search::search(&conn, text, &opts)?;
-        let mut out = Vec::with_capacity(hits.len());
-        for hit in hits {
-            let id = match hit.kind {
-                SearchKind::Movie => ItemRef::Movie(hit.id),
-                SearchKind::Show | SearchKind::Anime => ItemRef::Show(hit.id),
-                SearchKind::Episode => ItemRef::Episode(hit.id),
-                SearchKind::Track => ItemRef::Track(hit.id),
-                _ => continue,
-            };
-            if let Some(found) = item(&conn, id)? {
+        let mut out = Vec::new();
+        for hit in pa_library::search::search(&conn, text, &opts)? {
+            if let Some(found) = hit_item(&conn, &hit)? {
                 out.push(found);
             }
         }
         Ok(out)
     }
+
+    /// Search results grouped for the Search screen (UI-011): movies, shows
+    /// (with anime), episodes and tracks, in this order, each best first and
+    /// at most `per_group` long; empty groups are left out. One query ranks
+    /// every kind with a cap per kind, so many matching movies do not crowd
+    /// out the episodes.
+    pub fn search_grouped(&self, text: &str, per_group: usize) -> Result<Vec<SearchGroup>, Error> {
+        let per_group = per_group.clamp(1, MAX_LIMIT);
+        // Hits whose file is missing are dropped: ask for a few more.
+        let per_kind = (per_group + per_group / 2 + 1).min(MAX_LIMIT);
+        let opts = SearchOptions {
+            limit: MAX_LIMIT,
+            kinds: all_search_kinds(),
+            per_kind: Some(per_kind),
+            ..SearchOptions::default()
+        };
+        let conn = self.lock();
+        let hits = pa_library::search::search(&conn, text, &opts)?;
+        let mut out = Vec::new();
+        for (kind, kinds) in SEARCH_GROUPS {
+            let mut items = Vec::new();
+            for hit in hits.iter().filter(|h| kinds.contains(&h.kind)) {
+                if items.len() == per_group {
+                    break;
+                }
+                if let Some(found) = hit_item(&conn, hit)? {
+                    items.push(found);
+                }
+            }
+            if !items.is_empty() {
+                out.push(SearchGroup { kind, items });
+            }
+        }
+        Ok(out)
+    }
+}
+
+/// One group of [`Catalog::search_grouped`].
+#[derive(Debug, Clone, PartialEq)]
+pub struct SearchGroup {
+    pub kind: ItemKind,
+    /// Best first.
+    pub items: Vec<Item>,
+}
+
+/// Groups of [`Catalog::search_grouped`], in display order, and the search
+/// kinds behind each.
+const SEARCH_GROUPS: [(ItemKind, &[SearchKind]); 4] = [
+    (ItemKind::Movie, &[SearchKind::Movie]),
+    (ItemKind::Show, &[SearchKind::Show, SearchKind::Anime]),
+    (ItemKind::Episode, &[SearchKind::Episode]),
+    (ItemKind::Track, &[SearchKind::Track]),
+];
+
+/// Search kinds that are items.
+fn all_search_kinds() -> Vec<SearchKind> {
+    SEARCH_GROUPS
+        .iter()
+        .flat_map(|(_, kinds)| kinds.iter().copied())
+        .collect()
+}
+
+/// The item of a search hit; `None` without a present file.
+fn hit_item(conn: &Connection, hit: &SearchHit) -> Result<Option<Item>, Error> {
+    let id = match hit.kind {
+        SearchKind::Movie => ItemRef::Movie(hit.id),
+        SearchKind::Show | SearchKind::Anime => ItemRef::Show(hit.id),
+        SearchKind::Episode => ItemRef::Episode(hit.id),
+        SearchKind::Track => ItemRef::Track(hit.id),
+        _ => return Ok(None),
+    };
+    item(conn, id)
 }
 
 #[cfg(test)]

@@ -345,7 +345,7 @@ project_alpha/
   - Что: cargo features `store`/`full`, `twitch-archive`, `donation-links`; константа флейвора во всех клиентах (dart-define, Gradle flavors, Xcode configs); CI-тест, что store-бинарь не содержит символов и строк архива Twitch и донат-ссылок.
   - deps: CORE-006 · size: M · parallel: no · веха: M1 · ref: S §4, §6; 06 §2.7 п.4
   - done when: CI проверяет store-артефакты всех платформ (`nm` / `strings`) и падает при находке.
-- [ ] **CORE-014** Клиент удалённого конфига без серверов
+- [x] **CORE-014** Клиент удалённого конфига без серверов
   - Что: загрузка подписанного JSON из публичного репо (`config/`, через GitHub Pages или raw), проверка подписи minisign встроенным ключом, ETag, кэш, откат на встроенную копию, флаги kill-switch.
   - deps: CORE-006 · size: S · parallel: yes · веха: M2 · ref: S §3 (Twitch), 06 §2.6
   - done when: тесты: неверная подпись отклоняется; офлайн берётся последняя валидная копия.
@@ -858,11 +858,11 @@ project_alpha/
   - Что: второй путь к контенту: источник → папки → файл → Detail или плеер; сортировка, «папки сверху», опция «показывать имена файлов».
   - deps: UI-005 · size: S · parallel: yes · веха: M1 · ref: 01 §2.1
   - done when: из браузера файлов открывается тот же Detail, что из библиотеки.
-- [ ] **UI-007** Главная
+- [x] **UI-007** Главная
   - Что: общий ряд «Продолжить» (фильмы, эпизоды, Twitch-VOD; бейдж типа), Up Next, ряды категорий, «Недавно добавленные», избранное, умные полки, источники; баннер handoff «Продолжить на этом устройстве» (через SYNC).
   - deps: UI-002, LIB-009, LIB-011 · size: M · parallel: yes · веха: M1 · ref: 01 §2.2 (Home), §2.7
   - done when: golden-тесты; ряд «Продолжить» обновляется по событию без перезагрузки экрана.
-- [ ] **UI-008** Сетка библиотеки и контекстные меню
+- [x] **UI-008** Сетка библиотеки и контекстные меню
   - Что: постеры 2:3, комбинируемые фильтр-чипы, сортировка, алфавитный индекс, режим списка, бейджи (просмотрено, прогресс, «новое»); контекстное меню по долгому нажатию или правой кнопке (Play, «Просмотрено», избранное, плейлист, «Изменить метаданные», загрузка, удаление).
   - deps: UI-002, LIB-009 · size: M · parallel: yes · веха: M1 · ref: 01 §2.2 (Grid), §2.3, §3 п.5
   - done when: 10 000 элементов прокручиваются со скоростью 60 fps на среднем Android (профиль в QA-006).
@@ -874,7 +874,7 @@ project_alpha/
   - Что: табы сезонов (включая Specials), эпизоды 16:9 с прогрессом, Hide Spoilers (размытие описаний и кадров непросмотренных), выбор порядка эпизодов (DisplayPreference), кнопка «Resume S2E5».
   - deps: UI-009 · size: M · parallel: yes · веха: M1 · ref: 01 §2.2, §1.4 (Hide Spoilers), 03 §4.2 [6]
   - done when: при смене порядка с TMDB на AniDB эпизоды перестраиваются (тест на фикстуре).
-- [ ] **UI-011** Поиск
+- [x] **UI-011** Поиск
   - Что: группы результатов (фильмы, сериалы, эпизоды, люди, коллекции, стримеры, музыка), история поиска, голосовой ввод [P2].
   - deps: UI-002, LIB-008 · size: S · parallel: yes · веха: M1 · ref: 01 §1.5
   - done when: результаты появляются меньше чем за 100 мс после ввода на 50 000 элементах.
@@ -1194,7 +1194,7 @@ project_alpha/
   - deps: TWI-001, TWI-004 · size: M · parallel: yes · веха: M7 · ref: S §6, 06 §1.3
   - done when: отчёт в `docs/adr/`, решение DEC-006 принято.
 - [ ] **TWI-004** Воспроизведение: GQL → usher и удалённый конфиг
-  - Что: PlaybackAccessToken → master playlist для live и VOD; `supported_codecs` по возможностям устройства; выбор качества и audio_only; client-id и хэши persisted queries — в `config/twitch/remote-config.json` (подпись, CORE-014); флаги `twitch.gql_playback`, `chapters_gql`, `chat_replay`, `archive`, `player=embed`; kill-switch по версии приложения.
+  - Что: PlaybackAccessToken → master playlist для live и VOD; `supported_codecs` по возможностям устройства; выбор качества и audio_only; client-id и хэши persisted queries — в секции `twitch` файла `config/remote-config.json` (подпись minisign, CORE-014, ADR-0039); флаги `twitch.gql_playback`, `chapters_gql`, `chat_replay`, `archive`, `player=embed`; kill-switch по версии приложения.
   - deps: TWI-001, CORE-014 · size: M · parallel: yes · веха: M7 · ref: 06 §2.1, §2.6–2.7
   - done when: live и VOD играют на десктопе; при смене конфига функция выключается без релиза.
 - [ ] **TWI-005** Запасной режим: официальный embed
@@ -1217,7 +1217,7 @@ project_alpha/
   - Что: EventSub WebSocket с токеном пользователя (≈ 10 каналов из-за лимита стоимости) плюс поллинг `streams/followed` раз в 60–120 с на сервере, десктопе и Android (опционально в фоне); локальные уведомления; на iOS — только при активном приложении или BGAppRefresh, это честно указано в UI.
   - deps: TWI-002, TWI-007 · size: M · parallel: yes · веха: M7 · ref: 06 §1.2, S §6
   - done when: уведомление приходит не позже чем через 2 минуты после начала эфира на десктопе и сервере.
-- [ ] **TWI-010** Live-чат: абстракция ChatSource
+- [x] **TWI-010** Live-чат: абстракция ChatSource
   - Что: анонимный IRC по WebSocket (`justinfan…`, только чтение); с логином — EventSub `channel.chat.message` и `POST /helix/chat/messages`; нормализованная модель ChatMessage; события модерации (удаление, бан, таймаут, режимы чата).
   - deps: TWI-002 · size: M · parallel: yes · веха: M7 · ref: 06 §3.1, §3.3
   - done when: тесты разбора IRCv3 и EventSub на записанных сообщениях.

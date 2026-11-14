@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-remote-config"
+version = "0.1.0"
+description = "Serverless remote config: minisign-signed JSON from the public repo, ETag, disk cache, built-in fallback, kill-switches (CORE-014)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[features]
+default = ["http"]
+# Live HTTPS fetcher (ureq + rustls/ring + webpki-roots, as in pa-metadata).
+# Without it the client still works with any injected `ConfigFetcher`.
+http = ["dep:ureq"]
+
+[dependencies]
+minisign-verify.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+ureq = { workspace = true, optional = true }
+
+[dev-dependencies]
+# Tests sign configs with a throwaway minisign key generated in the test.
+base64.workspace = true
+blake2.workspace = true
+ed25519-dalek.workspace = true
+getrandom.workspace = true
+tempfile.workspace = true

@@ -10,6 +10,7 @@ import 'package:kinolune/app.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/fakes/fake_source_manager.dart';
 import 'package:kinolune/platform/form_factor.dart';
+import 'package:kinolune/screens/home_screen.dart';
 import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/services/secure_store.dart';
 import 'package:kinolune/shell/app_shell.dart';
@@ -94,10 +95,15 @@ Future<AppServices> demoServices({
     playerEngineFactory: ({bool video = true}) => FakePlayerEngine(),
     sourceManager: reducedSources ? null : FakeSourceManager(library),
     discovery: discovery,
+    clock: () => demoNow,
   );
   await s.init();
   return s;
 }
+
+/// "Now" of the demo services: a day after the demo data's reference time,
+/// so "new" badges do not depend on the date the tests run.
+final demoNow = DateTime(2026, 11, 14, 20);
 
 final screenshotKey = GlobalKey();
 
@@ -158,4 +164,20 @@ Future<void> capture(WidgetTester tester, String name) async {
   final file = File('$dir/$name.png');
   file.parent.createSync(recursive: true);
   file.writeAsBytesSync(bytes!);
+}
+
+/// Scrolls Home down until [finder] is on screen (UI-007: rows below the
+/// Continue and Up Next rows start below the fold).
+Future<void> scrollHomeTo(WidgetTester tester, Finder finder) async {
+  await tester.scrollUntilVisible(
+    finder,
+    300,
+    scrollable: find
+        .descendant(
+          of: find.byType(HomeScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first,
+  );
+  await settle(tester, 2);
 }

@@ -28,6 +28,8 @@ publish = false
 [workspace.dependencies]
 apple-native-keyring-store = { version = "1.0.2", default-features = false, features = ["keychain"] }
 axum = { version = "0.8.9", default-features = false }
+base64 = "0.22"
+blake2 = "0.11"
 chacha20poly1305 = { version = "0.11", default-features = false, features = ["alloc"] }
 dirs = "7.0"
 ed25519-dalek = { version = "3.0", default-features = false, features = ["fast", "zeroize"] }
@@ -41,6 +43,7 @@ libloading = "0.9"
 lofty = "0.25.5"
 md-5 = "0.11"
 mdns-sd = { version = "0.21.7", default-features = false }
+minisign-verify = "0.3"
 notify = { version = "8.2", default-features = false, features = ["macos_fsevent"] }
 proptest = "1.12"
 quick-xml = "0.42"
@@ -64,6 +67,7 @@ unicode-normalization = { version = "0.1.26", default-features = false, features
 uniffi = { version = "0.32.2", default-features = false }
 ureq = { version = "3.5", default-features = false, features = ["rustls", "gzip"] }
 uuid = { version = "1.29", default-features = false, features = ["std", "v7"] }
+webpki-roots = "1.0"
 windows-native-keyring-store = { version = "1.1", default-features = false }
 x25519-dalek = { version = "3.0", default-features = false, features = ["precomputed-tables", "static_secrets", "zeroize"] }
 zbus-secret-service-keyring-store = { version = "1.0.1", default-features = false, features = ["rt-async-io-crypto-rust"] }

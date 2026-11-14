@@ -80,3 +80,32 @@ frb-install:
 # Dart tests of pa_core: the Native Assets hook builds pa-frb, tests call into Rust
 test-pa-core:
     cd {{ pa_core_dir }} && dart pub get && dart test
+
+# Remote config (CORE-014, docs/dev/remote-config.md). Owner only, offline:
+# sign every config/*.json with the minisign secret key `key`
+# (default: $KINOLUNE_CONFIG_KEY), then check them like the app does.
+sign-config key=env('KINOLUNE_CONFIG_KEY', ''):
+    #!/usr/bin/env bash
+    set -euo pipefail
+    key='{{ key }}'
+    if [ -z "$key" ]; then echo "set KINOLUNE_CONFIG_KEY or pass key=<path to the minisign secret key>" >&2; exit 1; fi
+    shopt -s globstar nullglob
+    for f in config/**/*.json; do
+        # Default trusted comment carries `file:<name>`; the app requires it.
+        minisign -S -s "$key" -m "$f"
+    done
+    just core remote-config-verify
+
+# Verify config/**/*.json against their .minisig (production key, or pubkey=<minisign.pub>)
+remote-config-verify pubkey='':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s globstar nullglob
+    files=(config/**/*.json)
+    args=()
+    if [ -n '{{ pubkey }}' ]; then args=(--pubkey '{{ pubkey }}'); fi
+    cargo run -q -p pa-remote-config --example check -- "${args[@]}" "${files[@]}"
+
+# Fail while the production minisign key is a placeholder (for release workflows)
+remote-config-release-check:
+    cargo run -q -p pa-remote-config --example check -- --release

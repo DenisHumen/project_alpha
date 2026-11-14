@@ -290,6 +290,14 @@ fn item_ref(id: &str) -> Result<c::ItemRef> {
     Ok(id.parse::<c::ItemRef>()?)
 }
 
+/// One group of [`CoreLibrary::search_grouped`].
+#[derive(Debug, Clone)]
+pub struct CoreSearchGroup {
+    pub kind: CoreItemKind,
+    /// Best first.
+    pub items: Vec<CoreItem>,
+}
+
 fn items(v: Vec<c::Item>) -> Vec<CoreItem> {
     v.into_iter().map(Into::into).collect()
 }
@@ -600,6 +608,21 @@ impl CoreLibrary {
             &query,
             usize::try_from(limit).unwrap_or(usize::MAX),
         )?))
+    }
+
+    /// Search results grouped for the Search screen (UI-011): movies,
+    /// shows, episodes and tracks, in this order, best first, at most
+    /// `per_group` each; empty groups are left out.
+    pub fn search_grouped(&self, query: String, per_group: u32) -> Result<Vec<CoreSearchGroup>> {
+        Ok(self
+            .catalog
+            .search_grouped(&query, usize::try_from(per_group).unwrap_or(usize::MAX))?
+            .into_iter()
+            .map(|g| CoreSearchGroup {
+                kind: g.kind.into(),
+                items: items(g.items),
+            })
+            .collect())
     }
 
     pub fn progress(&self, item_id: String) -> Result<Option<CoreProgress>> {

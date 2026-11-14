@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "body": {
+    "data": [
+      {
+        "message_id": "e5f6a7b8-0100-4a5b-9c1d-000000000100",
+        "is_sent": true,
+        "drop_reason": null
+      }
+    ]
+  }
+}

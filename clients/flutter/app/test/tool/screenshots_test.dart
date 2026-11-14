@@ -6,11 +6,14 @@
 //     flutter test test/tool/screenshots_test.dart
 // Without the variable the test only exercises the flows (no files).
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/platform/form_factor.dart';
 import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/shell/app_shell.dart';
+import 'package:kinolune/widgets/cards.dart';
+import 'package:kinolune/widgets/focusable.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../support/test_app.dart';
@@ -36,6 +39,27 @@ Future<void> _tapText(WidgetTester tester, String text) async {
 final _desktopShots = <_Shot>[
   const _Shot('home', Section.home),
   _Shot('movies', Section.movies),
+  // UI-008: filters, list mode and the context menu.
+  _Shot('movies-filtered', Section.movies, (t, _) async {
+    await t.tap(find.byKey(const ValueKey('filter-watch-inProgress')));
+    await settle(t, 6);
+  }),
+  _Shot('movies-list', Section.movies, (t, _) async {
+    await t.tap(find.byKey(const ValueKey('layout-list')));
+    await settle(t, 6);
+  }),
+  _Shot('movies-menu', Section.movies, (t, _) async {
+    await t.tap(
+      find
+          .descendant(
+            of: find.byType(PosterCard).at(1),
+            matching: find.byType(KFocusable),
+          )
+          .first,
+      buttons: kSecondaryMouseButton,
+    );
+    await settle(t, 6);
+  }),
   _Shot(
     'movie-detail',
     Section.movies,
@@ -61,6 +85,15 @@ final _desktopShots = <_Shot>[
   _Shot('search', Section.search, (t, _) async {
     await t.enterText(find.byType(TextField), 'the');
     await settle(t, 6);
+  }),
+  _Shot('search-history', Section.search, (t, _) async {
+    for (final q in ['Moonlit Bureau', 'velvet', 'orbit']) {
+      await t.enterText(find.byType(TextField), q);
+      await t.testTextInput.receiveAction(TextInputAction.search);
+      await settle(t, 2);
+    }
+    await t.tap(find.byTooltip('Clear'));
+    await settle(t, 4);
   }),
   const _Shot('settings', Section.settings),
   _Shot('add-source', Section.settings, (t, _) async {
@@ -110,6 +143,17 @@ final _tvShots = <_Shot>[
 final _phoneShots = <_Shot>[
   const _Shot('home', Section.home),
   const _Shot('movies', Section.movies),
+  _Shot('movies-menu', Section.movies, (t, _) async {
+    await t.longPress(
+      find
+          .descendant(
+            of: find.byType(PosterCard).at(1),
+            matching: find.byType(KFocusable),
+          )
+          .first,
+    );
+    await settle(t, 6);
+  }),
   _Shot('movie-detail', Section.movies, (t, _) => _tapText(t, 'Harbor Lights')),
 ];
 

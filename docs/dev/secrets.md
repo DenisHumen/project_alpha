@@ -26,7 +26,7 @@
 | Сертификаты подписи Apple (`.p12` и пароль) | Secrets окружения `store` / `release` | подпись iOS, tvOS, macOS | |
 | Подпись Windows (Azure Trusted Signing) | OIDC → federated credential в Azure | MSIX, установщики | без секретов в GitHub |
 | Ключ cosign для образов NAS-ОС | Secret окружения `release` (или KMS) | DIST-002 | создаёт владелец; публичный ключ — в `policy.json` образа |
-| Ключ minisign для `config/` (удалённые конфиги) | Secret отдельного окружения публикации конфигов | workflow публикации конфигов | публичный ключ встроен в клиенты (CORE-014) |
+| Ключ minisign для `config/` (удалённые конфиги) | офлайн у владельца (рекомендация CORE-014, см. [remote-config.md](remote-config.md)); вариант — Secret отдельного окружения публикации конфигов | владелец: `just core sign-config` | публичный ключ встроен в клиенты (`PRODUCTION_PUBLIC_KEY`, CORE-014) |
 | `GITHUB_TOKEN` | выдаётся GitHub на запуск | все workflow | по умолчанию только чтение; права повышаются в конкретном job |
 
 Окружения, Secrets и OIDC-доверие настраивает владелец (REPO-005 и задачи PKG/DIST). Агенты и контрибьюторы секреты не видят и не заводят.

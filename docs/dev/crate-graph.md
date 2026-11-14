@@ -28,6 +28,7 @@ flowchart LR
     pa_probe["pa-probe"]
     pa_proxy["pa-proxy"]
     pa_recognition["pa-recognition"]
+    pa_remote_config["pa-remote-config"]
     pa_runtime["pa-runtime"]
     pa_scanner["pa-scanner"]
     pa_secrets["pa-secrets"]
@@ -35,6 +36,7 @@ flowchart LR
     pa_sources["pa-sources"]
     pa_sync["pa-sync"]
     pa_twitch["pa-twitch"]
+    pa_twitch_chat["pa-twitch-chat"]
     pa_vfs["pa-vfs"]
     pa_vfs_smb["pa-vfs-smb"]
     pa_vfs_webdav["pa-vfs-webdav"]
@@ -69,6 +71,7 @@ flowchart LR
   pa_frb --> pa_imagecache
   pa_frb --> pa_proxy
   pa_frb --> pa_recognition
+  pa_frb --> pa_remote_config
   pa_frb --> pa_secrets
   pa_frb --> pa_sources
   pa_jobs --> pa_library
@@ -105,6 +108,9 @@ flowchart LR
   pa_sync -. dev .-> pa_secrets
   pa_twitch --> pa_secrets
   pa_twitch -. dev .-> pa_twitch
+  pa_twitch_chat -. dev .-> pa_twitch
+  pa_twitch_chat --> pa_twitch
+  pa_twitch_chat -. dev .-> pa_twitch_chat
   pa_vfs_smb --> pa_smb2
   pa_vfs_smb --> pa_vfs
   pa_vfs_webdav --> pa_discovery
@@ -131,6 +137,7 @@ flowchart LR
 | `pa-proxy` | `core/crates/pa-proxy` | 1 | Loopback HTTP Range server that streams any pa-vfs ByteSource to players that only take a URL (NET-007) |
 | `pa-recognition` | `core/crates/pa-recognition` | 3 | Media recognition core (sans-IO): filename parser with N-best hypotheses, title normalization and local title index, Provider boundary |
 | `pa-recognition-eval` | `tools/recognition-eval` | 2 | Recognition test-corpus format: JSON Schema, taxonomy and validator (META-001) |
+| `pa-remote-config` | `core/crates/pa-remote-config` | 5 | Serverless remote config: minisign-signed JSON from the public repo, ETag, disk cache, built-in fallback, kill-switches (CORE-014) |
 | `pa-runtime` | `core/crates/pa-runtime` | 6 | Core runtime of project_alpha: async runtime, lifecycle, data directories, settings store |
 | `pa-scanner` | `core/crates/pa-scanner` | 1 | Shallow incremental library scan over pa-vfs into pa-library: listing, (path, size, mtime) diff, soft delete with grace period (LIB-003); music tags and index (MUS-001); structural folder analysis (LIB-007) |
 | `pa-secrets` | `core/crates/pa-secrets` | 11 | Secret storage of project_alpha: OS keychains, platform callbacks, encrypted-file fallback, log redaction |
@@ -139,6 +146,7 @@ flowchart LR
 | `pa-sources` | `core/crates/pa-sources` | 4 | Source manager: local, SMB and WebDAV sources in the library database, passwords in the OS secret store, status, connection check and speed test (NET-011) |
 | `pa-sync` | `core/crates/pa-sync` | 11 | Serverless state sync: hybrid logical clock, sync operations, LWW merge, the SQLite outbox (SYNC-001) and the LAN P2P transport (SYNC-006) |
 | `pa-twitch` | `core/crates/pa-twitch` | 6 | Twitch Helix API client (TWI-001) and Device Code Flow sign-in (TWI-002) |
+| `pa-twitch-chat` | `core/crates/pa-twitch-chat` | 10 | Twitch live chat (TWI-010): ChatSource over anonymous IRC WebSocket or EventSub WebSocket + Helix, normalised ChatMessage model |
 | `pa-vfs` | `core/crates/pa-vfs` | 0 | Virtual file system of media sources: Vfs and ByteSource traits, local backend, backend contract tests |
 | `pa-vfs-smb` | `core/crates/pa-vfs-smb` | 0 | SMB2/3 backend of pa-vfs over libsmb2: NTLMSSP, signing, SMB3 encryption, pooled connections, read-ahead with parallel prefetch (NET-003) |
 | `pa-vfs-webdav` | `core/crates/pa-vfs-webdav` | 7 | WebDAV backend of pa-vfs: PROPFIND listing, Range reads with read-ahead, Basic and Digest auth, redirects, TLS pinning (NET-004) |

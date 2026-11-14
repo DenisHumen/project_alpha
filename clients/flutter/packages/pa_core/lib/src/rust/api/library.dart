@@ -8,7 +8,7 @@ import 'library_query.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `count`, `item_ref`, `items`, `signed`, `small`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// `true` if `path` is a database of the Dart `pa_library` v0.
 Future<bool> isLegacyV0Library({required String path}) =>
@@ -143,6 +143,14 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   /// FTS5 search over movies, shows, episodes and tracks.
   Future<List<CoreItem>> search({required String query, required int limit});
+
+  /// Search results grouped for the Search screen (UI-011): movies,
+  /// shows, episodes and tracks, in this order, best first, at most
+  /// `per_group` each; empty groups are left out.
+  Future<List<CoreSearchGroup>> searchGrouped({
+    required String query,
+    required int perGroup,
+  });
 
   Future<void> setViewPrefs({required CoreViewPrefs prefs});
 
@@ -558,6 +566,27 @@ class CoreScanUpdate {
           total == other.total &&
           currentPath == other.currentPath &&
           error == other.error;
+}
+
+/// One group of [`CoreLibrary::search_grouped`].
+class CoreSearchGroup {
+  final CoreItemKind kind;
+
+  /// Best first.
+  final List<CoreItem> items;
+
+  const CoreSearchGroup({required this.kind, required this.items});
+
+  @override
+  int get hashCode => kind.hashCode ^ items.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CoreSearchGroup &&
+          runtimeType == other.runtimeType &&
+          kind == other.kind &&
+          items == other.items;
 }
 
 /// A media source.
