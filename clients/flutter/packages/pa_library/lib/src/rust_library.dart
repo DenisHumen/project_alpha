@@ -577,7 +577,7 @@ class RustLibrary implements Library {
   // -------------------------------------------------------------------------
   // change watcher (LIB-005)
 
-  StreamSubscription<CoreWatchEvent>? _watch;
+  StreamSubscription<CoreWatchEvent>? _watchSub;
   bool _metadataQueued = false;
 
   /// Rescans done by the watcher, for diagnostics and tests.
@@ -612,7 +612,7 @@ class RustLibrary implements Library {
       }
     }
     if (_closed) return;
-    _watch = _core
+    _watchSub = _core
         .startWatcher(
           settings: CoreWatchSettings(
             roots: roots,
@@ -658,8 +658,8 @@ class RustLibrary implements Library {
 
   @override
   Future<void> stopWatching() async {
-    final sub = _watch;
-    _watch = null;
+    final sub = _watchSub;
+    _watchSub = null;
     if (sub == null) return;
     await _core.stopWatcher();
     await sub.cancel();
