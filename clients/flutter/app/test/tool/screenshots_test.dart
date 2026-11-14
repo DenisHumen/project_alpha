@@ -79,6 +79,12 @@ final _desktopShots = <_Shot>[
     await settle(t, 4);
   }),
   _Shot('about', Section.settings, (t, _) => _tapText(t, 'About Kinolune')),
+  _Shot('devices', Section.settings, (t, _) async {
+    await t.ensureVisible(find.text('Devices').last);
+    await settle(t, 4);
+    await _tapText(t, 'Devices');
+    await _tapText(t, 'Show code');
+  }),
   const _Shot('onboarding', Section.home, null, true),
 ];
 
@@ -111,6 +117,11 @@ final _phoneShots = <_Shot>[
   const _Shot('home', Section.home),
   const _Shot('movies', Section.movies),
   _Shot('movie-detail', Section.movies, (t, _) => _tapText(t, 'Harbor Lights')),
+  _Shot('devices', Section.settings, (t, _) async {
+    await t.ensureVisible(find.text('Devices').last);
+    await settle(t, 4);
+    await _tapText(t, 'Devices');
+  }),
 ];
 
 void main() {

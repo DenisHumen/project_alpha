@@ -50,6 +50,14 @@ class RustLibrary implements Library {
 
   RustLibrary._(this._core, this._smb, this._tempDir, this._metadataCacheDir);
 
+  /// The core library, for services on the same database (device sync,
+  /// UI-019).
+  CoreLibrary get core => _core;
+
+  /// Refreshes the views after something outside this adapter changed the
+  /// database (progress from another device, UI-019).
+  void notifyExternalChange() => _notify();
+
   static Future<void>? _init;
 
   /// Loads the native core once. [externalLibrary] is for tests that run

@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/app.dart';
+import 'package:kinolune/fakes/fake_device_sync.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/fakes/fake_source_manager.dart';
 import 'package:kinolune/platform/form_factor.dart';
@@ -14,6 +15,7 @@ import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/services/secure_store.dart';
 import 'package:kinolune/shell/app_shell.dart';
 import 'package:kinolune/sources/discovery.dart';
+import 'package:kinolune/sync/device_sync.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pa_player/testing.dart';
 
@@ -84,6 +86,7 @@ Future<AppServices> demoServices({
   bool empty = false,
   bool reducedSources = false,
   SourceDiscovery discovery = const NoSourceDiscovery(),
+  DeviceSync? sync,
 }) async {
   final library = empty
       ? FakeLibrary(scanStepDelay: Duration.zero)
@@ -94,6 +97,8 @@ Future<AppServices> demoServices({
     playerEngineFactory: ({bool video = true}) => FakePlayerEngine(),
     sourceManager: reducedSources ? null : FakeSourceManager(library),
     discovery: discovery,
+    // A family of three (UI-019) for the Devices screen.
+    sync: sync ?? FakeDeviceSync.demo(),
   );
   await s.init();
   return s;
