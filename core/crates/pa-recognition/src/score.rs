@@ -242,6 +242,10 @@ struct Franchise {
     chain: Vec<usize>,
     /// Another series with the same title exists outside this chain.
     remake: bool,
+    /// A much later entry of the chain also carries the head's bare title
+    /// (`Kino no Tabi (2017)`): a bare title with a small number may mean
+    /// either.
+    soft_remake: bool,
 }
 
 /// Scores a whole group (one folder tree) with a fresh cache.
@@ -383,7 +387,7 @@ impl Scorer {
                 episodes,
                 reading,
                 tier: c.tier,
-                remake: fr.remake,
+                remake: fr.remake || (fr.soft_remake && reading == Reading::Direct),
             })
         };
 
@@ -479,6 +483,9 @@ impl Scorer {
             let max = claims.iter().copied().max().unwrap_or(0);
             if max > 0 && (s > 1 || part > 1) {
                 let start = claims.iter().position(|&n| n == max).unwrap_or(0);
+                // A single title claiming the season is weak evidence
+                // (synonym lists carry stray `Season 4`s).
+                let strength = if max == 1 { -0.06 } else { 0.0 };
                 for (p, &n) in claims.iter().enumerate() {
                     if n > 0
                         && let Some((r, eps)) = place(p)
@@ -488,7 +495,7 @@ impl Scorer {
                         } else {
                             0.10 * (n as f32 / max as f32 - 1.0) - 0.03
                         };
-                        push(r, base + 0.01 + prior, eps, Reading::Season);
+                        push(r, base + 0.01 + strength + prior, eps, Reading::Season);
                     }
                 }
             } else if (s as usize) <= chain.len()
@@ -577,12 +584,21 @@ impl Scorer {
         // remake; `Bleach: Sennen Kessen-hen` (2022) continues `Bleach`.
         let mut segments: Vec<Vec<usize>> = Vec::new();
         let mut last_year: Option<u16> = None;
+        let mut soft_remake = false;
         for r in members {
             let year = index.record(r).year;
             let restart = match (segments.last(), last_year, year) {
                 (Some(seg), Some(a), Some(b)) if b.saturating_sub(a) >= REMAKE_GAP_YEARS => {
                     let head = TitleKey::new(&index.record(seg[0]).titles[0]).base;
-                    TitleKey::new(&index.record(r).titles[0]).base == head
+                    let restart = TitleKey::new(&index.record(r).titles[0]).base == head;
+                    let info = self.info(index, r);
+                    if !restart
+                        && info.bases.contains(&head)
+                        && !info.seasons.keys().any(|(s, _)| *s >= 2)
+                    {
+                        soft_remake = true;
+                    }
+                    restart
                 }
                 _ => false,
             };
@@ -599,7 +615,11 @@ impl Scorer {
             .into_iter()
             .find(|s| s.contains(&c.record))
             .unwrap_or_else(|| vec![c.record]);
-        Franchise { chain, remake }
+        Franchise {
+            chain,
+            remake,
+            soft_remake,
+        }
     }
 }
 
