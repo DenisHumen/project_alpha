@@ -160,9 +160,9 @@ const ALTERNATIVES: usize = 5;
 struct RecordInfo {
     /// Base keys of all titles.
     bases: Vec<String>,
-    /// `(season, part)` → number of titles claiming it (`Season 2`, `2nd
-    /// Season`, `S2 Part 2`).
-    seasons: BTreeMap<(u32, u32), u32>,
+    /// `(base, season, part)` of every title claiming a season (`Season 2`,
+    /// `2nd Season`, `S2 Part 2`).
+    seasons: Vec<(String, u32, u32)>,
     /// Absolute ranges written in titles: `Gintama (Episodes 202-252)`.
     ranges: Vec<(u32, u32)>,
     /// Lower-cased titles, for literal matches.
@@ -178,7 +178,7 @@ impl RecordInfo {
                 info.bases.push(key.base.clone());
             }
             if let Some(s) = key.season {
-                *info.seasons.entry((s, key.part.unwrap_or(1))).or_default() += 1;
+                info.seasons.push((key.base.clone(), s, key.part.unwrap_or(1)));
             }
             if let Some(r) = episode_range(t) {
                 info.ranges.push(r);
@@ -188,13 +188,18 @@ impl RecordInfo {
         info
     }
 
-    /// Titles claiming season `s` (any part when `part` is `None`).
-    fn claims(&self, s: u32, part: Option<u32>) -> u32 {
+    /// Titles claiming season `s` (any part when `part` is `None`) under
+    /// one of `bases` (any base when empty): `sxf s2` or `Vigilante: …
+    /// 2nd Season` do not speak for `Spy x Family` or `My Hero Academia`.
+    fn claims(&self, s: u32, part: Option<u32>, bases: &[String]) -> u32 {
         self.seasons
             .iter()
-            .filter(|((ss, pp), _)| *ss == s && part.is_none_or(|p| p == *pp))
-            .map(|(_, n)| *n)
-            .sum()
+            .filter(|(b, ss, pp)| {
+                *ss == s
+                    && part.is_none_or(|p| p == *pp)
+                    && (bases.is_empty() || bases.contains(b))
+            })
+            .count() as u32
     }
 }
 
@@ -446,7 +451,7 @@ impl Scorer {
             }
             if let Some(s) = numbers.season
                 && chain.len() > 1
-                && self.info(index, c.record).claims(s, None) == 0
+                && self.info(index, c.record).claims(s, None, &[]) == 0
                 && pos.is_none_or(|p| p + 1 != s as usize)
             {
                 prior -= 0.12;
@@ -514,9 +519,13 @@ impl Scorer {
             && s >= 1
         {
             let part = numbers.part.unwrap_or(1);
+            let mut bases = self.info(index, chain[0]).bases.clone();
+            if let Some(q) = best.title.as_deref() {
+                bases.push(TitleKey::new(q).base);
+            }
             let claims: Vec<u32> = chain
                 .iter()
-                .map(|&r| self.info(index, r).claims(s, Some(part)))
+                .map(|&r| self.info(index, r).claims(s, Some(part), &bases))
                 .collect();
             let max = claims.iter().copied().max().unwrap_or(0);
             if max > 0 && (s > 1 || part > 1) {
@@ -542,8 +551,14 @@ impl Scorer {
                 push(r, base - 0.02, eps, Reading::Season);
             }
         }
-        // Number running on from a later entry (`Mugen Ressha-hen - 12`).
+        // Number running on from a later entry named after itself
+        // (`Mugen Ressha-hen - 12`), not reached through the franchise title.
+        let specific = !self
+            .info(index, chain[0])
+            .bases
+            .contains(&TitleKey::new(&rec.titles[c.title]).base);
         if pos > 0
+            && specific
             && own.is_some_and(|n| last > n)
             && let Some((r, eps)) = place(pos)
         {
@@ -561,7 +576,7 @@ impl Scorer {
         let want = title.trim().to_lowercase();
         let info = self.info(index, c.record);
         if info.lower.first() == Some(&want) {
-            0.05
+            0.08
         } else if info.lower.contains(&want) {
             0.01
         } else {
@@ -639,7 +654,7 @@ impl Scorer {
             if gap && !restart {
                 let info = self.info(index, r);
                 if query_base.as_ref().is_some_and(|q| info.bases.contains(q))
-                    && !info.seasons.keys().any(|(s, _)| *s >= 2)
+                    && !info.seasons.iter().any(|(_, s, _)| *s >= 2)
                 {
                     remake_like.push(r);
                 }
