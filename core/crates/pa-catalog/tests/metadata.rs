@@ -109,16 +109,21 @@ impl FakeProviders {
                 "russian":"Провожающая в последний путь Фрирен","kind":"tv","status":"released",
                 "aired_on":"2023-09-29","description":"Эльфийка-[b]маг[/b].","myanimelist_id":52991,
                 "rating":"pg_13","english":["Frieren: Beyond Journey's End"],"japanese":[],"synonyms":[]}"#),
-            "" | "/" if body.is_some_and(|b| b.contains("Frieren")) => ok(r#"{"data":{"Page":{"media":[
+            "" | "/" if body.is_some_and(|b| b.contains("Frieren")) => {
+                ok(r#"{"data":{"Page":{"media":[
                 {"id":154587,"idMal":52991,"format":"TV","status":"FINISHED","episodes":28,"duration":24,
                  "title":{"romaji":"Sousou no Frieren","english":"Frieren: Beyond Journey's End",
                           "native":"葬送のフリーレン"},
                  "synonyms":[],"startDate":{"year":2023,"month":9,"day":29},
                  "description":"An elf mage.<br><br>After the journey.",
                  "coverImage":{"large":"https://img.example/frieren.jpg"}}
-            ]}}}"#),
+            ]}}}"#)
+            }
             "" | "/" => ok(r#"{"data":{"Page":{"media":[]}}}"#),
-            other => status(404, &format!(r#"{{"status_message":"no fixture for {other}"}}"#)),
+            other => status(
+                404,
+                &format!(r#"{{"status_message":"no fixture for {other}"}}"#),
+            ),
         })
     }
 }
@@ -178,7 +183,11 @@ fn setup() -> (tempfile::TempDir, Catalog) {
     let root = dir.path().join("media");
     media(&root, "Movies/Dune (2021)/Dune.2021.2160p.WEB-DL.mkv", 1);
     media(&root, "Movies/Zzyzx Qwerty 2003.mkv", 2);
-    media(&root, "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv", 3);
+    media(
+        &root,
+        "Shows/Dark/Season 1/Dark.S01E01.Secrets.1080p.mkv",
+        3,
+    );
     media(&root, "Shows/Dark/Season 1/Dark.S01E02.1080p.mkv", 4);
     media(&root, "Serialy/Тьма/Тьма.S01E03.1080p.mkv", 5);
     media(
@@ -197,9 +206,12 @@ fn setup() -> (tempfile::TempDir, Catalog) {
 fn run(cat: &Catalog, p: &MetadataProviders) -> pa_catalog::MetadataReport {
     let mut progress = Vec::new();
     let report = cat
-        .fetch_metadata(p, &MetadataOptions::default(), &CancelToken::new(), &mut |d, t| {
-            progress.push((d, t))
-        })
+        .fetch_metadata(
+            p,
+            &MetadataOptions::default(),
+            &CancelToken::new(),
+            &mut |d, t| progress.push((d, t)),
+        )
         .unwrap();
     if let (false, Some(&(d, t))) = (report.stopped, progress.last()) {
         assert_eq!(d, t);
@@ -248,10 +260,7 @@ fn movies_shows_and_anime_get_provider_metadata() {
     assert_eq!(dark.title, "Тьма");
     assert_eq!(dark.overview.as_deref(), Some("Пропажа детей."));
     let eps = cat.episodes(dark.id).unwrap();
-    let names: Vec<_> = eps
-        .iter()
-        .map(|e| (e.episode, e.title.as_str()))
-        .collect();
+    let names: Vec<_> = eps.iter().map(|e| (e.episode, e.title.as_str())).collect();
     assert_eq!(
         names,
         [
@@ -330,7 +339,10 @@ fn movies_shows_and_anime_get_provider_metadata() {
             .any(|d| d.0 == "scorer" && d.1 == "auto" && d.2.as_deref() == Some("scorer_v0")),
         "{decided:?}"
     );
-    assert!(decided.iter().any(|d| d.0 == "rule"), "unknown movie keeps the parser decision");
+    assert!(
+        decided.iter().any(|d| d.0 == "rule"),
+        "unknown movie keeps the parser decision"
+    );
 
     // Search finds the provider titles.
     let hits = cat.search("Dune", 10).unwrap();
@@ -354,7 +366,8 @@ fn user_fix_by_tmdb_id_is_read_by_id_and_kept() {
         .into_iter()
         .find(|m| m.title.starts_with("Zzyzx"))
         .unwrap();
-    cat.fix_match(unknown.id, None, None, Some(438_631)).unwrap();
+    cat.fix_match(unknown.id, None, None, Some(438_631))
+        .unwrap();
     let fake = Arc::new(FakeProviders::default());
     let report = run(&cat, &providers(&fake, true));
     assert_eq!(report.not_found, 0, "{report:?}");

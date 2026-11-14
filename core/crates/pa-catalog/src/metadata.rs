@@ -129,9 +129,7 @@ impl MetadataProviders {
 
     /// TMDB, if it has a key.
     fn tmdb(&self) -> Option<&TmdbClient> {
-        self.tmdb
-            .as_deref()
-            .filter(|t| t.key_source().is_some())
+        self.tmdb.as_deref().filter(|t| t.key_source().is_some())
     }
 }
 
@@ -381,7 +379,13 @@ fn rank(work: &WorkInfo, records: Vec<TitleRecord>) -> Option<(usize, f64, Strin
     {
         score *= 0.8;
     }
-    (score >= ACCEPT).then(|| (best.record, score, format!("{:?}", best.tier).to_lowercase()))
+    (score >= ACCEPT).then(|| {
+        (
+            best.record,
+            score,
+            format!("{:?}", best.tier).to_lowercase(),
+        )
+    })
 }
 
 fn tmdb_kind(work: &WorkInfo) -> MediaKind {
@@ -538,7 +542,8 @@ fn fetch_anime(
                         found.push(m);
                     }
                 }
-                if let Some((i, score, tier)) = rank(work, found.iter().map(anilist_record).collect())
+                if let Some((i, score, tier)) =
+                    rank(work, found.iter().map(anilist_record).collect())
                 {
                     best = Some((i, score, tier, query.clone()));
                     if score >= AUTO {
@@ -624,10 +629,13 @@ fn non_empty(s: Option<&str>) -> Option<&str> {
     s.map(str::trim).filter(|s| !s.is_empty())
 }
 
+/// `(id, season, episode, absolute, episode_type)` of an episode row.
+type EpisodeRow = (i64, Option<i64>, Option<i64>, Option<i64>, String);
+
 /// Moves everything of work `from` to work `into` and deletes `from`.
 /// Episodes with the same numbers become one.
 fn merge_work(tx: &Transaction<'_>, from: i64, into: i64) -> Result<(), Error> {
-    let episodes: Vec<(i64, Option<i64>, Option<i64>, Option<i64>, String)> = {
+    let episodes: Vec<EpisodeRow> = {
         let mut stmt = tx.prepare(
             "SELECT id, season_number, episode_number, absolute_number, episode_type
              FROM episodes WHERE work_id = ?1",
@@ -841,7 +849,9 @@ fn apply(
 ) -> Result<(), Error> {
     // The work may have been merged away or removed since it was read.
     let exists: Option<i64> = tx
-        .query_row("SELECT id FROM works WHERE id = ?1", [work.id], |r| r.get(0))
+        .query_row("SELECT id FROM works WHERE id = ?1", [work.id], |r| {
+            r.get(0)
+        })
         .optional()?;
     if exists.is_none() {
         return Ok(());
@@ -945,15 +955,55 @@ fn apply(
     }
     if let Some(a) = anime {
         let t = &a.media.title;
-        add_title(tx, target, t.romaji.as_deref(), "romaji", "ja", "Latn", "anilist")?;
-        add_title(tx, target, t.english.as_deref(), "official", "en", "", "anilist")?;
-        add_title(tx, target, t.native.as_deref(), "official", "ja", "", "anilist")?;
+        add_title(
+            tx,
+            target,
+            t.romaji.as_deref(),
+            "romaji",
+            "ja",
+            "Latn",
+            "anilist",
+        )?;
+        add_title(
+            tx,
+            target,
+            t.english.as_deref(),
+            "official",
+            "en",
+            "",
+            "anilist",
+        )?;
+        add_title(
+            tx,
+            target,
+            t.native.as_deref(),
+            "official",
+            "ja",
+            "",
+            "anilist",
+        )?;
         for s in &a.media.synonyms {
             add_title(tx, target, Some(s), "synonym", "", "", "anilist")?;
         }
         if let Some(r) = &a.russian {
-            add_title(tx, target, r.title.as_deref(), "official", "ru", "", "shikimori")?;
-            add_title(tx, target, r.license_name.as_deref(), "official", "ru", "", "shikimori")?;
+            add_title(
+                tx,
+                target,
+                r.title.as_deref(),
+                "official",
+                "ru",
+                "",
+                "shikimori",
+            )?;
+            add_title(
+                tx,
+                target,
+                r.license_name.as_deref(),
+                "official",
+                "ru",
+                "",
+                "shikimori",
+            )?;
         }
     }
 
@@ -986,7 +1036,8 @@ fn apply(
     let status = tmdb
         .and_then(|d| d.status.clone())
         .or_else(|| anime.and_then(|a| a.media.status.clone()));
-    let original_lang = tmdb.and_then(|d| non_empty(d.original_language.as_deref()).map(str::to_owned));
+    let original_lang =
+        tmdb.and_then(|d| non_empty(d.original_language.as_deref()).map(str::to_owned));
     tx.execute(
         "UPDATE works SET title = ifnull(?2, title), original_title = ifnull(?3, original_title),
              original_lang = ifnull(?4, original_lang), year = ifnull(?5, year),
@@ -1029,7 +1080,10 @@ fn apply(
         [target],
     )?;
     if let Some(d) = tmdb {
-        let poster = d.poster_path.as_deref().map(|p| tmdb::image_url(POSTER_SIZE, p));
+        let poster = d
+            .poster_path
+            .as_deref()
+            .map(|p| tmdb::image_url(POSTER_SIZE, p));
         let backdrop = d
             .backdrop_path
             .as_deref()
@@ -1052,10 +1106,9 @@ fn apply(
                          WHERE work_id = ?1 AND season_number = ?2 AND episode_number = ?3
                            AND episode_type = 'regular'",
                     )?;
-                    stmt.query_map(
-                        params![target, ep.season_number, ep.episode_number],
-                        |r| r.get(0),
-                    )?
+                    stmt.query_map(params![target, ep.season_number, ep.episode_number], |r| {
+                        r.get(0)
+                    })?
                     .collect::<Result<_, _>>()?
                 };
                 for id in rows {

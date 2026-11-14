@@ -397,6 +397,12 @@ fn build_graph(conn: &Connection) -> Graph {
         INSERT INTO episode_mappings (episode_id, scheme, episode_number, source)
             VALUES (50, 'tvdb_absolute', 1, 'tvdb');
         INSERT INTO anime_entries (work_id, anidb_aid, relation_prev) VALUES (31, 42, 30);
+        INSERT INTO artwork (work_id, kind, provider, url, lang)
+            VALUES (30, 'poster', 'tmdb', 'https://image.tmdb.org/t/p/w500/p.jpg', 'en');
+        INSERT INTO artwork (episode_id, kind, provider, url)
+            VALUES (50, 'still', 'tmdb', 'https://image.tmdb.org/t/p/w300/s.jpg');
+        INSERT INTO work_metadata (work_id, outcome, language, fetched_at_ms)
+            VALUES (30, 'matched', 'ru-RU', {now});
 
         INSERT INTO matches (id, file_id, work_id, confidence, state, decided_by, created_at_ms, updated_at_ms)
             VALUES (60, 100, 30, 0.9, 'auto', 'scorer', {now}, {now});
@@ -564,6 +570,8 @@ fn deleting_a_work_cascades_through_the_catalog() {
         "folder_rules",
         "display_preferences",
         "collection_items",
+        "artwork",
+        "work_metadata",
     ] {
         assert_eq!(count(&conn, table), 0, "{table}");
     }
