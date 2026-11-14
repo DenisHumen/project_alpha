@@ -1,0 +1,14 @@
+{
+  "status": 200,
+  "headers": { "Content-Type": "application/json" },
+  "body": {
+    "data": {
+      "videoPlaybackAccessToken": {
+        "value": "{\"vod_id\":1234567890,\"expires\":1789000600,\"privileged\":false}",
+        "signature": "9999ffff8888eeee7777dddd6666cccc5555bbbb",
+        "__typename": "PlaybackAccessToken"
+      }
+    },
+    "extensions": { "operationName": "PlaybackAccessToken" }
+  }
+}
