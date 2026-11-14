@@ -28,7 +28,7 @@ class _Device {
     _media(media, 'Movies/The Matrix 1999.mkv', 2);
     final library = await CoreLibrary.open(path: '${dir.path}/library.db');
     await library.addSource(kind: 'local', name: 'Media', location: media);
-    await library.scan(roots: []).last;
+    await library.scan().last;
     final sync = await CoreSync.open(
       library_: library,
       config: CoreSyncConfig(
