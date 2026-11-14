@@ -214,8 +214,8 @@ impl RemoteConfig {
 
     /// The Twitch module's view of this config.
     pub fn twitch_flags(&self, ctx: &ClientContext) -> TwitchFlags {
-        let gql_playback = self.is_enabled(flags::TWITCH_GQL_PLAYBACK, ctx)
-            && self.twitch.gql_client_id.is_some();
+        let gql_playback =
+            self.is_enabled(flags::TWITCH_GQL_PLAYBACK, ctx) && self.twitch.gql_client_id.is_some();
         TwitchFlags {
             gql_playback,
             chapters_gql: gql_playback && self.is_enabled(flags::TWITCH_CHAPTERS_GQL, ctx),

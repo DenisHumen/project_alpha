@@ -216,7 +216,11 @@ fn bad_signatures_are_rejected() {
     let tampered = doc(2, true).replace("0123abcd", "evil0000");
     let cases: Vec<(&str, String, String)> = vec![
         // Bytes changed after signing.
-        ("tampered body", tampered.clone(), signer.sign(good.as_bytes())),
+        (
+            "tampered body",
+            tampered.clone(),
+            signer.sign(good.as_bytes()),
+        ),
         // Signed by a key the app does not trust.
         ("foreign key", good.clone(), other.sign(good.as_bytes())),
         // Valid signature of another file (e.g. a twitch/… document).
@@ -235,9 +239,10 @@ fn bad_signatures_are_rejected() {
         (
             "forged comment",
             good.clone(),
-            signer
-                .sign_with_comment(good.as_bytes(), "file:x")
-                .replace("trusted comment: file:x", &format!("trusted comment: file:{FILE}")),
+            signer.sign_with_comment(good.as_bytes(), "file:x").replace(
+                "trusted comment: file:x",
+                &format!("trusted comment: file:{FILE}"),
+            ),
         ),
         ("garbage", good.clone(), "not a signature".into()),
         ("empty", good.clone(), String::new()),
@@ -339,11 +344,17 @@ fn tampered_or_foreign_cache_falls_back_to_builtin() {
     host.set_offline(true);
 
     // Another key (e.g. a different build) does not trust this cache.
-    let c = client(Some(TestSigner::generate().trusted_key()), dir.path(), &host);
+    let c = client(
+        Some(TestSigner::generate().trusted_key()),
+        dir.path(),
+        &host,
+    );
     assert_eq!(c.snapshot().source, ConfigSource::BuiltIn);
 
     // Edited on disk.
-    let path = crate::cache::DiskCache::new(dir.path(), FILE).path().to_owned();
+    let path = crate::cache::DiskCache::new(dir.path(), FILE)
+        .path()
+        .to_owned();
     let text = std::fs::read_to_string(&path).unwrap();
     std::fs::write(&path, text.replace("0123abcd", "0123abce")).unwrap();
     let c = client(Some(signer.trusted_key()), dir.path(), &host);
@@ -450,7 +461,11 @@ fn next_mirror_is_tried() {
     assert_eq!(c.refresh_at(2).unwrap(), RefreshOutcome::Unchanged);
     let log = host.requests();
     let a_doc = format!("{MIRROR_A}/{FILE}");
-    assert!(log.iter().filter(|(u, _)| *u == a_doc).all(|(_, e)| e.is_none()));
+    assert!(
+        log.iter()
+            .filter(|(u, _)| *u == a_doc)
+            .all(|(_, e)| e.is_none())
+    );
     let (last_url, last_etag) = log.last().unwrap();
     assert_eq!(*last_url, format!("{MIRROR_B}/{FILE}"));
     assert!(last_etag.is_some());
@@ -517,7 +532,8 @@ fn refresh_policy_schedules_checks_and_retries() {
     let dir = tempfile::tempdir().unwrap();
     let signer = TestSigner::generate();
     let host = Arc::new(MockHost::default());
-    let body = r#"{ "schema": 1, "serial": 2, "refresh": { "interval_secs": 3600, "retry_secs": 600 } }"#;
+    let body =
+        r#"{ "schema": 1, "serial": 2, "refresh": { "interval_secs": 3600, "retry_secs": 600 } }"#;
     host.publish(MIRROR_A, body, &signer.sign(body.as_bytes()));
     let c = client(Some(signer.trusted_key()), dir.path(), &host);
     assert!(c.refresh_due(0), "never checked");
