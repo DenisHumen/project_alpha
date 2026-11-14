@@ -32,12 +32,17 @@
 //! - **Chat writes** (TWI-010): [`HelixClient::send_chat_message`] and
 //!   [`HelixClient::create_eventsub_subscription`] (WebSocket transport) for
 //!   the live-chat sources in `pa-twitch-chat`.
+//! - **Playback** (TWI-004): [`playback::TwitchPlayback`] decides between
+//!   the official embed and native HLS from the signed remote config
+//!   (`pa-remote-config`); the GQL/usher path exists only with the `full`
+//!   feature.
 //!
 //! # Policy (ADR-0011 §5, docs/legal/providers.md §2.4)
 //!
 //! - Only documented Helix endpoints live here; that makes the crate usable
-//!   in both store and full builds. Playback (GQL/usher) is TWI-004 and is
-//!   full-build only; store builds play through the official embed (TWI-005).
+//!   in both store and full builds. Playback through GQL/usher
+//!   ([`playback`]) is compiled only with the `full` feature; store builds
+//!   play through the official embed (TWI-005).
 //! - Twitch data may be cached for at most 24 hours: every cache in this
 //!   crate clamps its TTL to [`MAX_CACHE_TTL`].
 //! - The product is never named "… for Twitch"; the default User-Agent is
@@ -50,6 +55,7 @@ mod client;
 mod error;
 mod model;
 mod pagination;
+pub mod playback;
 mod ratelimit;
 #[cfg(feature = "reqwest")]
 mod reqwest_transport;

@@ -1,0 +1,14 @@
+{
+  "status": 200,
+  "headers": { "Content-Type": "application/json" },
+  "body": {
+    "data": {
+      "streamPlaybackAccessToken": {
+        "value": "{\"adblock\":false,\"channel\":\"fake_streamer_one\",\"expires\":1789000600,\"private\":{\"allowed_to_view\":true}}",
+        "signature": "1111aaaa2222bbbb3333cccc4444dddd5555eeee",
+        "__typename": "PlaybackAccessToken"
+      }
+    },
+    "extensions": { "operationName": "PlaybackAccessToken" }
+  }
+}

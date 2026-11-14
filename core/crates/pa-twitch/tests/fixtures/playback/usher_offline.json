@@ -1,0 +1,11 @@
+{
+  "status": 404,
+  "body": [
+    {
+      "url": "https://usher.example.invalid/api/channel/hls/fake_streamer_one.m3u8",
+      "error": "transcode does not exist",
+      "error_code": "not_found",
+      "type": "error"
+    }
+  ]
+}
