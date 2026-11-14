@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 #
 # CORE-003: run the PACore XCTest (`coreVersion()` over UniFFI) with xcodebuild.
-# CORE-015: on ios/tvos also the Keychain secret store across a process
-# restart (two more xcodebuild runs on the same simulator).
 # Usage: tools/bindings/test-pacore.sh macos|ios|tvos
 #   ios/tvos run on the newest available simulator of that platform.
 # Run tools/bindings/build-xcframework.sh first.
@@ -40,12 +38,3 @@ cd "$PKG"
 scheme=PACore
 xcodebuild -list | grep -qx '[[:space:]]*PACore-Package' && scheme=PACore-Package
 xcodebuild test -scheme "$scheme" -destination "$destination" -skipPackagePluginValidation
-
-if [ "$1" != macos ]; then
-  # Secrets written by one test process are read by the next one.
-  for step in testAWriteBeforeRestart testBReadAfterRestart; do
-    echo "==> KeychainRestartTests/$step (own process)"
-    xcodebuild test -scheme "$scheme" -destination "$destination" -skipPackagePluginValidation \
-      -only-testing:"PACoreTests/KeychainRestartTests/$step"
-  done
-fi

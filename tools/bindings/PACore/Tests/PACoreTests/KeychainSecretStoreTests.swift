@@ -2,6 +2,10 @@
 // CORE-015: KeychainSecretStore on the iOS and tvOS simulators, directly and
 // through the Rust core (UniFFI). macOS skips it: there the core uses the
 // login keychain itself, and an unsigned test runner may hit a locked keychain.
+// The package tests have no host app, and the simulator refuses Keychain
+// access without one (errSecMissingEntitlement, -34018): then the tests are
+// skipped with that reason. The hosted run is TVAppTests/CoreSecretsTests
+// (clients/apple/TVApp), including a real process restart.
 import Foundation
 import PACore
 import Security
@@ -17,7 +21,12 @@ final class KeychainSecretStoreTests: XCTestCase {
         throw XCTSkip("KeychainSecretStore is for iOS, iPadOS and tvOS")
         #else
         store = KeychainSecretStore(service: testService)
-        try store.removeAll()
+        do {
+            try store.removeAll()
+        } catch SecretStoreError.Unavailable(let details) where details.contains("-34018") {
+            store = nil
+            throw XCTSkip("no Keychain without an app host: \(details)")
+        }
         #endif
     }
 
@@ -97,55 +106,5 @@ final class KeychainSecretStoreTests: XCTestCase {
         XCTAssertTrue(try secretDelete(key: key))
         XCTAssertFalse(try secretDelete(key: key))
         XCTAssertNil(try secretGet(key: key))
-    }
-}
-
-/// A real process restart: `tools/bindings/test-pacore.sh ios|tvos` runs
-/// `testAWriteBeforeRestart` and `testBReadAfterRestart` in two separate
-/// `xcodebuild test` runs on the same simulator. In the full suite both run
-/// in one process and the second one is skipped.
-final class KeychainRestartTests: XCTestCase {
-    private let service = testService + ".restart"
-    private let pidKey = "test.restart.pid"
-
-    override func setUpWithError() throws {
-        #if os(macOS)
-        throw XCTSkip("KeychainSecretStore is for iOS, iPadOS and tvOS")
-        #endif
-    }
-
-    override func tearDown() {
-        secretsClose()
-    }
-
-    private var pid: String { String(ProcessInfo.processInfo.processIdentifier) }
-
-    func testAWriteBeforeRestart() throws {
-        let store = KeychainSecretStore(service: service)
-        try store.removeAll()
-        try store.save(key: pidKey, value: pid)
-        _ = try secretsOpen(platform: store)
-        try secretSet(key: "source.password:1", value: "first")
-        try secretSet(key: "trakt.tokens:9", value: "to-delete")
-    }
-
-    func testBReadAfterRestart() throws {
-        let store = KeychainSecretStore(service: service)
-        let writer = try XCTUnwrap(try store.load(key: pidKey), "testAWriteBeforeRestart did not run")
-        if writer == pid {
-            throw XCTSkip("same process as the writer; test-pacore.sh runs this step after a restart")
-        }
-        _ = try secretsOpen(platform: store)
-        XCTAssertEqual(try secretGet(key: "source.password:1"), "first")
-        XCTAssertEqual(try secretGet(key: "trakt.tokens:9"), "to-delete")
-        try secretSet(key: "source.password:1", value: "overwritten")
-        XCTAssertTrue(try secretDelete(key: "trakt.tokens:9"))
-        secretsClose()
-
-        // A fresh store object sees the changes.
-        let again = KeychainSecretStore(service: service)
-        XCTAssertEqual(try again.load(key: "source.password:1"), "overwritten")
-        XCTAssertNil(try again.load(key: "trakt.tokens:9"))
-        try again.removeAll()
     }
 }
