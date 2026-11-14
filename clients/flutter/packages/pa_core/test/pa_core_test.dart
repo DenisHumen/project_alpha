@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 // Calls into the real Rust core (libpa_frb) on the host. `dart test` runs the
 // Native Assets hook first, which builds core/crates/pa-frb with cargo.
+import 'dart:io';
+
 import 'package:pa_core/pa_core.dart';
 import 'package:test/test.dart';
 
@@ -21,6 +23,24 @@ void main() {
 
     test('matches the pa-ffi crate version', () {
       expect(coreVersion(), coreCrateVersion());
+    });
+  });
+
+  group('buildFlavor (CORE-013)', () {
+    // The hook builds the core with CARGO_KINOLUNE_FLAVOR (default store).
+    final expected = Platform.environment['CARGO_KINOLUNE_FLAVOR'] ?? 'store';
+
+    test('is the flavor the hook built', () {
+      expect(buildFlavor(), expected);
+    });
+
+    test('store has no full-only capability, full has all', () {
+      expect(
+        buildCapabilities(),
+        expected == 'store'
+            ? isEmpty
+            : ['twitch-native', 'twitch-archive', 'donation-links'],
+      );
     });
   });
 

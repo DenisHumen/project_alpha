@@ -12,3 +12,14 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 /// one version. Synchronous on the Dart side: it is cheap and the app calls
 /// it on startup to check that the native library is loaded.
 String coreVersion() => RustLib.instance.api.crateApiVersionCoreVersion();
+
+/// Build flavor of the core: `"store"` or `"full"` (ADR-0007, CORE-013).
+///
+/// Same value as `pa_ffi::build_flavor()`. The app compares it with its
+/// Dart flavor (`--dart-define=KINOLUNE_FLAVOR`) on startup.
+String buildFlavor() => RustLib.instance.api.crateApiVersionBuildFlavor();
+
+/// Full-only capabilities compiled into the core (`twitch-native`,
+/// `twitch-archive`, `donation-links`). Empty in store builds.
+List<String> buildCapabilities() =>
+    RustLib.instance.api.crateApiVersionBuildCapabilities();
