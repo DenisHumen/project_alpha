@@ -82,8 +82,8 @@ class RustLibrary implements Library {
   /// `provider-cache` folder next to the database).
   ///
   /// With [secretsDir] (the app data folder, as for `CoreSources.open`) the
-  /// core reaches SMB and WebDAV sources with the passwords of its secret
-  /// store; without it only local folders are scanned.
+  /// core reaches SMB and WebDAV sources at once ([connectSources]); without
+  /// it only local folders are scanned until [connectSources] is called.
   static Future<RustLibrary> open(
     String dbPath, {
     String? legacyV0Path,
@@ -107,13 +107,7 @@ class RustLibrary implements Library {
       tempDir,
       metadataCacheDir ?? p.join(p.dirname(path), 'provider-cache'),
     );
-    if (secretsDir != null) {
-      try {
-        await core.connectSources(dataDir: secretsDir);
-      } catch (e) {
-        lib._networkError = e;
-      }
-    }
+    if (secretsDir != null) await lib.connectSources(secretsDir);
     try {
       lib._streamBase = await core.streamBaseUrl();
     } catch (e) {
@@ -124,6 +118,20 @@ class RustLibrary implements Library {
     }
     await lib.sources();
     return lib;
+  }
+
+  /// Lets the core reach SMB and WebDAV sources with the passwords of its
+  /// secret store: the one the app opened (`openPlatformSecrets`, CORE-015),
+  /// else the default store with its fallback file in [dataDir]. Call it
+  /// after opening the platform store. A failure is kept in
+  /// [networkSourcesError]; local folders keep working.
+  Future<void> connectSources(String dataDir) async {
+    try {
+      await _core.connectSources(dataDir: dataDir);
+      _networkError = null;
+    } catch (e) {
+      _networkError = e;
+    }
   }
 
   /// Imports a v0 database if [path] is one. Returns the report, or null if

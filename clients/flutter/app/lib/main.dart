@@ -48,6 +48,10 @@ Future<void> main() async {
     // Keystore through this callback; desktop uses the OS keychain itself.
     // Before CoreSources.open, which takes the store opened here.
     if (opened.onRustCore) await _openCoreSecrets(dir.path);
+    // LIB-018: the core scans and streams SMB and WebDAV sources itself,
+    // with the passwords of the store opened above.
+    final lib = library;
+    if (lib is RustLibrary) await lib.connectSources(dir.path);
     // Posters and backdrops through the core's disk cache (LIB-013); without
     // the core they load straight from the network.
     try {
