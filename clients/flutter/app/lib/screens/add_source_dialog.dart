@@ -311,19 +311,19 @@ class SourceErrorView extends StatelessWidget {
             child: Material(
               type: MaterialType.transparency,
               child: ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              dense: true,
-              title: Text(
-                context.l10n.sourcesErrorDetails,
-                style: theme.textTheme.labelSmall,
-              ),
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: SelectableText(d, style: theme.textTheme.labelSmall),
+                tilePadding: EdgeInsets.zero,
+                dense: true,
+                title: Text(
+                  context.l10n.sourcesErrorDetails,
+                  style: theme.textTheme.labelSmall,
                 ),
-              ],
-            ),
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: SelectableText(d, style: theme.textTheme.labelSmall),
+                  ),
+                ],
+              ),
             ),
           ),
       ],
