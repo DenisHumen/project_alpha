@@ -256,7 +256,12 @@ impl Context {
         let mut pass = password.as_bytes().to_vec();
         if pass.contains(&0) {
             wipe(&mut pass);
-            return Err(Error::new(Op::Init, 0, 0, "password contains a NUL byte".into()));
+            return Err(Error::new(
+                Op::Init,
+                0,
+                0,
+                "password contains a NUL byte".into(),
+            ));
         }
         pass.push(0);
         // SAFETY: valid context and NUL-terminated strings; libsmb2 copies them.
@@ -393,7 +398,12 @@ impl Context {
 
     fn handle(&self, op: Op, file: FileId) -> Result<NonNull<sys::smb2fh>, Error> {
         if file.context != self.serial {
-            return Err(Error::new(op, 0, 0, "file handle belongs to another context".into()));
+            return Err(Error::new(
+                op,
+                0,
+                0,
+                "file handle belongs to another context".into(),
+            ));
         }
         self.files
             .get(&file.id)
@@ -429,7 +439,8 @@ impl Context {
         let count = u32::try_from(buf.len()).unwrap_or(u32::MAX).min(max);
         self.clear_error();
         // SAFETY: open handle, `buf` has at least `count` writable bytes.
-        let rc = unsafe { (self.f().pread)(self.raw(), fh.as_ptr(), buf.as_mut_ptr(), count, offset) };
+        let rc =
+            unsafe { (self.f().pread)(self.raw(), fh.as_ptr(), buf.as_mut_ptr(), count, offset) };
         if rc < 0 {
             return Err(self.error(Op::Read, rc));
         }

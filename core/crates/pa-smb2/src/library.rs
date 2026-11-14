@@ -107,7 +107,9 @@ impl Smb2Lib {
     /// The process-wide library, loaded with [`load_default`](Self::load_default)
     /// on first success. A failure is not cached: a later call retries.
     pub fn shared() -> Result<&'static Self, Error> {
-        let mut slot = SHARED.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut slot = SHARED
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         if let Some(lib) = *slot {
             return Ok(lib);
         }
@@ -121,5 +123,4 @@ impl Smb2Lib {
     pub fn origin(&self) -> &str {
         &self.origin
     }
-
 }
