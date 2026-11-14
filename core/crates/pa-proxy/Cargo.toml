@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: MPL-2.0
+[package]
+name = "pa-proxy"
+version = "0.1.0"
+description = "Loopback HTTP Range server that streams any pa-vfs ByteSource to players that only take a URL (NET-007)"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# std only besides the token generator: a blocking HTTP/1.1 subset on
+# std::net, one thread per connection (ADR-0013: the VFS is blocking).
+[dependencies]
+pa-vfs = { path = "../pa-vfs" }
+uuid = { workspace = true, features = ["v4"] }
+
+[dev-dependencies]
+tempfile.workspace = true
