@@ -944,6 +944,7 @@ fn queries_over_20_000_items_are_fast() {
             movies(LibraryFilter {
                 genres: vec!["Action".into(), "Sci-Fi".into()],
                 year_min: Some(1980),
+                year_max: None,
                 watched: vec![WatchState::Unwatched],
                 resolutions: vec![Resolution::FullHd, Resolution::Uhd],
                 hdr: vec![HdrFilter::Sdr, HdrFilter::Hdr10],
