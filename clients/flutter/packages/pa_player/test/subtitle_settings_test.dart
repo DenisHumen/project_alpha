@@ -201,6 +201,18 @@ void main() {
     });
   });
 
+  test('subtitles are sized to a 16:9 frame of the screen', () {
+    // Landscape: the whole height.
+    expect(SubtitleOverlay.frameHeight(const Size(1440, 720)), 720);
+    expect(SubtitleOverlay.frameHeight(const Size(1920, 1080)), 1080);
+    // Phone in portrait: the band of a 16:9 video, not the tall screen.
+    expect(SubtitleOverlay.frameHeight(const Size(720, 1440)), 405);
+    // 4:3 tablet: the 16:9 picture inside it.
+    expect(SubtitleOverlay.frameHeight(const Size(1024, 768)), 576);
+    expect(SubtitleOverlay.fontSizeFor(1080, 1), closeTo(57.56, 0.01));
+    expect(SubtitleOverlay.fontSizeFor(100, 0.5), 10, reason: 'minimum');
+  });
+
   group('languages', () {
     test('normalize to ISO 639-2/B', () {
       expect(normalizeLanguage('ru'), 'rus');

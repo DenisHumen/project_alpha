@@ -123,7 +123,9 @@ void main() {
     expect(find.text('Привет\nмир'), findsWidgets);
     final style = _subtitleStyle(t);
     expect(style.color, const Color(0xFFFFFF00));
-    final height = t.view.physicalSize.height / t.view.devicePixelRatio;
+    final height = SubtitleOverlay.frameHeight(
+      t.view.physicalSize / t.view.devicePixelRatio,
+    );
     expect(
       style.fontSize,
       closeTo(SubtitleOverlay.fontSizeFor(height, 2), 0.01),

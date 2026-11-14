@@ -32,7 +32,14 @@ class SubtitleOverlay extends StatelessWidget {
         SubtitleFont.smallCaps => (null, const [FontFeature.enable('smcp')]),
       };
 
-  /// Font size in logical pixels for an area [height] tall.
+  /// Height of the frame subtitles are laid out in: a 16:9 picture that
+  /// fits [size], centred. On a landscape screen that is the whole height;
+  /// on a phone in portrait it is the band where a 16:9 video plays, so the
+  /// text keeps a video-like size and sits at the bottom of the picture.
+  static double frameHeight(Size size) =>
+      math.min(size.height, size.width * 9 / 16);
+
+  /// Font size in logical pixels for a frame [height] tall.
   static double fontSizeFor(double height, double scale) => math.max(
     10,
     height * SubtitleAppearance.textSizeFraction * scale.clamp(0.25, 4.0),
@@ -46,7 +53,9 @@ class SubtitleOverlay extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, box) {
           final a = appearance;
-          final size = fontSizeFor(box.maxHeight, a.fontScale);
+          final frame = frameHeight(Size(box.maxWidth, box.maxHeight));
+          final below = (box.maxHeight - frame) / 2;
+          final size = fontSizeFor(frame, a.fontScale);
           final (fontFamily, features) = family(a.font);
           final base = TextStyle(
             fontSize: size,
@@ -130,7 +139,7 @@ class SubtitleOverlay extends StatelessWidget {
               box.maxWidth * 0.05,
               0,
               box.maxWidth * 0.05,
-              box.maxHeight * a.bottomMargin,
+              below + frame * a.bottomMargin,
             ),
             child: Align(
               alignment: Alignment.bottomCenter,
