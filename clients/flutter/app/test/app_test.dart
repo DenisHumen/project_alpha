@@ -36,9 +36,11 @@ void main() {
       );
       await settle(tester);
       expect(find.text('14 titles'), findsOneWidget);
-      await tester.tap(find.text('Sort: Recently added'));
+      await tester.tap(find.text('Sort: Title'));
       await settle(tester, 3);
-      expect(find.text('Sort: Title'), findsOneWidget);
+      await tester.tap(find.text('Recently added').last);
+      await settle(tester, 3);
+      expect(find.text('Sort: Recently added'), findsOneWidget);
       await tester.tap(find.text('In progress'));
       await settle(tester, 3);
       expect(find.text('The Quiet Orbit'), findsOneWidget);

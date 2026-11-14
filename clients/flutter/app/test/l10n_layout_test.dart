@@ -5,6 +5,7 @@
 // framework error fails the test. With KINOLUNE_SCREENSHOTS_DIR set the
 // frames are also written as PNGs (see test/tool/screenshots_test.dart).
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kinolune/fakes/fake_library.dart';
 import 'package:kinolune/l10n/l10n.dart';
@@ -12,6 +13,8 @@ import 'package:kinolune/platform/form_factor.dart';
 import 'package:kinolune/services/app_services.dart';
 import 'package:kinolune/services/preferences.dart';
 import 'package:kinolune/shell/app_shell.dart';
+import 'package:kinolune/widgets/cards.dart';
+import 'package:kinolune/widgets/focusable.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'support/test_app.dart';
@@ -26,6 +29,36 @@ Future<void> _tap(WidgetTester t, String text) async {
 final _flows = <String, (Section, _Step?)>{
   'home': (Section.home, null),
   'movies': (Section.movies, null),
+  // UI-008: list mode, the sort menu and the context menu of a poster.
+  'movies-list': (
+    Section.movies,
+    (t, _) async {
+      await t.tap(find.byKey(const ValueKey('layout-list')));
+      await settle(t, 6);
+    },
+  ),
+  'movies-sort': (
+    Section.movies,
+    (t, _) async {
+      await t.tap(find.byKey(const ValueKey('sort-button')));
+      await settle(t, 6);
+    },
+  ),
+  'movies-menu': (
+    Section.movies,
+    (t, _) async {
+      await t.tap(
+        find
+            .descendant(
+              of: find.byType(PosterCard).first,
+              matching: find.byType(KFocusable),
+            )
+            .first,
+        buttons: kSecondaryMouseButton,
+      );
+      await settle(t, 6);
+    },
+  ),
   'movie-detail': (Section.movies, (t, _) => _tap(t, 'The Quiet Orbit')),
   'shows': (Section.shows, null),
   'show-detail': (Section.shows, (t, _) => _tap(t, 'Moonlit Bureau')),

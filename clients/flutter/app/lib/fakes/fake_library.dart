@@ -11,10 +11,29 @@
 import 'dart:async';
 
 import '../integration/library.dart';
+import '../library/library_queries.dart';
 import 'demo_data.dart';
 
-class FakeLibrary implements Library {
+class FakeLibrary implements Library, LibraryQueriesProvider {
   FakeLibrary({this.scanStepDelay = const Duration(milliseconds: 60)});
+
+  /// A library of exactly [items] (tests: large grids), with [progress].
+  FakeLibrary.items(
+    List<LibraryItem> items, {
+    List<Progress> progress = const [],
+    this.scanStepDelay = Duration.zero,
+  }) {
+    _sources.add(
+      const MediaSource(
+        id: 'src-demo',
+        kind: SourceKind.localFolder,
+        name: 'Demo library',
+        path: '/media',
+      ),
+    );
+    _items.value = List.of(items);
+    _progress.value = {for (final p in progress) p.itemId: p};
+  }
 
   FakeLibrary.demo({this.scanStepDelay = const Duration(milliseconds: 60)}) {
     _sources.add(
@@ -96,6 +115,92 @@ class FakeLibrary implements Library {
     );
   }
 
+  /// Genres of the demo titles (the demo data has none): one or two from a
+  /// fixed list, picked from the id.
+  static List<String> demoGenres(LibraryItem item) {
+    const genres = [
+      'Drama', // l10n-ignore
+      'Sci-Fi', // l10n-ignore
+      'Comedy', // l10n-ignore
+      'Thriller', // l10n-ignore
+      'Adventure', // l10n-ignore
+      'Mystery', // l10n-ignore
+    ];
+    var h = 0;
+    for (final c in item.id.codeUnits) {
+      h = (h * 31 + c) & 0x7fffffff;
+    }
+    final a = genres[h % genres.length];
+    final b = genres[(h ~/ 7) % genres.length];
+    return a == b ? [a] : [a, b];
+  }
+
+  @override
+  late final LibraryQueries queries = MemoryLibraryQueries(
+    this,
+    supportsFilters: true,
+    genresOf: demoGenres,
+    badges: badges,
+  );
+
+  /// Watch badges from the stored progress: a movie by its own, a show
+  /// watched when all its episodes are, in progress when one is started.
+  Stream<Map<String, ItemBadge>> badges(ItemKind kind) => combineLatest2(
+    _items.stream,
+    _progress.stream,
+    (items, progress) {
+      final c = _badgeMaps[kind];
+      if (c != null && identical(c.$1, items) && identical(c.$2, progress)) {
+        return c.$3;
+      }
+      final out = _badgesOf(kind, items, progress);
+      _badgeMaps[kind] = (items, progress, out);
+      return out;
+    },
+  );
+
+  final _badgeMaps =
+      <
+        ItemKind,
+        (List<LibraryItem>, Map<String, Progress>, Map<String, ItemBadge>)
+      >{};
+
+  static Map<String, ItemBadge> _badgesOf(
+    ItemKind kind,
+    List<LibraryItem> items,
+    Map<String, Progress> progress,
+  ) {
+      final out = <String, ItemBadge>{};
+      if (kind == ItemKind.show) {
+        final episodes = <String, List<String>>{};
+        for (final i in items) {
+          if (i.kind == ItemKind.episode && i.showId != null) {
+            (episodes[i.showId!] ??= []).add(i.id);
+          }
+        }
+        for (final MapEntry(key: show, value: ids) in episodes.entries) {
+          final ps = [for (final id in ids) progress[id]];
+          if (ps.every((p) => p?.watched ?? false)) {
+            out[show] = const ItemBadge(WatchState.watched);
+          } else if (ps.any((p) => p != null && p.positionMs > 0)) {
+            out[show] = const ItemBadge(WatchState.inProgress);
+          }
+        }
+        return out;
+      }
+      for (final i in items) {
+        if (i.kind != kind) continue;
+        final p = progress[i.id];
+        if (p == null) continue;
+        if (p.watched || p.fraction > .95) {
+          out[i.id] = const ItemBadge(WatchState.watched);
+        } else if (p.fraction >= .02) {
+          out[i.id] = ItemBadge(WatchState.inProgress, p.fraction);
+        }
+      }
+      return out;
+  }
+
   @override
   Future<void> setTmdbApiKey(String? key) async => _tmdbApiKey = key;
 
@@ -113,9 +218,22 @@ class FakeLibrary implements Library {
     ItemKind kind, [
     bool Function(LibraryItem)? where,
   ]) => _items.stream.map(
-    (all) =>
-        all.where((i) => i.kind == kind && (where?.call(i) ?? true)).toList(),
+    (all) => where == null
+        ? _kindList(all, kind)
+        : all.where((i) => i.kind == kind && where(i)).toList(),
   );
+
+  // The same list for the same library state, so in-memory queries can
+  // reuse their sorted result between pages.
+  final _kindLists = <ItemKind, (List<LibraryItem>, List<LibraryItem>)>{};
+
+  List<LibraryItem> _kindList(List<LibraryItem> all, ItemKind kind) {
+    final c = _kindLists[kind];
+    if (c != null && identical(c.$1, all)) return c.$2;
+    final out = List<LibraryItem>.unmodifiable(all.where((i) => i.kind == kind));
+    _kindLists[kind] = (all, out);
+    return out;
+  }
 
   @override
   Stream<List<LibraryItem>> movies() => _ofKind(ItemKind.movie);

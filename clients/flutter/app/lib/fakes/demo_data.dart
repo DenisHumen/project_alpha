@@ -236,6 +236,7 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
         posterUrl: '${kDemoArtScheme}poster',
         backdropUrl: '${kDemoArtScheme}backdrop',
         matchConfidence: i == 6 ? 0.62 : 0.9 + (i % 3) * 0.03,
+        addedAt: t0.subtract(Duration(days: 3 + i * 5)),
       ),
     );
   }
@@ -256,6 +257,7 @@ DemoLibraryData buildDemoLibraryData({DateTime? now}) {
         posterUrl: '${kDemoArtScheme}poster',
         backdropUrl: '${kDemoArtScheme}backdrop',
         matchConfidence: 0.95,
+        addedAt: t0.subtract(Duration(days: 2 + i * 6)),
       ),
     );
     for (var s = 1; s <= seasons; s++) {
