@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
 import 'config.dart';
+import 'fakes/fake_device_sync.dart';
 import 'fakes/fake_library.dart';
 import 'fakes/fake_source_manager.dart';
 import 'integration/library.dart';
@@ -20,6 +21,8 @@ import 'services/preferences.dart';
 import 'services/secure_store.dart';
 import 'sources/core_source_manager.dart';
 import 'sources/source_manager.dart';
+import 'sync/device_info.dart';
+import 'sync/device_sync.dart';
 import 'widgets/artwork_image.dart';
 
 Future<void> main() async {
@@ -31,10 +34,12 @@ Future<void> main() async {
   final dir = await getApplicationSupportDirectory();
   final Library library;
   SourceManager? sourceManager;
+  DeviceSync sync = const NoDeviceSync();
   var rescan = false;
   if (AppConfig.demo) {
     library = FakeLibrary.demo();
     sourceManager = FakeSourceManager(library);
+    sync = FakeDeviceSync.demo();
   } else {
     // Rust core by default (UI-024); the v0 database is imported on the first
     // start and kept as kinolune.db.v0.bak. v0 is the fallback.
@@ -72,6 +77,22 @@ Future<void> main() async {
       } catch (e) {
         debugPrint('Source manager unavailable: $e');
       }
+      // UI-019: pairing and LAN sync over the same database.
+      try {
+        sync = await CoreDeviceSync.open(
+          library: (library as RustLibrary).core,
+          dataDir: '${dir.path}/sync',
+          deviceName: await syncDeviceName(formFactor),
+          deviceClass: switch (formFactor) {
+            FormFactor.tv => CoreDeviceClass.tv,
+            FormFactor.phone => CoreDeviceClass.mobile,
+            FormFactor.desktop => CoreDeviceClass.desktop,
+          },
+        );
+        await holdMulticastLock(true);
+      } catch (e) {
+        debugPrint('Device sync unavailable: $e');
+      }
     }
   }
   final services = AppServices(
@@ -79,6 +100,7 @@ Future<void> main() async {
     secureStore: PlatformSecureStore(),
     preferences: FilePreferences('${dir.path}/preferences.json'),
     sourceManager: sourceManager,
+    sync: sync,
   );
   await services.init();
   // Music tags and network-share items of an imported v0 library come with

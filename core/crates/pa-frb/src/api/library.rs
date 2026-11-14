@@ -22,10 +22,11 @@
 //! scan is in progress (the scan has its own connection).
 
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, Weak};
 
 use flutter_rust_bridge::frb;
 use pa_catalog as c;
+use pa_catalog::pa_sync::lan::service::SyncService;
 
 use crate::api::library_query::{
     CoreAlphabetEntry, CoreFacets, CoreFolderEntry, CoreItemPage, CoreLibraryQuery,
@@ -383,6 +384,9 @@ pub struct CoreLibrary {
     catalog: Arc<c::Catalog>,
     cancel: Mutex<Option<c::CancelToken>>,
     watcher: Mutex<Option<c::watch::LibraryWatcher>>,
+    /// The sync service over this library (UI-019): told to send new
+    /// progress at once.
+    sync: Mutex<Option<Weak<SyncService>>>,
     proxy: Mutex<Option<pa_proxy::Proxy>>,
     opener: Arc<c::SourceOpener>,
 }
@@ -397,6 +401,7 @@ impl CoreLibrary {
             catalog,
             cancel: Mutex::new(None),
             watcher: Mutex::new(None),
+            sync: Mutex::new(None),
             proxy: Mutex::new(None),
         })
     }
@@ -444,6 +449,18 @@ impl CoreLibrary {
             .as_ref()
             .map(pa_proxy::Proxy::base_url)
             .unwrap_or_default())
+    }
+
+    /// The catalog, for the sync service.
+    #[frb(ignore)]
+    pub(crate) fn catalog(&self) -> Arc<c::Catalog> {
+        Arc::clone(&self.catalog)
+    }
+
+    /// Connects the sync service ([`crate::api::sync::CoreSync`]).
+    #[frb(ignore)]
+    pub(crate) fn set_sync_hook(&self, service: Weak<SyncService>) {
+        *self.sync.lock().unwrap_or_else(|e| e.into_inner()) = Some(service);
     }
 
     pub fn sources(&self) -> Result<Vec<CoreSource>> {
@@ -642,13 +659,18 @@ impl CoreLibrary {
         updated_at_ms: i64,
         watched: bool,
     ) -> Result<bool> {
-        Ok(self.catalog.save_progress(
+        let saved = self.catalog.save_progress(
             item_ref(&item_id)?,
             position_ms,
             duration_ms,
             updated_at_ms,
             watched,
-        )?)
+        )?;
+        let sync = self.sync.lock().unwrap_or_else(|e| e.into_inner()).clone();
+        if saved && let Some(service) = sync.and_then(|w| w.upgrade()) {
+            service.flush();
+        }
+        Ok(saved)
     }
 
     /// "Continue watching" with Up Next, latest first.

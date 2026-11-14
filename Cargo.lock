@@ -2410,6 +2410,7 @@ name = "pa-catalog"
 version = "0.1.0"
 dependencies = [
  "notify",
+ "pa-discovery",
  "pa-library",
  "pa-metadata",
  "pa-model",
@@ -2419,6 +2420,7 @@ dependencies = [
  "pa-scanner",
  "pa-secrets",
  "pa-sources",
+ "pa-sync",
  "pa-vfs",
  "serde",
  "serde_json",
@@ -2468,6 +2470,7 @@ version = "0.1.0"
 dependencies = [
  "flutter_rust_bridge",
  "pa-catalog",
+ "pa-discovery",
  "pa-ffi",
  "pa-imagecache",
  "pa-proxy",
@@ -2475,6 +2478,8 @@ dependencies = [
  "pa-remote-config",
  "pa-secrets",
  "pa-sources",
+ "pa-sync",
+ "serde_json",
  "tempfile",
 ]
 
@@ -2732,6 +2737,7 @@ dependencies = [
  "rustls",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror",
  "tokio",
  "tokio-rustls",
