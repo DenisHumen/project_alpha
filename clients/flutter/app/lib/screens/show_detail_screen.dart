@@ -99,6 +99,13 @@ class _ShowDetailScreenState extends State<ShowDetailScreen> {
                     startPositionMs: nextP?.positionMs ?? 0,
                   ),
                 ),
+              if (next != null && nextP != null)
+                KButton(
+                  key: const ValueKey('show-start-over'),
+                  icon: Icons.replay,
+                  label: l.detailFromBeginning,
+                  onPressed: () => playVideo(context, next!),
+                ),
               KButton(
                 icon: Icons.manage_search,
                 label: l.commonFixMatch,
