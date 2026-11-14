@@ -26,8 +26,10 @@ abstract class CoreSources implements RustOpaqueInterface {
   /// All sources in display order.
   Future<List<CoreManagedSource>> list();
 
-  /// Opens the library database at `db_path` and the secret store
-  /// (keychain, or the encrypted fallback file in `data_dir`).
+  /// Opens the library database at `db_path` with the secret store opened
+  /// by `secrets_open_platform`/`secrets_open_default`, or, if none is
+  /// open, the default store (keychain, or the encrypted fallback file in
+  /// `data_dir`).
   static Future<CoreSources> open({
     required String dbPath,
     required String dataDir,

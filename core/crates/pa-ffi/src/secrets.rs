@@ -3,9 +3,11 @@
 //!
 //! Desktop: nothing to set up, the OS keychain is used (encrypted-file
 //! fallback with a warning when there is none). Android, iOS and tvOS
-//! implement [`PlatformSecretStore`] (Keystore + Tink, Keychain with
+//! implement [`PlatformSecretStore`] (Keystore + AES-GCM, Keychain with
 //! `AfterFirstUnlock`) and pass it to [`secrets_open`] right after
-//! `core_init`. The fallback file lives in the data directory of the core.
+//! `core_init` (CORE-015: `CorePlatformSecretStore` in
+//! `clients/android/secrets`, `KeychainSecretStore` in `PACore`). The
+//! fallback file lives in the data directory of the core.
 
 use std::sync::{Arc, PoisonError, RwLock};
 
