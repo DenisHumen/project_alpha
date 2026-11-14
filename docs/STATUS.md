@@ -13,7 +13,7 @@
 
 - **[Kinolune 0.1.0-alpha.1](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.1)** (2026-11-13, пре-релиз): Linux AppImage/tar.gz, Android APK (arm64, armv7, x86_64, universal; debug-подпись). Linux требует системный libmpv.
 - **[Kinolune 0.1.0-alpha.2](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.2)** (2026-11-14): наш LGPL libmpv внутри AppImage и APK.
-- **Kinolune 0.1.0-alpha.3** (2026-11-14, тег `app-v0.1.0-alpha.3`): медиатека на Rust-ядре по умолчанию (импорт базы v0 с резервной копией), метаданные TMDB/AniList/Shikimori в ядре, сессия воспроизведения (resume, Up Next).
+- **[Kinolune 0.1.0-alpha.3](https://github.com/DenisHumen/project_alpha/releases/tag/app-v0.1.0-alpha.3)** (2026-11-14): медиатека на Rust-ядре по умолчанию (импорт базы v0 с резервной копией), метаданные TMDB/AniList/Shikimori в ядре, сессия воспроизведения (resume, Up Next), структура папок (диски, части, extras).
 
 ## Готово и в main
 
@@ -27,9 +27,9 @@
 
 ## В работе (агенты, ветки на GitHub)
 
-LIB-007 (структура папок: диски, части, extras, sidecar-субтитры, NFO, локальный арт). Открытые PR: `gh pr list`.
+META-013 остаток (распознавание по группам LIB-007, NFO-id, замер точности на корпусе) — на паузе до сброса 5-часового лимита. Открытые PR: `gh pr list`.
 
-Слито 14 ноября: UI-024 (приложение на Rust-ядре), META-027 (метаданные в ядре; остаток META-013 ждёт LIB-007 и замера точности), PLAY-005 (сессия воспроизведения), NET-011 (менеджер источников `pa-sources`), LIB-006 (`pa-probe`, ADR-0034), PLAY-APL-001 (AlphaPlayerKit на MPVKit, ADR-0035; релизы Apple заблокированы до PLAY-APL-013 — FFmpeg MPVKit под LGPL-3.0), NET-002/003/004, SYNC-006, CORE-007, TV-001, PLAY-002, PLAY-013, CORE-003.
+Слито 14 ноября: LIB-007 (структура папок), UI-024 (приложение на Rust-ядре), META-027 (метаданные в ядре; остаток META-013 ждёт LIB-007 и замера точности), PLAY-005 (сессия воспроизведения), NET-011 (менеджер источников `pa-sources`), LIB-006 (`pa-probe`, ADR-0034), PLAY-APL-001 (AlphaPlayerKit на MPVKit, ADR-0035; релизы Apple заблокированы до PLAY-APL-013 — FFmpeg MPVKit под LGPL-3.0), NET-002/003/004, SYNC-006, CORE-007, TV-001, PLAY-002, PLAY-013, CORE-003.
 
 Сделано за 13–14 ноября (кроме перечисленного выше): pa-vfs, pa-runtime, pa-library (схема, прогресс, «Продолжить», Up Next), pa-scanner, pa-sync (модель, протокол), хаб синхронизации на сервере, pa-secrets, pa-discovery (mDNS), pa-playback (контракт плеера), pa-metadata (TMDB, AniList, Shikimori), парсер 0.2 + индекс тайтлов, корпус v0 (2035 групп), музыка (схема + теги), Twitch (Helix + вход), LGPL libmpv на 7 платформ, xcframework (Apple) и AAR (Android), локализация ru/en, исправления UI по скриншотам.
 
