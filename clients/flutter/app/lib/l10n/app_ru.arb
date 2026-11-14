@@ -189,7 +189,7 @@
   "sourcesSpeedTest": "Тест скорости",
   "sourcesEdit": "Изменить",
   "sourcesBrowseOnly": "Не добавляется в медиатеку",
-  "sourcesNotIndexable": "Связь и скорость уже можно проверить; добавление файлов с WebDAV в медиатеку появится в следующей версии.",
+  "sourcesNotIndexable": "Файлы из источника этого типа пока нельзя добавить в медиатеку.",
   "sourcesErrorDetails": "Подробнее",
   "sourcesSpeedRunning": "Измеряем скорость…",
   "sourcesSpeedResultTitle": "Тест скорости: {name}",
@@ -268,5 +268,8 @@
   "homeSources": "Источники",
   "homeBadgeMovie": "Фильм",
   "homeBadgeEpisode": "Серия",
-  "homeBadgeTwitchVod": "Запись Twitch"
+  "homeBadgeTwitchVod": "Запись Twitch",
+  "sourcesFormAutoScan": "Пересканировать автоматически",
+  "sourcesFormAutoScanHint": "Локальные папки — вскоре после изменения файлов, сетевые источники — раз в 15 минут.",
+  "sourcesAutoScanOn": "Пересканируется автоматически"
 }

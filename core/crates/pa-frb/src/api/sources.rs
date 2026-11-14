@@ -9,7 +9,9 @@
 //! ([`secrets_open_platform`](super::secrets::secrets_open_platform),
 //! CORE-015); [`CoreSources::open`] then uses it. Without an opened store
 //! desktop uses the OS keychain or the encrypted fallback file in
-//! `data_dir`, and mobile fails with a `secrets` error.
+//! `data_dir`, and mobile falls back to that file too. The store is shared
+//! with [`CoreLibrary`](super::library::CoreLibrary), which reads the
+//! passwords to scan and play network sources (LIB-018).
 //!
 //! Every method blocks (SQLite, keychain, network), so none is
 //! `#[frb(sync)]`.
@@ -244,11 +246,8 @@ impl CoreSources {
     /// open, the default store (keychain, or the encrypted fallback file in
     /// `data_dir`).
     pub fn open(db_path: String, data_dir: String) -> SourcesResult<CoreSources> {
-        let opened = match super::secrets::opened_store() {
-            Some(opened) => opened,
-            None => pa_secrets::open(pa_secrets::OpenOptions::new(Some(data_dir.into())))
-                .map_err(s::Error::from)?,
-        };
+        let opened =
+            crate::shared::secret_store(std::path::Path::new(&data_dir)).map_err(s::Error::from)?;
         Ok(Self {
             backend: opened.backend().as_str().into(),
             fallback_reason: opened.fallback_reason,

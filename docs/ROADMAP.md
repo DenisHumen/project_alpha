@@ -380,7 +380,7 @@ project_alpha/
   - Что: russh + russh-sftp (host key TOFU), suppaftp (REST для seek).
   - deps: NET-001 · size: M · parallel: yes · веха: M1 · ref: 02 §4
   - done when: контракт-тесты против OpenSSH и vsftpd.
-- [ ] **NET-007** `pa-proxy`: loopback HTTP Range-сервер
+- [x] **NET-007** `pa-proxy`: loopback HTTP Range-сервер
   - Что: `127.0.0.1:<port>` со случайным токеном в пути, отдаёт любой ByteSource с поддержкой Range; лимиты соединений; запасной путь для AVPlayer и ExoPlayer.
   - deps: NET-001 · size: S · parallel: yes · веха: M1 · ref: 02 §1.4, 04 §1.2
   - done when: ffprobe и curl читают файл через прокси; запрос без токена получает 403.
@@ -513,10 +513,14 @@ project_alpha/
   - Что: скан записывает `.iso` и разделы VIDEO_TS/BDMV (`.vob`, `.m2ts`) в `files`, чтобы группы LIB-007 доходили до распознавания и приложения как один элемент; выбор основного потока для воспроизведения диска.
   - deps: LIB-007 · size: S · parallel: yes · веха: M2 · ref: ADR-0032, META-013
   - done when: папка BDMV и файл ISO появляются в приложении одним фильмом с метаданными; тест в `pa-catalog`.
-- [ ] **LIB-018** Скан и воспроизведение сетевых источников через `pa-vfs`
+- [x] **LIB-018** Скан и воспроизведение сетевых источников через `pa-vfs`
   - Что: скан `pa-catalog` читает SMB и WebDAV через бэкенды `pa-vfs` из `pa-sources` (`SourceManager::connect`), без монтирования gio; приложение перестаёт хранить пароль SMB во flutter_secure_storage (только pa-secrets); воспроизведение сетевых файлов через `pa-player-io` (ByteSource) или loopback-прокси NET-007; переключатель автоскана на экране «Источники» (LIB-005).
   - deps: NET-011, LIB-005, UI-005 · size: L · parallel: no · веха: M1 · ref: ADR-0033, UI-005 PR «Решения владельца»
   - done when: SMB- и WebDAV-источник сканируются и воспроизводятся на Linux и Android без gio; пароль хранится в одном месте; тесты против Samba/WebDAV в docker на сервере сборки.
+- [ ] **LIB-019** Сетевые источники в собранном приложении: libsmb2 в сборках и проверка на устройствах
+  - Что: остаток LIB-018 вне ядра — положить LGPL libsmb2 (ADR-0033, `tools/libsmb2`) рядом с приложением в AppImage/tar.gz и в `jniLibs` APK, как libmpv; проверить в собранном приложении скан и воспроизведение SMB и WebDAV через loopback-прокси (ADR-0038) на Linux и в Android-эмуляторе; локальные постеры и обложки сетевых источников (сейчас приложение ищет их через `dart:io` и для сетевых не показывает) — из `pa_library::groups` (LIB-007) через прокси.
+  - deps: LIB-018 · size: M · parallel: yes · веха: M1 · ref: ADR-0033, LIB-018 PR «Не проверено»
+  - done when: в релизной сборке Linux и APK (эмулятор) SMB- и WebDAV-источник из docker-стенда сканируется и фильм играет с перемоткой; локальный постер с шары виден в медиатеке.
 ### 3.6. META — распознавание и метаданные
 
 - [x] **META-001** Таксономия, гайд по разметке, формат корпуса
@@ -1791,11 +1795,11 @@ project_alpha/
 | CI | 12 | MUS | 16 |
 | CORE | 15 | TWI | 22 |
 | NET | 21 | DIST | 27 |
-| LIB | 18 | DSN | 16 |
+| LIB | 19 | DSN | 16 |
 | META | 28 | PKG | 17 |
 | PLAY | 14 | QA | 11 |
 | PLAY-AND | 10 | DOC | 10 |
 | PLAY-DSK | 9 | LEGAL | 10 |
 | PLAY-APL | 13 | SITE | 6 |
 | UI | 24 | COMM | 6 |
-| TV | 13 | **Всего** | **369** (361 задач + 8 решений владельца) |
+| TV | 13 | **Всего** | **370** (362 задач + 8 решений владельца) |

@@ -8,7 +8,7 @@ import 'library_query.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `count`, `item_ref`, `items`, `signed`, `small`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `assert_fields_are_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`, `from`
 
 /// `true` if `path` is a database of the Dart `pa_library` v0.
 Future<bool> isLegacyV0Library({required String path}) =>
@@ -42,6 +42,13 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   /// Stops the running scan (it keeps what it wrote).
   Future<void> cancelScan();
+
+  /// Reaches SMB and WebDAV sources through the source manager
+  /// (`pa-sources`) with the passwords of the secret store whose
+  /// fallback file is in `data_dir` (the same as for `CoreSources.open`).
+  /// Until this is called only local folders are scanned. Fails if the
+  /// secret store cannot be opened; local folders keep working.
+  Future<void> connectSources({required String dataDir});
 
   /// "Continue watching" with Up Next, latest first.
   Future<List<CoreContinueItem>> continueWatching({required int limit});
@@ -129,12 +136,10 @@ abstract class CoreLibrary implements RustOpaqueInterface {
     required bool watched,
   });
 
-  /// Scans one source or all of them. The stream ends with a `Done`
-  /// update; errors come as updates with `error` set.
-  Stream<CoreScanUpdate> scan({
-    PlatformInt64? sourceId,
-    required List<CoreSourceRoot> roots,
-  });
+  /// Scans one source or all of them (network sources once
+  /// [`connect_sources`](Self::connect_sources) was called). The stream
+  /// ends with a `Done` update; errors come as updates with `error` set.
+  Stream<CoreScanUpdate> scan({PlatformInt64? sourceId});
 
   /// FTS5 search over movies, shows, episodes and tracks.
   Future<List<CoreItem>> search({required String query, required int limit});
@@ -157,7 +162,7 @@ abstract class CoreLibrary implements RustOpaqueInterface {
 
   /// Starts the change watcher (LIB-005), replacing a running one: local
   /// auto-scan sources are watched with OS notifications and rescanned
-  /// incrementally, mounted network shares on a timer. Every rescan comes
+  /// incrementally, network sources on a timer. Every rescan comes
   /// as an event; the stream stays open until
   /// [`stop_watcher`](Self::stop_watcher).
   Stream<CoreWatchEvent> startWatcher({required CoreWatchSettings settings});
@@ -165,6 +170,13 @@ abstract class CoreLibrary implements RustOpaqueInterface {
   /// Stops the change watcher (a running rescan is cancelled) and closes
   /// its stream. Does nothing if none runs.
   Future<void> stopWatcher();
+
+  /// Base URL of the loopback HTTP proxy that streams files of any source
+  /// (`http://127.0.0.1:<port>/<token>`), starting it on first use. The
+  /// URL of a file is the base, `/`, the source id and the path inside
+  /// the source, every segment percent-encoded. The token is a secret of
+  /// this process: do not log the URL.
+  Future<String> streamBaseUrl();
 
   Future<List<CoreItem>> tracks();
 
@@ -544,11 +556,11 @@ class CoreScanUpdate {
 class CoreSource {
   final PlatformInt64 id;
 
-  /// `local` or `smb`.
+  /// `local`, `smb` or `webdav`.
   final String kind;
   final String name;
 
-  /// `file:///…` or `smb://host/share/dir`, without credentials.
+  /// `file:///…`, `smb://host/share/dir` or `https://…`, without credentials.
   final String uri;
   final String? username;
 
@@ -590,25 +602,6 @@ class CoreSource {
           username == other.username &&
           localRoot == other.localRoot &&
           autoScan == other.autoScan;
-}
-
-/// Local path of a source that is not `file://` (a mounted share).
-class CoreSourceRoot {
-  final PlatformInt64 sourceId;
-  final String path;
-
-  const CoreSourceRoot({required this.sourceId, required this.path});
-
-  @override
-  int get hashCode => sourceId.hashCode ^ path.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is CoreSourceRoot &&
-          runtimeType == other.runtimeType &&
-          sourceId == other.sourceId &&
-          path == other.path;
 }
 
 /// A rescan done by the change watcher.
@@ -667,9 +660,6 @@ class CoreWatchEvent {
 
 /// Settings of the change watcher ([`CoreLibrary::start_watcher`]).
 class CoreWatchSettings {
-  /// Local paths of mounted network shares.
-  final List<CoreSourceRoot> roots;
-
   /// Rescan interval of network shares, seconds; 0: no timer.
   final int networkIntervalSecs;
 
@@ -680,7 +670,6 @@ class CoreWatchSettings {
   final bool scanOnStart;
 
   const CoreWatchSettings({
-    required this.roots,
     required this.networkIntervalSecs,
     required this.debounceMs,
     required this.scanOnStart,
@@ -688,17 +677,13 @@ class CoreWatchSettings {
 
   @override
   int get hashCode =>
-      roots.hashCode ^
-      networkIntervalSecs.hashCode ^
-      debounceMs.hashCode ^
-      scanOnStart.hashCode;
+      networkIntervalSecs.hashCode ^ debounceMs.hashCode ^ scanOnStart.hashCode;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is CoreWatchSettings &&
           runtimeType == other.runtimeType &&
-          roots == other.roots &&
           networkIntervalSecs == other.networkIntervalSecs &&
           debounceMs == other.debounceMs &&
           scanOnStart == other.scanOnStart;

@@ -24,7 +24,12 @@
 //! - the change watcher ([`watch::LibraryWatcher`], LIB-005): OS change
 //!   notifications for local folders, a timer for network shares, and
 //!   incremental rescans of the changed folders
-//!   ([`Catalog::rescan_folders`]).
+//!   ([`Catalog::rescan_folders`]);
+//! - access to the files of every source through a [`Connector`]
+//!   (LIB-018): local folders by default, SMB and WebDAV through the
+//!   source manager ([`SourcesConnector`], `pa-sources`), without mounting
+//!   anything; [`SourceOpener`] serves them to the loopback HTTP proxy
+//!   (`pa-proxy`) for playback.
 //!
 //! Recognition in the scan is local: works are created from parsed titles,
 //! without providers. The metadata run then matches them against TMDB (and
@@ -34,6 +39,7 @@
 //! Item ids are strings, stable while the catalog rows live: `m<work>` (a
 //! movie), `s<work>` (a show or anime), `e<episode>`, `t<track>`.
 
+mod connect;
 mod error;
 pub mod fingerprint;
 mod fix;
@@ -41,6 +47,7 @@ mod import_v0;
 mod index;
 mod items;
 pub mod metadata;
+mod probe;
 mod progress;
 pub mod query;
 pub mod recognize;
@@ -50,11 +57,12 @@ pub mod uri;
 pub mod watch;
 
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard, RwLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use pa_library::rusqlite::Connection;
 
+pub use connect::{Connector, LocalConnector, SourceOpener, SourcesConnector};
 pub use error::Error;
 pub use import_v0::ImportReport;
 pub use items::{Item, ItemKind, ItemRef};
@@ -80,6 +88,8 @@ pub struct Catalog {
     conn: Mutex<Connection>,
     /// Scans are serialized; queries keep running on `conn` meanwhile.
     scan_lock: Mutex<()>,
+    /// How sources are reached ([`Catalog::set_connector`]).
+    connector: RwLock<Arc<dyn Connector>>,
     /// In-memory index of library queries (LIB-009) and the database state
     /// it was built from.
     index: Mutex<Option<(index::Stamp, Arc<index::Index>)>>,
@@ -103,6 +113,7 @@ impl Catalog {
             path,
             conn: Mutex::new(conn),
             scan_lock: Mutex::new(()),
+            connector: RwLock::new(Arc::new(LocalConnector)),
             index: Mutex::new(None),
         })
     }

@@ -272,7 +272,7 @@
   "sourcesSpeedTest": "Speed test",
   "sourcesEdit": "Edit",
   "sourcesBrowseOnly": "Not added to the library",
-  "sourcesNotIndexable": "Connection and speed can be checked now; adding files from WebDAV to the library comes in a later version.",
+  "sourcesNotIndexable": "Files from this kind of source cannot be added to the library yet.",
   "sourcesErrorDetails": "Details",
   "@sourcesErrorDetails": { "description": "Expands the technical error message." },
   "sourcesSpeedRunning": "Measuring speed…",
@@ -375,5 +375,8 @@
   "homeBadgeEpisode": "Episode",
   "@homeBadgeEpisode": { "description": "Type badge on a Continue Watching or Up Next card." },
   "homeBadgeTwitchVod": "Twitch video",
-  "@homeBadgeTwitchVod": { "description": "Type badge on a Continue Watching card for a Twitch recording (VOD)." }
+  "@homeBadgeTwitchVod": { "description": "Type badge on a Continue Watching card for a Twitch recording (VOD)." },
+  "sourcesFormAutoScan": "Rescan automatically",
+  "sourcesFormAutoScanHint": "Local folders: soon after files change. Network sources: every 15 minutes.",
+  "sourcesAutoScanOn": "Rescanned automatically"
 }

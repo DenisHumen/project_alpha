@@ -11,11 +11,16 @@
 //! `pa_library` v0 database. The Dart package `pa_library` adapts it to
 //! the app's `Library` interface.
 //!
+//! Network sources (SMB, WebDAV) are scanned and played through `pa-vfs`
+//! (LIB-018): [`CoreLibrary::connect_sources`] lets the catalog reach them
+//! with the passwords of the source manager's secret store, and
+//! [`CoreLibrary::stream_base_url`] starts the loopback HTTP proxy
+//! (`pa-proxy`) that serves their files to the player.
+//!
 //! Every method blocks on SQLite or the file system, so none is
 //! `#[frb(sync)]`: Dart awaits them off the UI thread. Queries run while a
 //! scan is in progress (the scan has its own connection).
 
-use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -49,10 +54,10 @@ type Result<T> = std::result::Result<T, LibraryError>;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoreSource {
     pub id: i64,
-    /// `local` or `smb`.
+    /// `local`, `smb` or `webdav`.
     pub kind: String,
     pub name: String,
-    /// `file:///…` or `smb://host/share/dir`, without credentials.
+    /// `file:///…`, `smb://host/share/dir` or `https://…`, without credentials.
     pub uri: String,
     pub username: Option<String>,
     /// Local path of a `file://` root.
@@ -248,13 +253,6 @@ impl From<c::ScanUpdate> for CoreScanUpdate {
     }
 }
 
-/// Local path of a source that is not `file://` (a mounted share).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CoreSourceRoot {
-    pub source_id: i64,
-    pub path: String,
-}
-
 /// What [`CoreLibrary::import_v0`] did.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoreImportReport {
@@ -327,8 +325,6 @@ pub struct CoreMetadataUpdate {
 /// Settings of the change watcher ([`CoreLibrary::start_watcher`]).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoreWatchSettings {
-    /// Local paths of mounted network shares.
-    pub roots: Vec<CoreSourceRoot>,
     /// Rescan interval of network shares, seconds; 0: no timer.
     pub network_interval_secs: u32,
     /// Quiet time after a change before the rescan, milliseconds.
@@ -374,17 +370,67 @@ pub struct CoreLibrary {
     catalog: Arc<c::Catalog>,
     cancel: Mutex<Option<c::CancelToken>>,
     watcher: Mutex<Option<c::watch::LibraryWatcher>>,
+    proxy: Mutex<Option<pa_proxy::Proxy>>,
+    opener: Arc<c::SourceOpener>,
 }
 
 impl CoreLibrary {
     /// Opens (creating and migrating) the database file at `path`. A
     /// `pa_library` v0 file is refused: open a new file and import it.
     pub fn open(path: String) -> Result<CoreLibrary> {
+        let catalog = Arc::new(c::Catalog::open(path)?);
         Ok(Self {
-            catalog: Arc::new(c::Catalog::open(path)?),
+            opener: Arc::new(c::SourceOpener::new(Arc::clone(&catalog))),
+            catalog,
             cancel: Mutex::new(None),
             watcher: Mutex::new(None),
+            proxy: Mutex::new(None),
         })
+    }
+
+    /// Reaches SMB and WebDAV sources through the source manager
+    /// (`pa-sources`) with the passwords of the secret store whose
+    /// fallback file is in `data_dir` (the same as for `CoreSources.open`).
+    /// Until this is called only local folders are scanned. Fails if the
+    /// secret store cannot be opened; local folders keep working.
+    pub fn connect_sources(&self, data_dir: String) -> Result<()> {
+        let opened =
+            crate::shared::secret_store(Path::new(&data_dir)).map_err(|e| LibraryError {
+                message: format!("secret store: {e}"),
+            })?;
+        let manager =
+            pa_sources::SourceManager::open(self.catalog.path(), opened.store).map_err(|e| {
+                LibraryError {
+                    message: e.to_string(),
+                }
+            })?;
+        self.catalog
+            .set_connector(Arc::new(c::SourcesConnector::new(Arc::new(manager))));
+        self.opener.reset();
+        Ok(())
+    }
+
+    /// Base URL of the loopback HTTP proxy that streams files of any source
+    /// (`http://127.0.0.1:<port>/<token>`), starting it on first use. The
+    /// URL of a file is the base, `/`, the source id and the path inside
+    /// the source, every segment percent-encoded. The token is a secret of
+    /// this process: do not log the URL.
+    pub fn stream_base_url(&self) -> Result<String> {
+        let mut proxy = self.proxy.lock().unwrap_or_else(|e| e.into_inner());
+        if proxy.is_none() {
+            let opener: Arc<dyn pa_proxy::Opener> = self.opener.clone();
+            *proxy = Some(
+                pa_proxy::Proxy::start(opener, pa_proxy::ProxyOptions::default()).map_err(|e| {
+                    LibraryError {
+                        message: format!("stream proxy: {e}"),
+                    }
+                })?,
+            );
+        }
+        Ok(proxy
+            .as_ref()
+            .map(pa_proxy::Proxy::base_url)
+            .unwrap_or_default())
     }
 
     pub fn sources(&self) -> Result<Vec<CoreSource>> {
@@ -417,22 +463,14 @@ impl CoreLibrary {
         Ok(self.catalog.remove_source(id)?)
     }
 
-    /// Scans one source or all of them. The stream ends with a `Done`
-    /// update; errors come as updates with `error` set.
-    pub fn scan(
-        &self,
-        source_id: Option<i64>,
-        roots: Vec<CoreSourceRoot>,
-        sink: StreamSink<CoreScanUpdate>,
-    ) {
+    /// Scans one source or all of them (network sources once
+    /// [`connect_sources`](Self::connect_sources) was called). The stream
+    /// ends with a `Done` update; errors come as updates with `error` set.
+    pub fn scan(&self, source_id: Option<i64>, sink: StreamSink<CoreScanUpdate>) {
         let token = c::CancelToken::new();
         *self.cancel.lock().unwrap_or_else(|e| e.into_inner()) = Some(token.clone());
-        let roots: HashMap<i64, PathBuf> = roots
-            .into_iter()
-            .map(|r| (r.source_id, PathBuf::from(r.path)))
-            .collect();
         let mut done = false;
-        let result = self.catalog.scan(source_id, &roots, &token, &mut |u| {
+        let result = self.catalog.scan(source_id, &token, &mut |u| {
             done |= u.phase == c::ScanPhase::Done;
             // A closed stream (Dart cancelled) keeps the scan going: the
             // library still needs the result.
@@ -463,7 +501,7 @@ impl CoreLibrary {
 
     /// Starts the change watcher (LIB-005), replacing a running one: local
     /// auto-scan sources are watched with OS notifications and rescanned
-    /// incrementally, mounted network shares on a timer. Every rescan comes
+    /// incrementally, network sources on a timer. Every rescan comes
     /// as an event; the stream stays open until
     /// [`stop_watcher`](Self::stop_watcher).
     pub fn start_watcher(
@@ -473,11 +511,8 @@ impl CoreLibrary {
     ) -> Result<()> {
         // The old watcher (and its stream) goes first.
         self.stop_watcher();
-        let roots: HashMap<i64, PathBuf> = settings
-            .roots
-            .into_iter()
-            .map(|r| (r.source_id, PathBuf::from(r.path)))
-            .collect();
+        // Sources may have changed: connect again on the next stream.
+        self.opener.reset();
         let options = c::watch::WatchOptions {
             network_interval: (settings.network_interval_secs > 0)
                 .then(|| std::time::Duration::from_secs(u64::from(settings.network_interval_secs))),
@@ -487,7 +522,6 @@ impl CoreLibrary {
         };
         let watcher = c::watch::LibraryWatcher::start(
             Arc::clone(&self.catalog),
-            &roots,
             options,
             Box::new(move |e| {
                 let _ = sink.add(e.into());
@@ -838,5 +872,40 @@ mod tests {
             lib.add_source(None, "local".into(), "M".into(), "rel".into(), None)
                 .is_err()
         );
+    }
+
+    #[test]
+    fn streams_files_of_a_source_through_the_proxy() {
+        use std::io::{Read, Write};
+
+        let dir = tempfile::tempdir().unwrap();
+        let media = dir.path().join("media");
+        std::fs::create_dir_all(media.join("Dune (2021)")).unwrap();
+        std::fs::write(media.join("Dune (2021)/Dune.mkv"), b"0123456789").unwrap();
+        let lib = CoreLibrary::open(dir.path().join("l.db").to_string_lossy().into()).unwrap();
+        let src = lib
+            .add_source(
+                None,
+                "local".into(),
+                "M".into(),
+                media.to_string_lossy().into(),
+                None,
+            )
+            .unwrap();
+        let base = lib.stream_base_url().unwrap();
+        assert_eq!(lib.stream_base_url().unwrap(), base);
+        let rest = base.strip_prefix("http://").unwrap();
+        let (addr, token) = rest.split_once('/').unwrap();
+        let mut s = std::net::TcpStream::connect(addr).unwrap();
+        write!(
+            s,
+            "GET /{token}/{}/Dune%20%282021%29/Dune.mkv HTTP/1.1\r\nRange: bytes=3-5\r\nConnection: close\r\n\r\n",
+            src.id
+        )
+        .unwrap();
+        let mut reply = String::new();
+        s.read_to_string(&mut reply).unwrap();
+        assert!(reply.starts_with("HTTP/1.1 206"), "{reply}");
+        assert!(reply.ends_with("\r\n\r\n345"), "{reply}");
     }
 }
