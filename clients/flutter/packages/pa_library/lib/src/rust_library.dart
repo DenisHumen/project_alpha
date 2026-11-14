@@ -284,15 +284,15 @@ class RustLibrary implements Library {
         CoreScanPhase.done => ScanPhase.done,
       };
       final progress = ScanProgress(
-          phase: phase,
-          sourceId: u.sourceId?.toString(),
-          filesFound: u.filesFound,
-          processed: u.processed,
-          total: u.total,
-          currentPath: u.currentPath,
-          error: u.error,
-          errors: List.unmodifiable([...errors, ?u.error]),
-        );
+        phase: phase,
+        sourceId: u.sourceId?.toString(),
+        filesFound: u.filesFound,
+        processed: u.processed,
+        total: u.total,
+        currentPath: u.currentPath,
+        error: u.error,
+        errors: List.unmodifiable([...errors, ?u.error]),
+      );
       if (phase == ScanPhase.done) {
         // Held back until the metadata run is over.
         finished = progress;
