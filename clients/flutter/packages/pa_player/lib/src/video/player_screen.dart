@@ -176,14 +176,21 @@ class PlayerScreenState extends State<PlayerScreen>
     _subtitleGeneration++;
     _autoSelectTimer?.cancel();
     _autoSelectPending = false;
-    // sub-delay is an mpv option: set before the file loads, it applies to
-    // it from the first cue.
-    engine.setSubtitleDelay(_memoryFor(request)?.delay ?? Duration.zero);
-    return engine.open(
+    // The first duration the engine reports after this loads the file's
+    // subtitles (engines reset the duration when a file is opened).
+    _subtitlesLoaded = false;
+    final opened = engine.open(
       [request.uri],
       start: Duration(milliseconds: request.startPositionMs),
       autoLoadSubtitles: request.subtitles == null,
     );
+    // sub-delay is an option of the player, not of the file: set it for
+    // every file, to the series' value or back to zero.
+    final delay = _memoryFor(request)?.delay ?? Duration.zero;
+    if (delay != engine.state.value.subtitleDelay) {
+      engine.setSubtitleDelay(delay);
+    }
+    return opened;
   }
 
   Future<void> _loadCaptionStyle() async {
@@ -377,7 +384,6 @@ class PlayerScreenState extends State<PlayerScreen>
       _onProgress = next.onProgress;
       _loadNext = next.loadNext;
       _finished = false;
-      _subtitlesLoaded = false;
       _endHandled = false;
     });
     final generation = ++_nextGeneration;

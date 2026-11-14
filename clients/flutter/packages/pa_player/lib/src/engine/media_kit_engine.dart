@@ -236,6 +236,16 @@ class MediaKitEngine implements PlayerEngine {
     bool autoLoadSubtitles = true,
   }) async {
     _external.clear();
+    // Until the new file reports its own, nothing of the old one counts:
+    // listeners wait for a duration to know the file is loaded.
+    _set(
+      _state.value.copyWith(
+        completed: false,
+        duration: Duration.zero,
+        subtitleTracks: const [],
+        subtitleLines: const [],
+      ),
+    );
     await _ready;
     final p = _player.platform;
     if (!_disposed &&
@@ -254,7 +264,6 @@ class MediaKitEngine implements PlayerEngine {
           start: i == index && start > Duration.zero ? start : null,
         ),
     ];
-    _set(_state.value.copyWith(completed: false));
     await _player.open(mk.Playlist(medias, index: index), play: play);
   }
 

@@ -268,8 +268,10 @@ void main() {
         request: const PlayRequest(uri: '/m/a.mkv', title: 'A', subtitles: []),
       ),
     );
-    expect(h.engine.calls, contains('subdelay:0'));
+    expect(h.engine.state.value.subtitleDelay, Duration.zero);
+    expect(h.engine.calls.where((c) => c.startsWith('subdelay')), isEmpty);
     await h.state(t).setSubtitleDelay(const Duration(seconds: 1));
+    expect(h.engine.state.value.subtitleDelay, const Duration(seconds: 1));
     expect(h.memories, isEmpty);
   });
 }
