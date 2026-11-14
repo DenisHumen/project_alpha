@@ -227,8 +227,8 @@ impl SortField {
     }
 }
 
-/// Sort of a query. Ties fall back to title, then id; missing values go
-/// last in both directions.
+/// Sort of a query. Ties fall back to title (A→Z), year and id; missing
+/// values go last in both directions.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(default)]
 pub struct LibrarySort {
@@ -604,9 +604,10 @@ GROUP BY w.id
 /// `ORDER BY` of a sort.
 fn order_by(sort: LibrarySort) -> String {
     let dir = if sort.descending { "DESC" } else { "ASC" };
-    let title = format!("pa_sort_key(w.title) {dir}, w.year {dir}, w.id {dir}");
+    // Ties of other fields read A→Z whatever the direction.
+    let title = "pa_sort_key(w.title), w.year, w.id";
     match sort.field {
-        SortField::Title => format!("ORDER BY {title}"),
+        SortField::Title => format!("ORDER BY pa_sort_key(w.title) {dir}, w.year {dir}, w.id {dir}"),
         SortField::Year => format!("ORDER BY w.year {dir} NULLS LAST, {title}"),
         SortField::Added => format!("ORDER BY max(f.added_at_ms) {dir} NULLS LAST, {title}"),
         SortField::Duration => format!(
@@ -850,12 +851,11 @@ pub(crate) fn browse(
             });
         }
     }
-    let mut entries: Vec<FolderEntry> = folders.into_values().chain(files).collect();
-    let keyed: Vec<(String, FolderEntry)> = entries
-        .drain(..)
+    let mut keyed: Vec<(String, FolderEntry)> = folders
+        .into_values()
+        .chain(files)
         .map(|e| (sort_key(&e.name), e))
         .collect();
-    let mut keyed = keyed;
     keyed.sort_by(|(ka, a), (kb, b)| {
         let group = if folders_first {
             b.is_folder.cmp(&a.is_folder)
@@ -873,12 +873,13 @@ pub(crate) fn browse(
             },
             _ => std::cmp::Ordering::Equal,
         };
-        let by_field = by_field.then_with(|| ka.cmp(kb)).then_with(|| a.name.cmp(&b.name));
-        group.then(if sort.descending {
-            by_field.reverse()
-        } else {
-            by_field
-        })
+        let by_name = ka.cmp(kb).then_with(|| a.name.cmp(&b.name));
+        let ordered = match (sort.field, sort.descending) {
+            (SortField::Title, true) => by_name.reverse(),
+            (SortField::Added | SortField::Duration, true) => by_field.reverse().then(by_name),
+            _ => by_field.then(by_name),
+        };
+        group.then(ordered)
     });
     Ok(keyed.into_iter().map(|(_, e)| e).collect())
 }

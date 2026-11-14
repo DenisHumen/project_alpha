@@ -65,9 +65,15 @@ fn check_slug(s: &str) -> Result<(), Error> {
     Ok(())
 }
 
-fn check_json(s: &str) -> Result<(), Error> {
-    serde_json::from_str::<serde_json::Value>(s).map_err(|_| Error::Invalid("query JSON"))?;
-    Ok(())
+fn check_json(conn: &Connection, s: &str) -> Result<(), Error> {
+    let valid: bool = conn
+        .prepare_cached("SELECT json_valid(?1)")?
+        .query_row([s], |r| r.get(0))?;
+    if valid {
+        Ok(())
+    } else {
+        Err(Error::Invalid("query JSON"))
+    }
 }
 
 fn prefs_row(r: &Row<'_>) -> rusqlite::Result<ViewPrefs> {
@@ -107,7 +113,7 @@ pub fn set_view_prefs(conn: &Connection, profile_id: i64, prefs: &ViewPrefs) -> 
     check_view(&prefs.view)?;
     check_slug(&prefs.sort)?;
     if let Some(f) = &prefs.filter_json {
-        check_json(f)?;
+        check_json(conn, f)?;
     }
     conn.prepare_cached(
         "INSERT INTO view_prefs (profile_id, view, sort, descending, folders_first, filter_json,
@@ -204,7 +210,7 @@ pub fn create_shelf(
     if name.is_empty() {
         return Err(Error::Invalid("shelf name"));
     }
-    check_json(query_json)?;
+    check_json(conn, query_json)?;
     conn.prepare_cached(
         "INSERT INTO smart_shelves (profile_id, name, query_json, pinned_home, position,
                                     created_at_ms, updated_at_ms)
@@ -230,7 +236,7 @@ pub fn update_shelf(
     if name.is_empty() {
         return Err(Error::Invalid("shelf name"));
     }
-    check_json(query_json)?;
+    check_json(conn, query_json)?;
     let n = conn
         .prepare_cached(
             "UPDATE smart_shelves SET name = ?2, query_json = ?3, pinned_home = ?4,
