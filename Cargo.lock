@@ -2496,6 +2496,7 @@ dependencies = [
  "pa-library",
  "pa-model",
  "pa-vfs",
+ "serde_json",
  "tempfile",
 ]
 
