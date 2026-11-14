@@ -29,7 +29,9 @@ Future<void> setFavorite(
   final messenger = ScaffoldMessenger.maybeOf(context);
   final l = context.l10n;
   await lists.setFavorite(item.id, favorite);
-  messenger?.showSnackBar(
+  messenger
+    ?..removeCurrentSnackBar()
+    ..showSnackBar(
     SnackBar(
       content: Text(
         favorite ? l.libraryFavoriteAdded : l.libraryFavoriteRemoved,
@@ -59,7 +61,9 @@ Future<void> showAddToPlaylistDialog(
     _New(:final name) => await lists.createPlaylist(name),
   };
   final added = await lists.addToPlaylist(playlist.id, item.id);
-  messenger?.showSnackBar(
+  messenger
+    ?..removeCurrentSnackBar()
+    ..showSnackBar(
     SnackBar(
       content: Text(
         added > 0
