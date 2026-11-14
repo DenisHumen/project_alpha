@@ -80,6 +80,12 @@ impl FakeProviders {
                 {"id":438631,"title":"Дюна","original_title":"Dune","release_date":"2021-09-15","popularity":90}
             ]}"#),
             "/search/movie" => ok(empty),
+            "/find/tt0113277" => ok(r#"{"movie_results":[
+                {"id":949,"title":"Схватка","original_title":"Heat","release_date":"1995-12-15"}
+            ],"tv_results":[]}"#),
+            "/movie/949" => ok(r#"{"id":949,"title":"Схватка","original_title":"Heat",
+                "original_language":"en","overview":"Ограбление.","release_date":"1995-12-15",
+                "status":"Released","runtime":170,"imdb_id":"tt0113277"}"#),
             "/movie/438631" => ok(r#"{"id":438631,"title":"Дюна","original_title":"Dune",
                 "original_language":"en","overview":"Пустынная планета.","release_date":"2021-09-15",
                 "status":"Released","runtime":155,"poster_path":"/dune-ru.jpg",
@@ -435,4 +441,36 @@ fn without_a_tmdb_key_only_anime_is_asked() {
     assert_eq!(report.matched, 1);
     let calls = fake.calls.lock().unwrap().clone();
     assert!(calls.iter().all(|c| !c.starts_with("/search")), "{calls:?}");
+}
+
+#[test]
+fn an_nfo_imdb_id_is_looked_up_instead_of_searched() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("media");
+    media(&root, "Movies/Heat (1995)/Heat (1995).mkv", 1);
+    std::fs::write(
+        root.join("Movies/Heat (1995)/Heat (1995).nfo"),
+        "https://www.imdb.com/title/tt0113277/",
+    )
+    .unwrap();
+    let cat = Catalog::open(dir.path().join("library.db")).unwrap();
+    cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
+        .unwrap();
+    cat.scan(None, &HashMap::new(), &CancelToken::new(), &mut |_| {})
+        .unwrap();
+    let fake = Arc::new(FakeProviders::default());
+    let report = run(&cat, &providers(&fake, true));
+    assert_eq!((report.works, report.matched), (1, 1), "{report:?}");
+    let calls = fake.calls.lock().unwrap().clone();
+    assert!(
+        calls.iter().all(|c| !c.starts_with("/search")),
+        "no title search: {calls:?}"
+    );
+    let movies = cat.movies().unwrap();
+    assert_eq!(movies[0].tmdb_id, Some(949));
+    assert_eq!(movies[0].title, "Схватка");
+    let decided: String = db(&dir)
+        .query_row("SELECT decided_by FROM matches", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(decided, "nfo", "a known id keeps the NFO decision");
 }

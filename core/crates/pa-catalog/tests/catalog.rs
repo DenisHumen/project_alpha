@@ -320,3 +320,68 @@ fn v0_import_moves_items_and_progress_once() {
     assert_eq!(titles, vec!["Dune", "Матрица"]);
     assert_eq!(cat.episodes(show[0].id).unwrap().len(), 3);
 }
+
+#[test]
+fn folder_groups_shape_recognition() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("media");
+    media(&root, "Movies/Heat (1995)/Heat (1995).mkv", 1);
+    std::fs::write(
+        root.join("Movies/Heat (1995)/movie.nfo"),
+        r#"<movie><title>Heat</title><uniqueid type="tmdb">949</uniqueid></movie>"#,
+    )
+    .unwrap();
+    media(&root, "Movies/Alien (1979)/Alien.1979.DVDRip.CD1.avi", 2);
+    media(&root, "Movies/Alien (1979)/Alien.1979.DVDRip.CD2.avi", 3);
+    media(&root, "Anime/Frieren/[Grp] Sousou no Frieren - 01.mkv", 4);
+    media(&root, "Anime/Frieren/[Grp] Sousou no Frieren - 02.mkv", 5);
+    media(&root, "Anime/Frieren/[Grp] Sousou no Frieren - NCOP.mkv", 6);
+    let cat = Catalog::open(dir.path().join("library.db")).unwrap();
+    cat.add_source(None, "local", "Media", root.to_str().unwrap(), None)
+        .unwrap();
+    scan_all(&cat);
+
+    let movies = cat.movies().unwrap();
+    let mut titles: Vec<_> = movies.iter().map(|m| m.title.as_str()).collect();
+    titles.sort_unstable();
+    assert_eq!(titles, ["Alien", "Heat"], "parts are one item");
+    let heat = movies.iter().find(|m| m.title == "Heat").unwrap();
+    assert_eq!(heat.tmdb_id, Some(949), "the NFO id is attached");
+    let alien = movies.iter().find(|m| m.title == "Alien").unwrap();
+    assert!(alien.rel_path.ends_with("CD1.avi"), "{}", alien.rel_path);
+
+    let shows = cat.shows().unwrap();
+    assert_eq!(shows.len(), 1, "the NCOP is not a show of its own");
+    let episodes = cat.episodes(shows[0].id).unwrap();
+    assert_eq!(episodes.len(), 2, "the NCOP is not an episode");
+    assert!(
+        episodes.iter().all(|e| !e.rel_path.contains("NCOP")),
+        "{episodes:?}"
+    );
+
+    let conn = pa_library::rusqlite::Connection::open(dir.path().join("library.db")).unwrap();
+    let decided: Vec<(String, String)> = conn
+        .prepare(
+            "SELECT f.path, m.decided_by FROM matches m JOIN files f ON f.id = m.file_id
+             ORDER BY f.path",
+        )
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+        .unwrap()
+        .collect::<Result<_, _>>()
+        .unwrap();
+    let by = |suffix: &str| {
+        decided
+            .iter()
+            .find(|(p, _)| p.ends_with(suffix))
+            .map(|(_, d)| d.as_str())
+    };
+    assert_eq!(by("Heat (1995).mkv"), Some("nfo"));
+    assert_eq!(by("CD2.avi"), Some("rule"));
+    // The NCOP is matched to the show's work, without episodes.
+    assert_eq!(by("NCOP.mkv"), Some("rule"));
+    let works: i64 = conn
+        .query_row("SELECT count(*) FROM works", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(works, 3);
+}
