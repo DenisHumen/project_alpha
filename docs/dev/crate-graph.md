@@ -67,6 +67,7 @@ flowchart LR
   pa_eval --> pa_recognition
   pa_eval --> pa_recognition_eval
   pa_eval --> pa_scanner
+  pa_ffi --> pa_discovery
   pa_ffi --> pa_flavor
   pa_ffi --> pa_playback
   pa_ffi --> pa_runtime
